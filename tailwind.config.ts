@@ -1,3 +1,4 @@
+import { text } from "stream/consumers";
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -24,6 +25,18 @@ const config: Config = {
   				DEFAULT: 'hsl(var(--primary))',
   				foreground: 'hsl(var(--primary-foreground))'
   			},
+  			found: {
+  				DEFAULT: '#F2EFE9',
+  				foreground: '#F2EFE9'
+  			},
+			text: {
+				DEFAULT: '#0D1B1E',
+				foreground: '#0D1B1E'
+			},
+			green: {
+				DEFAULT: '#036016',
+				foreground: '#036016'
+			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',
   				foreground: 'hsl(var(--secondary-foreground))'
