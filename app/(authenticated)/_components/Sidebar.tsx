@@ -10,6 +10,7 @@ import { PiGrainsFill } from "react-icons/pi";
 import { useState } from "react";
 import { PanelRightOpen } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import LogoutButton from "./LogoutButton";
 
 const routes = [
   {
@@ -109,6 +110,7 @@ const Sidebar = () => {
           ))}
         </nav>
       </div>
+      <LogoutButton />
     </div>
   );
 };

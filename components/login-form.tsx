@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { FaSpinner } from "react-icons/fa";
 
 export function LoginForm({
   className,
@@ -29,6 +30,7 @@ export function LoginForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
+        credentials: "include",
       });
 
       const data = await res.json();
@@ -40,6 +42,13 @@ export function LoginForm({
       }
       toast.success("Login bem-sucedido");
       router.push("/dashboard");
+
+      if (res.ok) {
+        // Força uma atualização completa do estado da aplicação
+        window.location.href = "/dashboard"; // Alternativa: router.refresh() + router.push("/dashboard")
+      } else {
+        throw new Error("Credenciais inválidas");
+      }
     } catch (err) {
       console.error(err);
       setError("Erro ao conectar com o servidor");
@@ -82,8 +91,16 @@ export function LoginForm({
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Entrando..." : "Login"}
+              <Button
+                type="submit"
+                className={`p-2 rounded-md transition-colors ${
+                  loading
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                disabled={loading}
+              >
+                {loading ? <FaSpinner className="animate-spin" /> : "Login"}
               </Button>
               <div className="text-center text-sm">
                 Ainda não tem uma conta?{" "}

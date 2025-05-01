@@ -1,10 +1,15 @@
+// app/api/auth/logout/route.ts
 import { NextResponse } from "next/server";
 
-export async function GET() {
-    const response = NextResponse.json({ message: "Logout efetuado" });
+export async function POST() {
+  const response = NextResponse.json({ message: "Logout bem-sucedido" });
 
-    //destruir o cookie e retornar  para a página de logi
-    response.cookies.delete("token");
-    return response;
-    
+  // Limpar o cookie do token
+  response.cookies.set("token", "", {
+    httpOnly: true,
+    path: "/",
+    expires: new Date(0), // Define uma data de expiração no passado, efetivamente removendo o cookie
+  });
+
+  return response;
 }
