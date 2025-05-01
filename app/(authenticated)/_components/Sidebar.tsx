@@ -23,8 +23,8 @@ const routes = [
     icon: <AiOutlineDashboard size={20} />,
   },
   {
-    path: "/orders",
-    name: "Pedidos",
+    path: "/sementes",
+    name: "Sementes",
     icon: <FaClipboardList size={20} />,
   },
   {

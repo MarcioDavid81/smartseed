@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -37,7 +38,7 @@ export function LoginForm({
         setLoading(false);
         return;
       }
-
+      toast.success("Login bem-sucedido");
       router.push("/dashboard");
     } catch (err) {
       console.error(err);

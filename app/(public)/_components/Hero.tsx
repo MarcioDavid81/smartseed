@@ -8,7 +8,7 @@ const HeroSection = () => {
             <p className="text-lg text-gray-700 mb-6">
               Sistema para gestão da produção de sementes de soja, trigo e forrageiras de inverno.
             </p>
-            <Link href="/login" className="inline-block px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition">
+            <Link href="/dashboard" className="inline-block px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition">
               Login
             </Link>
           </div>

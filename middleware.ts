@@ -1,48 +1,45 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { verify } from "jsonwebtoken";
+import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
+import { getJwtSecretKey } from "./lib/auth";
 
-const JWT_SECRET = process.env.JWT_SECRET!;
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get("token")?.value;
 
-// Páginas públicas sem proteção, exceto /login
-const publicRoutes = ["/", "/register", "/api/auth/login", "/api/auth/register"];
+  console.log("[middleware] Path:", pathname);
+  console.log("[middleware] Token presente?", !!token);
 
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  const token = req.cookies.get("token")?.value;
+  const publicPaths = ["/", "/login", "/cadastro"];
 
-  console.log("[middleware] pathname:", pathname);
-  console.log("[middleware] token presente?", !!token);
-
-  // Bloqueia acesso ao /login se já estiver autenticado
-  if (pathname.startsWith("/login") && token) {
-    try {
-      verify(token, JWT_SECRET);
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    } catch {
-      // Token inválido, deixa ir pro login
-      return NextResponse.next();
+  if (publicPaths.includes(pathname)) {
+    if (token) {
+      try {
+        await jwtVerify(token, getJwtSecretKey());
+        console.log("[middleware] Token válido, redirecionando para /dashboard");
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      } catch (err) {
+        console.log("[middleware] Token inválido, continua na página pública");
+        return NextResponse.next();
+      }
     }
-  }
-
-  // Permite o acesso às rotas públicas
-  if (publicRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
-  // Se não há token e a rota é protegida
   if (!token) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    console.log("[middleware] Sem token, redirecionando para login");
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   try {
-    verify(token, JWT_SECRET);
+    await jwtVerify(token, getJwtSecretKey());
+    console.log("[middleware] Token válido, acesso liberado");
     return NextResponse.next();
-  } catch (error) {
-    return NextResponse.redirect(new URL("/login", req.url));
+  } catch (err) {
+    console.log("[middleware] Token inválido, redirecionando para login");
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 }
 
 export const config = {
-  matcher: ["/((?!_next/|favicon.ico).*)"],
+  matcher: ["/", "/login", "/cadastro", "/dashboard/:path*"],
 };
