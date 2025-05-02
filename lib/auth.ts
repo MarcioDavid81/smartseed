@@ -1,4 +1,6 @@
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { db } from "./prisma";
 
 export function getJwtSecretKey() {
     const secret = process.env.JWT_SECRET;
@@ -8,14 +10,50 @@ export function getJwtSecretKey() {
     return new TextEncoder().encode(secret);
   }
 
-  export async function verifyToken(token: string): Promise<string | null> {
+  type JWTPayload = {
+    userId: string;
+    companyId: string;
+    // Você pode adicionar outros campos conforme necessário
+  };
+  
+  export async function verifyToken(token: string): Promise<JWTPayload | null> {
     try {
       const { payload } = await jwtVerify(token, getJwtSecretKey());
   
-      // Supondo que o payload do token inclua o userId
-      return typeof payload.userId === "string" ? payload.userId : null;
+      if (typeof payload.userId === "string" && typeof payload.companyId === "string") {
+        return {
+          userId: payload.userId,
+          companyId: payload.companyId,
+        };
+      }
+  
+      return null;
     } catch (error) {
       console.error("Erro ao verificar token:", error);
       return null;
     }
   }
+
+  export async function getUserFromToken() {
+    const cookieStore = cookies();
+    const token = cookieStore.get("token")?.value;
+  
+    if (!token) return null;
+  
+    const payload = await verifyToken(token);
+  
+    if (!payload) return null;
+  
+    const user = await db.user.findUnique({
+      where: { id: payload.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        companyId: true,
+      },
+    });
+  
+    return user;
+  }
+  

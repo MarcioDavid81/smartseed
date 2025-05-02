@@ -24,24 +24,25 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
+import { PRODUCT_TYPE_OPTIONS } from "../../_constants/products";
+import { ProductType } from "@prisma/client";
+import { getToken } from "@/lib/auth-client";
 
 // Schema de validação
 const cultivarSchema = z.object({
   name: z.string().min(2, "Nome obrigatório"),
-  product: z.enum([
-    "SOJA",
-    "TRIGO",
-    "MILHO",
-    "AVEIA_BRANCA",
-    "AVEIA_PRETA",
-    "AVEIA_UCRANIANA",
-    "AZEVEM",
-  ]),
+  product: z.nativeEnum(ProductType, {
+    required_error: "Produto obrigatório",
+  })
 });
 
 type CultivarFormData = z.infer<typeof cultivarSchema>;
 
-const UpsertCultivarSheetContent = ({ closeSheet }: { closeSheet: () => void }) => {
+const UpsertCultivarSheetContent = ({
+  closeSheet,
+}: {
+  closeSheet: () => void;
+}) => {
   const [loading, setLoading] = useState(false);
 
   const form = useForm<CultivarFormData>({
@@ -55,7 +56,7 @@ const UpsertCultivarSheetContent = ({ closeSheet }: { closeSheet: () => void }) 
   const onSubmit = async (data: CultivarFormData) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token"); // ou pegue da store/context
+      const token = getToken();
       console.log(token);
 
       const res = await fetch("/api/cultivars", {
@@ -83,8 +84,10 @@ const UpsertCultivarSheetContent = ({ closeSheet }: { closeSheet: () => void }) 
     }
   };
 
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <SheetContent>
+    <SheetContent className="bg-green-50">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <SheetHeader>
@@ -121,15 +124,11 @@ const UpsertCultivarSheetContent = ({ closeSheet }: { closeSheet: () => void }) 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="SOJA">Soja</SelectItem>
-                    <SelectItem value="TRIGO">Trigo</SelectItem>
-                    <SelectItem value="MILHO">Milho</SelectItem>
-                    <SelectItem value="AVEIA_BRANCA">Aveia Branca</SelectItem>
-                    <SelectItem value="AVEIA_PRETA">Aveia Preta</SelectItem>
-                    <SelectItem value="AVEIA_UCRANIANA">
-                      Aveia Ucraniana
-                    </SelectItem>
-                    <SelectItem value="AZEVEM">Azevém</SelectItem>
+                    {PRODUCT_TYPE_OPTIONS.map((product) => (
+                      <SelectItem key={product.value} value={product.value}>
+                        {product.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -139,12 +138,21 @@ const UpsertCultivarSheetContent = ({ closeSheet }: { closeSheet: () => void }) 
 
           <Button
             type="submit"
-            className={`p-2 rounded-md transition-colors w-full ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`relative overflow-hidden px-4 py-2 w-full font-medium border-2 border-green rounded-lg bg-transparent text-gray-800 hover:text-gray-50 transition-all duration-300 ease-in-out`}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             disabled={loading}
           >
-            {loading ? <FaSpinner className="animate-spin" /> : "Cadastrar"}
+            <span className="relative flex items-center gap-2 z-10">
+              {loading ? <FaSpinner className="animate-spin" /> : "Cadastrar"}
+            </span>
+            <div
+              className={`absolute top-0 left-0 w-0 h-full bg-green transition-all duration-300 ease-in-out hover:w-full`}
+              style={{
+                width: isHovered ? "100%" : 0,
+                transitionDuration: `300ms`,
+              }}
+            />
           </Button>
         </form>
       </Form>

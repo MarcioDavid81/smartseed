@@ -45,7 +45,6 @@ const Sidebar = () => {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-
   return (
     <div
       className={`${

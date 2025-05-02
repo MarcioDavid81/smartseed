@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "../globals.css";
 import Sidebar from "./_components/Sidebar";
 import { Toaster } from "sonner";
+import { UserProvider } from "@/contexts/UserContext";
+import { getUserFromToken } from "@/lib/auth"; 
 
 const inter = Inter({
   weight: ["400", "700"],
@@ -28,17 +30,31 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const user = await getUserFromToken();
+
+  const safeUser = user
+    ? {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        companyId: user.companyId,
+      }
+    : null;
+
   return (
     <html lang="pt-BR">
       <body className={`${inter.className} antialiased md:flex  w-full min-h-screen`}>
+        <UserProvider user={safeUser}>
         <Sidebar />
         {children}
         <Toaster />
+        </UserProvider>
       </body>
     </html>
   );

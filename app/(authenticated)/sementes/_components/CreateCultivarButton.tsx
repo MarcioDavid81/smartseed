@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { PlusIcon } from "lucide-react";
 import UpsertCultivarSheetContent from "./UpsertSheetContent";
 import { useState } from "react";
+import HoverButton from "@/components/HoverButton";
 
 const CreateCultivarButton = () => {
 
@@ -16,10 +16,10 @@ const CreateCultivarButton = () => {
   return (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" onClick={openSheet}>
+        <HoverButton onClick={openSheet}>
           <PlusIcon size={20} />
           Criar cultivar
-        </Button>
+        </HoverButton>
       </SheetTrigger>
       <UpsertCultivarSheetContent closeSheet={closeSheet} />
     </Sheet>

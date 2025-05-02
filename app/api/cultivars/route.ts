@@ -25,17 +25,13 @@ export async function POST(req: Request) {
 
   const token = authHeader.split(" ")[1];
 
-  let userId;
-  try {
-    userId = await verifyToken(token);
-    console.log("User ID:", userId);
-  } catch (err) {
+  const payload = await verifyToken(token);
+
+  if (!payload) {
     return NextResponse.json({ error: "Token inválido" }, { status: 401 });
   }
 
-  if (!userId) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
+  const { userId, companyId } = payload;
 
   const user = await db.user.findUnique({
     where: { id: userId },
@@ -61,7 +57,7 @@ export async function POST(req: Request) {
       where: {
         name,
         product,
-        companyId: user.companyId,
+        companyId,
       },
     });
 
@@ -73,7 +69,7 @@ export async function POST(req: Request) {
       data: {
         name,
         product,
-        companyId: user.companyId,
+        companyId,
       },
     });
 
