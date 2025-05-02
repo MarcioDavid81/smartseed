@@ -1,33 +1,40 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/prisma"; // Certifique-se de que o prisma está configurado
 
 export async function POST(req: Request) {
-  const { name, email, password, companyName } = await req.json();
-  if (!name || !email || !password || !companyName) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  const { name, email, password, companyId } = await req.json();
+  if (!name || !email || !password || !companyId) {
+    return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
   }
+
   try {
+    // Verificar se a empresa existe
+    const company = await db.company.findUnique({ where: { id: companyId } });
+    if (!company) {
+      return NextResponse.json({ error: "Empresa não encontrada" }, { status: 404 });
+    }
+
+    // Verificar se o usuário já existe
     const existingUser = await db.user.findUnique({ where: { email } });
     if (existingUser) {
       return NextResponse.json({ error: "Email já cadastrado" }, { status: 400 });
     }
+
+    // Criar o usuário
     const hashedPassword = await hash(password, 10);
-    const company = await db.company.create({
+    const user = await db.user.create({
       data: {
-        name: companyName,
-        users: {
-          create: {
-            name,
-            email,
-            password: hashedPassword,
-          },
-        },
+        name,
+        email,
+        password: hashedPassword,
+        companyId, // Vincula o usuário à empresa
       },
     });
-    return NextResponse.json({ success: true, companyId: company.id });
+
+    return NextResponse.json({ success: true, userId: user.id }, { status: 201 });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno ao criar o usuário" }, { status: 500 });
   }
 }
