@@ -20,7 +20,10 @@ export async function POST(req: Request) {
   });
 
   if (!user) {
-    return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Usuário não encontrado" },
+      { status: 404 }
+    );
   }
 
   const isValid = await compare(password, user.password);
@@ -31,13 +34,20 @@ export async function POST(req: Request) {
 
   // const token = sign({ userId: user.id, companyId: user.companyId }, JWT_SECRET, { expiresIn: "7d" });
 
-  const token = await new SignJWT({ userId: user.id, companyId: user.companyId })
+  const token = await new SignJWT({
+    userId: user.id,
+    companyId: user.companyId,
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
     .sign(getJwtSecretKey());
 
-  const response = NextResponse.json({ message: "Login bem-sucedido", user });
+  const response = NextResponse.json({
+    message: "Login bem-sucedido",
+    token,
+    user,
+  });
 
   // 🔐 Grava o token como cookie acessível no middleware
   response.cookies.set("token", token, {

@@ -40,15 +40,10 @@ export function LoginForm({
         setLoading(false);
         return;
       }
+      localStorage.setItem("token", data.token); // <- SALVA o token
+      console.log(data.token);
       toast.success("Login bem-sucedido");
-      router.push("/dashboard");
-
-      if (res.ok) {
-        // Força uma atualização completa do estado da aplicação
-        window.location.href = "/dashboard"; // Alternativa: router.refresh() + router.push("/dashboard")
-      } else {
-        throw new Error("Credenciais inválidas");
-      }
+      window.location.href = "/dashboard"; // ou use router.push se preferir
     } catch (err) {
       console.error(err);
       setError("Erro ao conectar com o servidor");
@@ -94,9 +89,7 @@ export function LoginForm({
               <Button
                 type="submit"
                 className={`p-2 rounded-md transition-colors ${
-                  loading
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
+                  loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 disabled={loading}
               >

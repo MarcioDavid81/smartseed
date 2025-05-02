@@ -1,7 +1,17 @@
-import React from 'react'
+import CreateCultivarButton from "./_components/CreateCultivarButton";
 
-export default function SeedsPage() {
-  return (
-    <div>SeedsPage</div>
-  )
+export default async function SeedsPage() {
+
+    return (
+      <div className="flex flex-col w-full min-h-screen bg-found">
+        <div className="min-h-screen w-full flex bg-green-50 rounded-lg">
+          <main className="flex-1 py-4 px-4 md:px-8 text-gray-800">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+              <h1 className="text-2xl font-semibold mb-4">Sementes</h1>
+              <CreateCultivarButton />
+            </div>
+          </main>
+        </div>
+      </div>
+    );
 }
