@@ -9,6 +9,8 @@ interface HoverButtonProps {
   baseColor?: string;
   duration?: number;
   onClick?: () => void;
+  title?: string;
+  disabled?: boolean;
 }
 
 const HoverButton: React.FC<HoverButtonProps> = ({
@@ -18,14 +20,18 @@ const HoverButton: React.FC<HoverButtonProps> = ({
   baseColor = "bg-transparent",
   duration = 300,
   onClick,
+  title,
+  disabled,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   return (
     <button
-      className={`relative overflow-hidden px-4 py-2 font-medium border-2 border-green rounded-lg ${baseColor} text-gray-800 hover:text-gray-50 transition-all duration-300 ease-in-out ${className}`}
+      className={`relative flex items-center overflow-hidden px-4 py-1 font-medium border-2 border-green rounded-md text-sm ${baseColor} text-gray-800 hover:text-gray-50 transition-all duration-300 ease-in-out ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
+      title={title}
+      disabled={disabled}
     >
       <span className="relative flex items-center gap-2 z-10">{children}</span>
       <div

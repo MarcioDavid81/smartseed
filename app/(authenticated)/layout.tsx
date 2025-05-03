@@ -44,6 +44,7 @@ export default async function RootLayout({
         name: user.name,
         email: user.email,
         companyId: user.companyId,
+        imageUrl: user.imageUrl ?? "",
       }
     : null;
 

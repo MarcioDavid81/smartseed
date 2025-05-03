@@ -14,11 +14,11 @@ datasource db {
 }
 
 model Company {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
   users     User[]
   cultivars Cultivar[]
-  createdAt DateTime @default(now())
+  createdAt DateTime   @default(now())
 }
 
 model User {
@@ -26,6 +26,7 @@ model User {
   name      String
   email     String   @unique
   password  String
+  imageUrl  String?
   company   Company  @relation(fields: [companyId], references: [id])
   companyId String
   createdAt DateTime @default(now())
@@ -44,55 +45,54 @@ enum ProductType {
 
 // produto/cultivar (variedade específica)
 model Cultivar {
-  id         String       @id @default(cuid())
+  id         String      @id @default(cuid())
   name       String
   product    ProductType
-  company    Company  @relation(fields: [companyId], references: [id])
+  company    Company     @relation(fields: [companyId], references: [id])
   companyId  String
   rawEntries RawEntry[]
-  createdAt  DateTime     @default(now())
+  createdAt  DateTime    @default(now())
 }
 
 // entrada bruta
 model RawEntry {
-  id          String         @id @default(cuid())
-  cultivarId  String
-  cultivar    Cultivar       @relation(fields: [cultivarId], references: [id])
-  date        DateTime
-  quantityKg  Float
-  origin      String?
-  userId      String
-  notes       String?
-  createdAt   DateTime       @default(now())
+  id         String   @id @default(cuid())
+  cultivarId String
+  cultivar   Cultivar @relation(fields: [cultivarId], references: [id])
+  date       DateTime
+  quantityKg Float
+  origin     String?
+  userId     String
+  notes      String?
+  createdAt  DateTime @default(now())
 
   beneficiations Beneficiation[]
 }
 
 // beneficiamento
 model Beneficiation {
-  id           String       @id @default(cuid())
-  rawEntryId   String
-  rawEntry     RawEntry     @relation(fields: [rawEntryId], references: [id])
-  date         DateTime
-  inputKg      Float
-  outputKg     Float
-  wasteKg      Float
-  notes        String?
-  userId       String
-  createdAt    DateTime     @default(now())
+  id         String   @id @default(cuid())
+  rawEntryId String
+  rawEntry   RawEntry @relation(fields: [rawEntryId], references: [id])
+  date       DateTime
+  inputKg    Float
+  outputKg   Float
+  wasteKg    Float
+  notes      String?
+  userId     String
+  createdAt  DateTime @default(now())
 
-  finalStock   FinalStock?
+  finalStock FinalStock?
 }
 
 // estoque final
 model FinalStock {
-  id                String         @id @default(cuid())
-  beneficiationId   String         @unique
-  beneficiation     Beneficiation  @relation(fields: [beneficiationId], references: [id])
-  storageLocation   String
-  availableKg       Float
-  userId            String
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  id              String        @id @default(cuid())
+  beneficiationId String        @unique
+  beneficiation   Beneficiation @relation(fields: [beneficiationId], references: [id])
+  storageLocation String
+  availableKg     Float
+  userId          String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
-

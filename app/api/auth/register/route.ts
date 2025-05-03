@@ -1,40 +1,76 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
-import { db } from "@/lib/prisma"; // Certifique-se de que o prisma está configurado
+import { db } from "@/lib/prisma";
+import { v2 as cloudinary } from "cloudinary";
+
+// Configuração do Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
+  api_key: process.env.CLOUDINARY_API_KEY!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
+});
 
 export async function POST(req: Request) {
-  const { name, email, password, companyId } = await req.json();
+  const formData = await req.formData();
+
+  const name = formData.get("name") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const companyId = formData.get("companyId") as string;
+  const avatar = formData.get("avatar") as File | null;
+
   if (!name || !email || !password || !companyId) {
     return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
   }
 
+  let imageUrl: string | null = null;
+
+  if (avatar && avatar.size > 0) {
+    try {
+      const bytes = await avatar.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const base64 = buffer.toString("base64");
+      const dataUrl = `data:${avatar.type};base64,${base64}`;
+
+      const uploaded = await cloudinary.uploader.upload(dataUrl, {
+        folder: "avatars",
+      });
+
+      imageUrl = uploaded.secure_url;
+    } catch (err) {
+      console.error("Erro ao fazer upload no Cloudinary:", err);
+      return NextResponse.json({ error: "Erro ao salvar imagem" }, { status: 500 });
+    }
+  }
+
   try {
-    // Verificar se a empresa existe
+    // Verifica se a empresa existe
     const company = await db.company.findUnique({ where: { id: companyId } });
     if (!company) {
       return NextResponse.json({ error: "Empresa não encontrada" }, { status: 404 });
     }
 
-    // Verificar se o usuário já existe
+    // Verifica se o email já está cadastrado
     const existingUser = await db.user.findUnique({ where: { email } });
     if (existingUser) {
       return NextResponse.json({ error: "Email já cadastrado" }, { status: 400 });
     }
 
-    // Criar o usuário
+    // Cria o usuário
     const hashedPassword = await hash(password, 10);
     const user = await db.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
-        companyId, // Vincula o usuário à empresa
+        companyId,
+        imageUrl,
       },
     });
 
     return NextResponse.json({ success: true, userId: user.id }, { status: 201 });
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao criar usuário:", err);
     return NextResponse.json({ error: "Erro interno ao criar o usuário" }, { status: 500 });
   }
 }

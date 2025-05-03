@@ -51,6 +51,7 @@ export function getJwtSecretKey() {
         name: true,
         email: true,
         companyId: true,
+        imageUrl: true,
       },
     });
   

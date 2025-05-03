@@ -3,14 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaHome, FaClipboardList } from "react-icons/fa";
+import { FaHome, FaClipboardList, FaSpinner, FaSeedling, FaTruck } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { FaHandshakeSimple } from "react-icons/fa6";
 import { PiGrainsFill } from "react-icons/pi";
 import { useState } from "react";
 import { PanelRightOpen } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import LogoutButton from "./LogoutButton";
+import { useUser } from "@/contexts/UserContext";
+import { UserMenu } from "./UserMenu";
 
 const routes = [
   {
@@ -26,12 +27,12 @@ const routes = [
   {
     path: "/sementes",
     name: "Sementes",
-    icon: <FaClipboardList size={20} />,
+    icon: <FaSeedling size={20} />,
   },
   {
-    path: "/customers",
-    name: "Clientes",
-    icon: <FaHandshakeSimple size={24} />,
+    path: "/producao",
+    name: "Produção",
+    icon: <FaTruck size={20} />,
   },
   {
     path: "/products",
@@ -44,6 +45,7 @@ const routes = [
 const Sidebar = () => {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const {user} = useUser();
 
   return (
     <div
@@ -109,7 +111,9 @@ const Sidebar = () => {
           ))}
         </nav>
       </div>
-      <LogoutButton />
+      <div className="flex flex-col items-center">
+      <UserMenu />
+      </div>
     </div>
   );
 };

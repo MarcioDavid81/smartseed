@@ -4,6 +4,7 @@ import { LogOutIcon } from "lucide-react";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import HoverButton from "@/components/HoverButton";
 
 export default function LogoutButton() {
   const [loading, setLoading] = useState(false);
@@ -32,20 +33,23 @@ export default function LogoutButton() {
   };
 
   return (
-    <button
+    <HoverButton
       title="Sair da conta"
       onClick={handleLogout}
       disabled={loading}
       aria-label="Sair da conta"
-      className={`p-2 rounded-md transition-colors ${
+      className={`p-2 w-full rounded-md transition-colors ${
         loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green hover:text-white"
       }`}
     >
       {loading ? (
         <FaSpinner className="animate-spin" />
       ) : (
-        <LogOutIcon className="w-5 h-5" />
+        <div className="flex items-center gap-2">
+          <LogOutIcon className="w-5 h-5" />
+          <span>Sair</span>
+        </div>
       )}
-    </button>
+    </HoverButton>
   );
 }

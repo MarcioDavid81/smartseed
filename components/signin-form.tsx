@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
+import UploadAvatar from "@/app/(public)/_components/UploadAvatar";
+
 
 export function SignInForm({
   className,
@@ -25,11 +27,10 @@ export function SignInForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyId, setCompanyId] = useState("");
-  const [companies, setCompanies] = useState<{ id: string; name: string }[]>(
-    []
-  );
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   useEffect(() => {
     async function fetchCompanies() {
@@ -44,9 +45,18 @@ export function SignInForm({
     e.preventDefault();
     setLoading(true);
 
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("companyId", companyId);
+    if (avatarFile) {
+      formData.append("avatar", avatarFile);
+    }
+
     const res = await fetch("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ name, email, password, companyId }),
+      body: formData,
     });
 
     const data = await res.json();
@@ -127,6 +137,11 @@ export function SignInForm({
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Avatar</Label>
+                <UploadAvatar onFileSelect={setAvatarFile} />
               </div>
 
               <Button

@@ -3,5 +3,6 @@ export interface AppUser {
     name: string;
     email: string;
     companyId: string;
+    imageUrl: string;
   }
   
