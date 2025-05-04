@@ -88,7 +88,7 @@ export function LoginForm({
               {error && <p className="text-red-500 text-sm">{error}</p>}
               <Button
                 type="submit"
-                className={`p-2 rounded-md transition-colors ${
+                className={`p-2 bg-green rounded-md transition-colors ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 disabled={loading}

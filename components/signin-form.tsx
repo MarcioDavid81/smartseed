@@ -72,7 +72,7 @@ export function SignInForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col", className)} {...props}>
       <Card className="overflow-hidden">
         <CardContent className="grid p-0 md:grid-cols-2">
           <div className="relative hidden bg-muted md:block">
@@ -83,7 +83,7 @@ export function SignInForm({
             />
           </div>
           <form className="p-6 md:p-8" onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Crie sua conta!</h1>
                 <p className="text-muted-foreground">
@@ -139,14 +139,14 @@ export function SignInForm({
                 />
               </div>
 
-              <div className="grid gap-2">
+              <div className="grid items-center justify-center gap-2">
                 <Label>Avatar</Label>
                 <UploadAvatar onFileSelect={setAvatarFile} />
               </div>
 
               <Button
                 type="submit"
-                className={`p-2 rounded-md transition-colors ${
+                className={`p-2 bg-green rounded-md transition-colors ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 disabled={loading}

@@ -1,4 +1,18 @@
 import Saudacao from "../_components/Saudacao";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Produção",
+  keywords: [
+    "produção de sementes",
+    "gestão de sementeiras",
+    "controle de produção e estoque de sementes",
+  ],
+  description: "O seu sistema de gestão de produção de sementes",
+  authors: [
+    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+  ],
+};
 
 export default async function ProductionPage() {
 

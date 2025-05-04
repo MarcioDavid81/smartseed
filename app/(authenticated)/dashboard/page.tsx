@@ -1,6 +1,20 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  keywords: [
+    "produção de sementes",
+    "gestão de sementeiras",
+    "controle de produção e estoque de sementes",
+  ],
+  description: "O seu sistema de gestão de produção de sementes",
+  authors: [
+    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+  ],
+};
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 

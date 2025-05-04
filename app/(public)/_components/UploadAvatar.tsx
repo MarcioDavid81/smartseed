@@ -24,8 +24,8 @@ export default function UploadAvatar({ onFileSelect }: UploadAvatarProps) {
         <Image
           src={previewUrl}
           alt="Imagem de avatar selecionada"
-          width={100}
-          height={100}
+          width={50}
+          height={50}
           className="rounded-full object-cover"
         />
       )}
@@ -34,7 +34,7 @@ export default function UploadAvatar({ onFileSelect }: UploadAvatarProps) {
         type="file"
         accept="image/*"
         onChange={handleFileChange}
-        className="text-sm file:mr-4 file:rounded file:border-0 file:bg-primary file:px-4 file:py-2 file:text-white hover:file:bg-primary/90"
+        className="bg-green w-full rounded-md text-sm file:mr-4 file:rounded file:border-0 file:bg-primary file:px-4 file:py-2 file:text-white file:bg-green text-white cursor-pointer file:cursor-pointer"
       />
     </div>
   );
