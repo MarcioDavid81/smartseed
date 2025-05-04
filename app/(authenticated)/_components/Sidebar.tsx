@@ -8,7 +8,7 @@ import { AiOutlineDashboard } from "react-icons/ai";
 import { FaHandshakeSimple } from "react-icons/fa6";
 import { PiGrainsFill } from "react-icons/pi";
 import { useState } from "react";
-import { PanelRightOpen } from "lucide-react";
+import { PanelRightOpen, Warehouse } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUser } from "@/contexts/UserContext";
 import { UserMenu } from "./UserMenu";
@@ -35,9 +35,9 @@ const routes = [
     icon: <FaTruck size={25} />,
   },
   {
-    path: "/products",
-    name: "Produtos",
-    icon: <PiGrainsFill size={25} />,
+    path: "/estoque",
+    name: "Estoque",
+    icon: <Warehouse size={25} />,
   },
 ];
 

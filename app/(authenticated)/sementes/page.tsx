@@ -25,7 +25,7 @@ export default async function SeedsPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
               <h1 className="text-2xl font-semibold mb-4">Sementes</h1>
               <Saudacao />
-              <CreateCultivarButton />
+              <CreateCultivarButton onCreated={() => {}} />
             </div>
 
             <ListCultivarTable />

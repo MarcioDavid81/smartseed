@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Roboto_Condensed}  from "next/font/google";
 import "../globals.css";
 import Sidebar from "./_components/Sidebar";
 import { Toaster } from "sonner";
@@ -7,6 +8,13 @@ import { UserProvider } from "@/contexts/UserContext";
 import { getUserFromToken } from "@/lib/auth"; 
 
 const inter = Inter({
+  weight: ["300", "400", "700"],
+  style: "normal",
+  display: "swap",
+  subsets: ["latin-ext"],
+});
+
+const roboto = Roboto_Condensed({
   weight: ["300", "400", "700"],
   style: "normal",
   display: "swap",
@@ -50,7 +58,7 @@ export default async function RootLayout({
 
   return (
     <html lang="pt-BR">
-      <body className={`${inter.className} antialiased md:flex  w-full min-h-screen`}>
+      <body className={`${roboto.className} antialiased md:flex  w-full min-h-screen`}>
         <UserProvider user={safeUser}>
         <Sidebar />
         {children}
