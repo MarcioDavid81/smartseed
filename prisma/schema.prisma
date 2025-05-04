@@ -13,14 +13,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// empresa
 model Company {
-  id        String     @id @default(uuid())
-  name      String
-  users     User[]
-  cultivars Cultivar[]
-  createdAt DateTime   @default(now())
+  id               String            @id @default(uuid())
+  name             String
+  farms            Farm[]
+  users            User[]
+  customers        Customer[]
+  cultivars        Cultivar[]
+  talhoes          Talhao[]
+  harvests         Harvest[]
+  beneficiations   Beneficiation[]
+  buys             Buy[]
+  consumptionsExit ConsumptionExit[]
+  salesExit        SaleExit[]
+  createdAt        DateTime          @default(now())
 }
 
+// fazenda
+model Farm {
+  id               String            @id @default(uuid())
+  name             String
+  talhoes          Talhao[]
+  area             Float
+  consumptionsExit ConsumptionExit[]
+  company          Company           @relation(fields: [companyId], references: [id])
+  companyId        String
+  createdAt        DateTime          @default(now())
+}
+
+// usuário
 model User {
   id        String   @id @default(uuid())
   name      String
@@ -30,6 +52,22 @@ model User {
   company   Company  @relation(fields: [companyId], references: [id])
   companyId String
   createdAt DateTime @default(now())
+}
+
+// clientes
+model Customer {
+  id        String     @id @default(uuid())
+  name      String
+  email     String?    @unique
+  adress    String?
+  city      String?
+  state     String?
+  phone     String?
+  cpf_cnpj  String?    @unique
+  company   Company    @relation(fields: [companyId], references: [id])
+  companyId String
+  sales     SaleExit[]
+  createdAt DateTime   @default(now())
 }
 
 // enums para produtos
@@ -43,56 +81,104 @@ enum ProductType {
   AZEVEM
 }
 
-// produto/cultivar (variedade específica)
-model Cultivar {
-  id         String      @id @default(cuid())
-  name       String
-  product    ProductType
-  company    Company     @relation(fields: [companyId], references: [id])
-  companyId  String
-  rawEntries RawEntry[]
-  createdAt  DateTime    @default(now())
+//talhões
+model Talhao {
+  id        String    @id @default(cuid())
+  name      String
+  area      Float
+  company   Company   @relation(fields: [companyId], references: [id])
+  companyId String
+  farmId    String
+  farm      Farm      @relation(fields: [farmId], references: [id])
+  harvests  Harvest[]
+  createdAt DateTime  @default(now())
 }
 
-// entrada bruta
-model RawEntry {
+// produto/cultivar (variedade específica)
+model Cultivar {
+  id               String            @id @default(cuid())
+  name             String
+  product          ProductType
+  company          Company           @relation(fields: [companyId], references: [id])
+  companyId        String
+  harvests         Harvest[]
+  buys             Buy[]
+  beneficiations   Beneficiation[]
+  consumptionsExit ConsumptionExit[]
+  saleExit         SaleExit[]
+  createdAt        DateTime          @default(now())
+}
+
+// colheita
+model Harvest {
   id         String   @id @default(cuid())
   cultivarId String
   cultivar   Cultivar @relation(fields: [cultivarId], references: [id])
   date       DateTime
   quantityKg Float
-  origin     String?
-  userId     String
+  talhaoId   String
+  talhao     Talhao   @relation(fields: [talhaoId], references: [id])
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
   notes      String?
   createdAt  DateTime @default(now())
+}
 
-  beneficiations Beneficiation[]
+//compras
+model Buy {
+  id         String   @id @default(cuid())
+  cultivarId String
+  cultivar   Cultivar @relation(fields: [cultivarId], references: [id])
+  date       DateTime
+  supplier   String
+  quantityKg Float
+  notes      String?
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 // beneficiamento
 model Beneficiation {
   id         String   @id @default(cuid())
-  rawEntryId String
-  rawEntry   RawEntry @relation(fields: [rawEntryId], references: [id])
+  cultivarId String
+  cultivar   Cultivar @relation(fields: [cultivarId], references: [id])
   date       DateTime
-  inputKg    Float
-  outputKg   Float
-  wasteKg    Float
+  quantityKg Float
   notes      String?
-  userId     String
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
   createdAt  DateTime @default(now())
-
-  finalStock FinalStock?
 }
 
-// estoque final
-model FinalStock {
-  id              String        @id @default(cuid())
-  beneficiationId String        @unique
-  beneficiation   Beneficiation @relation(fields: [beneficiationId], references: [id])
-  storageLocation String
-  availableKg     Float
-  userId          String
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+//saída para plantio
+model ConsumptionExit {
+  id         String   @id @default(cuid())
+  cultivarId String
+  cultivar   Cultivar @relation(fields: [cultivarId], references: [id])
+  date       DateTime
+  quantityKg Float
+  farmId     String
+  farm       Farm     @relation(fields: [farmId], references: [id])
+  notes      String?
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+//venda
+model SaleExit {
+  id            String    @id @default(cuid())
+  cultivarId    String
+  cultivar      Cultivar  @relation(fields: [cultivarId], references: [id])
+  date          DateTime
+  quantityKg    Float
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id])
+  invoiceNumber String?
+  saleValue     Float?
+  notes         String?
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id])
+  createdAt     DateTime  @default(now())
 }
