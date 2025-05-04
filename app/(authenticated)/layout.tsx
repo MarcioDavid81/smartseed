@@ -7,7 +7,7 @@ import { UserProvider } from "@/contexts/UserContext";
 import { getUserFromToken } from "@/lib/auth"; 
 
 const inter = Inter({
-  weight: ["400", "700"],
+  weight: ["300", "400", "700"],
   style: "normal",
   display: "swap",
   subsets: ["latin-ext"],

@@ -20,7 +20,7 @@ export default async function DashboardPage() {
 
     return (
       <div className="flex flex-col w-full min-h-screen bg-found">
-        <div className="min-h-screen w-full flex bg-green-50 rounded-lg">
+        <div className="min-h-screen w-full flex bg-background">
           <main className="flex-1 py-4 px-4 md:px-8 text-gray-800">
             <h1 className="text-2xl font-semibold mb-4">Dashboard</h1>
             <p className="text-gray-600 mt-2">Usuário: {decoded.userId}</p>

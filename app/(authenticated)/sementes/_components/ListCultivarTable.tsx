@@ -7,7 +7,9 @@ import { FaSpinner } from "react-icons/fa";
 import { Cultivar } from "@/types";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, Delete, MoreHorizontal } from "lucide-react";
+import EditCultivarButton from "./EditCultivarButton";
+import DeleteCultivarButton from "./DeleteCultivarButton";
 
 export function ListCultivarTable() {
   const [products, setProducts] = useState<Cultivar[]>([]);
@@ -60,13 +62,12 @@ export function ListCultivarTable() {
       accessorKey: "actions",
       header: "Ações",
       cell: ({ row }) => {
-        const product = row.original;
+        const cultivar = row.original;
 
         return (
-          <div className="flex items-center gap-x-2">
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-4">
+            <EditCultivarButton cultivar={cultivar} onUpdated={fetchProducts} />
+            <DeleteCultivarButton cultivar={cultivar} onDeleted={fetchProducts} />
           </div>
         );
       },

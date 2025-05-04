@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Cultivar } from "@/types";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import EditCultivarButton from "./EditCultivarButton";
 
 export const columnsProducts: ColumnDef<Cultivar>[] = [
   {
@@ -31,9 +32,7 @@ export const columnsProducts: ColumnDef<Cultivar>[] = [
 
       return (
         <div className="flex items-center gap-x-2">
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
+          <EditCultivarButton cultivar={product} />
         </div>
       );
     },

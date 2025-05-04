@@ -6,7 +6,7 @@ import UpsertCultivarSheetContent from "./UpsertSheetContent";
 import { useState } from "react";
 import HoverButton from "@/components/HoverButton";
 
-const CreateCultivarButton = () => {
+const CreateCultivarButton = ({ onCreated }: { onCreated: () => void }) => {
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -21,7 +21,7 @@ const CreateCultivarButton = () => {
           Criar cultivar
         </HoverButton>
       </SheetTrigger>
-      <UpsertCultivarSheetContent closeSheet={closeSheet} />
+      <UpsertCultivarSheetContent closeSheet={closeSheet} onCreated={onCreated}  />
     </Sheet>
   );
 };

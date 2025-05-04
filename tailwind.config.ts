@@ -11,7 +11,7 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
-  			background: 'hsl(var(--background))',
+  			background: '#F2F6F9',
   			foreground: 'hsl(var(--foreground))',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
@@ -26,16 +26,16 @@ const config: Config = {
   				foreground: 'hsl(var(--primary-foreground))'
   			},
   			found: {
-  				DEFAULT: '#F2EFE9',
-  				foreground: '#F2EFE9'
+  				DEFAULT: '#475968',
+  				foreground: '#475968'
   			},
 			text: {
 				DEFAULT: '#0D1B1E',
 				foreground: '#0D1B1E'
 			},
 			green: {
-				DEFAULT: '#036016',
-				foreground: '#036016'
+				DEFAULT: '#58A422',
+				foreground: '#58A422'
 			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',

@@ -17,27 +17,27 @@ const routes = [
   {
     path: "/",
     name: "Início",
-    icon: <FaHome size={20} />,
+    icon: <FaHome size={25} />,
   },
   {
     path: "/dashboard",
     name: "Dashboard",
-    icon: <AiOutlineDashboard size={20} />,
+    icon: <AiOutlineDashboard size={25} />,
   },
   {
     path: "/sementes",
     name: "Sementes",
-    icon: <FaSeedling size={20} />,
+    icon: <FaSeedling size={25} />,
   },
   {
     path: "/producao",
     name: "Produção",
-    icon: <FaTruck size={20} />,
+    icon: <FaTruck size={25} />,
   },
   {
     path: "/products",
     name: "Produtos",
-    icon: <PiGrainsFill size={24} />,
+    icon: <PiGrainsFill size={25} />,
   },
 ];
 
@@ -51,21 +51,20 @@ const Sidebar = () => {
     <div
       className={`${
         isOpen ? "w-64" : "w-20"
-      } bg-found text-text  flex-col justify-between p-6 space-y-6 sticky top-0 min-h-screen transition-all duration-300 ease-in-out hidden md:flex`}
+      } bg-found text-text  flex-col  sticky top-0 min-h-screen transition-all duration-300 ease-in-out hidden md:flex`}
     >
-      <div className={`absolute -right-3 top-5 cursor-pointer rounded-full  bg-gray-50 dark:bg-primary p-1 text-primary dark:text-secondary ${
+      <div className={`absolute -right-4 top-[50px] cursor-pointer rounded-full  bg-background dark:bg-primary p-1 text-primary dark:text-secondary ${
           !isOpen && "rotate-180"
         }`}
         onClick={() => setIsOpen(!isOpen)}
       >
-      <PanelRightOpen className="h-6 w-6" />
+      <PanelRightOpen className="h-6 w-6 text-green" />
       </div>
       
-      <div>
-        <div className="text-2xl font-bold border-b-2 pb-4 border-zinc-500">
+        <div className="text-2xl flex items-center justify-center bg-green font-bold border-b-2 pt-2 pb-4 border-zinc-500">
           {isOpen ? (
             <Image 
-              src="/logo.png" 
+              src="/logo3.png" 
               alt="Logo" 
               width={200} 
               height={50} 
@@ -73,16 +72,17 @@ const Sidebar = () => {
             />
           ) : (
             <Image 
-              src="/logo2.png" 
+              src="/logo4.png" 
               alt="Logo" 
-              width={500} 
-              height={500} 
+              width={50} 
+              height={50} 
               priority
             />
           )}
         </div>
+      <div className="p-2">
         
-        <nav className="space-y-4 mt-4 flex flex-col border-b-2 border-zinc-500 pb-4">
+        <nav className="space-y-8 mt-4 flex flex-col border-b-2 border-zinc-500 pb-4">
           {routes.map((route) => (
             <TooltipProvider key={route.path} delayDuration={100}>
               <Tooltip>
@@ -90,12 +90,10 @@ const Sidebar = () => {
                   <div>
                     <Link
                       href={route.path}
-                      className={`flex items-center p-2 rounded-lg hover:bg-green hover:text-secondary ${
-                        pathname === route.path ? "bg-secondary text-primary" : ""
-                      }`}
+                      className={`flex text-white items-center ${!isOpen && "justify-center"} py-2 px-1 rounded-lg hover:bg-green hover:text-white`}
                     >
                       {route.icon}
-                      <span className={`ml-3 duration-300 ${!isOpen && "hidden"}`}>
+                      <span className={`ml-3 text-sm font-light hover:text-white ${!isOpen && "hidden"}`}>
                         {route.name}
                       </span>
                     </Link>
@@ -111,7 +109,7 @@ const Sidebar = () => {
           ))}
         </nav>
       </div>
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center absolute bottom-4">
       <UserMenu />
       </div>
     </div>

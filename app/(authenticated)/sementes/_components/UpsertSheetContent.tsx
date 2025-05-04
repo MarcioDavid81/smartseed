@@ -40,8 +40,10 @@ type CultivarFormData = z.infer<typeof cultivarSchema>;
 
 const UpsertCultivarSheetContent = ({
   closeSheet,
+  onCreated,
 }: {
   closeSheet: () => void;
+  onCreated?: () => void;
 }) => {
   const [loading, setLoading] = useState(false);
 
@@ -74,6 +76,7 @@ const UpsertCultivarSheetContent = ({
       }
 
       toast.success("Cultivar cadastrada com sucesso!");
+      onCreated?.();
       form.reset();
       closeSheet();
       // Aqui você pode acionar um refresh de lista ou fechar o Sheet, se quiser
@@ -87,7 +90,7 @@ const UpsertCultivarSheetContent = ({
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <SheetContent className="bg-green-50">
+    <SheetContent className="bg-background">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <SheetHeader>

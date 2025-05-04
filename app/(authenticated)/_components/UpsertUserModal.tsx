@@ -123,7 +123,7 @@ export const UpsertUserModal = ({ open, onClose, user }: Props) => {
             )}
           </HoverButton>
           <DialogClose asChild>
-            <Button variant="ghost">Cancelar</Button>
+            <Button variant="default" className="bg-green">Cancelar</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
