@@ -8,10 +8,12 @@ import { Cultivar } from "@/types";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
+import { useStock } from "@/contexts/StockContext";
 
 export function ListStockTable() {
   const [products, setProducts] = useState<Cultivar[]>([]);
   const [loading, setLoading] = useState(true);
+  const { cultivars, isLoading } = useStock();
 
   async function fetchProducts() {
     try {
@@ -72,10 +74,10 @@ export function ListStockTable() {
       {loading ? (
         <div className="text-center py-10 text-gray-500">
           <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando Cultivares...</p>
+          <p className="text-lg">Carregando Estoque...</p>
         </div>
       ) : (
-        <DataTable columns={columns} data={products} />
+        <DataTable columns={columns} data={cultivars} />
       )}
     </Card>
   );

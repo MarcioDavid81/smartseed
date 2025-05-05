@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Roboto_Condensed}  from "next/font/google";
+import { Roboto_Condensed } from "next/font/google";
 import "../globals.css";
 import Sidebar from "./_components/Sidebar";
 import { Toaster } from "sonner";
 import { UserProvider } from "@/contexts/UserContext";
-import { getUserFromToken } from "@/lib/auth"; 
+import { getUserFromToken } from "@/lib/auth";
+import { StockProvider } from "@/contexts/StockContext";
 
 const inter = Inter({
   weight: ["300", "400", "700"],
@@ -43,7 +44,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   const user = await getUserFromToken();
 
   const safeUser = user
@@ -58,12 +58,16 @@ export default async function RootLayout({
 
   return (
     <html lang="pt-BR">
-      <body className={`${roboto.className} antialiased md:flex  w-full min-h-screen`}>
-        <UserProvider user={safeUser}>
-        <Sidebar />
-        {children}
-        <Toaster />
-        </UserProvider>
+      <body
+        className={`${roboto.className} antialiased md:flex  w-full min-h-screen`}
+      >
+        <StockProvider>
+          <UserProvider user={safeUser}>
+            <Sidebar />
+            {children}
+            <Toaster />
+          </UserProvider>
+        </StockProvider>
       </body>
     </html>
   );

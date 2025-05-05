@@ -62,6 +62,7 @@ const Sidebar = () => {
       </div>
       
         <div className="text-2xl flex items-center justify-center bg-green font-bold border-b-2 pt-2 pb-4 border-zinc-500">
+          <Link href="/dashboard">
           {isOpen ? (
             <Image 
               src="/logo3.png" 
@@ -74,11 +75,12 @@ const Sidebar = () => {
             <Image 
               src="/logo4.png" 
               alt="Logo" 
-              width={50} 
-              height={50} 
+              width={40} 
+              height={40} 
               priority
             />
           )}
+          </Link>
         </div>
       <div className="p-2">
         
