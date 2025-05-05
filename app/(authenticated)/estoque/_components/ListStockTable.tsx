@@ -23,7 +23,8 @@ export function ListStockTable() {
       });
 
       const data = await res.json();
-      setProducts(data);
+      const filteredData = data.filter((product: Cultivar) => product.stock > 0);
+      setProducts(filteredData);
     } catch (error) {
       console.error("Erro ao buscar cultivares:", error);
     } finally {
