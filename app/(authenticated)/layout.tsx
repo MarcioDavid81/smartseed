@@ -5,18 +5,19 @@ import "../globals.css";
 import Sidebar from "./_components/Sidebar";
 import { Toaster } from "sonner";
 import { UserProvider } from "@/contexts/UserContext";
-import { getUserFromToken } from "@/lib/auth";
+import { getCompanyFromToken, getUserFromToken } from "@/lib/auth";
 import { StockProvider } from "@/contexts/StockContext";
+import { CompanyProvider } from "@/contexts/CompanyContext";
 
 const inter = Inter({
-  weight: ["300", "400", "700"],
+  weight: ["100", "200", "300", "400", "700"],
   style: "normal",
   display: "swap",
   subsets: ["latin-ext"],
 });
 
 const roboto = Roboto_Condensed({
-  weight: ["300", "400", "700"],
+  weight: ["100", "200","300", "400", "700"],
   style: "normal",
   display: "swap",
   subsets: ["latin-ext"],
@@ -45,6 +46,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const user = await getUserFromToken();
+  const company = await getCompanyFromToken();
 
   const safeUser = user
     ? {
@@ -56,11 +58,19 @@ export default async function RootLayout({
       }
     : null;
 
+    const safeCompany = company
+    ? {
+        id: company.id,
+        name: company.name,
+      }
+    : null;
+
   return (
     <html lang="pt-BR">
       <body
         className={`${roboto.className} antialiased md:flex  w-full min-h-screen`}
       >
+        <CompanyProvider name={safeCompany}>
         <StockProvider>
           <UserProvider user={safeUser}>
             <Sidebar />
@@ -68,6 +78,7 @@ export default async function RootLayout({
             <Toaster />
           </UserProvider>
         </StockProvider>
+        </CompanyProvider>
       </body>
     </html>
   );

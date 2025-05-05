@@ -6,6 +6,7 @@ import BeneficiationButton from "./_components/BeneficiationButton";
 import NewSaleButton from "./_components/SaleExitButton";
 import ConsumptionButton from "./_components/ConsumptionButtton";
 import { ListStockTable } from "./_components/ListStockTable";
+import Navbar from "../_components/Navbar";
 
 export const metadata: Metadata = {
   title: "Estoque",
@@ -28,6 +29,7 @@ export default async function StockPage() {
           <main className="flex-1 py-4 px-4 md:px-8 text-gray-800">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
               <h1 className="text-2xl font-semibold mb-4">Estoque</h1>
+              <Navbar />
               <Saudacao />
             </div>
             <div className="flex flex-col items-start mb-4 bg-white p-4 rounded-lg shadow-md">

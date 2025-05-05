@@ -9,6 +9,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { useStock } from "@/contexts/StockContext";
+import { getToken } from "@/lib/auth-client";
 
 export function ListStockTable() {
   const [products, setProducts] = useState<Cultivar[]>([]);
@@ -17,7 +18,7 @@ export function ListStockTable() {
 
   async function fetchProducts() {
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch("/api/cultivars/get", {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -2,50 +2,44 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { FaHome, FaClipboardList, FaSpinner, FaSeedling, FaTruck } from "react-icons/fa";
+import { FaHome, FaSeedling, FaTruck } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
-import { FaHandshakeSimple } from "react-icons/fa6";
-import { PiGrainsFill } from "react-icons/pi";
 import { useState } from "react";
 import { PanelRightOpen, Warehouse } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useUser } from "@/contexts/UserContext";
 import { UserMenu } from "./UserMenu";
 
 const routes = [
   {
     path: "/",
     name: "Início",
-    icon: <FaHome size={25} />,
+    icon: <FaHome size={20} />,
   },
   {
     path: "/dashboard",
     name: "Dashboard",
-    icon: <AiOutlineDashboard size={25} />,
+    icon: <AiOutlineDashboard size={20} />,
   },
   {
     path: "/sementes",
     name: "Sementes",
-    icon: <FaSeedling size={25} />,
+    icon: <FaSeedling size={20} />,
   },
   {
     path: "/producao",
     name: "Produção",
-    icon: <FaTruck size={25} />,
+    icon: <FaTruck size={20} />,
   },
   {
     path: "/estoque",
     name: "Estoque",
-    icon: <Warehouse size={25} />,
+    icon: <Warehouse size={20} />,
   },
 ];
 
 
 const Sidebar = () => {
-  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const {user} = useUser();
 
   return (
     <div
@@ -95,14 +89,14 @@ const Sidebar = () => {
                       className={`flex text-white items-center ${!isOpen && "justify-center"} py-2 px-1 rounded-lg hover:bg-green hover:text-white`}
                     >
                       {route.icon}
-                      <span className={`ml-3 text-sm font-light hover:text-white ${!isOpen && "hidden"}`}>
+                      <span className={`ml-3 text-sm font-thin hover:text-white ${!isOpen && "hidden"}`}>
                         {route.name}
                       </span>
                     </Link>
                   </div>
                 </TooltipTrigger>
                 {!isOpen && (
-                  <TooltipContent side="right" className="bg-hover text-text">
+                  <TooltipContent side="right" className="bg-found font-thin text-white text-md">
                     {route.name}
                   </TooltipContent>
                 )}

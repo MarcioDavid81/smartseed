@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Cultivar } from "@/types";
+import { getToken } from "@/lib/auth-client";
 
 type StockContextType = {
   cultivars: Cultivar[];
@@ -18,7 +19,7 @@ export function StockProvider({ children }: { children: ReactNode }) {
   const fetchCultivars = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch("/api/cultivars/get", {
         headers: {
           Authorization: `Bearer ${token}`,

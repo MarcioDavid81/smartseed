@@ -1,11 +1,9 @@
 export interface Beneficiation {
-    id: string;
-    rawEntryId: string;
-    date: Date;
-    inputKg: number;
-    outputKg: number;
-    wasteKg: number;
-    notes?: string;
-    userId: string;
-    createdAt: Date;
-  }
+  id: string;
+  cultivarId: string;
+  date: Date;
+  quantityKg: number;
+  notes?: string;
+  companyId: string;
+  createdAt: Date;
+}

@@ -57,4 +57,25 @@ export function getJwtSecretKey() {
   
     return user;
   }
+
+  export async function getCompanyFromToken() {
+    const cookieStore = cookies();
+    const token = cookieStore.get("token")?.value;
+  
+    if (!token) return null;
+  
+    const payload = await verifyToken(token);
+  
+    if (!payload) return null;
+  
+    const company = await db.company.findUnique({
+      where: { id: payload.companyId },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  
+    return company;
+  }
   

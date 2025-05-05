@@ -10,3 +10,4 @@ export * from "./harvest";
 export * from "./buy";
 export * from "./consumptionExit";
 export * from "./saleExit";
+export * from "./company";
