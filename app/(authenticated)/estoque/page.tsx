@@ -5,6 +5,7 @@ import BuyButton from "./_components/BuyButton";
 import BeneficiationButton from "./_components/BeneficiationButton";
 import NewSaleButton from "./_components/SaleExitButton";
 import ConsumptionButton from "./_components/ConsumptionButtton";
+import { ListStockTable } from "./_components/ListStockTable";
 
 export const metadata: Metadata = {
   title: "Estoque",
@@ -29,7 +30,7 @@ export default async function StockPage() {
               <h1 className="text-2xl font-semibold mb-4">Estoque</h1>
               <Saudacao />
             </div>
-            <div className="flex flex-col items-start">
+            <div className="flex flex-col items-start mb-4 bg-white p-4 rounded-lg shadow-md">
               <h2 className="text-lg font-semibold mb-4 mr-4">Operações</h2>
               <div className="flex items-center space-x-10 justify-between">
                   <div className="flex flex-col items-center justify-center space-y-2">
@@ -49,6 +50,7 @@ export default async function StockPage() {
                   </div>
               </div>
             </div>
+            <ListStockTable />
           </main>
         </div>
       </div>

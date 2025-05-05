@@ -106,6 +106,7 @@ model Cultivar {
   beneficiations   Beneficiation[]
   consumptionsExit ConsumptionExit[]
   saleExit         SaleExit[]
+  stock            Float @default(0)
   createdAt        DateTime          @default(now())
 }
 
