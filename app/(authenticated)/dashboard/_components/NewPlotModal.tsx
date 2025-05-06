@@ -11,16 +11,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
+import { Farm } from "@/types";
 
 interface NewPlotModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface Farm {
-  id: string;
-  name: string;
-}
+
 
 const NewPlotModal = ({ isOpen, onClose }: NewPlotModalProps) => {
   const [name, setName] = useState("");

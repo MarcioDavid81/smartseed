@@ -22,24 +22,21 @@ export async function POST(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const { cultivarId, date, invoice, unityPrice, totalPrice, customerId, quantityKg, notes } = await req.json();
+    const { cultivarId, date, quantityKg, farmId, notes } = await req.json();
 
-    if (!cultivarId || !date || !invoice || !quantityKg) {
+    if (!cultivarId || !date || !quantityKg || !farmId ) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
         { status: 400 }
       );
     }
 
-    const buys = await db.buy.create({
+    const consumptions = await db.consumptionExit.create({
       data: {
         cultivarId,
         date: new Date(date),
-        invoice,
-        unityPrice,
-        totalPrice,
-        customerId,
         quantityKg,
+        farmId,
         notes,
         companyId,
       },
@@ -50,14 +47,14 @@ export async function POST(req: NextRequest) {
       where: { id: cultivarId },
       data: {
         stock: {
-          increment: quantityKg,
+          decrement: quantityKg,
         },
       },
     });
 
-    return NextResponse.json(buys, { status: 201 });
+    return NextResponse.json(consumptions, { status: 201 });
   } catch (error) {
-    console.error("Erro ao criar compra:", error);
+    console.error("Erro ao criar consumo:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }
@@ -82,17 +79,18 @@ export async function GET(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const buys = await db.buy.findMany({
+    const consumptions = await db.consumptionExit.findMany({
       where: { companyId },
       include: {
         cultivar: true,
+        farm: true,
       },
       orderBy: { date: "desc" },
     });
 
-    return NextResponse.json(buys, { status: 200 });
+    return NextResponse.json(consumptions, { status: 200 });
   } catch (error) {
-    console.error("Erro ao buscar compras:", error);
+    console.error("Erro ao buscar consumos:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }

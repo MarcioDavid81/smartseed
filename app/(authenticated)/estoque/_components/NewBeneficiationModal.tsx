@@ -29,10 +29,10 @@ type Cultivar = {
 type NewBeneficiationModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onHarvestCreated?: () => void; // <- nova prop opcional
+  onBeneficiotionCreated?: () => void; // <- nova prop opcional
 };
 
-const NewBeneficiationModal = ({ isOpen, onClose, onHarvestCreated }: NewBeneficiationModalProps) => {
+const NewBeneficiationModal = ({ isOpen, onClose, onBeneficiotionCreated }: NewBeneficiationModalProps) => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const [cultivarId, setCultivarId] = useState("");
@@ -94,7 +94,7 @@ const NewBeneficiationModal = ({ isOpen, onClose, onHarvestCreated }: NewBenefic
       onClose();
       resetForm();
 
-      if (onHarvestCreated) onHarvestCreated(); // <- atualiza o estoque
+      if (onBeneficiotionCreated) onBeneficiotionCreated(); // <- atualiza o estoque
 
     } catch (err) {
       console.error(err);

@@ -16,7 +16,7 @@ const BeneficiationButton = () => {
                 Descarte
                 <ChevronRightIcon size={20} />
             </HoverButton>
-            <NewBeneficiationModal isOpen={isOpen} onClose={() => setIsOpen(false)} onHarvestCreated={fetchCultivars} />
+            <NewBeneficiationModal isOpen={isOpen} onClose={() => setIsOpen(false)} onBeneficiotionCreated={fetchCultivars} />
         </div>
     )
 }

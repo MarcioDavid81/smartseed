@@ -58,7 +58,7 @@ model User {
 model Customer {
   id        String     @id @default(uuid())
   name      String
-  email     String?    @unique
+  email     String?
   adress    String?
   city      String?
   state     String?
@@ -67,6 +67,7 @@ model Customer {
   company   Company    @relation(fields: [companyId], references: [id])
   companyId String
   sales     SaleExit[]
+  buys      Buy[]
   createdAt DateTime   @default(now())
 }
 
@@ -106,7 +107,7 @@ model Cultivar {
   beneficiations   Beneficiation[]
   consumptionsExit ConsumptionExit[]
   saleExit         SaleExit[]
-  stock            Float @default(0)
+  stock            Float             @default(0)
   createdAt        DateTime          @default(now())
 }
 
@@ -131,7 +132,11 @@ model Buy {
   cultivarId String
   cultivar   Cultivar @relation(fields: [cultivarId], references: [id])
   date       DateTime
-  supplier   String
+  invoice    String
+  unityPrice Float
+  totalPrice Float
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
   quantityKg Float
   notes      String?
   companyId  String

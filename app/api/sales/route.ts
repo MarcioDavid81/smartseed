@@ -22,7 +22,31 @@ export async function POST(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const { cultivarId, date, quantityKg, notes } = await req.json();
+    const {
+      cultivarId,
+      date,
+      quantityKg,
+      customerId,
+      invoiceNumber,
+      saleValue,
+      notes,
+    } = await req.json();
+
+    // ✅ Tratamento de campos opcionais
+    const parsedCustomerId =
+      customerId && customerId !== "" ? customerId : null;
+    const parsedInvoiceNumber =
+      invoiceNumber && invoiceNumber !== "" ? invoiceNumber : null;
+    const parsedSaleValue =
+      saleValue && saleValue !== "" ? Number(saleValue) : null;
+    const parsedNotes = notes && notes !== "" ? notes : null;
+
+    if (!cultivarId || !date || !quantityKg || !companyId) {
+      return NextResponse.json(
+        { error: "Campos obrigatórios faltando" },
+        { status: 400 }
+      );
+    }
 
     if (!cultivarId || !date || !quantityKg) {
       return NextResponse.json(
@@ -31,12 +55,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const beneficiations = await db.beneficiation.create({
+    const sales = await db.saleExit.create({
       data: {
         cultivarId,
         date: new Date(date),
-        quantityKg,
-        notes,
+        quantityKg: Number(quantityKg),
+        customerId: parsedCustomerId,
+        invoiceNumber: parsedInvoiceNumber,
+        saleValue: parsedSaleValue,
+        notes: parsedNotes,
         companyId,
       },
     });
@@ -51,9 +78,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(beneficiations, { status: 201 });
+    return NextResponse.json(sales, { status: 201 });
   } catch (error) {
-    console.error("Erro ao criar descarte:", error);
+    console.error("Erro ao criar venda:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }
@@ -78,17 +105,18 @@ export async function GET(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const beneficiations = await db.beneficiation.findMany({
+    const sales = await db.saleExit.findMany({
       where: { companyId },
       include: {
         cultivar: true,
+        customer: true,
       },
       orderBy: { date: "desc" },
     });
 
-    return NextResponse.json(beneficiations, { status: 200 });
+    return NextResponse.json(sales, { status: 200 });
   } catch (error) {
-    console.error("Erro ao buscar descartes:", error);
+    console.error("Erro ao buscar vendas:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }

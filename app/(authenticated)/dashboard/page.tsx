@@ -3,6 +3,7 @@ import Saudacao from "../_components/Saudacao";
 import CreatePlotButton from "./_components/CreatePlotButton";
 import CreateFarmButton from "./_components/CreateFarmButton";
 import Navbar from "../_components/Navbar";
+import CreateCustomerButton from "./_components/CreateCustomerButton";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -38,6 +39,11 @@ export default async function DashboardPage() {
               <div className="flex flex-col items-center justify-center space-y-2">
                 <div className="flex space-x-6">
                   <CreatePlotButton />
+                </div>
+              </div>
+              <div className="flex flex-col items-center justify-center space-y-2">
+                <div className="flex space-x-6">
+                  <CreateCustomerButton />
                 </div>
               </div>
             </div>
