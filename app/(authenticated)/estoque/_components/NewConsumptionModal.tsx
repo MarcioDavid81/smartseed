@@ -32,7 +32,11 @@ type NewConsumptionModalProps = {
   onConsumptionCreated?: () => void; // <- nova prop opcional
 };
 
-const NewConsumptionModal = ({ isOpen, onClose, onConsumptionCreated }: NewConsumptionModalProps) => {
+const NewConsumptionModal = ({
+  isOpen,
+  onClose,
+  onConsumptionCreated,
+}: NewConsumptionModalProps) => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [cultivarId, setCultivarId] = useState("");
   const [farms, setFarms] = useState<Farm[]>([]);
@@ -66,7 +70,7 @@ const NewConsumptionModal = ({ isOpen, onClose, onConsumptionCreated }: NewConsu
   }, [isOpen]);
 
   const handleSubmit = async () => {
-    if (!cultivarId || !farmId  || !date || !quantityKg) {
+    if (!cultivarId || !farmId || !date || !quantityKg) {
       alert("Preencha todos os campos obrigatórios");
       return;
     }
@@ -74,7 +78,7 @@ const NewConsumptionModal = ({ isOpen, onClose, onConsumptionCreated }: NewConsu
     setLoading(true);
     try {
       const token = getToken();
-      console.log(cultivarId, date, quantityKg, notes);
+
       const res = await fetch("/api/consumption", {
         method: "POST",
         headers: {
@@ -90,17 +94,22 @@ const NewConsumptionModal = ({ isOpen, onClose, onConsumptionCreated }: NewConsu
         }),
       });
 
-      if (!res.ok) throw new Error("Erro ao salvar consumo");
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Erro ao cadastrar consumo.");
+        return;
+      }
 
       toast.success("Consumo cadastrado com sucesso!");
       onClose();
       resetForm();
 
       if (onConsumptionCreated) onConsumptionCreated(); // <- atualiza o estoque
-
+    
     } catch (err) {
       console.error(err);
-      alert("Erro ao salvar consumo");
+      toast.error("Erro ao conectar com o servidor");
     } finally {
       setLoading(false);
     }
@@ -121,73 +130,73 @@ const NewConsumptionModal = ({ isOpen, onClose, onConsumptionCreated }: NewConsu
           <DialogTitle>Inserir Consumo</DialogTitle>
         </DialogHeader>
 
-          <div>
-            <Label>Cultivar</Label>
-            <select
-              value={cultivarId}
-              onChange={(e) => setCultivarId(e.target.value)}
-              className="w-full border rounded px-2 py-1"
-            >
-              <option value="">Selecione</option>
-              {cultivars.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <Label>Destino</Label>
-            <select
-              value={farmId}
-              onChange={(e) => setFarmId(e.target.value)}
-              className="w-full border rounded px-2 py-1"
-            >
-              <option value="">Selecione</option>
-              {farms.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <Label>Data</Label>
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <Label>Quantidade (kg)</Label>
-            <Input
-              type="number"
-              value={quantityKg}
-              onChange={(e) => setQuantityKg(e.target.value)}
-              placeholder="Ex: 1200"
-            />
-          </div>
-
-          <div>
-            <Label>Observações</Label>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Opcional"
-            />
-          </div>
-
-          <Button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full bg-green text-white"
+        <div>
+          <Label>Cultivar</Label>
+          <select
+            value={cultivarId}
+            onChange={(e) => setCultivarId(e.target.value)}
+            className="w-full border rounded px-2 py-1"
           >
-            {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
-          </Button>
+            <option value="">Selecione</option>
+            {cultivars.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <Label>Destino</Label>
+          <select
+            value={farmId}
+            onChange={(e) => setFarmId(e.target.value)}
+            className="w-full border rounded px-2 py-1"
+          >
+            <option value="">Selecione</option>
+            {farms.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <Label>Data</Label>
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <Label>Quantidade (kg)</Label>
+          <Input
+            type="number"
+            value={quantityKg}
+            onChange={(e) => setQuantityKg(e.target.value)}
+            placeholder="Ex: 1200"
+          />
+        </div>
+
+        <div>
+          <Label>Observações</Label>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Opcional"
+          />
+        </div>
+
+        <Button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full bg-green text-white"
+        >
+          {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+        </Button>
       </DialogContent>
     </Dialog>
   );

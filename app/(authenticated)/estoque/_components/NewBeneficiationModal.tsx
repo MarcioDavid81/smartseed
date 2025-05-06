@@ -16,11 +16,6 @@ import { getToken } from "@/lib/auth-client";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 
-type Talhao = {
-  id: string;
-  name: string;
-};
-
 type Cultivar = {
   id: string;
   name: string;
@@ -34,7 +29,6 @@ type NewBeneficiationModalProps = {
 
 const NewBeneficiationModal = ({ isOpen, onClose, onBeneficiotionCreated }: NewBeneficiationModalProps) => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
-  const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const [cultivarId, setCultivarId] = useState("");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [quantityKg, setQuantityKg] = useState("");
@@ -45,20 +39,13 @@ const NewBeneficiationModal = ({ isOpen, onClose, onBeneficiotionCreated }: NewB
     const fetchData = async () => {
       const token = getToken();
 
-      const [cultivarRes, talhaoRes] = await Promise.all([
-        fetch("/api/cultivars/get", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/plots", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      const cultivarRes = await fetch ("/api/cultivars/get", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const cultivarData = await cultivarRes.json();
-      const talhaoData = await talhaoRes.json();
 
       setCultivars(cultivarData);
-      setTalhoes(talhaoData);
     };
 
     if (isOpen) fetchData();
@@ -73,7 +60,7 @@ const NewBeneficiationModal = ({ isOpen, onClose, onBeneficiotionCreated }: NewB
     setLoading(true);
     try {
       const token = getToken();
-      console.log(cultivarId, date, quantityKg, notes);
+
       const res = await fetch("/api/beneficiation", {
         method: "POST",
         headers: {
@@ -88,7 +75,12 @@ const NewBeneficiationModal = ({ isOpen, onClose, onBeneficiotionCreated }: NewB
         }),
       });
 
-      if (!res.ok) throw new Error("Erro ao salvar descarte");
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Erro ao cadastrar descarte.");
+        return;
+      }
 
       toast.success("Descarte cadastrado com sucesso!");
       onClose();
@@ -98,7 +90,7 @@ const NewBeneficiationModal = ({ isOpen, onClose, onBeneficiotionCreated }: NewB
 
     } catch (err) {
       console.error(err);
-      alert("Erro ao salvar descarte");
+      toast.error("Erro ao conectar com o servidor");
     } finally {
       setLoading(false);
     }

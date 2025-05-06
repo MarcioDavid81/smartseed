@@ -32,7 +32,11 @@ type NewSaleExitModalProps = {
   onSaleCreated?: () => void; // <- nova prop opcional
 };
 
-const NewSaleExitModal = ({ isOpen, onClose, onSaleCreated }: NewSaleExitModalProps) => {
+const NewSaleExitModal = ({
+  isOpen,
+  onClose,
+  onSaleCreated,
+}: NewSaleExitModalProps) => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [cultivarId, setCultivarId] = useState("");
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -68,7 +72,7 @@ const NewSaleExitModal = ({ isOpen, onClose, onSaleCreated }: NewSaleExitModalPr
   }, [isOpen]);
 
   const handleSubmit = async () => {
-    if (!cultivarId || !customerId  || !date || !quantityKg) {
+    if (!cultivarId || !customerId || !date || !quantityKg) {
       alert("Preencha todos os campos obrigatórios");
       return;
     }
@@ -76,7 +80,7 @@ const NewSaleExitModal = ({ isOpen, onClose, onSaleCreated }: NewSaleExitModalPr
     setLoading(true);
     try {
       const token = getToken();
-      console.log(cultivarId, date, quantityKg, notes);
+
       const res = await fetch("/api/sales", {
         method: "POST",
         headers: {
@@ -94,17 +98,20 @@ const NewSaleExitModal = ({ isOpen, onClose, onSaleCreated }: NewSaleExitModalPr
         }),
       });
 
-      if (!res.ok) throw new Error("Erro ao salvar venda");
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Erro ao salvar venda");
+        return;
+      }
 
       toast.success("Venda cadastrada com sucesso!");
       onClose();
       resetForm();
-
-      if (onSaleCreated) onSaleCreated(); // <- atualiza o estoque
-
+      if (onSaleCreated) onSaleCreated();
     } catch (err) {
       console.error(err);
-      alert("Erro ao salvar consumo");
+      toast.error("Erro ao conectar com o servidor");
     } finally {
       setLoading(false);
     }
@@ -127,91 +134,91 @@ const NewSaleExitModal = ({ isOpen, onClose, onSaleCreated }: NewSaleExitModalPr
           <DialogTitle>Inserir Venda</DialogTitle>
         </DialogHeader>
 
-          <div>
-            <Label>Cultivar</Label>
-            <select
-              value={cultivarId}
-              onChange={(e) => setCultivarId(e.target.value)}
-              className="w-full border rounded px-2 py-1"
-            >
-              <option value="">Selecione</option>
-              {cultivars.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <Label>Cliente</Label>
-            <select
-              value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
-              className="w-full border rounded px-2 py-1"
-            >
-              <option value="">Selecione</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <Label>Data</Label>
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <Label>Quantidade (kg)</Label>
-            <Input
-              type="number"
-              value={quantityKg}
-              onChange={(e) => setQuantityKg(e.target.value)}
-              placeholder="Ex: 1200"
-            />
-          </div>
-          <div>
-            <Label>Nota Fiscal</Label>
-            <Input
-              type="number"
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-              placeholder="Ex: 1456"
-            />
-          </div>
-          <div>
-            <Label>Valor Total</Label>
-            <Input
-              type="number"
-              value={saleValue}
-              onChange={(e) => setSaleValue(e.target.value)}
-              placeholder="Ex: 14500"
-            />
-          </div>
-
-          <div>
-            <Label>Observações</Label>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Opcional"
-            />
-          </div>
-
-          <Button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full bg-green text-white"
+        <div>
+          <Label>Cultivar</Label>
+          <select
+            value={cultivarId}
+            onChange={(e) => setCultivarId(e.target.value)}
+            className="w-full border rounded px-2 py-1"
           >
-            {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
-          </Button>
+            <option value="">Selecione</option>
+            {cultivars.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <Label>Cliente</Label>
+          <select
+            value={customerId}
+            onChange={(e) => setCustomerId(e.target.value)}
+            className="w-full border rounded px-2 py-1"
+          >
+            <option value="">Selecione</option>
+            {customers.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <Label>Data</Label>
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <Label>Quantidade (kg)</Label>
+          <Input
+            type="number"
+            value={quantityKg}
+            onChange={(e) => setQuantityKg(e.target.value)}
+            placeholder="Ex: 1200"
+          />
+        </div>
+        <div>
+          <Label>Nota Fiscal</Label>
+          <Input
+            type="number"
+            value={invoiceNumber}
+            onChange={(e) => setInvoiceNumber(e.target.value)}
+            placeholder="Ex: 1456"
+          />
+        </div>
+        <div>
+          <Label>Valor Total</Label>
+          <Input
+            type="number"
+            value={saleValue}
+            onChange={(e) => setSaleValue(e.target.value)}
+            placeholder="Ex: 14500"
+          />
+        </div>
+
+        <div>
+          <Label>Observações</Label>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Opcional"
+          />
+        </div>
+
+        <Button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full bg-green text-white"
+        >
+          {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+        </Button>
       </DialogContent>
     </Dialog>
   );

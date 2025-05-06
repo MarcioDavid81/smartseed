@@ -1,3 +1,4 @@
+import { validateStock } from "@/app/_helpers/validateStock";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -31,6 +32,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const stockValidation = await validateStock(cultivarId, quantityKg);
+    if (stockValidation) return stockValidation;
+
     const beneficiations = await db.beneficiation.create({
       data: {
         cultivarId,
@@ -54,7 +58,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(beneficiations, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar descarte:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Erro interno";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 

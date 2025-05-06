@@ -1,3 +1,4 @@
+import { validateStock } from "@/app/_helpers/validateStock";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -41,6 +42,8 @@ export async function POST(req: NextRequest) {
       saleValue && saleValue !== "" ? Number(saleValue) : null;
     const parsedNotes = notes && notes !== "" ? notes : null;
 
+    
+
     if (!cultivarId || !date || !quantityKg || !companyId) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
@@ -54,6 +57,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const stockValidation = await validateStock(cultivarId, quantityKg);
+    if (stockValidation) return stockValidation;
 
     const sales = await db.saleExit.create({
       data: {
@@ -81,7 +87,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(sales, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar venda:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Erro interno";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 

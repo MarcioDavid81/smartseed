@@ -1,3 +1,4 @@
+import { validateStock } from "@/app/_helpers/validateStock";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -24,12 +25,15 @@ export async function POST(req: NextRequest) {
   try {
     const { cultivarId, date, quantityKg, farmId, notes } = await req.json();
 
-    if (!cultivarId || !date || !quantityKg || !farmId ) {
+    if (!cultivarId || !date || !quantityKg || !farmId) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
         { status: 400 }
       );
     }
+
+    const stockValidation = await validateStock(cultivarId, quantityKg);
+    if (stockValidation) return stockValidation;
 
     const consumptions = await db.consumptionExit.create({
       data: {
@@ -55,7 +59,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(consumptions, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar consumo:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Erro interno";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
