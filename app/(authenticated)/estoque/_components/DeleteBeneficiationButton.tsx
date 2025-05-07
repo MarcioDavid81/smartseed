@@ -1,5 +1,8 @@
+"use client";
+
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -14,40 +17,40 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { getToken } from "@/lib/auth-client";
+import { Beneficiation } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 
-interface Cultivar {
-  id: string;
-  name: string;
-}
-
 interface Props {
-  cultivar: Cultivar;
+  descarte: Beneficiation;
   onDeleted: () => void;
 }
 
-const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
+const DeleteBeneficiationButton = ({ descarte, onDeleted }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDelete = async (descarte: { id: string }) => {
     console.log("🔁 handleDelete chamado");
-    console.log("📦 cultivar recebida:", cultivar);
-    if (!cultivar || !cultivar.id){
-      toast.error("ID do cultivar ausente. Não é possível excluir.");
-      console.warn("❌ cultivar.id ausente ou inválido");
+    console.log("📦 descarte recebida:", descarte);
+
+    if (!descarte || !descarte.id) {
+      toast.error("ID do descarte ausente. Não é possível excluir.");
+      console.warn("❌ descarte.id ausente ou inválido");
       return;
     }
+
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
-      const url = `/api/buys/${cultivar.id}`;
+      const token = getToken();
+      const url = `/api/beneficiation/${descarte.id}`;
       console.log("🌐 Enviando DELETE para:", url);
-      const res = await fetch(`/api/cultivars/${cultivar.id}`, {
+
+      const res = await fetch(url, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -59,16 +62,16 @@ const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error("❌ Erro ao deletar venda:", errorText);
+        console.error("❌ Erro ao deletar descarte:", errorText);
         throw new Error(errorText);
       }
 
-      toast.success("Cultivar deletada com sucesso!");
+      toast.success("Descarte deletada com sucesso!");
       onDeleted();
       setIsOpen(false);
     } catch (error) {
       console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar venda.");
+      toast.error("Erro ao deletar descarte.");
     } finally {
       setLoading(false);
     }
@@ -96,27 +99,29 @@ const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
         <AlertDialogHeader>
           <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta ação é irreversível e excluirá o cultivar permanentemente.
+            Esta ação é irreversível e excluirá o descarte permanentemente.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel className="bg-green text-white hover:text-white">
             Cancelar
           </AlertDialogCancel>
-          <Button
-            onClick={handleDelete}
-            disabled={loading}
-            variant="ghost"
-            className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
-          >
-            <span className="relative flex items-center gap-2 z-10">
-              {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
-            </span>
-          </Button>
+          <AlertDialogAction asChild>
+            <Button
+              onClick={() => handleDelete(descarte)}
+              disabled={loading}
+              variant="ghost"
+              className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
+            >
+              <span className="relative flex items-center gap-2 z-10">
+                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+              </span>
+            </Button>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
 };
 
-export default DeleteCultivarButton;
+export default DeleteBeneficiationButton;

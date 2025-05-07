@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -6,48 +8,52 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Trash2Icon } from "lucide-react";
+import { getToken } from "@/lib/auth-client";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
+import { getApiRouteFromTipo } from "@/app/_helpers/typeForRoute";
 
-interface Cultivar {
+
+interface DeleteMovementButtonProps {
   id: string;
-  name: string;
-}
-
-interface Props {
-  cultivar: Cultivar;
+  tipo: string;
+  quantidade: number;
   onDeleted: () => void;
 }
 
-const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
+export default function DeleteMovementButton({
+  id,
+  tipo,
+  quantidade,
+  onDeleted,
+}: DeleteMovementButtonProps) {
+  const rota = getApiRouteFromTipo(tipo);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
+
     console.log("🔁 handleDelete chamado");
-    console.log("📦 cultivar recebida:", cultivar);
-    if (!cultivar || !cultivar.id){
-      toast.error("ID do cultivar ausente. Não é possível excluir.");
-      console.warn("❌ cultivar.id ausente ou inválido");
+    console.log("📦 operação recebida:", tipo);
+
+    if (!id || !rota) {
+      toast.error(`Erro ao excluir ${tipo}. Tipo ou ID inválido.`);
+      console.warn(`❌ ${tipo}.id ausente ou inválido`);
       return;
     }
     setLoading(true);
-
     try {
-      const token = localStorage.getItem("token");
-      const url = `/api/buys/${cultivar.id}`;
+      const token = getToken();
+
+      const url = `/api/${rota}/${id}`;
       console.log("🌐 Enviando DELETE para:", url);
-      const res = await fetch(`/api/cultivars/${cultivar.id}`, {
+
+      const res = await fetch(`/api/${rota}/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -55,20 +61,20 @@ const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
         },
       });
 
-      console.log("📥 Resposta da API:", res.status);
-
       if (!res.ok) {
         const errorText = await res.text();
-        console.error("❌ Erro ao deletar venda:", errorText);
+        console.error("❌ Erro ao deletar descarte:", errorText);
         throw new Error(errorText);
       }
 
-      toast.success("Cultivar deletada com sucesso!");
+      toast.success(
+        `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} excluído com sucesso`
+      );
       onDeleted();
       setIsOpen(false);
     } catch (error) {
       console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar venda.");
+      toast.error(`Erro ao excluir ${tipo}`);
     } finally {
       setLoading(false);
     }
@@ -76,27 +82,17 @@ const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => setIsOpen(true)}
-              className="hover:opacity-80 transition"
-            >
-              <Trash2Icon size={20} className="text-red-500" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Excluir</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
+      <AlertDialogTrigger asChild>
+        <button>
+          <Trash2 size={18} className="text-red-600" />
+        </button>
+      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta ação é irreversível e excluirá o cultivar permanentemente.
+            Esta ação é irreversível. A movimentação de <strong>{tipo}</strong>{" "}
+            será permanentemente removida do sistema.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -117,6 +113,4 @@ const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
       </AlertDialogContent>
     </AlertDialog>
   );
-};
-
-export default DeleteCultivarButton;
+}

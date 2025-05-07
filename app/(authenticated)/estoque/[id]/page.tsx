@@ -6,8 +6,7 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import HoverButton from "@/components/HoverButton";
 import Link from "next/link";
-import { ArrowUp, ArrowDown, SearchCodeIcon, Search, SquarePen } from "lucide-react";
-import { tipoMovimentacaoInfo } from "@/app/_helpers/movimentacao";
+import EstoqueTableBody from "./_components/EstoqueTableBody";
 
 interface StockDetailProps {
   params: {
@@ -16,21 +15,6 @@ interface StockDetailProps {
 }
 
 export default async function StockDetailPage({ params }: StockDetailProps) {
-
-  function renderTipoMovimentacao(tipo: string) {
-    const info = tipoMovimentacaoInfo[tipo.toUpperCase()];
-    if (!info) return tipo;
-  
-    const Icon = info.entrada ? ArrowUp : ArrowDown;
-    const color = info.entrada ? "text-green-600" : "text-red-600";
-  
-    return (
-      <div className="flex items-center gap-1">
-        <span>{info.label}</span>
-        <Icon size={16} className={color} />
-      </div>
-    );
-  }
 
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
@@ -73,14 +57,6 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
     }))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    const handleSearchCode = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const query = e.target.value;
-      const filteredMovements = allMovements.filter((mov) =>
-        mov.id.toLowerCase().includes(query.toLowerCase())
-      );
-
-    };
-
   return (
     <div className="flex flex-col w-full min-h-screen bg-found">
       <div className="min-h-screen w-full flex bg-background">
@@ -93,9 +69,14 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
             </div>
           </div>
           <div className="flex flex-col items-start mb-4 bg-white p-4 rounded-lg shadow-md">
-            <h1 className="text-2xl font-medium">{cultivar.name}</h1>
+            <h1 className="text-2xl font-medium">{cultivar.product}</h1>
             <p>
-              Produto: {cultivar.product} | Estoque Atual: {new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(cultivar.stock)} kg
+              Cultivar: {cultivar.name} | Estoque Atual:{" "}
+              {new Intl.NumberFormat("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(cultivar.stock)}{" "}
+              kg
             </p>
 
             <h2 className="text-xl font-medium mt-4">Movimentações</h2>
@@ -105,46 +86,25 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
               </p>
             ) : (
               <ScrollArea className="h-[480px] w-full">
-                <table className="w-full text-sm text-left text-gray-500">
-                  <thead className="sticky top-0 text-xs text-gray-700 uppercase bg-gray-50">
+                <table className="w-full font-light text-sm text-left text-gray-500">
+                  <thead className="sticky top-0 text-sm text-gray-700 bg-gray-50">
                     <tr>
-                      <th scope="col" className="px-6 py-3">
+                      <th scope="col" className="font-medium px-6 py-3">
                         Data
                       </th>
-                      <th scope="col" className="px-6 py-3">
+                      <th scope="col" className="font-medium px-6 py-3">
                         Quantidade
                       </th>
-                      <th scope="col" className="px-6 py-3">
+                      <th scope="col" className="font-medium px-6 py-3">
                         Tipo de Movimentação
                       </th>
-                      <th scope="col" className="px-6 py-3">
-                        Detalhes
+                      <th scope="col" className="font-medium px-6 py-3">
+                        Ações
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {allMovements.map((mov) => (
-                      <tr
-                        key={mov.id}
-                        className="bg-white border-b hover:bg-gray-50"
-                      >
-                        <td className="px-6 py-4">
-                          {new Date(mov.date).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4">
-                          {new Intl.NumberFormat("pt-BR", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          }).format(mov.quantity)}
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4">
-                        {renderTipoMovimentacao(mov.type)}
-                        </td>
-                        <td className="px-6 py-4">
-                        <SquarePen className="text-green" size={18} />
-                        </td>
-                      </tr>
-                    ))}
+                  <EstoqueTableBody movements={allMovements} />
                   </tbody>
                 </table>
               </ScrollArea>

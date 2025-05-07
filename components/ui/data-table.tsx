@@ -119,7 +119,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
+                  Nenhum cultivar encontrado.
                 </TableCell>
               </TableRow>
             )}

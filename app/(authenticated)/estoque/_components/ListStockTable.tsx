@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
 import { Cultivar } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown,  Search,  SquarePen } from "lucide-react";
+import { ArrowUpDown,  Search } from "lucide-react";
 import { useStock } from "@/contexts/StockContext";
 import { getToken } from "@/lib/auth-client";
 import { getProductLabel } from "@/app/_helpers/getProductLabel";
@@ -65,7 +65,7 @@ export function ListStockTable() {
       header: () => <div className="text-center">Estoque (kg)</div>,
       cell: ({ row }) => {
         const stock = row.original.stock;
-        return <div className="text-center">{stock.toFixed(2)}</div>;
+        return <div className="text-center">{new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(stock)}</div>;
       },
     },
     {

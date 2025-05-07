@@ -11,17 +11,16 @@ import EditCultivarButton from "./EditCultivarButton";
 import DeleteCultivarButton from "./DeleteCultivarButton";
 import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import { DataTable } from "@/components/ui/data-table";
+import { getToken } from "@/lib/auth-client";
 
 
 export function ListCultivarTable() {
   const [products, setProducts] = useState<Cultivar[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editOpen, setEditOpen] = useState(false);
-  const [product, setProduct] = useState<Cultivar | null>(null);
 
   async function fetchProducts() {
     try {
-        const token = localStorage.getItem("token");
+        const token = getToken();
       const res = await fetch("/api/cultivars/get", {
         headers: {
             Authorization: `Bearer ${token}`,
