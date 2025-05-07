@@ -46,7 +46,7 @@ export default function LogoutButton() {
         <FaSpinner className="animate-spin" />
       ) : (
         <div className="flex items-center gap-2">
-          <LogOutIcon className="w-5 h-5" />
+          <LogOutIcon size={16} />
           <span>Sair</span>
         </div>
       )}

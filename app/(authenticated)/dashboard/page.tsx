@@ -24,12 +24,14 @@ export default async function DashboardPage() {
       <div className="min-h-screen w-full flex bg-background">
         <main className="flex-1 py-4 px-4 md:px-8 text-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <h1 className="text-2xl font-semibold mb-4">Dashboard</h1>
-            <Navbar />
-            <Saudacao />
+            <h1 className="text-2xl font-medium mb-4">Dashboard</h1>
+            <div className="flex items-center space-x-10">
+              <Navbar />
+              <Saudacao />
+            </div>
           </div>
           <div className="flex flex-col items-start mb-4 bg-white p-4 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-4 mr-4">Cadastros</h2>
+            <h2 className="text-lg font-medium mb-4 mr-4">Cadastros</h2>
             <div className="flex items-center space-x-10 justify-between">
               <div className="flex flex-col items-center justify-center space-y-2">
                 <div className="flex space-x-6">

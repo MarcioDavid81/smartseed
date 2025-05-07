@@ -7,7 +7,7 @@ const Navbar = () => {
     return ( 
         <div>
             <p className="text-green text-sm">Produtor</p>
-            <span className="text-sm">{name?.name.toUpperCase()}</span>
+            <span className="text-sm font-light">{name?.name.toUpperCase()}</span>
         </div>
      );
 }

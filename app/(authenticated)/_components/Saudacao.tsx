@@ -22,9 +22,10 @@ const Saudacao = () => {
 
   return (
     <div>
-      <p>
-        {congrat()} {user?.name.trimStart().split(" ")[0]}, {today}.
-      </p>
+      <p className="text-green text-sm">{congrat()} </p>
+      <span className="text-sm font-light">
+        {user?.name.trimStart().split(" ")[0]}, {today}.
+      </span>
     </div>
   );
 };

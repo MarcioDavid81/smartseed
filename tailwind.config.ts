@@ -34,8 +34,8 @@ const config: Config = {
 				foreground: '#0D1B1E'
 			},
 			green: {
-				DEFAULT: '#58A422',
-				foreground: '#58A422'
+				DEFAULT: '#63B926',
+				foreground: '#63B926'
 			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',

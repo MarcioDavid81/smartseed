@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
 import { Cultivar } from "@/types";
-import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown,  Search,  SquarePen } from "lucide-react";
 import { useStock } from "@/contexts/StockContext";
 import { getToken } from "@/lib/auth-client";
+import { getProductLabel } from "@/app/_helpers/getProductLabel";
+import { ProductDataTable } from "@/components/ui/product-data-table";
+import Link from "next/link";
 
 export function ListStockTable() {
   const [products, setProducts] = useState<Cultivar[]>([]);
@@ -56,21 +58,38 @@ export function ListStockTable() {
     {
       accessorKey: "product",
       header: "Produto",
+      cell: ({ row: { original: cultivar } }) => getProductLabel(cultivar.product),
     },
     {
       accessorKey: "stock",
-      header: () => <div className="text-right">Estoque (kg)</div>,
+      header: () => <div className="text-center">Estoque (kg)</div>,
       cell: ({ row }) => {
         const stock = row.original.stock;
-        return <div className="text-right">{stock.toFixed(2)}</div>;
+        return <div className="text-center">{stock.toFixed(2)}</div>;
       },
     },
+    {
+      accessorKey: "actions",
+      header: () => <div className="text-center">Ações</div>,
+      cell: ({ row }) => {
+        const cultivar = row.original;
+        return (
+          <div className="text-center">
+            <Button variant={"ghost"}>
+              <Link href={`/estoque/${cultivar.id}`}>
+                <Search className="text-green" size={30} />
+              </Link>
+            </Button>
+          </div>
+        );
+      }
+    }
   ];
 
   return (
-    <Card className="p-4 dark:bg-primary">
+    <Card className="p-4 dark:bg-primary font-light">
       <div className="mb-2">
-        <h2>Estoque das Cultivares</h2>
+        <h2 className="font-medium">Estoque das Cultivares</h2>
       </div>
       {loading ? (
         <div className="text-center py-10 text-gray-500">
@@ -78,7 +97,7 @@ export function ListStockTable() {
           <p className="text-lg">Carregando Estoque...</p>
         </div>
       ) : (
-        <DataTable columns={columns} data={cultivars} />
+        <ProductDataTable columns={columns} data={cultivars} />
       )}
     </Card>
   );

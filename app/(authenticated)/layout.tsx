@@ -68,7 +68,7 @@ export default async function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${roboto.className} antialiased md:flex  w-full min-h-screen`}
+        className={`${roboto.className} antialiased  md:flex  w-full min-h-screen`}
       >
         <CompanyProvider name={safeCompany}>
         <StockProvider>

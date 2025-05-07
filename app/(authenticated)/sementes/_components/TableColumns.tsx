@@ -32,7 +32,7 @@ export const columnsProducts: ColumnDef<Cultivar>[] = [
 
       return (
         <div className="flex items-center gap-x-2">
-          <EditCultivarButton cultivar={product} />
+          <EditCultivarButton cultivar={product} onUpdated={() => {}} />
         </div>
       );
     },

@@ -57,3 +57,27 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return new NextResponse("Erro interno no servidor", { status: 500 });
   }
 }
+
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!token) return new NextResponse("Token ausente", { status: 401 });
+
+    const payload = await verifyToken(token);
+    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+
+    const { id } = params;
+
+    // Buscar o cultivar para garantir que pertence à empresa do usuário
+    const cultivar = await db.cultivar.findUnique({ where: { id } });
+
+    if (!cultivar || cultivar.companyId !== payload.companyId) {
+      return new NextResponse("Cultivar não encontrado ou acesso negado", { status: 403 });
+    }
+
+    return NextResponse.json(cultivar);
+  } catch (error) {
+    console.error("Erro ao buscar cultivar:", error);
+    return new NextResponse("Erro interno no servidor", { status: 500 });
+  }
+}

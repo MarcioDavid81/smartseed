@@ -82,6 +82,15 @@ enum ProductType {
   AZEVEM
 }
 
+//enums para operações
+enum OperationType {
+  Colheita
+  Compra
+  Descarte
+  Venda
+  Plantio
+}
+
 //talhões
 model Talhao {
   id        String    @id @default(cuid())
@@ -123,6 +132,7 @@ model Harvest {
   companyId  String
   company    Company  @relation(fields: [companyId], references: [id])
   notes      String?
+  type       OperationType @default(Colheita)
   createdAt  DateTime @default(now())
 }
 
@@ -141,6 +151,7 @@ model Buy {
   notes      String?
   companyId  String
   company    Company  @relation(fields: [companyId], references: [id])
+  type       OperationType @default(Compra)
   createdAt  DateTime @default(now())
 }
 
@@ -154,6 +165,7 @@ model Beneficiation {
   notes      String?
   companyId  String
   company    Company  @relation(fields: [companyId], references: [id])
+  type       OperationType @default(Descarte)
   createdAt  DateTime @default(now())
 }
 
@@ -169,6 +181,7 @@ model ConsumptionExit {
   notes      String?
   companyId  String
   company    Company  @relation(fields: [companyId], references: [id])
+  type       OperationType @default(Plantio)
   createdAt  DateTime @default(now())
 }
 
@@ -186,5 +199,6 @@ model SaleExit {
   notes         String?
   companyId     String
   company       Company   @relation(fields: [companyId], references: [id])
+  type          OperationType @default(Venda)
   createdAt     DateTime  @default(now())
 }

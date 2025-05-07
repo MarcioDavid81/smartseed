@@ -26,14 +26,14 @@ const HoverButton: React.FC<HoverButtonProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   return (
     <button
-      className={`relative flex items-center overflow-hidden px-4 py-1 font-medium border-2 border-green rounded-md text-sm ${baseColor} text-gray-800 hover:text-gray-50 transition-all duration-300 ease-in-out ${className}`}
+      className={`relative flex items-center overflow-hidden px-4 py-1 font-medium border border-green rounded-md text-sm ${baseColor} text-gray-800 hover:text-gray-50 transition-all duration-300 ease-in-out ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
       title={title}
       disabled={disabled}
     >
-      <span className="relative flex items-center gap-2 z-10">{children}</span>
+      <span className="relative font-light flex items-center gap-2 z-10">{children}</span>
       <div
         className={`absolute top-0 left-0 w-0 h-full ${hoverColor} transition-all duration-300 ease-in-out hover:w-full`}
         style={{

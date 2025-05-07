@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
 import { Cultivar } from "@/types";
-import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import EditCultivarButton from "./EditCultivarButton";
 import DeleteCultivarButton from "./DeleteCultivarButton";
+import { getProductLabel } from "@/app/_helpers/getProductLabel";
+import { DataTable } from "@/components/ui/data-table";
+
 
 export function ListCultivarTable() {
   const [products, setProducts] = useState<Cultivar[]>([]);
@@ -57,15 +59,16 @@ export function ListCultivarTable() {
     {
       accessorKey: "product",
       header: "Produto",
+      cell: ({ row: { original: cultivar } }) => getProductLabel(cultivar.product),
     },
     {
       accessorKey: "actions",
-      header: "Ações",
+      header:  () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
         const cultivar = row.original;
 
         return (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center gap-4">
             <EditCultivarButton cultivar={cultivar} onUpdated={fetchProducts} />
             <DeleteCultivarButton cultivar={cultivar} onDeleted={fetchProducts} />
           </div>
@@ -75,9 +78,9 @@ export function ListCultivarTable() {
   ];
 
   return (
-    <Card className="p-4 dark:bg-primary">
+    <Card className="p-4 dark:bg-primary font-light">
       <div className="mb-4">
-        <h2>Cultivares Cadastrados</h2>
+        <h2 className="font-medium">Cultivares Cadastrados</h2>
       </div>
       {loading ? (
         <div className="text-center py-10 text-gray-500">

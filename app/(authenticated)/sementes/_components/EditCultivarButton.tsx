@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Edit2 } from 'lucide-react'
+import { SquarePenIcon } from 'lucide-react'
 import { EditCultivarModal } from './EditCultivarModal'
 import { ProductType } from '@prisma/client'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -30,7 +29,7 @@ const EditCultivarButton = ({ cultivar, onUpdated }: Props) =>  {
                     onClick={() => setOpen(true)}
                     className="hover:opacity-80 transition"
                   >
-                    <Edit2 size={20} className="text-green" />
+                    <SquarePenIcon size={20} className="text-green" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>

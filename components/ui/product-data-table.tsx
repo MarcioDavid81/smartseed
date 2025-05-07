@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FaSpinner } from "react-icons/fa";
 import { useState } from "react";
-import CreateCultivarButton from "@/app/(authenticated)/sementes/_components/CreateCultivarButton";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -33,7 +32,7 @@ interface DataTableProps<TData, TValue> {
   searchFields?: string[];
 }
 
-export function DataTable<TData, TValue>({
+export function ProductDataTable<TData, TValue>({
   columns,
   data,
   pageSize = 8,
@@ -70,16 +69,15 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
-      <div className="flex items-center justify-between py-4">
+      <div className="flex items-center py-4">
         <Input
-          placeholder="Procure por nome"
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          placeholder="Procure por produto"
+          value={(table.getColumn("product")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn("product")?.setFilterValue(event.target.value)
           }
           className="max-w-sm bg-gray-50 text-primary"
         />
-            <CreateCultivarButton onCreated={() => table.resetRowSelection()} />
       </div>
       <div className="rounded-md border">
         <Table>

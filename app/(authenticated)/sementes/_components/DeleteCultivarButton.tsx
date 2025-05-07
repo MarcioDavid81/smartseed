@@ -1,6 +1,5 @@
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -15,7 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Trash, Trash2 } from "lucide-react";
+import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
@@ -69,7 +68,7 @@ const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
               onClick={() => setIsOpen(true)}
               className="hover:opacity-80 transition"
             >
-              <Trash size={20} className="text-red-500" />
+              <Trash2Icon size={20} className="text-red-500" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
