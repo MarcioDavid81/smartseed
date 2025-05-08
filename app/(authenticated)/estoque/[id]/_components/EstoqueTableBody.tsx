@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { tipoMovimentacaoInfo } from "@/app/_helpers/movimentacao";
 import { ArrowUp, ArrowDown, SquarePen } from "lucide-react";
-import DeleteMovementButton from "./DeleteMovementButton";  
+import DeleteMovementButton from "./DeleteMovementButton"; 
+import { useStock } from "@/contexts/StockContext";
+
 
 export default function EstoqueTableBody({ movements }: { movements: any[] }) {
   function renderTipoMovimentacao(tipo: string) {
@@ -23,8 +25,11 @@ export default function EstoqueTableBody({ movements }: { movements: any[] }) {
 
   const [movementsState, setMovementsState] = useState(movements);
 
-  const handleDelete = (id: string) => {
+  const { fetchCultivars } = useStock();
+
+  const handleDelete = async (id: string) => {
     setMovementsState((prev) => prev.filter((mov) => mov.id !== id));
+    await fetchCultivars();
   };
 
   return (

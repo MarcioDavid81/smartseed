@@ -83,7 +83,7 @@ export default function DeleteMovementButton({
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
-        <button>
+        <button aria-label="Excluir movimentação">
           <Trash2 size={18} className="text-red-600" />
         </button>
       </AlertDialogTrigger>

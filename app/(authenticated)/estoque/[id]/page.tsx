@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import HoverButton from "@/components/HoverButton";
 import Link from "next/link";
 import EstoqueTableBody from "./_components/EstoqueTableBody";
+import EstoqueDetalhado from "./_components/EstoqueDetalhado";
 
 interface StockDetailProps {
   params: {
@@ -15,7 +16,6 @@ interface StockDetailProps {
 }
 
 export default async function StockDetailPage({ params }: StockDetailProps) {
-
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -68,7 +68,11 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
               <Saudacao />
             </div>
           </div>
-          <div className="flex flex-col items-start mb-4 bg-white p-4 rounded-lg shadow-md">
+          <EstoqueDetalhado
+            cultivar={cultivar}
+            initialMovements={allMovements}
+          />
+          {/* <div className="flex flex-col items-start mb-4 bg-white p-4 rounded-lg shadow-md">
             <h1 className="text-2xl font-medium">{cultivar.product}</h1>
             <p>
               Cultivar: {cultivar.name} | Estoque Atual:{" "}
@@ -109,10 +113,10 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
                 </table>
               </ScrollArea>
             )}
-          </div>
-          <HoverButton>
-            <Link href="/estoque">Voltar</Link>
-          </HoverButton>
+          </div> */}
+          <Link href="/estoque">
+            <HoverButton className="mt-4">Voltar</HoverButton>
+          </Link>
         </main>
       </div>
     </div>
