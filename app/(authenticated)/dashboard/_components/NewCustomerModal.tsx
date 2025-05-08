@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
 import InputMask from "react-input-mask";
+import { Label } from "@/components/ui/label";
+import { getToken } from "@/lib/auth-client";
 
 interface NewCustomerModalProps {
   isOpen: boolean;
@@ -76,7 +78,7 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
 
   const onSubmit = async (data: CustomerFormData) => {
     setLoading(true);
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     const res = await fetch("/api/customers", {
       method: "POST",
@@ -112,96 +114,112 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-          <Input placeholder="Nome do cliente" {...register("name")} />
-          {errors.name && (
-            <p className="text-red-500 text-xs">{errors.name.message}</p>
-          )}
-
-          <Input
-            placeholder="email@email.com"
-            type="email"
-            {...register("email")}
-          />
-          {errors.email && (
-            <p className="text-red-500 text-xs">{errors.email.message}</p>
-          )}
-
-          <Input placeholder="Endereço" {...register("adress")} />
-          {errors.adress && (
-            <p className="text-red-500 text-xs">{errors.adress.message}</p>
-          )}
-
-          <Input placeholder="Cidade" {...register("city")} />
-          {errors.city && (
-            <p className="text-red-500 text-xs">{errors.city.message}</p>
-          )}
-
-          <select
-            {...register("state")}
-            className="border rounded px-3 py-2 text-sm text-muted-foreground w-full"
-          >
-            <option value="">Selecione o estado</option>
-            {statesList.map((uf) => (
-              <option key={uf.id} value={uf.sigla}>
-                {uf.nome}
-              </option>
-            ))}
-          </select>
-          {errors.state && (
-            <p className="text-red-500 text-xs">{errors.state.message}</p>
-          )}
-
-          <Controller
-            control={control}
-            name="phone"
-            render={({ field }) => (
-              <InputMask
-                mask="(99) 99999-9999"
-                value={field.value}
-                onChange={field.onChange}
+          <div className="space-y-4 py-2">
+            <div>
+              <Label htmlFor="name">Nome</Label>
+              <Input placeholder="Nome do cliente" {...register("name")} />
+              {errors.name && (
+                <p className="text-red-500 text-xs">{errors.name.message}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                placeholder="email@email.com"
+                type="email"
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-xs">{errors.email.message}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="adress">Endereço</Label>
+              <Input placeholder="Endereço" {...register("adress")} />
+              {errors.adress && (
+                <p className="text-red-500 text-xs">{errors.adress.message}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="city">Cidade</Label>
+              <Input placeholder="Cidade" {...register("city")} />
+              {errors.city && (
+                <p className="text-red-500 text-xs">{errors.city.message}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="state">Estado</Label>
+              <select
+                {...register("state")}
+                className="border rounded px-3 py-2 text-sm text-muted-foreground w-full"
               >
-                {(inputProps: any) => (
-                  <Input {...inputProps} placeholder="Telefone" type="text" />
+                <option value="">Selecione o estado</option>
+                {statesList.map((uf) => (
+                  <option key={uf.id} value={uf.sigla}>
+                    {uf.nome}
+                  </option>
+                ))}
+              </select>
+              {errors.state && (
+                <p className="text-red-500 text-xs">{errors.state.message}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="phone">Telefone</Label>
+              <Controller
+                control={control}
+                name="phone"
+                render={({ field }) => (
+                  <InputMask
+                    mask="(99) 99999-9999"
+                    value={field.value}
+                    onChange={field.onChange}
+                  >
+                    {(inputProps: any) => (
+                      <Input {...inputProps} placeholder="Telefone" type="text" />
+                    )}
+                  </InputMask>
                 )}
-              </InputMask>
-            )}
-          />
-          {errors.phone && (
-            <p className="text-red-500 text-xs">{errors.phone.message}</p>
-          )}
-
-          <Controller
-            control={control}
-            name="cpf_cnpj"
-            render={({ field }) => {
-              const numeric = cpfCnpj.replace(/\D/g, "");
-              const mask =
-                numeric.length < 15 ? "99.999.999/9999-99" : "999.999.999-99"; ;
-
-              return (
-                <InputMask
-                  mask={mask}
-                  value={cpfCnpj}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setCpfCnpj(value);
-                    field.onChange(value); // sincroniza com react-hook-form
-                  }}
-                >
-                  {(inputProps: any) => (
-                    <Input
-                      {...inputProps}
-                      placeholder="CPF ou CNPJ"
-                      type="text"
-                    />
-                  )}
-                </InputMask>
-              );
-            }}
-          />
-          {errors.cpf_cnpj && (
-            <p className="text-red-500 text-xs">{errors.cpf_cnpj.message}</p>
-          )}
+              />
+              {errors.phone && (
+                <p className="text-red-500 text-xs">{errors.phone.message}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="cpf_cnpj">CPF/CNPJ</Label>
+              <Controller
+                control={control}
+                name="cpf_cnpj"
+                render={({ field }) => {
+                  const numeric = cpfCnpj.replace(/\D/g, "");
+                  const mask =
+                    numeric.length < 15 ? "99.999.999/9999-99" : "999.999.999-99"; ;
+                  return (
+                    <InputMask
+                      mask={mask}
+                      value={cpfCnpj}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setCpfCnpj(value);
+                        field.onChange(value); // sincroniza com react-hook-form
+                      }}
+                    >
+                      {(inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          placeholder="CPF ou CNPJ"
+                          type="text"
+                        />
+                      )}
+                    </InputMask>
+                  );
+                }}
+              />
+              {errors.cpf_cnpj && (
+                <p className="text-red-500 text-xs">{errors.cpf_cnpj.message}</p>
+              )}
+            </div>
+          </div>
 
           <Button
             disabled={loading}
