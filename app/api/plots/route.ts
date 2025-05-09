@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     try {
       const plots = await db.talhao.findMany({
         where: { companyId },
-        include: { farm: true },
+        include: { farm: { select: { id: true, name: true } } },
         orderBy: { createdAt: "desc" },
       });
   

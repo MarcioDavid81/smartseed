@@ -70,7 +70,7 @@ export function ListStockTable() {
     },
     {
       accessorKey: "actions",
-      header: () => <div className="text-center">Ações</div>,
+      header: () => <div className="text-center">Detalhes</div>,
       cell: ({ row }) => {
         const cultivar = row.original;
         return (

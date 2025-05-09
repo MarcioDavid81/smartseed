@@ -6,6 +6,10 @@ export interface Talhao {
     area: number;
     companyId: string;
     farmId: string;
+    farm: {
+        id: string;
+        name: string;
+    }
     harvests: Harvest[];
     createdAt: Date;
 };

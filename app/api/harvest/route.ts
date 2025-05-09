@@ -1,5 +1,6 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { p } from "framer-motion/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -82,8 +83,12 @@ export async function GET(req: NextRequest) {
     const harvests = await db.harvest.findMany({
       where: { companyId },
       include: {
-        talhao: true,
-        cultivar: true,
+        talhao: {
+          select: { id: true, name: true, farm: { select: { id: true, name: true } } },
+        },
+        cultivar: {
+          select: { id: true, name: true },
+        },
       },
       orderBy: { date: "desc" },
     });
