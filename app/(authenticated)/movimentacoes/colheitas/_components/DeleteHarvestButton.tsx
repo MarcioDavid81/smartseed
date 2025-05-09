@@ -17,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useHarvest } from "@/contexts/HarvestContext";
 import { getToken } from "@/lib/auth-client";
 import { Harvest } from "@/types";
 import { Trash2Icon } from "lucide-react";
@@ -33,6 +34,7 @@ interface Props {
 const DeleteHarvestButton = ({ colheita, onDeleted }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { fetchHarvests } = useHarvest();
 
   const handleDelete = async (colheita: { id: string }) => {
     console.log("🔁 handleDelete chamado");
@@ -76,6 +78,8 @@ const DeleteHarvestButton = ({ colheita, onDeleted }: Props) => {
     } finally {
       setLoading(false);
     }
+
+    await fetchHarvests();
   };
 
   return (

@@ -41,6 +41,8 @@ const UpsertHarvestButton = ({ colheita, onUpdated }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         onHarvestCreated={fetchCultivars}
+        colheita={colheita}
+        onUpdated={onUpdated}
       />
     </>
   );

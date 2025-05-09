@@ -10,9 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
-import { Cultivar, Talhao } from "@/types";
+import { Cultivar, Harvest, Talhao } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Harvest } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
@@ -24,13 +23,14 @@ interface UpsertHarvestModalProps {
   isOpen: boolean;
   onClose: () => void;
   onHarvestCreated?: () => void;
+  onUpdated?: () => void;
 }
 
 const harvestSchema = z.object({
   cultivarId: z.string().min(1, "Selecione uma cultivar"),
   talhaoId: z.string().min(1, "Selecione um talhão"),
   date: z.string().min(1, "Selecione uma data"),
-  quantityKg: z.number().min(1, "Quantidade é obrigatória"),
+  quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
   notes: z.string(),
 });
 
@@ -41,6 +41,7 @@ const UpsertHarvestModal = ({
   isOpen,
   onClose,
   onHarvestCreated,
+  onUpdated,
 }: UpsertHarvestModalProps) => {
   const [loading, setLoading] = useState(false);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
@@ -53,7 +54,28 @@ const UpsertHarvestModal = ({
     formState: { errors },
   } = useForm<HarvestFormData>({
     resolver: zodResolver(harvestSchema),
+    defaultValues: {
+      cultivarId: colheita?.cultivarId ?? "",
+      talhaoId: colheita?.talhaoId ?? "",
+      date: colheita ? new Date(colheita.date).toISOString().split("T")[0] : "",
+      quantityKg: colheita?.quantityKg ?? 0,
+      notes: colheita?.notes ?? "",
+    },
   });
+
+  useEffect(() => {
+    if (colheita) {
+      reset({
+        cultivarId: colheita.cultivarId,
+        talhaoId: colheita.talhaoId,
+        date: new Date(colheita.date).toISOString().split("T")[0],
+        quantityKg: colheita.quantityKg,
+        notes: colheita.notes || "",
+      });
+    } else {
+      reset();
+    }
+  }, [colheita, isOpen, reset]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,11 +101,15 @@ const UpsertHarvestModal = ({
   }, [isOpen]);
 
   const onSubmit = async (data: HarvestFormData) => {
+    console.log(" 📦 Data enviada:",data);
     setLoading(true);
     const token = getToken();
 
-    const res = await fetch("/api/harvest", {
-      method: "POST",
+    const url = colheita ? `/api/harvest/${colheita.id}` : "/api/harvest";
+    const method = colheita ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -94,13 +120,18 @@ const UpsertHarvestModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.error(result.error || "Erro ao cadastrar colheita.");
+      toast.error(result.error || "Erro ao salvar colheita.");
     } else {
-      toast.success("Colheita cadastrada com sucesso!");
+      toast.success(
+        colheita
+          ? "Colheita atualizada com sucesso!"
+          : "Colheita cadastrada com sucesso!"
+      );
       onClose();
       reset();
+      if (onHarvestCreated) onHarvestCreated();
     }
-    if (onHarvestCreated) onHarvestCreated();
+
     setLoading(false);
   };
 
@@ -113,68 +144,84 @@ const UpsertHarvestModal = ({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Colheita</DialogTitle>
-          <DialogDescription>Insira os dados da colheita</DialogDescription>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid gap-4">
-              <div>
-                <Label>Cultivar</Label>
-                <select
-                  {...register("cultivarId")}
-                  className="w-full border rounded px-2 py-1"
-                >
-                  <option value="">Selecione</option>
-                  {cultivars.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <Label>Talhão</Label>
-                <select
-                  {...register("talhaoId")}
-                  className="w-full border rounded px-2 py-1"
-                >
-                  <option value="">Selecione</option>
-                  {talhoes.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <Label>Data</Label>
-                <Input type="date" {...register("date")} />
-              </div>
-
-              <div>
-                <Label>Quantidade (kg)</Label>
-                <Input
-                  type="number"
-                  {...register("quantityKg")}
-                  placeholder="Ex: 1200"
-                />
-              </div>
-
-              <div>
-                <Label>Observações</Label>
-                <Textarea {...register("notes")} placeholder="Opcional" />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-green text-white"
-              >
-                {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
-              </Button>
-            </div>
-          </form>
+          <DialogDescription>
+            {colheita ? "Editar colheita" : "Cadastrar colheita"}
+          </DialogDescription>
         </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="grid gap-4">
+            <div>
+              <Label>Cultivar</Label>
+              <select
+                {...register("cultivarId")}
+                className="w-full border rounded px-2 py-1"
+              >
+                <option value="">Selecione</option>
+                {cultivars.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              {errors.cultivarId && (
+                <span className="text-xs text-red-500">
+                  {errors.cultivarId.message}
+                </span>
+              )}
+            </div>
+
+            <div>
+              <Label>Talhão</Label>
+              <select
+                {...register("talhaoId")}
+                className="w-full border rounded px-2 py-1"
+              >
+                <option value="">Selecione</option>
+                {talhoes.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+              {errors.talhaoId && (
+                <span className="text-xs text-red-500">
+                  {errors.talhaoId.message}
+                </span>
+              )}
+            </div>
+
+            <div>
+              <Label>Data</Label>
+              <Input type="date" {...register("date")} />
+            </div>
+
+            <div>
+              <Label>Quantidade (kg)</Label>
+              <Input
+                type="number"
+                {...register("quantityKg")}
+                placeholder="Ex: 1200"
+              />
+              {errors.quantityKg && (
+                <span className="text-xs text-red-500">
+                  {errors.quantityKg.message}
+                </span>
+              )}
+            </div>
+
+            <div>
+              <Label>Observações</Label>
+              <Textarea {...register("notes")} placeholder="Opcional" />
+            </div>
+          </div>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green text-white"
+          >
+            {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+          </Button>
+        </form>
       </DialogContent>
     </Dialog>
   );

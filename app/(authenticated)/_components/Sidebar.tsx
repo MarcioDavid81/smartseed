@@ -105,6 +105,7 @@ const Sidebar = () => {
             if (route.subRoutes) {
               return (
                 <SidebarCollapsibleItem
+                  key={index}
                   icon={route.icon}
                   name={route.name}
                   subRoutes={route.subRoutes}

@@ -3,8 +3,8 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import EstoqueTableBody from "./EstoqueTableBody";
 import { useState } from "react";
-import { useStock } from "@/contexts/StockContext"; // <== IMPORTANTE
-import HoverButton from "@/components/HoverButton";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Movement {
   id: string;
@@ -63,9 +63,9 @@ export default function StockDetailContent({
           }).format(estoqueAtual)}{" "}
           kg
         </p>
-        <HoverButton onClick={atualizarEstoque}>
-          {isLoading ? "Carregando..." : "Atualizar"}
-        </HoverButton>
+        <Button variant={"ghost"} onClick={atualizarEstoque} disabled={isLoading}>
+          <RefreshCw size={16} className={`${isLoading ? "animate-spin" : ""}`} />
+        </Button>
       </div>
 
       <h2 className="text-xl font-medium mt-4">Movimentações</h2>

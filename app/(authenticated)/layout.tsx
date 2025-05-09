@@ -8,6 +8,7 @@ import { UserProvider } from "@/contexts/UserContext";
 import { getCompanyFromToken, getUserFromToken } from "@/lib/auth";
 import { StockProvider } from "@/contexts/StockContext";
 import { CompanyProvider } from "@/contexts/CompanyContext";
+import { HarvestProvider } from "@/contexts/HarvestContext";
 
 const inter = Inter({
   weight: ["100", "200", "300", "400", "700"],
@@ -68,14 +69,16 @@ export default async function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${roboto.className} antialiased  md:flex  w-full min-h-screen`}
+        className={`${roboto.className} ${inter.className} antialiased  md:flex  w-full min-h-screen`}
       >
         <CompanyProvider name={safeCompany}>
         <StockProvider>
           <UserProvider user={safeUser}>
+            <HarvestProvider>
             <Sidebar />
             {children}
             <Toaster />
+            </HarvestProvider>
           </UserProvider>
         </StockProvider>
         </CompanyProvider>

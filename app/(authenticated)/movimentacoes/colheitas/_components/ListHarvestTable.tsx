@@ -4,9 +4,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
-import {  Harvest } from "@/types";
+import { Harvest } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getToken } from "@/lib/auth-client";
 import { HarvestDataTable } from "./HarvestDataTable";
 import DeleteHarvestButton from "./DeleteHarvestButton";
@@ -99,8 +99,14 @@ export function ListHarvestTable() {
         const colheita = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <UpsertHarvestButton colheita={colheita} onUpdated={fetchHarvests} />
-            <DeleteHarvestButton colheita={colheita} onDeleted={fetchHarvests} />
+            <UpsertHarvestButton
+              colheita={colheita}
+              onUpdated={fetchHarvests}
+            />
+            <DeleteHarvestButton
+              colheita={colheita}
+              onDeleted={fetchHarvests}
+            />
           </div>
         );
       },
@@ -109,8 +115,11 @@ export function ListHarvestTable() {
 
   return (
     <Card className="p-4 dark:bg-primary font-light">
-      <div className="mb-2">
+      <div className="flex items-center gap-2 mb-2">
         <h2 className="font-medium">Lista de Colheitas</h2>
+        <Button variant={"ghost"} onClick={fetchHarvests} disabled={loading} >
+          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        </Button>
       </div>
       {loading ? (
         <div className="text-center py-10 text-gray-500">

@@ -1,7 +1,5 @@
-// components/SidebarCollapsibleItem.tsx
 "use client";
 
-import Link from "next/link";
 import {
   Collapsible,
   CollapsibleContent,
@@ -15,7 +13,6 @@ import {
 } from "@/components/ui/tooltip";
 import {
   ChevronDown,
-  CornerDownLeft,
   DollarSign,
   ShoppingCart,
   Trash2,
