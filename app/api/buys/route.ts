@@ -85,7 +85,12 @@ export async function GET(req: NextRequest) {
     const buys = await db.buy.findMany({
       where: { companyId },
       include: {
-        cultivar: true,
+        cultivar:{
+          select: { id: true, name: true }
+        },
+        customer: {
+          select: { id: true, name: true }
+        }
       },
       orderBy: { date: "desc" },
     });

@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Saudacao from "../../_components/Saudacao";
 import Navbar from "../../_components/Navbar";
+import { ListBuyTable } from "./_components/ListBuyTable";
 
 export const metadata: Metadata = {
   title: "Compras",
@@ -27,6 +28,7 @@ export default async function DashboardPage() {
               <Saudacao />
             </div>
           </div>
+          <ListBuyTable />
         </main>
       </div>
     </div>

@@ -217,7 +217,7 @@ const UpsertHarvestModal = ({
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-green text-white"
+            className="w-full bg-green text-white mt-4"
           >
             {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
           </Button>

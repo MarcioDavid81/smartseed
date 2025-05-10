@@ -23,8 +23,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import CreateHarvestButton from "./CreateHarvestButton";
-import GenerateHarvestReportModal from "./GenerateHarvestReportModal";
+import CreateBuyButton from "./CreateBuyButton";
+import GenerateBuyReportModal from "./GeneretaBuyReportModal";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -33,7 +33,7 @@ interface DataTableProps<TData, TValue> {
   searchFields?: string[];
 }
 
-export function HarvestDataTable<TData, TValue>({
+export function BuyDataTable<TData, TValue>({
   columns,
   data,
   pageSize = 8,
@@ -80,7 +80,7 @@ export function HarvestDataTable<TData, TValue>({
           }
           className="max-w-sm bg-gray-50 text-primary"
         />
-        <CreateHarvestButton />
+        <CreateBuyButton />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -130,7 +130,7 @@ export function HarvestDataTable<TData, TValue>({
 
       {/* Paginação */}
       <div className="flex items-center justify-between space-x-2 dark:text-primary">
-        <GenerateHarvestReportModal  />
+        <GenerateBuyReportModal  />
         <div className="flex items-center space-x-2 justify-end">
           <Button
             variant="secondary"

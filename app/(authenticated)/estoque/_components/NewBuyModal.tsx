@@ -6,7 +6,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -42,7 +49,11 @@ type Props = {
   onHarvestCreated?: () => void;
 };
 
-export default function NewBuyModal({ isOpen, onClose, onHarvestCreated }: Props) {
+export default function NewBuyModal({
+  isOpen,
+  onClose,
+  onHarvestCreated,
+}: Props) {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -74,8 +85,12 @@ export default function NewBuyModal({ isOpen, onClose, onHarvestCreated }: Props
     const fetchData = async () => {
       const token = getToken();
       const [cultivarRes, customerRes] = await Promise.all([
-        fetch("/api/cultivars/get", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/customers", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/cultivars/get", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("/api/customers", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
       const cultivarData = await cultivarRes.json();
       const customerData = await customerRes.json();
@@ -141,10 +156,15 @@ export default function NewBuyModal({ isOpen, onClose, onHarvestCreated }: Props
                 <FormItem>
                   <FormLabel>Cultivar</FormLabel>
                   <FormControl>
-                    <select {...field} className="w-full border rounded px-2 py-1">
+                    <select
+                      {...field}
+                      className="w-full border rounded px-2 py-1"
+                    >
                       <option value="">Selecione</option>
                       {cultivars.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
                       ))}
                     </select>
                   </FormControl>
@@ -160,10 +180,15 @@ export default function NewBuyModal({ isOpen, onClose, onHarvestCreated }: Props
                 <FormItem>
                   <FormLabel>Fornecedor</FormLabel>
                   <FormControl>
-                    <select {...field} className="w-full border rounded px-2 py-1">
+                    <select
+                      {...field}
+                      className="w-full border rounded px-2 py-1"
+                    >
                       <option value="">Selecione</option>
                       {customers.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
                       ))}
                     </select>
                   </FormControl>
@@ -260,7 +285,11 @@ export default function NewBuyModal({ isOpen, onClose, onHarvestCreated }: Props
               )}
             />
 
-            <Button type="submit" disabled={loading} className="w-full bg-green text-white">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-green text-white"
+            >
               {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
             </Button>
           </form>

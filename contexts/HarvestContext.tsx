@@ -20,7 +20,7 @@ export function HarvestProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       const token = getToken();
-      const res = await fetch("/api/harvests/get", {
+      const res = await fetch("/api/harvest", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

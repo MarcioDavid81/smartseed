@@ -4,23 +4,23 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
-import { Harvest } from "@/types";
+import { Buy } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getToken } from "@/lib/auth-client";
-import { HarvestDataTable } from "./HarvestDataTable";
-import DeleteHarvestButton from "./DeleteHarvestButton";
-import UpsertHarvestButton from "./UpsertHarvestButton";
+import UpsertBuyButton from "./UpsertBuyButton";
+import DeleteBuyButton from "@/app/(authenticated)/estoque/_components/DeleteBuyButton";
+import { BuyDataTable } from "./BuyDataTable";
 
-export function ListHarvestTable() {
-  const [harvests, setHarvests] = useState<Harvest[]>([]);
+export function ListBuyTable() {
+  const [buys, setBuys] = useState<Buy[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function fetchHarvests() {
+  async function fetchBuys() {
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("/api/harvest", {
+      const res = await fetch("/api/buys", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -28,21 +28,21 @@ export function ListHarvestTable() {
 
       const data = await res.json();
       const filteredData = data.filter(
-        (product: Harvest) => product.quantityKg > 0
+        (product: Buy) => product.quantityKg > 0
       );
-      setHarvests(filteredData);
+      setBuys(filteredData);
     } catch (error) {
-      console.error("Erro ao buscar colheitas:", error);
+      console.error("Erro ao buscar compras:", error);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchHarvests();
+    fetchBuys();
   }, []);
 
-  const columns: ColumnDef<Harvest>[] = [
+  const columns: ColumnDef<Buy>[] = [
     {
       accessorKey: "date",
       header: ({ column }) => (
@@ -62,20 +62,18 @@ export function ListHarvestTable() {
     {
       accessorKey: "cultivar",
       header: "Cultivar",
-      accessorFn: (row) => row.cultivar.name,
+      accessorFn: (row) => row.cultivarId,
       cell: ({ row: { original } }) => original.cultivar.name,
     },
     {
-      accessorKey: "talhao",
-      header: "Talhão",
-      cell: ({ row: { original: original } }) => original.talhao.name,
+      accessorKey: "customer",
+      header: "Fornecedor",
+      cell: ({ row: { original: original } }) => original.customer.name,
     },
     {
-      accessorKey: "farm",
-      header: () => <div className="text-left">Fazenda</div>,
-      cell: ({ row: { original: original } }) => {
-        return <div className="text-left">{original.talhao.farm.name}</div>;
-      },
+      accessorKey: "invoice",
+      header: "Nota Fiscal",
+      cell: ({ row: { original: original } }) => original.invoice,
     },
     {
       accessorKey: "quantityKg",
@@ -93,19 +91,49 @@ export function ListHarvestTable() {
       },
     },
     {
+      accessorKey: "unityPrice",
+      header: () => <div className="text-left">Preço (kg)</div>,
+      cell: ({ row }) => {
+        const valor = row.original.unityPrice;
+        return (
+          <div className="text-left">
+            {new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            }).format(valor)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "totalPrice",
+      header: () => <div className="text-left">Preço Total</div>,
+      cell: ({ row }) => {
+        const valor = row.original.totalPrice;
+        return (
+          <div className="text-left">
+            {new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            }).format(valor)}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
-        const colheita = row.original;
+        const compra = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <UpsertHarvestButton
-              colheita={colheita}
-              onUpdated={fetchHarvests}
+            <UpsertBuyButton
+              compra={compra}
+              onUpdated={fetchBuys}
             />
-            <DeleteHarvestButton
-              colheita={colheita}
-              onDeleted={fetchHarvests}
+            <DeleteBuyButton
+              compra={compra}
+              onDeleted={fetchBuys}
             />
           </div>
         );
@@ -116,18 +144,18 @@ export function ListHarvestTable() {
   return (
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
-        <h2 className="font-light">Lista de Colheitas</h2>
-        <Button variant={"ghost"} onClick={fetchHarvests} disabled={loading}>
+        <h2 className="font-light">Lista de Compras</h2>
+        <Button variant={"ghost"} onClick={fetchBuys} disabled={loading}>
           <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>
       {loading ? (
         <div className="text-center py-10 text-gray-500">
           <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando Colheitas...</p>
+          <p className="text-lg">Carregando Compras...</p>
         </div>
       ) : (
-        <HarvestDataTable columns={columns} data={harvests} />
+        <BuyDataTable columns={columns} data={buys} />
       )}
     </Card>
   );

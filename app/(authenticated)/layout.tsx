@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { Roboto_Condensed } from "next/font/google";
 import "../globals.css";
 import Sidebar from "./_components/Sidebar";
 import { Toaster } from "sonner";
@@ -9,20 +7,43 @@ import { getCompanyFromToken, getUserFromToken } from "@/lib/auth";
 import { StockProvider } from "@/contexts/StockContext";
 import { CompanyProvider } from "@/contexts/CompanyContext";
 import { HarvestProvider } from "@/contexts/HarvestContext";
+import roboto from "next/font/local";
 
-const inter = Inter({
-  weight: ["100", "200", "300", "400", "700"],
-  style: "normal",
-  display: "swap",
-  subsets: ["latin-ext"],
+const robotoFont = roboto({
+  src: [
+    {
+      path: '../../public/fonts/Roboto-Thin.ttf',
+      weight: '100',
+      style: 'thin',
+    },
+    {
+      path: '../../public/fonts/Roboto-Light.ttf',
+      weight: '300',
+      style: 'light',
+    },
+        {
+      path: '../../public/fonts/Roboto-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/Roboto-Medium.ttf',
+      weight: '500',
+      style: 'medium',
+    },
+    {
+      path: '../../public/fonts/Roboto-Bold.ttf',
+      weight: '700',
+      style: 'bold',
+    },
+    {
+      path: '../../public/fonts/Roboto-Black.ttf',
+      weight: '900',
+      style: 'black',
+    },
+  ],
 });
 
-const roboto = Roboto_Condensed({
-  weight: ["100", "200","300", "400", "700"],
-  style: "normal",
-  display: "swap",
-  subsets: ["latin-ext"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -69,7 +90,7 @@ export default async function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${roboto.className} ${inter.className} antialiased  md:flex  w-full min-h-screen`}
+        className={`${robotoFont.className} antialiased  md:flex  w-full min-h-screen`}
       >
         <CompanyProvider name={safeCompany}>
         <StockProvider>
