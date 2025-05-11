@@ -27,6 +27,33 @@ export async function PUT(
       });
     }
 
+    // Se quantidade ou cultivar mudarem, ajustar o estoque
+    if (
+      existing.quantityKg !== quantityKg ||
+      existing.cultivarId !== cultivarId
+    ) {
+      // Reverter estoque anterior
+      await db.cultivar.update({
+        where: { id: existing.cultivarId },
+        data: {
+          stock: {
+            increment: existing.quantityKg,
+          },
+        },
+      });
+
+      // Subtrair nova quantidade ao novo cultivar
+      await db.cultivar.update({
+        where: { id: cultivarId },
+        data: {
+          stock: {
+            decrement: quantityKg,
+          },
+        },
+      });
+    }
+
+    // Atualizar estoque
     const updated = await db.beneficiation.update({
       where: { id },
       data: {

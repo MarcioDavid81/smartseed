@@ -27,6 +27,33 @@ export async function PUT(
       });
     }
 
+    // Se quantidade ou cultivar mudarem, ajustar o estoque
+    if (
+      existing.quantityKg !== quantityKg ||
+      existing.cultivarId !== cultivarId
+    ) {
+      // Reverter estoque anterior
+      await db.cultivar.update({
+        where: { id: existing.cultivarId },
+        data: {
+          stock: {
+            decrement: existing.quantityKg,
+          },
+        },
+      });
+
+      // Adicionar nova quantidade ao novo cultivar
+      await db.cultivar.update({
+        where: { id: cultivarId },
+        data: {
+          stock: {
+            increment: quantityKg,
+          },
+        },
+      });
+    }
+
+    // Atualizar estoque
     const updated = await db.harvest.update({
       where: { id },
       data: {
@@ -37,7 +64,6 @@ export async function PUT(
         notes,
       },
     });
-
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Erro ao atualizar colheita:", error);
