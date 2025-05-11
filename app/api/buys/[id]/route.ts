@@ -3,6 +3,60 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/buys/{id}:
+ *   put:
+ *     summary: Atualizar uma compra
+ *     tags:
+ *       - Compra
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da compra
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cultivarId:
+ *                 type: string
+ *               customerId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               invoice:
+ *                 type: string
+ *               unityPrice:
+ *                 type: number
+ *               totalPrice:
+ *                 type: number
+ *               quantityKg:
+ *                 type: number
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Compra atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Buy'
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Compra não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 // Atualizar compra
 export async function PUT(
   req: NextRequest,
@@ -83,6 +137,37 @@ export async function PUT(
     return new NextResponse("Erro interno no servidor", { status: 500 });
   }
 }
+
+/**
+ * @swagger
+ * /api/buys/{id}:
+ *   delete:
+ *     summary: Deletar uma compra
+ *     tags:
+ *       - Compra
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da compra
+ *     responses:
+ *       200:
+ *         description: Compra deletada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Buy'
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Compra não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 
 // Deletar compra
 export async function DELETE(

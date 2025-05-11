@@ -2,6 +2,30 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/farms:
+ *   post:
+ *     summary: Registrar nova fazenda
+ *     tags:
+ *       - Fazenda
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               area:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Fazenda criada com sucesso
+ */
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
@@ -40,6 +64,41 @@ export async function POST(req: NextRequest) {
   }
 }
 
+/**
+ * @swagger
+ * /api/farms:
+ *   get:
+ *     summary: Listar todas as fazendas da empresa do usuário logado
+ *     tags:
+ *       - Fazenda
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de fazendas retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   talhoes: 
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *       401:
+ *         description: Token ausente ou inválido
+ */
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
@@ -59,7 +118,7 @@ export async function GET(req: NextRequest) {
   try {
     const farms = await db.farm.findMany({
       where: { companyId },
-      include: { talhoes: true },
+      include: { talhoes: { select: { id: true, name: true } } },
       orderBy: { createdAt: "desc" },
     });
 

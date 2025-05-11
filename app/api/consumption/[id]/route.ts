@@ -3,6 +3,54 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/consumption/{id}:
+ *   put:
+ *     summary: Atualizar um consumo
+ *     tags:
+ *       - Consumo/Plantio
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do consumo
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cultivarId:
+ *                 type: string
+ *               farmId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               quantityKg:
+ *                 type: number
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Consumo atualizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ConsumptionExit'
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Consumo não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 // Atualizar plantio
 export async function PUT(
   req: NextRequest,
@@ -71,6 +119,37 @@ export async function PUT(
     return new NextResponse("Erro interno no servidor", { status: 500 });
   }
 }
+
+/**
+ * @swagger
+ * /api/consumption/{id}:
+ *   delete:
+ *     summary: Deletar um consumo
+ *     tags:
+ *       - Consumo/Plantio
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do consumo
+ *     responses:
+ *       200:
+ *         description: Consumo deletada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ConsumptionExit'
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Consumo não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 
 // Deletar plantio
 export async function DELETE(

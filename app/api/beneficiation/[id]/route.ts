@@ -3,6 +3,52 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/beneficiation/{id}:
+ *   put:
+ *     summary: Atualizar um descarte
+ *     tags:
+ *       - Descarte
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do descarte
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cultivarId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               quantityKg:
+ *                 type: number
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Descarte atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Beneficiation'
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Descarte não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 // Atualizar descarte
 export async function PUT(
   req: NextRequest,
@@ -71,6 +117,37 @@ export async function PUT(
   }
 }
 
+
+/**
+ * @swagger
+ * /api/beneficiation/{id}:
+ *   delete:
+ *     summary: Deletar um descarte
+ *     tags:
+ *       - Descarte
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do descarte
+ *     responses:
+ *       200:
+ *         description: Descarte deletada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Beneficiation'
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Descarte não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 // Deletar descarte
 export async function DELETE(
   req: NextRequest,

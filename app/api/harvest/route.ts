@@ -1,8 +1,38 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
-import { p } from "framer-motion/client";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/harvest:
+ *   post:
+ *     summary: Registrar nova colheita
+ *     tags:
+ *       - Colheita
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cultivarId:
+ *                 type: string
+ *               talhaoId:
+ *                 type: string
+ *               quantityKg:
+ *                 type: number
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Colheita criada com sucesso
+ */
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
@@ -59,6 +89,43 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }
+
+/**
+ * @swagger
+ * /api/harvest:
+ *   get:
+ *     summary: Listar todas as colheitas da empresa do usuário logado
+ *     tags:
+ *       - Colheita
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de colheitas retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   cultivarId:
+ *                     type: string
+ *                   talhaoId:
+ *                     type: string
+ *                   quantityKg:
+ *                     type: number
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   notes:
+ *                     type: string
+ *       401:
+ *         description: Token ausente ou inválido
+ */
+
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");

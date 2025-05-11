@@ -2,6 +2,40 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/customers:
+ *   post:
+ *     summary: Registrar novo cliente
+ *     tags:
+ *       - Cliente
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               adress:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               cpf_cnpj:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Cliente criado com sucesso
+ */
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
@@ -45,7 +79,44 @@ export async function POST(req: NextRequest) {
   }
 }
 
-
+/**
+ * @swagger
+ * /api/customers:
+ *   get:
+ *     summary: Listar todas os clientes da empresa do usuário logado
+ *     tags:
+ *       - Cliente
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de clientes retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   adress:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   state:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   cpf_cnpj:
+ *                     type: string
+ *       401:
+ *         description: Token ausente ou inválido
+ */
 export async function GET(req: NextRequest) {
     const authHeader = req.headers.get("Authorization");
   

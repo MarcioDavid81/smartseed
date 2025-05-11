@@ -3,6 +3,58 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/sales/{id}:
+ *   put:
+ *     summary: Atualizar uma venda
+ *     tags:
+ *       - Venda
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da venda
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cultivarId:
+ *                 type: string
+ *               customerId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               quantityKg:
+ *                 type: number
+ *               invoiceNumber:
+ *                 type: string
+ *               saleValue:
+ *                 type: number
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Venda atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SaleExit'
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Venda não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 // Atualizar venda
 export async function PUT(
   req: NextRequest,
@@ -90,6 +142,37 @@ export async function PUT(
     return new NextResponse("Erro interno no servidor", { status: 500 });
   }
 }
+
+/**
+ * @swagger
+ * /api/sales/{id}:
+ *   delete:
+ *     summary: Deletar uma venda
+ *     tags:
+ *       - Venda
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da venda
+ *     responses:
+ *       200:
+ *         description: Venda deletada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SaleExit'
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Venda não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 
 // Deletar venda
 export async function DELETE(

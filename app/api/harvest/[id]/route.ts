@@ -3,6 +3,55 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/harvest/{id}:
+ *   put:
+ *     summary: Atualizar uma colheita
+ *     tags:
+ *       - Colheita
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da colheita
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cultivarId:
+ *                 type: string
+ *               talhaoId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               quantityKg:
+ *                 type: number
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Colheita atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Harvest'
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Colheita não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
+
 // Atualizar colheita
 export async function PUT(
   req: NextRequest,
@@ -71,6 +120,36 @@ export async function PUT(
   }
 }
 
+/**
+ * @swagger
+ * /api/harvest/{id}:
+ *   delete:
+ *     summary: Deletar uma colheita
+ *     tags:
+ *       - Colheita
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da colheita
+ *     responses:
+ *       200:
+ *         description: Colheita deletada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Harvest'
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Colheita não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 // Deletar colheita
 export async function DELETE(
   req: NextRequest,

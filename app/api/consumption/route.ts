@@ -3,6 +3,37 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/consumption:
+ *   post:
+ *     summary: Registrar novo consumo
+ *     tags:
+ *       - Consumo/Plantio
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cultivarId:
+ *                 type: string
+ *               farmId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               quantityKg:
+ *                 type: number
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Consumo criado com sucesso
+ */
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
@@ -65,6 +96,41 @@ export async function POST(req: NextRequest) {
   }
 }
 
+/**
+ * @swagger
+ * /api/consumption:
+ *   get:
+ *     summary: Listar todos os consumos da empresa do usuário logado
+ *     tags:
+ *       - Consumo/Plantio
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de consumos retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   cultivarId:
+ *                     type: string
+ *                   farmId:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   quantityKg:
+ *                     type: number
+ *                   notes:
+ *                     type: string
+ *       401:
+ *         description: Token ausente ou inválido
+ */
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 

@@ -3,6 +3,35 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/beneficiation:
+ *   post:
+ *     summary: Registrar novo descarte
+ *     tags:
+ *       - Descarte
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cultivarId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               quantityKg:
+ *                 type: number
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Descarte criado com sucesso
+ */
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
@@ -64,6 +93,39 @@ export async function POST(req: NextRequest) {
   }
 }
 
+/**
+ * @swagger
+ * /api/beneficiation:
+ *   get:
+ *     summary: Listar todos os descartes da empresa do usuário logado
+ *     tags:
+ *       - Descarte
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de descartes retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   cultivarId:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   quantityKg:
+ *                     type: number
+ *                   notes:
+ *                     type: string
+ *       401:
+ *         description: Token ausente ou inválido
+ */
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 

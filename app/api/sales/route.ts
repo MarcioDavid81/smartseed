@@ -3,6 +3,41 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/sales:
+ *   post:
+ *     summary: Registrar nova venda
+ *     tags:
+ *       - Venda
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cultivarId:
+ *                 type: string
+ *               customerId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               quantityKg:
+ *                 type: number
+ *               invoiceNumber:
+ *                 type: string
+ *               saleValue:
+ *                 type: number
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Venda criada com sucesso
+ */
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
@@ -91,6 +126,45 @@ export async function POST(req: NextRequest) {
   }
 }
 
+/**
+ * @swagger
+ * /api/sales:
+ *   get:
+ *     summary: Listar todas as vendas da empresa do usuário logado
+ *     tags:
+ *       - Venda
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de vendas retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   cultivarId:
+ *                     type: string
+ *                   customerId:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   quantityKg:
+ *                     type: number
+ *                   invoiceNumber:
+ *                     type: string
+ *                   saleValue:
+ *                      type: number
+ *                   notes:
+ *                     type: string
+ *       401:
+ *         description: Token ausente ou inválido
+ */
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
