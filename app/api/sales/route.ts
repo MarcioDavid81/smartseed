@@ -33,16 +33,14 @@ export async function POST(req: NextRequest) {
       notes,
     } = await req.json();
 
-    // ✅ Tratamento de campos opcionais
-    const parsedCustomerId =
-      customerId && customerId !== "" ? customerId : null;
-    const parsedInvoiceNumber =
-      invoiceNumber && invoiceNumber !== "" ? invoiceNumber : null;
-    const parsedSaleValue =
-      saleValue && saleValue !== "" ? Number(saleValue) : null;
-    const parsedNotes = notes && notes !== "" ? notes : null;
-
-    
+    // // ✅ Tratamento de campos opcionais
+    // const parsedCustomerId =
+    //   customerId && customerId !== "" ? customerId : null;
+    // const parsedInvoiceNumber =
+    //   invoiceNumber && invoiceNumber !== "" ? invoiceNumber : null;
+    // const parsedSaleValue =
+    //   saleValue && saleValue !== "" ? Number(saleValue) : null;
+    // const parsedNotes = notes && notes !== "" ? notes : null;
 
     if (!cultivarId || !date || !quantityKg || !companyId) {
       return NextResponse.json(
@@ -66,10 +64,10 @@ export async function POST(req: NextRequest) {
         cultivarId,
         date: new Date(date),
         quantityKg: Number(quantityKg),
-        customerId: parsedCustomerId,
-        invoiceNumber: parsedInvoiceNumber,
-        saleValue: parsedSaleValue,
-        notes: parsedNotes,
+        customerId,
+        invoiceNumber,
+        saleValue,
+        notes,
         companyId,
       },
     });
@@ -116,8 +114,12 @@ export async function GET(req: NextRequest) {
     const sales = await db.saleExit.findMany({
       where: { companyId },
       include: {
-        cultivar: true,
-        customer: true,
+        cultivar: {
+          select: { id: true, name: true },
+        },
+        customer: {
+          select: { id: true, name: true },
+        },
       },
       orderBy: { date: "desc" },
     });

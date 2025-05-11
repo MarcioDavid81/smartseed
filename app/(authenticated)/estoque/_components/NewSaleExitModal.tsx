@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { format, set } from "date-fns";
+import { format } from "date-fns";
 import { getToken } from "@/lib/auth-client";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";

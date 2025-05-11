@@ -23,8 +23,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import CreateBuyButton from "./CreateBuyButton";
-import GenerateBuyReportModal from "./GeneretaBuyReportModal";
+import CreateSaleButton from "./CreateSaleButton";
+import GenerateSaleReportModal from "./GenerateSaleReportModal";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -33,7 +33,7 @@ interface DataTableProps<TData, TValue> {
   searchFields?: string[];
 }
 
-export function BuyDataTable<TData, TValue>({
+export function SaleDataTable<TData, TValue>({
   columns,
   data,
   pageSize = 8,
@@ -80,7 +80,7 @@ export function BuyDataTable<TData, TValue>({
           }
           className="max-w-sm bg-gray-50 text-primary"
         />
-        <CreateBuyButton />
+        <CreateSaleButton  />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -120,7 +120,7 @@ export function BuyDataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Nenhuma compra encontrada.
+                  Nenhuma venda encontrada.
                 </TableCell>
               </TableRow>
             )}
@@ -130,7 +130,7 @@ export function BuyDataTable<TData, TValue>({
 
       {/* Paginação */}
       <div className="flex items-center justify-between space-x-2 dark:text-primary">
-        <GenerateBuyReportModal  />
+        <GenerateSaleReportModal  />
         <div className="flex items-center space-x-2 justify-end">
           <Button
             variant="secondary"

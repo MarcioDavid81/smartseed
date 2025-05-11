@@ -14,21 +14,22 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
-import { useBuy } from "@/contexts/BuyContext";
+import { useSale } from "@/contexts/SaleContext";
 
-
-export default function GenerateBuyReportModal() {
-  const { buys } = useBuy();
+export default function GenerateSaleReportModal() {
+  const { sales } = useSale();
   const [cultivar, setCultivar] = useState<string | null>(null);
   const [customer, setCustomer] = useState<string | null>(null);
   const { user } = useUser();
 
   const cultivaresUnicos = Array.from(
-    new Set(buys.map((h) => h.cultivar.name))
+    new Set(sales.map((h) => h.cultivar.name))
   );
-  const customersUnicos = Array.from(new Set(buys.map((h) => h.customer.name)));
+  const customersUnicos = Array.from(
+    new Set(sales.map((h) => h.customer.name))
+  );
 
-  const filtered = buys.filter((h) => {
+  const filtered = sales.filter((h) => {
     const matchCultivar = !cultivar || h.cultivar.name === cultivar;
     const matchCustomer = !customer || h.customer.name === customer;
     return matchCultivar && matchCustomer;
@@ -43,7 +44,7 @@ export default function GenerateBuyReportModal() {
     logo.onload = () => {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
-      doc.text("Relatório de Compras", 150, 20, { align: "center" });
+      doc.text("Relatório de Vendas", 150, 20, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Cultivar: ${cultivar || "Todos"}`, 14, 35);
@@ -51,19 +52,28 @@ export default function GenerateBuyReportModal() {
 
       autoTable(doc, {
         startY: 50,
-        head: [["Data", "Cultivar", "Fornecedor", "Nota Fiscal", "Quantidade (kg)", "Valor (R$)"]],
+        head: [
+          [
+            "Data",
+            "Cultivar",
+            "Cliente",
+            "Nota Fiscal",
+            "Quantidade (kg)",
+            "Valor (R$)",
+          ],
+        ],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
-          h.cultivar.name,
-          h.customer.name,
-          h.invoice,
-          h.quantityKg.toLocaleString("pt-BR", {
+          h.cultivar?.name ?? "—",
+          h.customer?.name ?? "—",
+          h.invoiceNumber ?? "—",
+          h.quantityKg?.toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
-          }),
-          h.totalPrice.toLocaleString("pt-BR", {
+          }) ?? "0,00",
+          h.saleValue?.toLocaleString("pt-BR", {
             style: "currency",
             currency: "BRL",
-          }),
+          }) ?? "R$ 0,00",
         ]),
         styles: {
           fontSize: 9,
@@ -122,7 +132,7 @@ export default function GenerateBuyReportModal() {
       let finalY = (doc as any).lastAutoTable.finalY + 10;
 
       doc.setFontSize(9);
-      doc.text("Total comprado por Cultivar", 14, finalY);
+      doc.text("Total vendido por Cultivar", 14, finalY);
 
       doc.setFontSize(9);
       Object.entries(totalsByCultivar).forEach(([name, total], index) => {
@@ -145,7 +155,7 @@ export default function GenerateBuyReportModal() {
       );
 
       const fileNumber = new Date().getTime().toString();
-      const fileName = `Relatorio de Compras - ${fileNumber}.pdf`;
+      const fileName = `Relatorio de Vendas - ${fileNumber}.pdf`;
       doc.save(fileName);
       setCultivar(null);
       setCustomer(null);
@@ -186,7 +196,7 @@ export default function GenerateBuyReportModal() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Fornecedor</label>
+          <label className="text-sm font-medium">Cliente</label>
           <Select
             value={customer ?? ""}
             onValueChange={(value) =>

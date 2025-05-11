@@ -17,9 +17,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useHarvest } from "@/contexts/HarvestContext";
+import { useSale } from "@/contexts/SaleContext";
 import { getToken } from "@/lib/auth-client";
-import { Buy } from "@/types";
+import { Sale } from "@/types/sale";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
@@ -27,22 +27,22 @@ import { toast } from "sonner";
 
 
 interface Props {
-  compra: Buy;
+  venda: Sale;
   onDeleted: () => void;
 }
 
-const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
+const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { fetchHarvests } = useHarvest();
+  const { fetchSales } = useSale();
 
-  const handleDelete = async (compra: { id: string }) => {
+  const handleDelete = async (venda: { id: string }) => {
     console.log("🔁 handleDelete chamado");
-    console.log("📦 compra recebida:", compra);
+    console.log("📦 venda recebida:", venda);
 
-    if (!compra || !compra.id) {
-      toast.error("ID da compra ausente. Não é possível excluir.");
-      console.warn("❌ compra.id ausente ou inválido");
+    if (!venda || !venda.id) {
+      toast.error("ID da venda ausente. Não é possível excluir.");
+      console.warn("❌ venda.id ausente ou inválido");
       return;
     }
 
@@ -50,7 +50,7 @@ const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
 
     try {
       const token = getToken();
-      const url = `/api/buys/${compra.id}`;
+      const url = `/api/sales/${venda.id}`;
       console.log("🌐 Enviando DELETE para:", url);
 
       const res = await fetch(url, {
@@ -65,21 +65,21 @@ const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error("❌ Erro ao deletar compra:", errorText);
+        console.error("❌ Erro ao deletar venda:", errorText);
         throw new Error(errorText);
       }
 
-      toast.success("Compra deletada com sucesso!");
+      toast.success("Venda deletada com sucesso!");
       onDeleted();
       setIsOpen(false);
     } catch (error) {
       console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar compra.");
+      toast.error("Erro ao deletar venda.");
     } finally {
       setLoading(false);
     }
 
-    await fetchHarvests();
+    await fetchSales();
   };
 
   return (
@@ -104,7 +104,7 @@ const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
         <AlertDialogHeader>
           <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta ação é irreversível e excluirá o registro de compra permanentemente.
+            Esta ação é irreversível e excluirá o registro de venda permanentemente.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -113,7 +113,7 @@ const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(compra)}
+              onClick={() => handleDelete(venda)}
               disabled={loading}
               variant="ghost"
               className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
@@ -129,4 +129,4 @@ const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
   );
 };
 
-export default DeleteBuyButton;
+export default DeleteSaleButton;

@@ -8,42 +8,43 @@ import { StockProvider } from "@/contexts/StockContext";
 import { CompanyProvider } from "@/contexts/CompanyContext";
 import { HarvestProvider } from "@/contexts/HarvestContext";
 import roboto from "next/font/local";
+import { BuyProvider } from "@/contexts/BuyContext";
+import { SaleProvider } from "@/contexts/SaleContext";
 
 const robotoFont = roboto({
   src: [
     {
-      path: '../../public/fonts/Roboto-Thin.ttf',
-      weight: '100',
-      style: 'thin',
+      path: "../../public/fonts/Roboto-Thin.ttf",
+      weight: "100",
+      style: "thin",
     },
     {
-      path: '../../public/fonts/Roboto-Light.ttf',
-      weight: '300',
-      style: 'light',
-    },
-        {
-      path: '../../public/fonts/Roboto-Regular.ttf',
-      weight: '400',
-      style: 'normal',
+      path: "../../public/fonts/Roboto-Light.ttf",
+      weight: "300",
+      style: "light",
     },
     {
-      path: '../../public/fonts/Roboto-Medium.ttf',
-      weight: '500',
-      style: 'medium',
+      path: "../../public/fonts/Roboto-Regular.ttf",
+      weight: "400",
+      style: "normal",
     },
     {
-      path: '../../public/fonts/Roboto-Bold.ttf',
-      weight: '700',
-      style: 'bold',
+      path: "../../public/fonts/Roboto-Medium.ttf",
+      weight: "500",
+      style: "medium",
     },
     {
-      path: '../../public/fonts/Roboto-Black.ttf',
-      weight: '900',
-      style: 'black',
+      path: "../../public/fonts/Roboto-Bold.ttf",
+      weight: "700",
+      style: "bold",
+    },
+    {
+      path: "../../public/fonts/Roboto-Black.ttf",
+      weight: "900",
+      style: "black",
     },
   ],
 });
-
 
 export const metadata: Metadata = {
   title: {
@@ -80,7 +81,7 @@ export default async function RootLayout({
       }
     : null;
 
-    const safeCompany = company
+  const safeCompany = company
     ? {
         id: company.id,
         name: company.name,
@@ -93,15 +94,19 @@ export default async function RootLayout({
         className={`${robotoFont.className} antialiased  md:flex  w-full min-h-screen`}
       >
         <CompanyProvider name={safeCompany}>
-        <StockProvider>
-          <UserProvider user={safeUser}>
-            <HarvestProvider>
-            <Sidebar />
-            {children}
-            <Toaster />
-            </HarvestProvider>
-          </UserProvider>
-        </StockProvider>
+          <StockProvider>
+            <UserProvider user={safeUser}>
+              <HarvestProvider>
+                <BuyProvider>
+                  <SaleProvider>
+                    <Sidebar />
+                    {children}
+                    <Toaster />
+                  </SaleProvider>
+                </BuyProvider>
+              </HarvestProvider>
+            </UserProvider>
+          </StockProvider>
         </CompanyProvider>
       </body>
     </html>
