@@ -3,9 +3,11 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-
 // Atualizar plantio
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) return new NextResponse("Token ausente", { status: 401 });
@@ -20,18 +22,20 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const existing = await db.consumptionExit.findUnique({ where: { id } });
 
     if (!existing || existing.companyId !== payload.companyId) {
-      return new NextResponse("Plantio não encontrado ou acesso negado", { status: 403 });
+      return new NextResponse("Plantio não encontrado ou acesso negado", {
+        status: 403,
+      });
     }
 
     const updated = await db.consumptionExit.update({
       where: { id },
-      data: { 
+      data: {
         cultivarId,
         date: new Date(date),
         quantityKg,
         farmId,
-        notes
-       },
+        notes,
+      },
     });
 
     return NextResponse.json(updated);
@@ -41,9 +45,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-
 // Deletar plantio
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) return new NextResponse("Token ausente", { status: 401 });
@@ -57,10 +63,16 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const existing = await db.consumptionExit.findUnique({ where: { id } });
 
     if (!existing || existing.companyId !== payload.companyId) {
-      return new NextResponse("Plantio não encontrado ou acesso negado", { status: 403 });
+      return new NextResponse("Plantio não encontrado ou acesso negado", {
+        status: 403,
+      });
     }
 
-    await adjustStockWhenDeleteMov("plantio", existing.cultivarId, existing.quantityKg);
+    await adjustStockWhenDeleteMov(
+      "plantio",
+      existing.cultivarId,
+      existing.quantityKg
+    );
 
     const deleted = await db.consumptionExit.delete({ where: { id } });
 
@@ -71,9 +83,11 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 }
 
-
 // Buscar plantio
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) return new NextResponse("Token ausente", { status: 401 });
@@ -87,7 +101,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const plantio = await db.consumptionExit.findUnique({ where: { id } });
 
     if (!plantio || plantio.companyId !== payload.companyId) {
-      return new NextResponse("Plantio não encontrado ou acesso negado", { status: 403 });
+      return new NextResponse("Plantio não encontrado ou acesso negado", {
+        status: 403,
+      });
     }
 
     return NextResponse.json(plantio);

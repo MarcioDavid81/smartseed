@@ -166,41 +166,45 @@ const NewSaleExitModal = ({
           </select>
         </div>
 
-        <div>
-          <Label>Data</Label>
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Data</Label>
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Quantidade (kg)</Label>
+            <Input
+              type="number"
+              value={quantityKg}
+              onChange={(e) => setQuantityKg(e.target.value)}
+              placeholder="Ex: 1200"
+            />
+          </div>
         </div>
 
-        <div>
-          <Label>Quantidade (kg)</Label>
-          <Input
-            type="number"
-            value={quantityKg}
-            onChange={(e) => setQuantityKg(e.target.value)}
-            placeholder="Ex: 1200"
-          />
-        </div>
-        <div>
-          <Label>Nota Fiscal</Label>
-          <Input
-            type="number"
-            value={invoiceNumber}
-            onChange={(e) => setInvoiceNumber(e.target.value)}
-            placeholder="Ex: 1456"
-          />
-        </div>
-        <div>
-          <Label>Valor Total</Label>
-          <Input
-            type="number"
-            value={saleValue}
-            onChange={(e) => setSaleValue(e.target.value)}
-            placeholder="Ex: 14500"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Nota Fiscal</Label>
+            <Input
+              type="number"
+              value={invoiceNumber}
+              onChange={(e) => setInvoiceNumber(e.target.value)}
+              placeholder="Ex: 1456"
+            />
+          </div>
+          <div>
+            <Label>Valor Total</Label>
+            <Input
+              type="number"
+              value={saleValue}
+              onChange={(e) => setSaleValue(e.target.value)}
+              placeholder="Ex: 14500"
+            />
+          </div>
         </div>
 
         <div>

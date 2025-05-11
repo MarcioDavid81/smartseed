@@ -237,6 +237,19 @@ const UpsertSaleModal = ({
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="quantityKg"
                   render={({ field }) => (
                     <FormItem>
@@ -248,6 +261,9 @@ const UpsertSaleModal = ({
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="invoiceNumber"
@@ -261,8 +277,6 @@ const UpsertSaleModal = ({
                     </FormItem>
                   )}
                 />
-              </div>
-
                 <FormField
                   control={form.control}
                   name="saleValue"
@@ -270,12 +284,17 @@ const UpsertSaleModal = ({
                     <FormItem>
                       <FormLabel>Valor (R$)</FormLabel>
                       <FormControl>
-                        <Input {...field} type="number" placeholder="Ex: R$10.000,00" />
+                        <Input
+                          {...field}
+                          type="number"
+                          placeholder="Ex: R$10.000,00"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              </div>
 
               <FormField
                 control={form.control}

@@ -88,8 +88,12 @@ export async function GET(req: NextRequest) {
     const consumptions = await db.consumptionExit.findMany({
       where: { companyId },
       include: {
-        cultivar: true,
-        farm: true,
+        cultivar: {
+          select: { id: true, name: true },
+        },
+        farm: {
+          select: { id: true, name: true },
+        },
       },
       orderBy: { date: "desc" },
     });

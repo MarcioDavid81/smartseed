@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Saudacao from "../../_components/Saudacao";
 import Navbar from "../../_components/Navbar";
+import { ListBeneficiationTable } from "./_components/ListBeneficiationTable";
 
 export const metadata: Metadata = {
   title: "Descartes",
@@ -27,6 +28,7 @@ export default async function DashboardPage() {
               <Saudacao />
             </div>
           </div>
+          <ListBeneficiationTable />
         </main>
       </div>
     </div>

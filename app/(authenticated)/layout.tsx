@@ -10,6 +10,7 @@ import { HarvestProvider } from "@/contexts/HarvestContext";
 import roboto from "next/font/local";
 import { BuyProvider } from "@/contexts/BuyContext";
 import { SaleProvider } from "@/contexts/SaleContext";
+import { BeneficiationProvider } from "@/contexts/BeneficiationContext";
 
 const robotoFont = roboto({
   src: [
@@ -99,9 +100,11 @@ export default async function RootLayout({
               <HarvestProvider>
                 <BuyProvider>
                   <SaleProvider>
-                    <Sidebar />
-                    {children}
-                    <Toaster />
+                    <BeneficiationProvider>
+                      <Sidebar />
+                      {children}
+                      <Toaster />
+                    </BeneficiationProvider>
                   </SaleProvider>
                 </BuyProvider>
               </HarvestProvider>
