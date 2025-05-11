@@ -11,6 +11,7 @@ import roboto from "next/font/local";
 import { BuyProvider } from "@/contexts/BuyContext";
 import { SaleProvider } from "@/contexts/SaleContext";
 import { BeneficiationProvider } from "@/contexts/BeneficiationContext";
+import { ConsumptionProvider } from "@/contexts/ConsumptionContext";
 
 const robotoFont = roboto({
   src: [
@@ -101,9 +102,11 @@ export default async function RootLayout({
                 <BuyProvider>
                   <SaleProvider>
                     <BeneficiationProvider>
-                      <Sidebar />
-                      {children}
-                      <Toaster />
+                      <ConsumptionProvider>
+                        <Sidebar />
+                        {children}
+                        <Toaster />
+                      </ConsumptionProvider>
                     </BeneficiationProvider>
                   </SaleProvider>
                 </BuyProvider>

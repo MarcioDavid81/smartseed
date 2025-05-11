@@ -19,7 +19,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
-import { Beneficiation, Cultivar } from "@/types";
+import { Cultivar, Farm } from "@/types";
+import { Consumption } from "@/types/consumption";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -28,42 +29,45 @@ import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { z } from "zod";
 
-interface UpsertBeneficiationModalProps {
-  descarte?: Beneficiation;
+interface UpsertConsumptionModalProps {
+  plantio?: Consumption;
   isOpen: boolean;
   onClose: () => void;
-  onBeneficiotionCreated?: () => void;
+  onConsumptionCreated?: () => void;
   onUpdated?: () => void;
 }
 
-const descarteSchema = z.object({
+const plantioSchema = z.object({
   cultivarId: z.string().min(1, "Selecione uma cultivar"),
+  farmId: z.string().min(1, "Selecione uma fazenda"),
   date: z.string().min(1, "Selecione uma data"),
   quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
   notes: z.string(),
 });
 
-type BeneficiationFormData = z.infer<typeof descarteSchema>;
+type ConsumptionFormData = z.infer<typeof plantioSchema>;
 
-const UpsertBeneficiationModal = ({
-  descarte,
+const UpsertConsumptionModal = ({
+  plantio,
   isOpen,
   onClose,
-  onBeneficiotionCreated,
+  onConsumptionCreated,
   onUpdated,
-}: UpsertBeneficiationModalProps) => {
+}: UpsertConsumptionModalProps) => {
   const [loading, setLoading] = useState(false);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
+  const [farms, setFarms] = useState<Farm[]>([]);
 
-  const form = useForm<BeneficiationFormData>({
-    resolver: zodResolver(descarteSchema),
+  const form = useForm<ConsumptionFormData>({
+    resolver: zodResolver(plantioSchema),
     defaultValues: {
-      cultivarId: descarte?.cultivarId ?? "",
-      date: descarte
-        ? new Date(descarte.date).toISOString().split("T")[0]
+      cultivarId: plantio?.cultivarId ?? "",
+      farmId: plantio?.farmId ?? "",
+      date: plantio
+        ? new Date(plantio.date).toISOString().split("T")[0]
         : format(new Date(), "yyyy-MM-dd"),
-      quantityKg: descarte?.quantityKg ?? 0,
-      notes: descarte?.notes ?? "",
+      quantityKg: plantio?.quantityKg ?? 0,
+      notes: plantio?.notes ?? "",
     },
   });
 
@@ -72,56 +76,61 @@ const UpsertBeneficiationModal = ({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<BeneficiationFormData>({
-    resolver: zodResolver(descarteSchema),
+  } = useForm<ConsumptionFormData>({
+    resolver: zodResolver(plantioSchema),
     defaultValues: {
-      cultivarId: descarte?.cultivarId ?? "",
-      date: descarte ? new Date(descarte.date).toISOString().split("T")[0] : "",
-      quantityKg: descarte?.quantityKg ?? 0,
-      notes: descarte?.notes ?? "",
+      cultivarId: plantio?.cultivarId ?? "",
+      farmId: plantio?.farmId ?? "",
+      date: plantio ? new Date(plantio.date).toISOString().split("T")[0] : "",
+      quantityKg: plantio?.quantityKg ?? 0,
+      notes: plantio?.notes ?? "",
     },
   });
 
   useEffect(() => {
-    if (descarte) {
+    if (plantio) {
       reset({
-        cultivarId: descarte.cultivarId,
-        date: new Date(descarte.date).toISOString().split("T")[0],
-        quantityKg: descarte.quantityKg,
-        notes: descarte.notes || "",
+        cultivarId: plantio.cultivarId,
+        farmId: plantio.farmId,
+        date: new Date(plantio.date).toISOString().split("T")[0],
+        quantityKg: plantio.quantityKg,
+        notes: plantio.notes || "",
       });
     } else {
       reset();
     }
-  }, [descarte, isOpen, reset]);
+  }, [plantio, isOpen, reset]);
 
   useEffect(() => {
     const fetchData = async () => {
       const token = getToken();
 
-      const [cultivarRes] = await Promise.all([
+      const [cultivarRes, farmRes] = await Promise.all([
         fetch("/api/cultivars/get", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("/api/farms", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
       const cultivarData = await cultivarRes.json();
+      const farmData = await farmRes.json();
 
       setCultivars(cultivarData);
+      setFarms(farmData);
     };
 
     if (isOpen) fetchData();
   }, [isOpen]);
 
-  const onSubmit = async (data: BeneficiationFormData) => {
+  const onSubmit = async (data: ConsumptionFormData) => {
     console.log(" 📦 Data enviada:", data);
     setLoading(true);
     const token = getToken();
 
-    const url = descarte
-      ? `/api/beneficiation/${descarte.id}`
-      : "/api/beneficiation";
-    const method = descarte ? "PUT" : "POST";
+    const url = plantio ? `/api/consumption/${plantio.id}` : "/api/consumption";
+    const method = plantio ? "PUT" : "POST";
 
     const res = await fetch(url, {
       method,
@@ -135,16 +144,16 @@ const UpsertBeneficiationModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.error(result.error || "Erro ao salvar descarte.");
+      toast.error(result.error || "Erro ao salvar plantio.");
     } else {
       toast.success(
-        descarte
-          ? "Descarte atualizada com sucesso!"
-          : "Descarte cadastrada com sucesso!"
+        plantio
+          ? "Plantio atualizada com sucesso!"
+          : "Plantio cadastrada com sucesso!"
       );
       onClose();
       reset();
-      if (onBeneficiotionCreated) onBeneficiotionCreated();
+      if (onConsumptionCreated) onConsumptionCreated();
     }
 
     setLoading(false);
@@ -158,9 +167,9 @@ const UpsertBeneficiationModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Descarte</DialogTitle>
+          <DialogTitle>Plantio</DialogTitle>
           <DialogDescription>
-            {descarte ? "Editar descarte" : "Cadastrar descarte"}
+            {plantio ? "Editar plantio" : "Cadastrar plantio"}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -189,8 +198,32 @@ const UpsertBeneficiationModal = ({
                   </FormItem>
                 )}
               />
-
               <FormField
+                control={form.control}
+                name="farmId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Destino</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="w-full border rounded px-2 py-1"
+                      >
+                        <option value="">Selecione</option>
+                        {farms.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
                   control={form.control}
                   name="date"
                   render={({ field }) => (
@@ -203,20 +236,20 @@ const UpsertBeneficiationModal = ({
                     </FormItem>
                   )}
                 />
-
-              <FormField
-                control={form.control}
-                name="quantityKg"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quantidade (Kg)</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="quantityKg"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quantidade (Kg)</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
@@ -247,4 +280,4 @@ const UpsertBeneficiationModal = ({
   );
 };
 
-export default UpsertBeneficiationModal;
+export default UpsertConsumptionModal;

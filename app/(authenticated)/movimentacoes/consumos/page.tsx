@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Saudacao from "../../_components/Saudacao";
 import Navbar from "../../_components/Navbar";
+import { ListConsumptionTable } from "./_components/ListConsumptionTable";
 
 export const metadata: Metadata = {
   title: "Consumos",
@@ -27,6 +28,7 @@ export default async function DashboardPage() {
               <Saudacao />
             </div>
           </div>
+          <ListConsumptionTable />
         </main>
       </div>
     </div>

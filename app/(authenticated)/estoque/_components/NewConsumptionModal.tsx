@@ -127,7 +127,7 @@ const NewConsumptionModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Inserir Consumo</DialogTitle>
+          <DialogTitle>Inserir Plantio</DialogTitle>
         </DialogHeader>
 
         <div>
@@ -162,23 +162,24 @@ const NewConsumptionModal = ({
           </select>
         </div>
 
-        <div>
-          <Label>Data</Label>
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <Label>Quantidade (kg)</Label>
-          <Input
-            type="number"
-            value={quantityKg}
-            onChange={(e) => setQuantityKg(e.target.value)}
-            placeholder="Ex: 1200"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Data</Label>
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Quantidade (kg)</Label>
+            <Input
+              type="number"
+              value={quantityKg}
+              onChange={(e) => setQuantityKg(e.target.value)}
+              placeholder="Ex: 1200"
+            />
+          </div>
         </div>
 
         <div>
