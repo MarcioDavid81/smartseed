@@ -110,11 +110,20 @@ export default function GenerateBeneficiationReportModal() {
       );
 
       let finalY = (doc as any).lastAutoTable.finalY + 10;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Se o finalY + espaço dos totais ultrapassar o limite da página, quebra a página
+      const numberOfLines = Object.keys(totalsByCultivar).length + 2; // +2 para o título e total geral
+      const estimatedHeight = numberOfLines * 6 + 20;
+
+      if (finalY + estimatedHeight > pageHeight) {
+        doc.addPage();
+        finalY = 20; // Recomeça mais acima na nova página
+      }
 
       doc.setFontSize(9);
       doc.text("Total descartado por Cultivar", 14, finalY);
 
-      doc.setFontSize(9);
       Object.entries(totalsByCultivar).forEach(([name, total], index) => {
         doc.text(
           `${name}: ${total.toLocaleString("pt-BR", {
@@ -125,7 +134,6 @@ export default function GenerateBeneficiationReportModal() {
         );
       });
 
-      doc.setFontSize(9);
       doc.text(
         `Total Geral: ${totalGeral.toLocaleString("pt-BR", {
           minimumFractionDigits: 2,
