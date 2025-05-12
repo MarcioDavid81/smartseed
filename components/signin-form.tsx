@@ -18,7 +18,6 @@ import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
 import UploadAvatar from "@/app/(public)/_components/UploadAvatar";
 
-
 export function SignInForm({
   className,
   ...props
@@ -27,7 +26,9 @@ export function SignInForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyId, setCompanyId] = useState("");
-  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -44,6 +45,13 @@ export function SignInForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Por favor, insira um email válido.");
+      setLoading(false);
+      return;
+    }
 
     const formData = new FormData();
     formData.append("name", name);

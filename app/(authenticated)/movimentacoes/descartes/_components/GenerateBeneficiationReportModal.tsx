@@ -62,6 +62,7 @@ export default function GenerateBeneficiationReportModal() {
           textColor: 255,
           fontStyle: "bold",
         },
+        pageBreak: "auto",
         didDrawPage: function (data) {
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height;
@@ -134,7 +135,7 @@ export default function GenerateBeneficiationReportModal() {
       );
 
       const fileNumber = new Date().getTime().toString();
-      const fileName = `Relatorio de Vendas - ${fileNumber}.pdf`;
+      const fileName = `Relatorio de Descartes - ${fileNumber}.pdf`;
       doc.save(fileName);
       setCultivar(null);
     };
