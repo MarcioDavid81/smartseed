@@ -1,13 +1,10 @@
-// app/api/upload/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { IncomingForm } from "formidable";
 import { v2 as cloudinary } from "cloudinary";
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const fetchCache = 'force-no-store';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
