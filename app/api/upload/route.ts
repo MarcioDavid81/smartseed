@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { IncomingForm } from "formidable";
 import { v2 as cloudinary } from "cloudinary";
 
-export const routeSegmentConfig = {
+export const config = {
   api: {
     bodyParser: false,
   },
