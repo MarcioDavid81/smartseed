@@ -8,8 +8,8 @@ import UpsertHarvestModal from "./UpsertHarvestModal";
 import { Harvest } from "@/types";
 
 interface Props {
-  colheita: Harvest;
-  onUpdated: () => void;
+  colheita?: Harvest;
+  onUpdated?: () => void;
 }
 
 const CreateHarvestButton = ({ colheita, onUpdated }: Props) => {

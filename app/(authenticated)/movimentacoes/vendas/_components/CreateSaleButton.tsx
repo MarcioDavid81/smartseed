@@ -8,8 +8,8 @@ import UpsertSaleModal from "./UpsertSaleModal";
 import { Sale } from "@/types/sale";
 
 interface Props {
-  venda: Sale;
-  onUpdated: () => void;
+  venda?: Sale;
+  onUpdated?: () => void;
 }
 
 const CreateSaleButton = ({ venda, onUpdated }: Props) => {

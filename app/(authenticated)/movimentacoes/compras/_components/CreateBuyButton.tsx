@@ -8,8 +8,8 @@ import { Buy } from "@/types";
 import UpsertBuyModal from "./UpsertBuyModal";
 
 interface Props {
-  compra: Buy;
-  onUpdated: () => void;
+  compra?: Buy;
+  onUpdated?: () => void;
 }
 
 const CreateBuyButton = ({ compra, onUpdated }: Props) => {

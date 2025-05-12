@@ -8,8 +8,8 @@ import UpsertBeneficiationModal from "./UpsertBeneficiationModal";
 import { Beneficiation } from "@/types";
 
 interface Props {
-  descarte: Beneficiation;
-  onUpdated: () => void;
+  descarte?: Beneficiation;
+  onUpdated?: () => void;
 }
 
 const CreateBeneficiationButton = ({ descarte, onUpdated }: Props) => {

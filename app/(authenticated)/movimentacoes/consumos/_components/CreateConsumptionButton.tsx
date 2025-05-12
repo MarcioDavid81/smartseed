@@ -8,8 +8,8 @@ import { Consumption } from "@/types/consumption";
 import UpsertConsumptionModal from "./UpsertConsumptionModal";
 
 interface Props {
-  plantio: Consumption;
-  onUpdated: () => void;
+  plantio?: Consumption;
+  onUpdated?: () => void;
 }
 
 const CreateConsumptionButton = ({ plantio, onUpdated }: Props) => {
