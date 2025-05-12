@@ -4,6 +4,8 @@ import CreatePlotButton from "./_components/CreatePlotButton";
 import CreateFarmButton from "./_components/CreateFarmButton";
 import Navbar from "../_components/Navbar";
 import CreateCustomerButton from "./_components/CreateCustomerButton";
+import StockByProductTypeChart from "./_components/StockByProductTypeChart";
+import DashboardContent from "./_components/DashboardContent";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -30,7 +32,7 @@ export default async function DashboardPage() {
               <Saudacao />
             </div>
           </div>
-          <div className="flex flex-col items-start mb-4 bg-white p-4 rounded-lg shadow-md">
+          {/* <div className="flex flex-col items-start mb-4 bg-white p-4 rounded-lg shadow-md">
             <h2 className="text-lg font-medium mb-4 mr-4">Cadastros</h2>
             <div className="flex items-center space-x-10 justify-between">
               <div className="flex flex-col items-center justify-center space-y-2">
@@ -49,7 +51,8 @@ export default async function DashboardPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
+          <DashboardContent />
         </main>
       </div>
     </div>

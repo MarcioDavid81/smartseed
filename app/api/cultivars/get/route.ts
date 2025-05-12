@@ -14,7 +14,10 @@ export async function GET(req: Request) {
     const payload = await verifyToken(token);
 
     if (!payload || !payload.companyId) {
-      return NextResponse.json({ error: "Token inválido ou sem companyId" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Token inválido ou sem companyId" },
+        { status: 401 }
+      );
     }
 
     const cultivars = await db.cultivar.findMany({
@@ -29,6 +32,9 @@ export async function GET(req: Request) {
     return NextResponse.json(cultivars);
   } catch (error) {
     console.error("Erro ao buscar cultivares:", error);
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erro interno do servidor" },
+      { status: 500 }
+    );
   }
 }
