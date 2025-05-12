@@ -1,11 +1,8 @@
-export function getBaseUrl() {
-  if (typeof window !== "undefined") {
-    // Client-side
-    return "";
-  }
+import { headers } from "next/headers";
 
-  // Server-side
-  return process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000";
+export function getBaseUrl() {
+  const headersList = headers();
+  const host = headersList.get("host");
+  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+  return `${protocol}://${host}`;
 }
