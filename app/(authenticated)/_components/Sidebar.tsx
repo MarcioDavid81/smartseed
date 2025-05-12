@@ -53,11 +53,6 @@ const routes = [
     name: "Estoque",
     icon: <Warehouse size={20} />,
   },
-  {
-    path: "/relatorios",
-    name: "Relatórios",
-    icon: <Scroll size={20} />,
-  },
 ];
 
 const Sidebar = () => {

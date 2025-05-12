@@ -14,9 +14,10 @@ import CreatePlotButton from "./CreatePlotButton";
 import CreateCustomerButton from "./CreateCustomerButton";
 import StockByProductTypeChart from "./StockByProductTypeChart";
 import { getToken } from "@/lib/auth-client";
+import { Cultivar } from "@/types";
 
 const DashboardContent = () => {
-  const [cultivars, setCultivars] = useState<string[]>([]);
+  const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [selectedCultivar, setSelectedCultivar] = useState<string>("");
   const [totalCultivar, setTotalCultivar] = useState(0);
   const [totalDescarte, setTotalDescarte] = useState(0);
@@ -24,37 +25,42 @@ const DashboardContent = () => {
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
-  const fetchCultivars = async () => {
+    const fetchCultivars = async () => {
+      const token = await getToken();
 
-    const token = await getToken(); // token JWT
+      const res = await fetch("/api/cultivars/get", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    const res = await fetch("/api/cultivars/get", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      const data = await res.json();
+      setCultivars(data);
+      setSelectedCultivar(data[0]);
+    };
 
-    const data = await res.json();
-    setCultivars(data);
-    setSelectedCultivar(data[0]);
-  };
-
-  fetchCultivars();
-}, []);
+    fetchCultivars();
+  }, []);
 
   useEffect(() => {
     if (!selectedCultivar) return;
 
     async function fetchDashboardData() {
+      const token = await getToken();
       const res = await fetch(
-        `/api/dashboard/summary?cultivar=${selectedCultivar}`
+        `/api/dashboard/summary?cultivar=${selectedCultivar}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       const json = await res.json();
 
       setTotalCultivar(json.totalCultivar);
       setTotalDescarte(json.totalDescarte);
       setPorcentagemAproveitamento(
-        (json.beneficiamentoKg / json.colheitaKg) * 100 || 0
+        ((json.colheitaKg - json.totalDescarte) / json.colheitaKg) * 100 || 0
       );
       setChartData(json.chartData);
     }
@@ -73,22 +79,19 @@ const DashboardContent = () => {
               <SelectValue placeholder="Cultivar" />
             </SelectTrigger>
             <SelectContent>
-              {/* {cultivars.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
+              {cultivars.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
                 </SelectItem>
-              ))} */}
+              ))}
             </SelectContent>
           </Select>
-          <div className="bg-green/20">
-            <h2 className="text-lg font-medium">Resumo</h2>
-          </div>
         </div>
         <div className="flex justify-between items-center gap-4">
           {/* Card 1 - Total do cultivar */}
           <Card className="flex-1">
             <CardHeader className="flex justify-between items-center">
-              <CardTitle className="font-normal">Total Cultivar</CardTitle>
+              <CardTitle className="font-normal">Total Colhido</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-medium">{totalCultivar} kg</p>
@@ -98,7 +101,7 @@ const DashboardContent = () => {
           {/* Card 2 - Total de descarte */}
           <Card className="flex-1">
             <CardHeader>
-              <CardTitle className="font-normal">Total Descarte</CardTitle>
+              <CardTitle className="font-normal">Total Descartado</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-medium">{totalDescarte} kg</p>
@@ -110,9 +113,12 @@ const DashboardContent = () => {
             <CardHeader>
               <CardTitle className="font-normal">Aproveitamento</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex items-end gap-2">
               <p className="text-2xl font-medium">
                 {porcentagemAproveitamento.toFixed(2)}%
+              </p>
+              <p className="text-sm font-light">
+                {totalCultivar - totalDescarte} kg de semente
               </p>
             </CardContent>
           </Card>

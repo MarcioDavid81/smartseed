@@ -81,7 +81,7 @@ export default function StockDetailContent({
                 <th className="font-medium px-6 py-3">Data</th>
                 <th className="font-medium px-6 py-3">Quantidade</th>
                 <th className="font-medium px-6 py-3">Tipo de Movimentação</th>
-                <th className="font-medium px-6 py-3">Ações</th>
+                <th className="font-medium px-6 py-3">Ação</th>
               </tr>
             </thead>
             <tbody>

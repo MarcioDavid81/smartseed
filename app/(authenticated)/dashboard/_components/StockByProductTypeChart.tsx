@@ -25,7 +25,8 @@ export default function StockByProductTypeChart() {
         },
       });
       const json = await res.json();
-      setData(json);
+      const filterdData = json.filter((item : any) => item.stock > 0);
+      setData(filterdData);
     }
 
     fetchData();

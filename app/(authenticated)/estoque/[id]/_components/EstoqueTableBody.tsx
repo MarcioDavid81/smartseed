@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { tipoMovimentacaoInfo } from "@/app/_helpers/movimentacao";
-import { ArrowUp, ArrowDown, SquarePen } from "lucide-react";
-import DeleteMovementButton from "./DeleteMovementButton"; 
+import { ArrowUp, ArrowDown } from "lucide-react";
+import DeleteMovementButton from "./DeleteMovementButton";
 import { useStock } from "@/contexts/StockContext";
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function EstoqueTableBody({ movements }: { movements: any[] }) {
   function renderTipoMovimentacao(tipo: string) {
@@ -50,15 +55,21 @@ export default function EstoqueTableBody({ movements }: { movements: any[] }) {
               {renderTipoMovimentacao(mov.type)}
             </td>
             <td className="flex items-center justify-start gap-4 px-6 py-4">
-              <button>
-                <SquarePen className="text-green" size={18} />
-              </button>
-              <DeleteMovementButton
-                id={mov.id}
-                tipo={mov.type}
-                quantidade={mov.quantity}
-                onDeleted={() => handleDelete(mov.id)}
-              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <DeleteMovementButton
+                      id={mov.id}
+                      tipo={mov.type}
+                      quantidade={mov.quantity}
+                      onDeleted={() => handleDelete(mov.id)}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Excluir</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </td>
           </tr>
         );

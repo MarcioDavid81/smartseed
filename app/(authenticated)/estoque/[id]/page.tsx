@@ -8,6 +8,7 @@ import HoverButton from "@/components/HoverButton";
 import Link from "next/link";
 import EstoqueTableBody from "./_components/EstoqueTableBody";
 import EstoqueDetalhado from "./_components/EstoqueDetalhado";
+import { getBaseUrl } from "@/app/_helpers/getBaseUrl";
 
 interface StockDetailProps {
   params: {
@@ -29,12 +30,13 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
     "/api/beneficiation",
   ];
 
+  const baseUrl = getBaseUrl();
   const [cultivarRes, ...movementsRes] = await Promise.all([
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/cultivars/${params.id}`, {
+    fetch(`${baseUrl}/api/cultivars/${params.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
     ...endpoints.map((url) =>
-      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}${url}`, {
+      fetch(`${baseUrl}${url}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
     ),
@@ -72,48 +74,6 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
             cultivar={cultivar}
             initialMovements={allMovements}
           />
-          {/* <div className="flex flex-col items-start mb-4 bg-white p-4 rounded-lg shadow-md">
-            <h1 className="text-2xl font-medium">{cultivar.product}</h1>
-            <p>
-              Cultivar: {cultivar.name} | Estoque Atual:{" "}
-              {new Intl.NumberFormat("pt-BR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }).format(cultivar.stock)}{" "}
-              kg
-            </p>
-
-            <h2 className="text-xl font-medium mt-4">Movimentações</h2>
-            {allMovements.length === 0 ? (
-              <p className="text-muted-foreground">
-                Nenhuma movimentação encontrada.
-              </p>
-            ) : (
-              <ScrollArea className="h-[480px] w-full">
-                <table className="w-full font-light text-sm text-left text-gray-500">
-                  <thead className="sticky top-0 text-sm text-gray-700 bg-gray-50">
-                    <tr>
-                      <th scope="col" className="font-medium px-6 py-3">
-                        Data
-                      </th>
-                      <th scope="col" className="font-medium px-6 py-3">
-                        Quantidade
-                      </th>
-                      <th scope="col" className="font-medium px-6 py-3">
-                        Tipo de Movimentação
-                      </th>
-                      <th scope="col" className="font-medium px-6 py-3">
-                        Ações
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  <EstoqueTableBody movements={allMovements} />
-                  </tbody>
-                </table>
-              </ScrollArea>
-            )}
-          </div> */}
           <Link href="/estoque">
             <HoverButton className="mt-4">Voltar</HoverButton>
           </Link>
