@@ -43,14 +43,21 @@ O **Smart Seed** é uma solução completa para controle da produção, estoque 
 
 ### Backend
 
-* [NeonDB](https://neon.tech/) - banco de dados PostgreSQL escalável em nuvem
-* [Prisma ORM](https://www.prisma.io/) - modelagem e acesso a dados com tipos seguros
+🌐 Next.js 14 (App Router + Server Actions)
+
+🧬 Prisma ORM – modelagem segura e performática do banco de dados.
+
+🛢️ NeonDB – banco de dados PostgreSQL serverless robusto e escalável.
+
+🔐 Middleware e autenticação personalizada com JWT.
 
 ### Frontend
 
-* [Next.js 14](https://nextjs.org/) - renderização server/client otimizada
-* [TailwindCSS](https://tailwindcss.com/) - estilização moderna e responsiva
-* [shadcn/ui](https://ui.shadcn.com/) - componentes acessíveis e personalizados
+🎨 Tailwind CSS – estilização moderna e responsiva.
+
+🧩 shadcn/ui – componentes UI reutilizáveis e acessíveis.
+
+📊 Recharts – gráficos interativos no painel de controle.
 
 ---
 
@@ -88,10 +95,13 @@ npm run dev
 
 ---
 
-## 📄 Licença
+📩 Contato
+Quer usar o SmartSeed na sua propriedade? Fale comigo:
 
-Este projeto está sob licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+Email: marciodavid81@gmail.com
 
----
+LinkedIn: https://www.linkedin.com/in/marcio-david-a8152733/
 
-Desenvolvido com carinho por [@marcio](https://github.com/seuusuario) 🤝
+Instagram: @o_marciodavid
+
+Desenvolvido por [MD - Web Developer](https://md-webdeveloper.vercel.app/) 🤝
