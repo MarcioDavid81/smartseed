@@ -1,100 +1,97 @@
-🌱 SmartSeed - Sistema de Controle de Produção de Sementes
-O SmartSeed é um sistema completo para controle da produção, beneficiamento, movimentação e destino de sementes em propriedades agrícolas. Com foco em rastreabilidade e gestão eficiente, a plataforma permite o gerenciamento detalhado de cultivares, entradas e saídas de estoque, e o uso interno em plantios próprios.
+# 🌱 Smart Seed - Sistema de Controle de Produção de Sementes
 
-🚀 Funcionalidades
-✅ Controle de Colheitas
+O **Smart Seed** é uma solução completa para controle da produção, estoque e saída de sementes de **soja**, **trigo** e **forrageiras de inverno**. Desenvolvido com tecnologias modernas, oferece gestão eficiente e relatórios prontos para auditorias.
 
-Lançamento de colheitas vinculadas por produto (soja, trigo, etc.) e cultivar específica.
+---
 
-Histórico de produção com datas, quantidades e origem.
+## 🚀 Funcionalidades
 
-✅ Controle de Descartes de Beneficiamento
+* ✅ **Controle de Colheitas**
 
-Registro preciso de perdas e descartes ocorridos durante o beneficiamento.
+  * Registro detalhado de colheitas por **produto** e por **cultivar**.
+  * Integração com controle de estoque e rastreabilidade.
 
-Visão clara do rendimento do processo produtivo.
+* ✅ **Controle de Beneficiamento e Descartes**
 
-✅ Controle de Compras de Sementes
+  * Registro de lotes descartados durante o beneficiamento.
+  * Acompanhamento de perdas por cultivar e por safra.
 
-Cadastro de compras externas de sementes.
+* ✅ **Controle de Compras de Sementes**
 
-Integração no saldo de estoque automaticamente.
+  * Entrada de sementes adquiridas de terceiros no sistema.
+  * Atualização automática do estoque.
 
-✅ Controle de Vendas de Sementes
+* ✅ **Controle de Vendas de Sementes**
 
-Registro de vendas com data, quantidade e destino.
+  * Saídas registradas com data, cliente e cultivar.
+  * Gera relatórios de vendas consolidados.
 
-Controle de movimentações por cultivar.
+* ✅ **Controle de Uso em Plantio Próprio**
 
-✅ Controle de Uso em Plantio Próprio
+  * Registros de saídas internas para lavouras da própria empresa.
+  * Diferenciação de saídas comerciais vs. uso interno.
 
-Lançamento de saídas de estoque para plantio interno.
+* ✅ **Relatórios Exportáveis em PDF**
 
-Visibilidade clara do consumo interno por safra e produto.
+  * Geração de relatórios personalizados com filtros por **cultivar**, **movimentação**, **data** e **tipo**.
+  * Exportação em PDF com layout limpo e pronto para impressão.
+  * Ideal para auditorias, prestação de contas e organização interna.
 
-✅ Relatórios Exportáveis em PDF
+---
 
-Geração de relatórios personalizados com filtros por cultivar, movimentação, data e tipo (colheita, compra, venda, etc.).
+## 🧱 Tecnologias Utilizadas
 
-Exportação em PDF com layout limpo e pronto para impressão.
+### Backend
 
-Ideal para auditorias, prestação de contas e organização interna.
+* [NeonDB](https://neon.tech/) - banco de dados PostgreSQL escalável em nuvem
+* [Prisma ORM](https://www.prisma.io/) - modelagem e acesso a dados com tipos seguros
 
-🧱 Tecnologias Utilizadas
-Backend
-🌐 Next.js 14 (App Router + Server Actions)
+### Frontend
 
-🧬 Prisma ORM – modelagem segura e performática do banco de dados.
+* [Next.js 14](https://nextjs.org/) - renderização server/client otimizada
+* [TailwindCSS](https://tailwindcss.com/) - estilização moderna e responsiva
+* [shadcn/ui](https://ui.shadcn.com/) - componentes acessíveis e personalizados
 
-🛢️ NeonDB – banco de dados PostgreSQL serverless robusto e escalável.
+---
 
-🔐 Middleware e autenticação personalizada com JWT.
+## 💡 Diferenciais
 
-Frontend
-🎨 Tailwind CSS – estilização moderna e responsiva.
+* 🌎 **Multi-tenant**: cada usuário acessa apenas os dados da sua empresa.
+* 🔐 **Autenticação segura** com token JWT criptografado.
+* 📈 **Dashboard inteligente** com relatórios e gráficos de movimentações.
+* 🧾 **Relatórios PDF personalizados** com filtros inteligentes e visual profissional.
+* 🔄 **Fluxo de dados 100% rastreável** por cultivar, do plantio à venda.
 
-🧩 shadcn/ui – componentes UI reutilizáveis e acessíveis.
+---
 
-📊 Recharts – gráficos interativos no painel de controle.
+## 🛠️ Como Rodar Localmente
 
-💡 Diferenciais
-🌎 Multi-tenant: cada usuário acessa apenas os dados da sua empresa.
-
-🔐 Autenticação segura com token JWT criptografado.
-
-📈 Dashboard inteligente com relatórios e gráficos de movimentações.
-
-🧾 Relatórios PDF personalizados com filtros inteligentes e visual profissional.
-
-🔄 Fluxo de dados 100% rastreável por cultivar, do plantio à venda.
-
-🛠️ Como rodar localmente
-bash
-Copiar
-Editar
+```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/smartseed.git
-cd smartseed
+git clone https://github.com/seuusuario/smart-seed.git
+
+# Acesse a pasta do projeto
+cd smart-seed
 
 # Instale as dependências
 npm install
 
-# Configure as variáveis de ambiente
-cp .env.example .env.local
-# Preencha os dados do banco (Neon), JWT_SECRET etc.
+# Crie o arquivo .env com suas variáveis de ambiente
+cp .env.example .env
 
-# Rode as migrations do Prisma
+# Rode as migrations do banco de dados
 npx prisma migrate dev
 
-# Inicie o servidor de desenvolvimento
+# Inicie o servidor
 npm run dev
+```
 
-📩 Contato
-Quer usar o SmartSeed na sua propriedade? Fale comigo:
+---
 
-Email: [marciodavid81@gmail.com]
+## 📄 Licença
 
-LinkedIn: [linkedin.com/in/marcio-david-a8152733/]
+Este projeto está sob licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
-Instagram: [@o_marciodavid]
+---
 
+Desenvolvido com carinho por [@marcio](https://github.com/seuusuario) 🤝
