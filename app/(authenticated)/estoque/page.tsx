@@ -1,10 +1,5 @@
 import Saudacao from "../_components/Saudacao";
 import { Metadata } from "next";
-import HarvestButton from "./_components/HarvestButton";
-import BuyButton from "./_components/BuyButton";
-import BeneficiationButton from "./_components/BeneficiationButton";
-import NewSaleButton from "./_components/SaleExitButton";
-import ConsumptionButton from "./_components/ConsumptionButtton";
 import { ListStockTable } from "./_components/ListStockTable";
 import Navbar from "../_components/Navbar";
 
@@ -32,26 +27,6 @@ export default async function StockPage() {
               <div className="flex items-center space-x-10">
                 <Navbar />
                 <Saudacao />
-              </div>
-            </div>
-            <div className="flex flex-col items-start mb-4 bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-lg font-medium mb-4 mr-4">Operações</h2>
-              <div className="flex items-center space-x-10 justify-between">
-                  <div className="flex flex-col items-center justify-center space-y-2">
-                    <h4>Entradas</h4>
-                    <div className="flex space-x-6">
-                      <HarvestButton />
-                      <BuyButton />
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center justify-center space-y-2">
-                    <h4>Saídas</h4>
-                    <div className="flex space-x-6">
-                      <BeneficiationButton />
-                      <NewSaleButton />
-                      <ConsumptionButton />
-                    </div>
-                  </div>
               </div>
             </div>
             <ListStockTable />

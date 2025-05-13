@@ -6,13 +6,12 @@ import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
 import { Cultivar } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown,  RefreshCw,  Search } from "lucide-react";
+import { ArrowUpDown,  Search } from "lucide-react";
 import { useStock } from "@/contexts/StockContext";
 import { getToken } from "@/lib/auth-client";
 import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import { ProductDataTable } from "@/components/ui/product-data-table";
 import Link from "next/link";
-import HoverButton from "@/components/HoverButton";
 
 export function ListStockTable() {
   const [products, setProducts] = useState<Cultivar[]>([]);
@@ -89,7 +88,7 @@ export function ListStockTable() {
 
   return (
     <Card className="p-4 dark:bg-primary font-light">
-      <div className="flex items-center gap-2 mb-2">
+      <div className="mb-4">
         <h2 className="font-medium">Estoque das Cultivares</h2>
       </div>
       {loading ? (

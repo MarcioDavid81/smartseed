@@ -33,10 +33,10 @@ const DashboardContent = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-
       const data = await res.json();
-      setCultivars(data);
-      setSelectedCultivar(data[0]);
+      const filteredData = data.filter((product: Cultivar) => product.stock > 0);
+      setCultivars(filteredData);
+      setSelectedCultivar(filteredData[0]);
     };
 
     fetchCultivars();
@@ -69,7 +69,7 @@ const DashboardContent = () => {
   }, [selectedCultivar]);
 
   return (
-    <div className="grid grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 grid-cols-reverse md:grid-cols-4 gap-6">
       {/* Coluna principal */}
       <div className="col-span-3 space-y-6">
         <div className="flex items-center justify-between">
@@ -130,7 +130,7 @@ const DashboardContent = () => {
 
       {/* Coluna lateral de ações */}
       <div className="col-span-1">
-        <Card className="min-h-full flex flex-col">
+        <Card className="h-full md:min-h-full flex flex-col">
           <CardHeader>
             <CardTitle className="font-normal">Cadastros</CardTitle>
           </CardHeader>
