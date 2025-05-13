@@ -120,12 +120,24 @@ const UpsertHarvestModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.error(result.error || "Erro ao salvar colheita.");
+      toast.warning(result.error || "Erro ao salvar colheita.", {
+            style: {
+                backgroundColor: "#F0C531",
+                color: "white",
+              },
+            icon: "❌",
+        });
     } else {
       toast.success(
         colheita
           ? "Colheita atualizada com sucesso!"
-          : "Colheita cadastrada com sucesso!"
+          : "Colheita cadastrada com sucesso!", {
+        style: {
+            backgroundColor: "#63B926",
+            color: "white",
+        },
+        icon: "✅",
+    }
       );
       onClose();
       reset();

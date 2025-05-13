@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { getToken } from "@/lib/auth-client";
 import { Trash2Icon } from "lucide-react";
+import { revalidatePath } from "next/cache";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
@@ -58,18 +59,24 @@ const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
 
       console.log("📥 Resposta da API:", res.status);
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar venda:", errorText);
-        throw new Error(errorText);
-      }
-
-      toast.success("Cultivar deletada com sucesso!");
+      toast.success("Cultivar deletada com sucesso!", {
+        style: {
+            backgroundColor: "#63B926",
+            color: "white",
+        },
+        icon: "✅",
+    });
       onDeleted();
       setIsOpen(false);
     } catch (error) {
       console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar venda.");
+      toast.error("Erro ao deletar cultivar.", {
+            style: {
+                backgroundColor: "#f87171",
+                color: "white",
+              },
+            icon: "❌",
+        });
     } finally {
       setLoading(false);
     }

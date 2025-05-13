@@ -1,5 +1,6 @@
 import { validateStock } from "@/app/_helpers/validateStock";
 import { verifyToken } from "@/lib/auth";
+import { canCompanyAddSale } from "@/lib/permissions/canCompanyAddSale";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -39,6 +40,17 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Venda criada com sucesso
  */
 export async function POST(req: NextRequest) {
+  const allowed = await canCompanyAddSale();
+          if(!allowed) {
+            return Response.json(
+              {
+                error:
+                  "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
+              },
+              { status: 403 }
+            )
+          }
+
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {

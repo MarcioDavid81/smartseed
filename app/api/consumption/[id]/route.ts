@@ -40,10 +40,6 @@ import { NextRequest, NextResponse } from "next/server";
  *     responses:
  *       200:
  *         description: Consumo atualizado com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ConsumptionExit'
  *       401:
  *         description: Token ausente ou inválido
  *       403:
@@ -138,11 +134,7 @@ export async function PUT(
  *         description: ID do consumo
  *     responses:
  *       200:
- *         description: Consumo deletada com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ConsumptionExit'
+ *         description: Consumo deletado com sucesso
  *       401:
  *         description: Token ausente ou inválido
  *       403:

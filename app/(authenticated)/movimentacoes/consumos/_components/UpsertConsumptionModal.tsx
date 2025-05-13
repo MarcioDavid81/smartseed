@@ -144,12 +144,25 @@ const UpsertConsumptionModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.error(result.error || "Erro ao salvar plantio.");
+      toast.warning(result.error || "Erro ao salvar plantio.", {
+        style: {
+          backgroundColor: "#F0C531",
+          color: "white",
+        },
+        icon: "❌",
+      });
     } else {
       toast.success(
         plantio
           ? "Plantio atualizada com sucesso!"
-          : "Plantio cadastrada com sucesso!"
+          : "Plantio cadastrada com sucesso!",
+        {
+          style: {
+            backgroundColor: "#63B926",
+            color: "white",
+          },
+          icon: "✅",
+        }
       );
       onClose();
       reset();

@@ -78,4 +78,28 @@ export function getJwtSecretKey() {
   
     return company;
   }
+
+  export async function getCompanyPlan() {
+    const cookieStore = cookies();
+    const token = cookieStore.get("token")?.value;
+  
+    if (!token) return null;
+  
+    try {
+    const { payload } = await jwtVerify(token, getJwtSecretKey());
+    const companyId = payload.companyId;
+
+    if (!companyId || typeof companyId !== "string") return null;
+
+    const company = await db.company.findUnique({
+      where: { id: companyId },
+      select: { plan: true },
+    });
+
+    return company?.plan ?? null;
+  } catch (error) {
+    console.error("Erro ao verificar plano da empresa:", error);
+    return null;
+  }
+  }
   

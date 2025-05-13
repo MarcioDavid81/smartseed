@@ -40,10 +40,6 @@ import { NextRequest, NextResponse } from "next/server";
  *     responses:
  *       200:
  *         description: Colheita atualizada com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Harvest'
  *       401:
  *         description: Token ausente ou inválido
  *       403:
@@ -139,10 +135,6 @@ export async function PUT(
  *     responses:
  *       200:
  *         description: Colheita deletada com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Harvest'
  *       401:
  *         description: Token ausente ou inválido
  *       403:

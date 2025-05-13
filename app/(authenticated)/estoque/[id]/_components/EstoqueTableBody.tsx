@@ -57,7 +57,7 @@ export default function EstoqueTableBody({ movements }: { movements: any[] }) {
             <td className="flex items-center justify-start gap-4 px-6 py-4">
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger>
+                  <TooltipTrigger asChild>
                     <DeleteMovementButton
                       id={mov.id}
                       tipo={mov.type}

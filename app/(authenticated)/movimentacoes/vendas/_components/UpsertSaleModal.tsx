@@ -28,7 +28,6 @@ import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { NumericFormat } from "react-number-format";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -155,12 +154,25 @@ const UpsertSaleModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.error(result.error || "Erro ao salvar Venda.");
+      toast.warning(result.error || "Erro ao salvar Venda.", {
+        style: {
+          backgroundColor: "#F0C531",
+          color: "white",
+        },
+        icon: "❌",
+      });
     } else {
       toast.success(
         venda
           ? "Venda atualizada com sucesso!"
-          : "Venda cadastrada com sucesso!"
+          : "Venda cadastrada com sucesso!",
+        {
+          style: {
+            backgroundColor: "#63B926",
+            color: "white",
+          },
+          icon: "✅",
+        }
       );
       onClose();
       reset();

@@ -75,13 +75,24 @@ const UpsertCultivarSheetContent = ({
         throw new Error(errorData.error || "Erro ao cadastrar cultivar");
       }
 
-      toast.success("Cultivar cadastrada com sucesso!");
+      toast.success("Cultivar cadastrada com sucesso!", {
+        style: {
+            backgroundColor: "#63B926",
+            color: "white",
+        },
+        icon: "✅",
+    });
       onCreated?.();
       form.reset();
       closeSheet();
-      // Aqui você pode acionar um refresh de lista ou fechar o Sheet, se quiser
     } catch (err: any) {
-      toast.error(err.message || "Erro ao cadastrar cultivar");
+      toast.warning(err.message || "Erro ao cadastrar cultivar", {
+            style: {
+                backgroundColor: "#F0C531",
+                color: "white",
+              },
+            icon: "❌",
+        });
     } finally {
       setLoading(false);
     }

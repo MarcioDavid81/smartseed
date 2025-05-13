@@ -135,12 +135,25 @@ const UpsertBeneficiationModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.error(result.error || "Erro ao salvar descarte.");
+      toast.warning(result.error || "Erro ao salvar descarte.", {
+        style: {
+          backgroundColor: "#F0C531",
+          color: "white",
+        },
+        icon: "❌",
+      });
     } else {
       toast.success(
         descarte
           ? "Descarte atualizada com sucesso!"
-          : "Descarte cadastrada com sucesso!"
+          : "Descarte cadastrada com sucesso!",
+        {
+          style: {
+            backgroundColor: "#63B926",
+            color: "white",
+          },
+          icon: "✅",
+        }
       );
       onClose();
       reset();
@@ -191,18 +204,18 @@ const UpsertBeneficiationModal = ({
               />
 
               <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
