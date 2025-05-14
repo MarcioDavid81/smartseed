@@ -50,7 +50,7 @@ export default function StockByProductTypeChart() {
       </Select>
 
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data}>
+        <BarChart data={data} className="font-light text-xs">
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip />

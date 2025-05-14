@@ -15,12 +15,14 @@ import CreateCustomerButton from "./CreateCustomerButton";
 import StockByProductTypeChart from "./StockByProductTypeChart";
 import { getToken } from "@/lib/auth-client";
 import { Cultivar } from "@/types";
+import UseByCultivarChart from "./UseByCultivarChart";
 
 const DashboardContent = () => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [selectedCultivar, setSelectedCultivar] = useState<string>("");
   const [totalCultivar, setTotalCultivar] = useState(0);
   const [totalDescarte, setTotalDescarte] = useState(0);
+  const [totalSemente, setTotalSemente] = useState(0);
   const [porcentagemAproveitamento, setPorcentagemAproveitamento] = useState(0);
   const [chartData, setChartData] = useState([]);
 
@@ -34,7 +36,9 @@ const DashboardContent = () => {
         },
       });
       const data = await res.json();
-      const filteredData = data.filter((product: Cultivar) => product.stock > 0);
+      const filteredData = data.filter(
+        (product: Cultivar) => product.stock > 0
+      );
       setCultivars(filteredData);
       setSelectedCultivar(filteredData[0]);
     };
@@ -62,6 +66,9 @@ const DashboardContent = () => {
       setPorcentagemAproveitamento(
         ((json.colheitaKg - json.totalDescarte) / json.colheitaKg) * 100 || 0
       );
+      setTotalSemente(
+        json.colheitaKg - json.totalDescarte
+      )
       setChartData(json.chartData);
     }
 
@@ -69,11 +76,10 @@ const DashboardContent = () => {
   }, [selectedCultivar]);
 
   return (
-    <div className="grid grid-cols-1 grid-cols-reverse md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       {/* Coluna principal */}
-      <div className="col-span-3 space-y-6">
+      <div className="md:col-span-3 flex flex-col space-y-6">
         <div className="flex items-center justify-between">
-          {/* Selecionar cultivar */}
           <Select value={selectedCultivar} onValueChange={setSelectedCultivar}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Cultivar" />
@@ -87,10 +93,11 @@ const DashboardContent = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex justify-between items-center gap-4">
-          {/* Card 1 - Total do cultivar */}
-          <Card className="flex-1">
-            <CardHeader className="flex justify-between items-center">
+
+        {/* Cards em linha */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader>
               <CardTitle className="font-normal">Total Colhido</CardTitle>
             </CardHeader>
             <CardContent>
@@ -98,8 +105,7 @@ const DashboardContent = () => {
             </CardContent>
           </Card>
 
-          {/* Card 2 - Total de descarte */}
-          <Card className="flex-1">
+          <Card>
             <CardHeader>
               <CardTitle className="font-normal">Total Descartado</CardTitle>
             </CardHeader>
@@ -108,8 +114,7 @@ const DashboardContent = () => {
             </CardContent>
           </Card>
 
-          {/* Card 3 - % de aproveitamento */}
-          <Card className="flex-1">
+          <Card>
             <CardHeader>
               <CardTitle className="font-normal">Aproveitamento</CardTitle>
             </CardHeader>
@@ -124,22 +129,32 @@ const DashboardContent = () => {
           </Card>
         </div>
 
-        {/* Gráfico */}
+        {/* Gráfico principal */}
         <StockByProductTypeChart />
       </div>
 
-      {/* Coluna lateral de ações */}
-      <div className="col-span-1">
-        <Card className="h-full md:min-h-full flex flex-col">
+      {/* Coluna lateral */}
+      <div className="md:col-span-1 flex flex-col h-full space-y-6">
+        {/* Card de Cadastros no topo */}
+        <Card>
           <CardHeader>
             <CardTitle className="font-normal">Cadastros</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <CreateFarmButton />
-            <CreatePlotButton />
+          <CardContent className="flex flex-col space-y-8">
+            <div className="flex gap-4">
+              <CreateFarmButton />
+              <CreatePlotButton />
+            </div>
             <CreateCustomerButton />
           </CardContent>
         </Card>
+
+        {/* Card do gráfico de pizza expandido para alinhar verticalmente */}
+
+        <UseByCultivarChart
+          aproveitado={totalSemente}
+          descartado={totalDescarte}
+        />
       </div>
     </div>
   );
