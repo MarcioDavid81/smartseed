@@ -12,6 +12,7 @@ import { BuyProvider } from "@/contexts/BuyContext";
 import { SaleProvider } from "@/contexts/SaleContext";
 import { BeneficiationProvider } from "@/contexts/BeneficiationContext";
 import { ConsumptionProvider } from "@/contexts/ConsumptionContext";
+import { MobileMenu } from "./_components/MenuMobile";
 
 const robotoFont = roboto({
   src: [
@@ -108,6 +109,7 @@ export default async function RootLayout({
                     <BeneficiationProvider>
                       <ConsumptionProvider>
                         <Sidebar />
+                        <MobileMenu />
                         {children}
                         <Toaster />
                       </ConsumptionProvider>
