@@ -104,8 +104,8 @@ export function LoginForm({
               </Button>
               <div className="text-center text-sm">
                 Ainda não tem uma conta?{" "}
-                <a href="/cadastro" className="underline underline-offset-4">
-                  Cadastre-se
+                <a href="https://bit.ly/4hVljO0" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                  Solicite um teste!
                 </a>
               </div>
             </div>

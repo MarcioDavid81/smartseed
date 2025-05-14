@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
   console.log("[middleware] Path:", pathname);
   console.log("[middleware] Token presente?", !!token);
 
-  const publicPaths = ["/", "/login", "/cadastro"];
+  const publicPaths = ["/", "/login"];
 
   if (publicPaths.includes(pathname)) {
     if (token) {
@@ -41,5 +41,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [ "/login", "/cadastro", "/dashboard/:path*", "/sementes", "/producao", "/movimentacoes", "/estoque"],
+  matcher: [ "/login", "/cadastro", "/dashboard/:path*", "/sementes", "/producao", "/movimentacoes/:path*", "/estoque", "/cadastros/:path*" ],
 };

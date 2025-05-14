@@ -70,12 +70,24 @@ export function SignInForm({
     const data = await res.json();
 
     if (!res.ok) {
-      toast.error(data.error || "Erro ao criar usuário");
+      toast.error(data.error || "Erro ao criar usuário", {
+            style: {
+                backgroundColor: "#FF6467",
+                color: "white",
+              },
+            icon: "❌",
+        });
       setLoading(false);
       return;
     }
 
-    toast.success("Usuário criado com sucesso!");
+    toast.success("Usuário criado com sucesso!", {
+        style: {
+            backgroundColor: "#63B926",
+            color: "white",
+        },
+        icon: "✅",
+    });
     router.push("/login");
   }
 
@@ -162,12 +174,6 @@ export function SignInForm({
                 {loading ? <FaSpinner className="animate-spin" /> : "Cadastrar"}
               </Button>
 
-              <div className="text-center text-sm">
-                Já tem uma conta?{" "}
-                <a href="/login" className="underline underline-offset-4">
-                  Faça login
-                </a>
-              </div>
             </div>
           </form>
         </CardContent>

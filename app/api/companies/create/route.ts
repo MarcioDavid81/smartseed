@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/prisma"; // Certifique-se de que o prisma está configurado
+import { db } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   const { name } = await req.json();
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     // Criar a empresa
     const company = await db.company.create({
       data: {
-        name, // Nome da empresa
+        name,        
       },
     });
 

@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/tooltip";
 import { UserMenu } from "./UserMenu";
 import { SidebarCollapsibleItem } from "./CollapsibleMenu";
+import { AdminCollapsibleItem } from "./AdminCollapsibleMenu";
+import { useUser } from "@/contexts/UserContext";
 
 const routes = [
   {
@@ -53,10 +55,21 @@ const routes = [
     name: "Estoque",
     icon: <Warehouse size={20} />,
   },
+  {
+    name: "Cadastros",
+    icon: <Scroll size={20} />,
+    adminRoutes: [
+      { path: "/cadastros/empresas", name: "Empresas" },
+      { path: "/cadastros/usuarios", name: "Usuários" },
+    ],
+  },
 ];
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const { user } = useUser();
+  console.log("Usuário logado:", user);
+  console.log("Role:", user?.role);
 
   return (
     <div
@@ -109,6 +122,18 @@ const Sidebar = () => {
               );
             }
 
+            if (route.adminRoutes && user?.role === "ADMIN") {
+              return (
+                <AdminCollapsibleItem
+                  key={index}
+                  icon={route.icon}
+                  name={route.name}
+                  subRoutes={route.adminRoutes}
+                  isSidebarOpen={isOpen}
+                />
+              );
+            }
+
             if (route.path) {
               return (
                 <TooltipProvider key={route.path} delayDuration={100}>
@@ -133,11 +158,7 @@ const Sidebar = () => {
                       </div>
                     </TooltipTrigger>
                     {!isOpen && (
-                      <TooltipContent
-                        side="right"
-                      >
-                        {route.name}
-                      </TooltipContent>
+                      <TooltipContent side="right">{route.name}</TooltipContent>
                     )}
                   </Tooltip>
                 </TooltipProvider>

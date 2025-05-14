@@ -3,7 +3,7 @@ import "../globals.css";
 import Sidebar from "./_components/Sidebar";
 import { Toaster } from "sonner";
 import { UserProvider } from "@/contexts/UserContext";
-import { getCompanyFromToken, getUserFromToken } from "@/lib/auth";
+import { getCompanyFromToken, getCompanyPlan, getUserFromToken } from "@/lib/auth";
 import { StockProvider } from "@/contexts/StockContext";
 import { CompanyProvider } from "@/contexts/CompanyContext";
 import { HarvestProvider } from "@/contexts/HarvestContext";
@@ -80,22 +80,26 @@ export default async function RootLayout({
         email: user.email,
         companyId: user.companyId,
         imageUrl: user.imageUrl ?? "",
+        role: user?.role ?? "USER",
       }
     : null;
+    console.log("Vieram os dados fdp",safeUser);
 
   const safeCompany = company
     ? {
         id: company.id,
         name: company.name,
+        plan: company.plan ?? "",
       }
     : null;
+    console.log("vieram aqui tbm corno",safeCompany);
 
   return (
     <html lang="pt-BR">
       <body
         className={`${robotoFont.className} antialiased  md:flex  w-full min-h-screen`}
       >
-        <CompanyProvider name={safeCompany}>
+        <CompanyProvider name={safeCompany} >
           <StockProvider>
             <UserProvider user={safeUser}>
               <HarvestProvider>

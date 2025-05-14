@@ -46,13 +46,6 @@ export function getJwtSecretKey() {
   
     const user = await db.user.findUnique({
       where: { id: payload.userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        companyId: true,
-        imageUrl: true,
-      },
     });
   
     return user;
@@ -73,6 +66,7 @@ export function getJwtSecretKey() {
       select: {
         id: true,
         name: true,
+        plan: true,
       },
     });
   

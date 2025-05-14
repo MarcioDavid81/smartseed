@@ -4,5 +4,6 @@ export interface AppUser {
     email: string;
     companyId: string;
     imageUrl: string;
+    role: "ADMIN" | "USER";
   }
   

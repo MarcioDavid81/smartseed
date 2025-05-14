@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { db } from "@/lib/prisma";
 import { v2 as cloudinary } from "cloudinary";
+import { getUserFromToken } from "@/lib/auth";
+import { ensureAdmin } from "@/lib/ensureAdmin";
 
 // Configuração do Cloudinary
 cloudinary.config({
@@ -11,6 +13,16 @@ cloudinary.config({
 });
 
 export async function POST(req: Request) {
+  try {
+    const authUser = await getUserFromToken();
+    ensureAdmin(authUser);
+  } catch (err) {
+    return NextResponse.json(
+      { error: "Acesso não autorizado" },
+      { status: 403 }
+    );
+  }
+
   const formData = await req.formData();
 
   const name = formData.get("name") as string;
@@ -20,7 +32,10 @@ export async function POST(req: Request) {
   const avatar = formData.get("avatar") as File | null;
 
   if (!name || !email || !password || !companyId) {
-    return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Campos obrigatórios faltando" },
+      { status: 400 }
+    );
   }
 
   let imageUrl: string | null = null;
@@ -39,7 +54,10 @@ export async function POST(req: Request) {
       imageUrl = uploaded.secure_url;
     } catch (err) {
       console.error("Erro ao fazer upload no Cloudinary:", err);
-      return NextResponse.json({ error: "Erro ao salvar imagem" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Erro ao salvar imagem" },
+        { status: 500 }
+      );
     }
   }
 
@@ -47,13 +65,19 @@ export async function POST(req: Request) {
     // Verifica se a empresa existe
     const company = await db.company.findUnique({ where: { id: companyId } });
     if (!company) {
-      return NextResponse.json({ error: "Empresa não encontrada" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Empresa não encontrada" },
+        { status: 404 }
+      );
     }
 
     // Verifica se o email já está cadastrado
     const existingUser = await db.user.findUnique({ where: { email } });
     if (existingUser) {
-      return NextResponse.json({ error: "Email já cadastrado" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Email já cadastrado" },
+        { status: 400 }
+      );
     }
 
     // Cria o usuário
@@ -65,12 +89,19 @@ export async function POST(req: Request) {
         password: hashedPassword,
         companyId,
         imageUrl,
+        role: "USER",
       },
     });
 
-    return NextResponse.json({ success: true, userId: user.id }, { status: 201 });
+    return NextResponse.json(
+      { success: true, userId: user.id },
+      { status: 201 }
+    );
   } catch (err) {
     console.error("Erro ao criar usuário:", err);
-    return NextResponse.json({ error: "Erro interno ao criar o usuário" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erro interno ao criar o usuário" },
+      { status: 500 }
+    );
   }
 }
