@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   authors: [
     { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
   ],
+    verification: {
+    google: "iujCtqRV2IM9SBkAlFhc6qixIgiTU5gOhbi__yUjCmI",
+  },
 };
 
 export default function RootLayout({
