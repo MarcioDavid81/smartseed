@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 const ContactSection = () => {
   return (
     <section id="contact" className="py-20 px-6 bg-white">

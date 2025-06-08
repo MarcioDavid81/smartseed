@@ -2,7 +2,7 @@
 
 import { AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MenuMobile from "./MenuMobile";
 import Image from "next/image";
 import Logo from "../../../public/logo.png";
@@ -12,17 +12,25 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
 
-  // Handle scroll event to change header style
-  const handleScroll = () => {
-    if (window.scrollY > 10) {
-      setIsScrolling(true);
-    } else {
-      setIsScrolling(false);
-    }
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setIsScrolling(true);
+      } else {
+        setIsScrolling(false);
+      }
+    };
 
-  // Add scroll event listener
-  window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll);
+
+    // Executa uma vez na montagem
+    handleScroll();
+
+    // Remove o listener quando o componente for desmontado
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
     <header className={`fixed top-0 left-0 w-full z-50 ${isScrolling ? "bg-white shadow-md" : "bg-transparent"}`}>
