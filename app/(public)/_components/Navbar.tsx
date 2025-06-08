@@ -10,9 +10,22 @@ import Link from "next/link";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  // Handle scroll event to change header style
+  const handleScroll = () => {
+    if (window.scrollY > 10) {
+      setIsScrolling(true);
+    } else {
+      setIsScrolling(false);
+    }
+  };
+
+  // Add scroll event listener
+  window.addEventListener("scroll", handleScroll);
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
+    <header className={`fixed top-0 left-0 w-full z-50 ${isScrolling ? "bg-white shadow-md" : "bg-transparent"}`}>
       <nav className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
         <Link href="/">
           <Image
@@ -23,7 +36,7 @@ const Navbar = () => {
             className="rounded-full"
           />
         </Link>
-        <ul className="hidden md:flex gap-6 text-gray-700 font-medium">
+        <ul className={`hidden md:flex space-x-6 text-lg ${isScrolling ? "text-gray-800" : "text-white"}`}>
           <li>
             <a href="#home" className="hover:text-green-600">
               Home
@@ -35,8 +48,8 @@ const Navbar = () => {
             </a>
           </li>
           <li>
-            <a href="#services" className="hover:text-green-600">
-              Serviços
+            <a href="#planos" className="hover:text-green-600">
+              Planos
             </a>
           </li>
           <li>

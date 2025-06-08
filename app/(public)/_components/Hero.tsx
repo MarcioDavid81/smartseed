@@ -1,19 +1,39 @@
 import Link from "next/link";
 
 const HeroSection = () => {
-    return (
-        <section id="home" className="pt-24 pb-16 px-6 bg-green-50 text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold text-green-800 mb-4">Controle Inteligente de Produção de Sementes</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Sistema para gestão da produção de sementes de soja, trigo e forrageiras de inverno.
-            </p>
-            <Link href="/dashboard" className="inline-block px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition">
-              Login
-            </Link>
-          </div>
-        </section>
-      );
-}
- 
+  return (
+    <section
+    id="#home"
+      className="bg-green flex-col py-20 px-4 text-center relative h-screen bg-cover bg-center flex items-center justify-center text-white text-4xl"
+      style={{ backgroundImage: "url('colheita.jpg')" }}
+    >
+      <div className="bg-black/50 absolute inset-0 z-0" />
+      <h1 className="z-10 text-white text-5xl md:text-6xl font-bold mb-8">
+        Smart Seed
+      </h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-4 z-10">
+        O sistema completo para controle de produção de sementes
+      </h1>
+      <p className="text-lg md:text-xl mb-6 max-w-3xl mx-auto z-10">
+        Organize, acompanhe e escale sua produção com tecnologia pensada para
+        sementeiras e produtores de sementes.
+      </p>
+      <div className="flex flex-col md:flex-row justify-center gap-4 z-10">
+        <Link
+          href="#planos"
+          className="bg-white text-green px-6 py-3 rounded-full font-semibold hover:bg-gray-100"
+        >
+          Ver Planos
+        </Link>
+        <Link
+          href="/dashboard"
+          className="border border-green px-6 py-3 rounded-full font-semibold hover:bg-white hover:text-green transition-colors duration-900 ease-in-out"
+        >
+          Acesse o sistema
+        </Link>
+      </div>
+    </section>
+  );
+};
+
 export default HeroSection;
