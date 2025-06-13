@@ -46,7 +46,7 @@ const Navbar = () => {
         </Link>
         <ul className={`hidden md:flex space-x-6 text-lg ${isScrolling ? "text-gray-800" : "text-white"}`}>
           <li>
-            <a href="#home" className="hover:text-green-600">
+            <a href="/" className="hover:text-green-600">
               Home
             </a>
           </li>

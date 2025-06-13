@@ -1,7 +1,7 @@
 const AboutSection = () => {
   return (
     <section id="about">
-      <section className="py-16 px-4 bg-gray-50 text-center">
+      <section className="min-h-screen flex flex-col items-center justify-center py-16 px-4 bg-gray-50 text-center">
         <h2 className="text-3xl font-bold mb-12">Benefícios do Smart Seed</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {[
@@ -39,7 +39,7 @@ const AboutSection = () => {
       </section>
 
       {/* Como funciona */}
-      <section className="py-16 px-4 bg-white text-center">
+      <section className="min-h-screen flex flex-col items-center justify-center py-16 px-4 bg-white text-center">
         <h2 className="text-3xl font-bold mb-12">Como funciona?</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {[

@@ -1,6 +1,6 @@
 const ServicesSection = () => {
     return ( 
-        <section id="planos" className="py-16 px-4 bg-gray-50 text-center">
+        <section id="planos" className="min-h-screen flex flex-col items-center justify-center py-16 px-4 bg-gray-50 text-center">
         <h2 className="text-3xl font-bold mb-12">Escolha seu plano</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {[
