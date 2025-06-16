@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import GenerateStockReportModal from "@/app/(authenticated)/estoque/_components/GenerateStockReportModal";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -68,7 +69,7 @@ export function ProductDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Procure por produto"
           value={(table.getColumn("product")?.getFilterValue() as string) ?? ""}
@@ -125,23 +126,26 @@ export function ProductDataTable<TData, TValue>({
       </div>
 
       {/* Paginação */}
-      <div className="flex items-center justify-end space-x-2 dark:text-primary">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Anterior
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Próximo
-        </Button>
+      <div className="flex items-center justify-between space-x-2 dark:text-primary">
+        <GenerateStockReportModal />
+        <div className="flex items-center space-x-2 justify-end">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Anterior
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Próximo
+          </Button>
+        </div>
       </div>
     </div>
   );
