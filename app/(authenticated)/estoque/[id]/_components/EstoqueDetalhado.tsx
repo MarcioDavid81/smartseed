@@ -74,7 +74,7 @@ export default function StockDetailContent({
           Nenhuma movimentação encontrada.
         </p>
       ) : (
-        <ScrollArea className="h-[480px] w-full">
+        <ScrollArea className="h-[450px] w-full">
           <table className="w-full font-light text-sm text-left text-gray-500">
             <thead className="sticky top-0 text-sm text-gray-700 bg-gray-50">
               <tr>

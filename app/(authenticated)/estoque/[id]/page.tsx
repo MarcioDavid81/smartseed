@@ -9,6 +9,7 @@ import Link from "next/link";
 import EstoqueTableBody from "./_components/EstoqueTableBody";
 import EstoqueDetalhado from "./_components/EstoqueDetalhado";
 import { getBaseUrl } from "@/app/_helpers/getBaseUrl";
+import GenerateExtractReportModal from "./_components/GenerateExtractReportModal";
 
 interface StockDetailProps {
   params: {
@@ -74,9 +75,12 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
             cultivar={cultivar}
             initialMovements={allMovements}
           />
-          <Link href="/estoque">
-            <HoverButton className="mt-4">Voltar</HoverButton>
-          </Link>
+          <div className="flex items-center justify-between mt-6">
+            <GenerateExtractReportModal movements={allMovements} cultivarName={cultivar.name} />
+            <Link href="/estoque">
+              <HoverButton className="mt-4">Voltar</HoverButton>
+            </Link>
+          </div>
         </main>
       </div>
     </div>
