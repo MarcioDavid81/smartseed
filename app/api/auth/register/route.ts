@@ -12,6 +12,42 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Registrar um novo usuário
+ *     tags:
+ *       - Autenticação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         aplication/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               companyId:
+ *                 type: string
+ *               imageUrl:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Usuário registrado com sucesso
+ *       400:
+ *         description: Campos obrigatórios faltando
+ *       403:
+ *         description: Acesso não autorizado
+ *       500:
+ *         description: Erro ao registrar usuário
+ */
+
 export async function POST(req: Request) {
   try {
     const authUser = await getUserFromToken();
