@@ -12,7 +12,7 @@ export async function sendUserWelcomeEmail({
 }) {
   try {
     await resend.emails.send({
-      from: 'SmartSeed <noreply@smartseed.app.br>',
+      from: 'SmartSeed <onboarding@resend.dev>',
       to: [email],
       subject: 'Bem-vindo ao SmartSeed',
       react: UserWelcomeEmail({ name, email, companyName }),
