@@ -30,7 +30,7 @@ export default function UserWelcomeEmail({
           </Text>
           <Section>
             <Text><strong>E-mail de acesso:</strong> {email}</Text>
-            <Text><strong>Senha:</strong> cadastrada pelo administrador</Text>
+            <Text><strong>Senha Padrão:</strong> <span className='text-green font-bold'>123456</span> (altere a senha no primeiro acesso, clicando na opção "Alterar Perfil")</Text>
           </Section>
           <Text>
             Acesse o sistema em: <a href="https://smartseed.app.br/login">smartseed.app.br/login</a>
