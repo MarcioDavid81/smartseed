@@ -5,7 +5,9 @@ export async function GET() {
   try {
     const companies = await db.company.findMany({
       select: { id: true, name: true },
+      where: {},
     });
+    console.log("EMPRESAS PRODUÇÃO", companies);
     return NextResponse.json(companies);
   } catch (error) {
     console.error("Erro ao buscar empresas:", error);

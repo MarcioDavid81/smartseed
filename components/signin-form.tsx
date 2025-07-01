@@ -35,7 +35,9 @@ export function SignInForm({
 
   useEffect(() => {
     async function fetchCompanies() {
-      const res = await fetch("/api/companies");
+      const res = await fetch("/api/companies", {
+        cache: "no-store",
+      });
       const data = await res.json();
       setCompanies(data);
     }
