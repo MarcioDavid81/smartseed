@@ -4,6 +4,7 @@ import { db } from "@/lib/prisma";
 import { v2 as cloudinary } from "cloudinary";
 import { getUserFromToken } from "@/lib/auth";
 import { ensureAdmin } from "@/lib/ensureAdmin";
+import { sendUserWelcomeEmail } from "@/lib/send-user-welcome";
 
 // Configuração do Cloudinary
 cloudinary.config({
@@ -127,6 +128,13 @@ export async function POST(req: Request) {
         imageUrl,
         role: "USER",
       },
+    });
+
+    // Envia o e-mail de boas-vindas
+    await sendUserWelcomeEmail({
+      name: user.name,
+      email: user.email,
+      companyName: company.name,
     });
 
     return NextResponse.json(
