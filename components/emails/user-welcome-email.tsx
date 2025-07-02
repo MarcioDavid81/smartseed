@@ -35,7 +35,18 @@ export default function UserWelcomeEmail({
             borderRadius: "8px",
           }}
         >
-          <Heading style={{ backgroundColor: "#63B926", color: "#fff", padding: "24px", fontWeight: "bold", fontSize: "24px", width: "100%", textAlign: "center" }}>Bem-vindo ao SmartSeed</Heading>
+          <Heading
+            style={{
+              backgroundColor: "#63B926",
+              color: "#fff",
+              padding: "24px",
+              fontWeight: "bold",
+              fontSize: "24px",
+              textAlign: "center",
+            }}
+          >
+            Bem-vindo ao SmartSeed
+          </Heading>
           <Text>Olá {name},</Text>
           <Text>
             Você foi cadastrado como usuário da empresa{" "}
