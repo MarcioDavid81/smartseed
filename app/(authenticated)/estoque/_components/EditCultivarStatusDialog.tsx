@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth-client";
+import { FaSpinner } from "react-icons/fa";
 
 type Props = {
   cultivarId: string;
@@ -69,8 +70,8 @@ export function EditCultivarStatusDialog({ cultivarId, currentStatus }: Props) {
       </RadioGroup>
 
       <DialogFooter>
-        <Button onClick={handleSubmit} disabled={loading}>
-          {loading ? "Salvando..." : "Salvar"}
+        <Button onClick={handleSubmit} disabled={loading} className="w-full bg-green text-white">
+          {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
         </Button>
       </DialogFooter>
     </DialogContent>
