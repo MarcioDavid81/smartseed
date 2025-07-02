@@ -6,12 +6,14 @@ import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
 import { Cultivar } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown,  Search } from "lucide-react";
+import { ArrowUpDown, PenBox, Pencil, Search } from "lucide-react";
 import { useStock } from "@/contexts/StockContext";
 import { getToken } from "@/lib/auth-client";
 import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import { ProductDataTable } from "@/components/ui/product-data-table";
 import Link from "next/link";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { EditCultivarStatusDialog } from "./EditCultivarStatusDialog";
 
 export function ListStockTable() {
   const [products, setProducts] = useState<Cultivar[]>([]);
@@ -28,7 +30,9 @@ export function ListStockTable() {
       });
 
       const data = await res.json();
-      const filteredData = data.filter((product: Cultivar) => product.stock > 0);
+      const filteredData = data.filter(
+        (product: Cultivar) => product.stock > 0
+      );
       setProducts(filteredData);
     } catch (error) {
       console.error("Erro ao buscar cultivares:", error);
@@ -58,19 +62,41 @@ export function ListStockTable() {
     {
       accessorKey: "product",
       header: "Produto",
-      cell: ({ row: { original: cultivar } }) => getProductLabel(cultivar.product),
+      cell: ({ row: { original: cultivar } }) =>
+        getProductLabel(cultivar.product),
     },
     {
       accessorKey: "stock",
       header: () => <div className="text-center">Estoque (kg)</div>,
       cell: ({ row }) => {
         const stock = row.original.stock;
-        return <div className="text-center">{new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(stock)}</div>;
+        return (
+          <div className="text-center">
+            {new Intl.NumberFormat("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(stock)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: () => <div className="text-center">Status</div>,
+      cell: ({ row }) => {
+        const status = row.original.status;
+        return (
+          <div
+            className={`text-center ${status === "BENEFICIADO" ? "text-green" : "text-red-500"}`}
+          >
+            {status}
+          </div>
+        );
       },
     },
     {
       accessorKey: "actions",
-      header: () => <div className="text-center">Detalhes</div>,
+      header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
         const cultivar = row.original;
         return (
@@ -80,10 +106,21 @@ export function ListStockTable() {
                 <Search className="text-green" size={30} />
               </Link>
             </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <EditCultivarStatusDialog
+                cultivarId={cultivar.id}
+                currentStatus={cultivar.status}
+              />
+            </Dialog>
           </div>
         );
-      }
-    }
+      },
+    },
   ];
 
   return (

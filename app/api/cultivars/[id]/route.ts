@@ -11,9 +11,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!payload) return new NextResponse("Token inválido", { status: 401 });
 
     const { id } = params;
-    const { name, product } = await req.json();
+    const { name, product, status } = await req.json();
 
-    // Buscar o cultivar para garantir que pertence à empresa do usuário
+    const allowedStatus = ["BENEFICIANDO", "BENEFICIADO"] as const;
+    if (status && !allowedStatus.includes(status)) {
+      return new NextResponse("Status inválido", { status: 400 });
+    }
+
     const existing = await db.cultivar.findUnique({ where: { id } });
 
     if (!existing || existing.companyId !== payload.companyId) {
@@ -22,7 +26,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     const updated = await db.cultivar.update({
       where: { id },
-      data: { name, product },
+      data: {
+        ...(name && { name }),
+        ...(product && { product }),
+        ...(status && { status }),
+      },
     });
 
     return NextResponse.json(updated);
@@ -31,6 +39,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return new NextResponse("Erro interno no servidor", { status: 500 });
   }
 }
+
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {

@@ -5,6 +5,7 @@ import {
   Harvest,
   ProductType,
   SaleExit,
+  CultivarStatus,
 } from "@prisma/client";
 
 export interface Cultivar {
@@ -18,6 +19,7 @@ export interface Cultivar {
   consumptionsExit: ConsumptionExit[];
   saleExit: SaleExit[];
   stock: number;
+  status: CultivarStatus;
   createdAt: Date;
 }
 
