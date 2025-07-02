@@ -70,7 +70,7 @@ export function MobileMenu() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="md:hidden sticky top-0 bg-green p-4">
+    <div className="md:hidden sticky top-0 z-50 bg-green p-4">
       <Sheet open={open} onOpenChange={setOpen}>
         <div className="flex items-center justify-between">
           <Image
