@@ -48,13 +48,14 @@ export default function GenerateStockReportModal() {
 
       autoTable(doc, {
         startY: 50,
-        head: [["Nome", "Produto", "Estoque (kg)"]],
+        head: [["Nome", "Produto", "Estoque (kg)", "Status"]],
         body: filteredStock.map((h) => [
           h.name,
           h.product,
           h.stock.toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
           }),
+          h.status,
         ]),
         styles: {
           fontSize: 9,

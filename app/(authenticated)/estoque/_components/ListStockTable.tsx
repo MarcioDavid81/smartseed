@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
 import { Cultivar } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, PenBox, Pencil, Search } from "lucide-react";
+import { ArrowUpDown, Search, SquarePenIcon } from "lucide-react";
 import { useStock } from "@/contexts/StockContext";
 import { getToken } from "@/lib/auth-client";
 import { getProductLabel } from "@/app/_helpers/getProductLabel";
@@ -14,6 +14,12 @@ import { ProductDataTable } from "@/components/ui/product-data-table";
 import Link from "next/link";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { EditCultivarStatusDialog } from "./EditCultivarStatusDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function ListStockTable() {
   const [products, setProducts] = useState<Cultivar[]>([]);
@@ -86,10 +92,12 @@ export function ListStockTable() {
       cell: ({ row }) => {
         const status = row.original.status;
         return (
-          <div
-            className={`text-center ${status === "BENEFICIADO" ? "text-green" : "text-red-500"}`}
-          >
-            {status}
+          <div className="flex items-center justify-center">
+            <span
+              className={`text-center text-white px-2 py-1 rounded-full text-xs ${status === "BENEFICIADO" ? "bg-green" : "bg-red-500"}`}
+            >
+              {status}
+            </span>
           </div>
         );
       },
@@ -101,16 +109,34 @@ export function ListStockTable() {
         const cultivar = row.original;
         return (
           <div className="text-center">
-            <Button variant={"ghost"}>
-              <Link href={`/estoque/${cultivar.id}`}>
-                <Search className="text-green" size={30} />
-              </Link>
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href={`/estoque/${cultivar.id}`}>
+                    <Button variant={"ghost"}>
+                      <Search className="text-green" size={30} />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Extrato da Cultivar</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Pencil className="w-4 h-4" />
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <SquarePenIcon size={20} className="text-green" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Editar Status</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </DialogTrigger>
               <EditCultivarStatusDialog
                 cultivarId={cultivar.id}
