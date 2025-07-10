@@ -37,6 +37,14 @@ const config: Config = {
 				DEFAULT: '#63B926',
 				foreground: '#63B926'
 			},
+			red: {
+				DEFAULT: '#fb2c36',
+				foreground: '#fb2c36'
+			},
+			blue: {
+				DEFAULT: '#155dfc',
+				foreground: '#155dfc'
+			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',
   				foreground: 'hsl(var(--secondary-foreground))'

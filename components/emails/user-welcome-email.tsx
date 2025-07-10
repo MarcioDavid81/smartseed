@@ -73,7 +73,8 @@ export default function UserWelcomeEmail({
           <Hr />
           <Text style={{ fontSize: "12px", color: "#888" }}>
             Se você não reconhece este acesso, entre em contato com o
-            administrador da sua empresa.
+            administrador do sistema através do formulário de contato,
+            disponível na aba <a href="https://smartseed.app.br/#contact">"Contato"</a>.
           </Text>
         </Container>
       </Body>

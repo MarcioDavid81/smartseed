@@ -29,10 +29,10 @@ export default function CookieConsent() {
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.5 }}
     className={cn(
-      'fixed bottom-0 w-full mx-auto bg-white border border-gray-200 shadow-lg py-4 px-8 z-50 flex flex-col gap-2 md:flex-row md:items-center md:justify-evenly',
+      'fixed bottom-2 right-1 left-1 rounded w-[99%] mx-auto bg-white border border-gray-200 shadow-lg py-4 px-8 z-50 flex flex-col gap-2 md:flex-row md:items-center md:justify-evenly',
     )}>
       <p className="text-sm text-gray-700 dark:text-gray-300">
-        Utilizamos cookies para melhorar sua experiência. Ao continuar, você concorda com nossa política. Em caso de dúvidas, consulte nossa{' '}
+        Utilizamos cookies para melhorar sua experiência. Ao aceitar, você concorda com nossa {' '}
         <a href="/privacy-politic" className="text-green hover:underline">política de privacidade</a>.
       </p>
       <HoverButton onClick={acceptCookies} className="mt-2 md:mt-0">
