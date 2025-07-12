@@ -33,7 +33,7 @@ export default function GenerateStockReportModal() {
   });
 
   const generatePDF = () => {
-    const doc = new jsPDF({ orientation: "landscape" });
+    const doc = new jsPDF({ orientation: "portrait" });
 
     const logo = new window.Image();
     logo.src = "/logo.png";
