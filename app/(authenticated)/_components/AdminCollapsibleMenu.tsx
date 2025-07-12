@@ -11,11 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-    Building2,
-  ChevronDown,
-  User,
-} from "lucide-react";
+import { Building2, ChevronDown, User } from "lucide-react";
 import { useState } from "react";
 import { SidebarSubItem } from "./SidebarSubItem";
 
@@ -94,7 +90,9 @@ export const AdminCollapsibleItem = ({
       </TooltipProvider>
 
       {/* {isSidebarOpen && ( */}
-      <CollapsibleContent className={`${isSidebarOpen ? "flex flex-col gap-1 ml-8" : ""}`}>
+      <CollapsibleContent
+        className={`${isSidebarOpen ? "flex flex-col gap-1 ml-8" : ""}`}
+      >
         {children.map((child) => (
           <SidebarSubItem
             key={child.href}

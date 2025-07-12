@@ -29,6 +29,11 @@ interface StateUF {
   nome: string;
 }
 
+interface City {
+  id: number;
+  nome: string;
+}
+
 const customerSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido"),
@@ -51,6 +56,7 @@ type CustomerFormData = z.infer<typeof customerSchema>;
 
 const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
   const [statesList, setStatesList] = useState<StateUF[]>([]);
+  const [citiesList, setCitiesList] = useState<City[]>([]);
   const [loading, setLoading] = useState(false);
   const [cpfCnpj, setCpfCnpj] = useState("");
 
@@ -59,10 +65,13 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
     handleSubmit,
     control,
     reset,
+    watch,
     formState: { errors },
   } = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
   });
+
+  const currentState = watch("state");
 
   useEffect(() => {
     if (isOpen) {
@@ -75,6 +84,22 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
         .catch(() => toast.error("Erro ao carregar estados"));
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (currentState) {
+      fetch(
+        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${currentState}/municipios`
+      )
+        .then((res) => res.json())
+        .then((data: City[]) => {
+          const sorted = data.sort((a, b) => a.nome.localeCompare(b.nome));
+          setCitiesList(sorted);
+        })
+        .catch(() => toast.error("Erro ao carregar cidades"));
+    } else {
+      setCitiesList([]);
+    }
+  }, [currentState]);
 
   const onSubmit = async (data: CustomerFormData) => {
     setLoading(true);
@@ -141,13 +166,6 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
               )}
             </div>
             <div>
-              <Label htmlFor="city">Cidade</Label>
-              <Input placeholder="Cidade" {...register("city")} />
-              {errors.city && (
-                <p className="text-red-500 text-xs">{errors.city.message}</p>
-              )}
-            </div>
-            <div>
               <Label htmlFor="state">Estado</Label>
               <select
                 {...register("state")}
@@ -165,6 +183,24 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
               )}
             </div>
             <div>
+              <Label htmlFor="city">Cidade</Label>
+              <select
+                {...register("city")}
+                disabled={!currentState}
+                className="border rounded px-3 py-2 text-sm text-muted-foreground w-full"
+              >
+                <option value="">Selecione a cidade</option>
+                {citiesList.map((city) => (
+                  <option key={city.id} value={city.nome}>
+                    {city.nome}
+                  </option>
+                ))}
+              </select>
+              {errors.city && (
+                <p className="text-red-500 text-xs">{errors.city.message}</p>
+              )}
+            </div>
+            <div>
               <Label htmlFor="phone">Telefone</Label>
               <Controller
                 control={control}
@@ -176,7 +212,11 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
                     onChange={field.onChange}
                   >
                     {(inputProps: any) => (
-                      <Input {...inputProps} placeholder="Telefone" type="text" />
+                      <Input
+                        {...inputProps}
+                        placeholder="Telefone"
+                        type="text"
+                      />
                     )}
                   </InputMask>
                 )}
@@ -193,7 +233,9 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
                 render={({ field }) => {
                   const numeric = cpfCnpj.replace(/\D/g, "");
                   const mask =
-                    numeric.length < 15 ? "99.999.999/9999-99" : "999.999.999-99"; ;
+                    numeric.length < 15
+                      ? "99.999.999/9999-99"
+                      : "999.999.999-99";
                   return (
                     <InputMask
                       mask={mask}
@@ -216,7 +258,9 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
                 }}
               />
               {errors.cpf_cnpj && (
-                <p className="text-red-500 text-xs">{errors.cpf_cnpj.message}</p>
+                <p className="text-red-500 text-xs">
+                  {errors.cpf_cnpj.message}
+                </p>
               )}
             </div>
           </div>

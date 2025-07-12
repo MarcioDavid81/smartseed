@@ -1,14 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LogOutIcon } from "lucide-react";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import HoverButton from "@/components/HoverButton";
 
 export default function LogoutButton() {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogout = async () => {
     setLoading(true);
@@ -21,7 +19,7 @@ export default function LogoutButton() {
       if (response.ok) {
         toast.success("Logout bem-sucedido");
         // Força uma atualização completa do estado da aplicação
-        window.location.href = "/"; // Ou router.refresh() + router.push("/login")
+        window.location.href = "/";
       } else {
         throw new Error("Falha ao fazer logout");
       }

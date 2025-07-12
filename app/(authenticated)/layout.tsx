@@ -3,7 +3,7 @@ import "../globals.css";
 import Sidebar from "./_components/Sidebar";
 import { Toaster } from "sonner";
 import { UserProvider } from "@/contexts/UserContext";
-import { getCompanyFromToken, getCompanyPlan, getUserFromToken } from "@/lib/auth";
+import { getCompanyFromToken, getUserFromToken } from "@/lib/auth";
 import { StockProvider } from "@/contexts/StockContext";
 import { CompanyProvider } from "@/contexts/CompanyContext";
 import { HarvestProvider } from "@/contexts/HarvestContext";

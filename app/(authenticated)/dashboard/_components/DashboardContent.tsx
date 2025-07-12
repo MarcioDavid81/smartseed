@@ -141,7 +141,7 @@ const DashboardContent = () => {
             <CardTitle className="font-normal">Cadastros</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col space-y-8">
-            <div className="flex gap-4">
+            <div className="flex  gap-4">
               <CreateFarmButton />
               <CreatePlotButton />
             </div>

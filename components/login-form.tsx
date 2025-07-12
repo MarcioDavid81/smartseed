@@ -50,7 +50,7 @@ export function LoginForm({
       localStorage.setItem("token", data.token); // <- SALVA o token
       console.log(data.token);
       toast.success("Login bem-sucedido");
-      window.location.href = "/dashboard"; // ou use router.push se preferir
+      window.location.href = "/dashboard";
     } catch (err) {
       console.error(err);
       setError("Erro ao conectar com o servidor");

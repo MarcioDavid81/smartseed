@@ -18,7 +18,6 @@ import { updateUserWithImageAndPassword } from "@/actions/user";
 import Image from "next/image";
 import HoverButton from "@/components/HoverButton";
 import { FaSpinner } from "react-icons/fa";
-import { LogOutIcon } from "lucide-react";
 
 type Props = {
   open: boolean;
