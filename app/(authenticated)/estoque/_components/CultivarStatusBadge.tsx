@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 
 interface CultivarStatusBadgeProps {
-  status: "BENEFICIADO" | "BENEFICIANDO";
+  status: string;
 }
 
 export function CultivarStatusBadge({ status }: CultivarStatusBadgeProps) {
@@ -11,7 +11,7 @@ export function CultivarStatusBadge({ status }: CultivarStatusBadgeProps) {
 
   return (
     <div className="flex items-center justify-center">
-      <Badge className={`${color} rounded-full  text-xs font-light hover:bg-opacity-90`}>
+      <Badge className={`${color} rounded-full text-xs font-light hover:bg-opacity-90`}>
         {status}
       </Badge>
     </div>

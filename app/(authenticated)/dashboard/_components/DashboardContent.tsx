@@ -16,22 +16,14 @@ import StockByProductTypeChart from "./StockByProductTypeChart";
 import { getToken } from "@/lib/auth-client";
 import { Cultivar } from "@/types";
 import UseByCultivarChart from "./UseByCultivarChart";
-import { Badge } from "@/components/ui/badge";
+import { CultivarStatusBadge } from "../../estoque/_components/CultivarStatusBadge";
 
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "BENEFICIADO":
-      return <Badge className="absolute right-6 top-6 bg-green text-white font-light rounded-full">BENEFICIADO</Badge>;
-    case "BENEFICIANDO":
-      return <Badge className="absolute right-6 top-6 bg-red text-white font-light rounded-full">BENEFICIANDO</Badge>;
-    default:
-      return <Badge className="absolute right-6 top-6 bg-gray-500 text-white font-light rounded-full">DESCONHECIDO</Badge>;
-  }
-};
 
 const DashboardContent = () => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
-  const [selectedCultivar, setSelectedCultivar] = useState<Cultivar | null>(null);
+  const [selectedCultivar, setSelectedCultivar] = useState<Cultivar | null>(
+    null
+  );
   const [totalCultivar, setTotalCultivar] = useState(0);
   const [totalDescarte, setTotalDescarte] = useState(0);
   const [totalSemente, setTotalSemente] = useState(0);
@@ -48,7 +40,9 @@ const DashboardContent = () => {
         },
       });
       const data = await res.json();
-      const filteredData = data.filter((product: Cultivar) => product.stock > 0);
+      const filteredData = data.filter(
+        (product: Cultivar) => product.stock > 0
+      );
       setCultivars(filteredData);
       setSelectedCultivar(filteredData[0]);
     };
@@ -115,7 +109,9 @@ const DashboardContent = () => {
               <CardTitle className="font-normal">Total Colhido</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-medium">{totalCultivar.toLocaleString("pt-BR")} kg</p>
+              <p className="text-2xl font-medium">
+                {totalCultivar.toLocaleString("pt-BR")} kg
+              </p>
             </CardContent>
           </Card>
 
@@ -124,7 +120,9 @@ const DashboardContent = () => {
               <CardTitle className="font-normal">Total Descartado</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-medium">{totalDescarte.toLocaleString("pt-BR")} kg</p>
+              <p className="text-2xl font-medium">
+                {totalDescarte.toLocaleString("pt-BR")} kg
+              </p>
             </CardContent>
           </Card>
 
@@ -137,9 +135,14 @@ const DashboardContent = () => {
                 {porcentagemAproveitamento.toFixed(2)}%
               </p>
               <p className="text-sm font-light">
-                {(totalCultivar - totalDescarte).toLocaleString("pt-BR")} kg de semente
+                {(totalCultivar - totalDescarte).toLocaleString("pt-BR")} kg de
+                semente
               </p>
-              {selectedCultivar && getStatusBadge(selectedCultivar.status)}
+              {selectedCultivar && (
+                <div className="absolute right-6 top-6">
+                  <CultivarStatusBadge status={selectedCultivar.status} />
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
