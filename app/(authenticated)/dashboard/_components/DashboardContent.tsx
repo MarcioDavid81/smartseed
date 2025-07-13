@@ -21,11 +21,11 @@ import { Badge } from "@/components/ui/badge";
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "BENEFICIADO":
-      return <Badge className="absolute right-6 top-6 bg-green text-white">PRONTO</Badge>;
+      return <Badge className="absolute right-6 top-6 bg-green text-white font-light rounded-full">BENEFICIADO</Badge>;
     case "BENEFICIANDO":
-      return <Badge className="absolute right-6 top-6 bg-red text-white">BENEFICIANDO</Badge>;
+      return <Badge className="absolute right-6 top-6 bg-red text-white font-light rounded-full">BENEFICIANDO</Badge>;
     default:
-      return <Badge className="absolute right-6 top-6 bg-gray-500 text-white">DESCONHECIDO</Badge>;
+      return <Badge className="absolute right-6 top-6 bg-gray-500 text-white font-light rounded-full">DESCONHECIDO</Badge>;
   }
 };
 

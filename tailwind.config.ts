@@ -38,8 +38,8 @@ const config: Config = {
 				foreground: '#63B926'
 			},
 			red: {
-				DEFAULT: '#fb2c36',
-				foreground: '#fb2c36'
+				DEFAULT: '#FF6467',
+				foreground: '#FF6467'
 			},
 			blue: {
 				DEFAULT: '#155dfc',
