@@ -114,7 +114,7 @@ export default async function RootLayout({
                         <Sidebar />
                         <MobileMenu />
                         {children}
-                        <Toaster />
+                        <Toaster richColors />
                       </ConsumptionProvider>
                     </BeneficiationProvider>
                   </SaleProvider>

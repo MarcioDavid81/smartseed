@@ -18,7 +18,6 @@ import { Cultivar } from "@/types";
 import UseByCultivarChart from "./UseByCultivarChart";
 import { CultivarStatusBadge } from "../../estoque/_components/CultivarStatusBadge";
 
-
 const DashboardContent = () => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [selectedCultivar, setSelectedCultivar] = useState<Cultivar | null>(

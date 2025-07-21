@@ -42,7 +42,7 @@ export default function RootLayout({
         className={`${inter.className} antialiased`}
       >
         {children}
-        <Toaster />
+        <Toaster richColors />
         <CookieConsent />
       </body>
     </html>
