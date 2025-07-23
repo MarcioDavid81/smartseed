@@ -11,12 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  ChevronDown,
-  DollarSign,
-  ShoppingCart,
-  Trash2,
-} from "lucide-react";
+import { ChevronDown, DollarSign, ShoppingCart, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { SidebarSubItem } from "./SidebarSubItem";
 import { GiFarmTractor } from "react-icons/gi";
@@ -112,7 +107,9 @@ export const SidebarCollapsibleItem = ({
       </TooltipProvider>
 
       {/* {isSidebarOpen && ( */}
-      <CollapsibleContent className={`${isSidebarOpen ? "flex flex-col gap-1 ml-8" : ""}`}>
+      <CollapsibleContent
+        className={`${isSidebarOpen ? "flex flex-col gap-1 ml-8" : ""}`}
+      >
         {children.map((child) => (
           <SidebarSubItem
             key={child.href}

@@ -28,6 +28,7 @@ model Company {
   buys             Buy[]
   consumptionsExit ConsumptionExit[]
   salesExit        SaleExit[]
+  productionCycles ProductionCycle[]
   createdAt        DateTime          @default(now())
 }
 
@@ -143,83 +144,110 @@ model Cultivar {
 
 // colheita
 model Harvest {
-  id         String        @id @default(cuid())
+  id         String           @id @default(cuid())
   cultivarId String
-  cultivar   Cultivar      @relation(fields: [cultivarId], references: [id])
+  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
   date       DateTime
   quantityKg Float
   talhaoId   String
-  talhao     Talhao        @relation(fields: [talhaoId], references: [id])
+  talhao     Talhao           @relation(fields: [talhaoId], references: [id])
   companyId  String
-  company    Company       @relation(fields: [companyId], references: [id])
+  company    Company          @relation(fields: [companyId], references: [id])
   notes      String?
-  type       OperationType @default(Colheita)
-  createdAt  DateTime      @default(now())
+  type       OperationType    @default(Colheita)
+  cycleId    String?
+  cycle      ProductionCycle? @relation(fields: [cycleId], references: [id])
+  createdAt  DateTime         @default(now())
 }
 
 //compras
 model Buy {
-  id         String        @id @default(cuid())
+  id         String           @id @default(cuid())
   cultivarId String
-  cultivar   Cultivar      @relation(fields: [cultivarId], references: [id])
+  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
   date       DateTime
   invoice    String
   unityPrice Float
   totalPrice Float
   customerId String
-  customer   Customer      @relation(fields: [customerId], references: [id])
+  customer   Customer         @relation(fields: [customerId], references: [id])
   quantityKg Float
   notes      String?
   companyId  String
-  company    Company       @relation(fields: [companyId], references: [id])
-  type       OperationType @default(Compra)
-  createdAt  DateTime      @default(now())
+  company    Company          @relation(fields: [companyId], references: [id])
+  type       OperationType    @default(Compra)
+  cycleId    String?
+  cycle      ProductionCycle? @relation(fields: [cycleId], references: [id])
+  createdAt  DateTime         @default(now())
 }
 
 // beneficiamento
 model Beneficiation {
-  id         String        @id @default(cuid())
+  id         String           @id @default(cuid())
   cultivarId String
-  cultivar   Cultivar      @relation(fields: [cultivarId], references: [id])
+  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
   date       DateTime
   quantityKg Float
   notes      String?
   companyId  String
-  company    Company       @relation(fields: [companyId], references: [id])
-  type       OperationType @default(Descarte)
-  createdAt  DateTime      @default(now())
+  company    Company          @relation(fields: [companyId], references: [id])
+  type       OperationType    @default(Descarte)
+  cycleId    String?
+  cycle      ProductionCycle? @relation(fields: [cycleId], references: [id])
+  createdAt  DateTime         @default(now())
 }
 
 //saída para plantio
 model ConsumptionExit {
-  id         String        @id @default(cuid())
+  id         String           @id @default(cuid())
   cultivarId String
-  cultivar   Cultivar      @relation(fields: [cultivarId], references: [id])
+  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
   date       DateTime
   quantityKg Float
   farmId     String
-  farm       Farm          @relation(fields: [farmId], references: [id])
+  farm       Farm             @relation(fields: [farmId], references: [id])
   notes      String?
   companyId  String
-  company    Company       @relation(fields: [companyId], references: [id])
-  type       OperationType @default(Plantio)
-  createdAt  DateTime      @default(now())
+  company    Company          @relation(fields: [companyId], references: [id])
+  type       OperationType    @default(Plantio)
+  cycleId    String?
+  cycle      ProductionCycle? @relation(fields: [cycleId], references: [id])
+  createdAt  DateTime         @default(now())
 }
 
 //venda
 model SaleExit {
-  id            String        @id @default(cuid())
+  id            String           @id @default(cuid())
   cultivarId    String
-  cultivar      Cultivar      @relation(fields: [cultivarId], references: [id])
+  cultivar      Cultivar         @relation(fields: [cultivarId], references: [id])
   date          DateTime
   quantityKg    Float
   customerId    String?
-  customer      Customer?     @relation(fields: [customerId], references: [id])
+  customer      Customer?        @relation(fields: [customerId], references: [id])
   invoiceNumber String?
   saleValue     Float?
   notes         String?
   companyId     String
-  company       Company       @relation(fields: [companyId], references: [id])
-  type          OperationType @default(Venda)
-  createdAt     DateTime      @default(now())
+  company       Company          @relation(fields: [companyId], references: [id])
+  type          OperationType    @default(Venda)
+  cycleId       String?
+  cycle         ProductionCycle? @relation(fields: [cycleId], references: [id])
+  createdAt     DateTime         @default(now())
+}
+
+//safras/ciclos
+model ProductionCycle {
+  id               String            @id @default(cuid())
+  name             String
+  startDate        DateTime
+  endDate          DateTime
+  isActive         Boolean           @default(false)
+  companyId        String
+  company          Company           @relation(fields: [companyId], references: [id])
+  harvests         Harvest[]
+  buys             Buy[]
+  beneficiations   Beneficiation[]
+  consumptionsExit ConsumptionExit[]
+  salesExit        SaleExit[]
+  createdAt        DateTime          @default(now())
 }
