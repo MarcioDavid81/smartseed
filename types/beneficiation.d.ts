@@ -9,5 +9,6 @@ export interface Beneficiation {
   quantityKg: number;
   notes?: string;
   companyId: string;
+  cycleId: string;
   createdAt: Date;
 }

@@ -1,6 +1,4 @@
 import { Metadata } from "next";
-import Saudacao from "../../_components/Saudacao";
-import Navbar from "../../_components/Navbar";
 import { ListBeneficiationTable } from "./_components/ListBeneficiationTable";
 import NavItems from "../../_components/NavItems";
 

@@ -11,16 +11,20 @@ import { Beneficiation } from "@/types";
 import UpsertBeneficiationButton from "./UpsertBeneficiationButton";
 import DeleteBeneficiationButton from "./DeleteBeneficiationButton";
 import { BeneficiationDataTable } from "./BeneficiationDataTable";
+import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 
 export function ListBeneficiationTable() {
+  const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
   const [descartes, setDescartes] = useState<Beneficiation[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function fetchBeneficiations() {
+    if (!selectedCycle?.id) return;
+
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("/api/beneficiation", {
+      const res = await fetch(`/api/beneficiation?cycleId=${selectedCycle.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -40,7 +44,7 @@ export function ListBeneficiationTable() {
 
   useEffect(() => {
     fetchBeneficiations();
-  }, []);
+  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
 
   const columns: ColumnDef<Beneficiation>[] = [
     {
