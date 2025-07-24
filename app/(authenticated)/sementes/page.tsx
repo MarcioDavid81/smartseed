@@ -1,4 +1,5 @@
 import Navbar from "../_components/Navbar";
+import NavItems from "../_components/NavItems";
 import Saudacao from "../_components/Saudacao";
 import { ListCultivarTable } from "./_components/ListCultivarTable";
 import { Metadata } from "next";
@@ -24,10 +25,7 @@ export default async function SeedsPage() {
           <main className="flex-1 py-4 px-4 md:px-8 text-gray-800">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
               <h1 className="text-2xl font-medium mb-4">Sementes</h1>
-              <div className="flex items-center space-x-10">
-                <Navbar />
-                <Saudacao />
-              </div>
+              <NavItems />
             </div>
 
             <ListCultivarTable />

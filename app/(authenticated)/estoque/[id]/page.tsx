@@ -1,15 +1,14 @@
 import React from "react";
 import Navbar from "../../_components/Navbar";
 import Saudacao from "../../_components/Saudacao";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import HoverButton from "@/components/HoverButton";
 import Link from "next/link";
-import EstoqueTableBody from "./_components/EstoqueTableBody";
 import EstoqueDetalhado from "./_components/EstoqueDetalhado";
 import { getBaseUrl } from "@/app/_helpers/getBaseUrl";
 import GenerateExtractReportModal from "./_components/GenerateExtractReportModal";
+import NavItems from "../../_components/NavItems";
 
 interface StockDetailProps {
   params: {
@@ -66,10 +65,7 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
         <main className="flex-1 py-4 px-4 md:px-8 text-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <h1 className="text-2xl font-medium mb-4">Estoque</h1>
-            <div className="flex items-center space-x-10">
-              <Navbar />
-              <Saudacao />
-            </div>
+            <NavItems />
           </div>
           <EstoqueDetalhado
             cultivar={cultivar}

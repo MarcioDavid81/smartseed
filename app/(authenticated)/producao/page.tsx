@@ -2,6 +2,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Navbar from "../_components/Navbar";
 import Saudacao from "../_components/Saudacao";
 import { Metadata } from "next";
+import NavItems from "../_components/NavItems";
 
 export const metadata: Metadata = {
   title: "Produção",
@@ -25,10 +26,7 @@ export default async function ProductionPage() {
             <h1 className="text-2xl font-medium mb-4">
               Relatório de Produtividade
             </h1>
-            <div className="flex items-center space-x-10">
-              <Navbar />
-              <Saudacao />
-            </div>
+            <NavItems />
           </div>
           <ScrollArea className="w-full h-[650px] rounded-lg shadow-md">
             <iframe
