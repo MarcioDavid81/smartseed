@@ -14,5 +14,6 @@ export interface Consumption {
     }
     notes?: string;
     companyId: string;
+    cycleId: string;
     createdAt: Date;
 }

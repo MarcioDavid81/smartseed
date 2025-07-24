@@ -8,20 +8,23 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getToken } from "@/lib/auth-client";
 import { Consumption } from "@/types/consumption";
-import { Farm } from "@/types";
 import UpsertConsumptionButton from "./UpsertConsumptionButton";
 import DeleteConsumptionButton from "./DeleteConsumptionButton";
 import { ConsumptionDataTable } from "./ConsumptionDataTable";
+import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 
 export function ListConsumptionTable() {
+  const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
   const [plantios, setPlantios] = useState<Consumption[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function fetchConsumptions() {
+    if (!selectedCycle?.id) return;
+
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("/api/consumption", {
+      const res = await fetch(`/api/consumption?cycleId=${selectedCycle.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -41,7 +44,7 @@ export function ListConsumptionTable() {
 
   useEffect(() => {
     fetchConsumptions();
-  }, []);
+  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
 
   const columns: ColumnDef<Consumption>[] = [
     {
