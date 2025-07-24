@@ -11,16 +11,20 @@ import { getToken } from "@/lib/auth-client";
 import UpsertBuyButton from "./UpsertBuyButton";
 import DeleteBuyButton from "@/app/(authenticated)/estoque/_components/DeleteBuyButton";
 import { BuyDataTable } from "./BuyDataTable";
+import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 
 export function ListBuyTable() {
+  const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
   const [buys, setBuys] = useState<Buy[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function fetchBuys() {
+    if (!selectedCycle?.id) return;
+
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("/api/buys", {
+      const res = await fetch(`/api/buys?cycleId=${selectedCycle.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -40,7 +44,7 @@ export function ListBuyTable() {
 
   useEffect(() => {
     fetchBuys();
-  }, []);
+  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
 
   const columns: ColumnDef<Buy>[] = [
     {

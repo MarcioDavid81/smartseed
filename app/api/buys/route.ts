@@ -170,10 +170,11 @@ export async function GET(req: NextRequest) {
   }
 
   const { companyId } = payload;
+  const cycleId = req.nextUrl.searchParams.get("cycleId");
 
   try {
     const buys = await db.buy.findMany({
-      where: { companyId },
+      where: { companyId, ...(cycleId && { cycleId }) },
       include: {
         cultivar:{
           select: { id: true, name: true }
