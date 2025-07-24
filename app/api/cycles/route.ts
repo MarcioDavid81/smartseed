@@ -63,8 +63,8 @@ export async function POST(req: NextRequest) {
     const cycle = await db.productionCycle.create({
       data: {
         name,
-        startDate,
-        endDate,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
         companyId,
       },
     });
