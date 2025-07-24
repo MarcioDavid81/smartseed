@@ -18,5 +18,6 @@ export interface Harvest {
     }
     companyId: string
     notes: string
+    cycleId: string
     createdAt: Date
 }

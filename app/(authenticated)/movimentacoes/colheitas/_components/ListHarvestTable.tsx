@@ -11,25 +11,27 @@ import { getToken } from "@/lib/auth-client";
 import { HarvestDataTable } from "./HarvestDataTable";
 import DeleteHarvestButton from "./DeleteHarvestButton";
 import UpsertHarvestButton from "./UpsertHarvestButton";
+import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 
 export function ListHarvestTable() {
+  const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
   const [harvests, setHarvests] = useState<Harvest[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function fetchHarvests() {
+    if (!selectedCycle?.id) return;
+
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("/api/harvest", {
+      const res = await fetch(`/api/harvest?cycleId=${selectedCycle.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       const data = await res.json();
-      const filteredData = data.filter(
-        (product: Harvest) => product.quantityKg > 0
-      );
+      const filteredData = data.filter((product: Harvest) => product.quantityKg > 0);
       setHarvests(filteredData);
     } catch (error) {
       console.error("Erro ao buscar colheitas:", error);
@@ -40,7 +42,7 @@ export function ListHarvestTable() {
 
   useEffect(() => {
     fetchHarvests();
-  }, []);
+  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
 
   const columns: ColumnDef<Harvest>[] = [
     {
@@ -55,9 +57,7 @@ export function ListHarvestTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row: { original } }) => {
-        return new Date(original.date).toLocaleDateString("pt-BR");
-      },
+      cell: ({ row: { original } }) => new Date(original.date).toLocaleDateString("pt-BR"),
     },
     {
       accessorKey: "cultivar",
@@ -68,14 +68,12 @@ export function ListHarvestTable() {
     {
       accessorKey: "talhao",
       header: "Talhão",
-      cell: ({ row: { original: original } }) => original.talhao.name,
+      cell: ({ row: { original } }) => original.talhao.name,
     },
     {
       accessorKey: "farm",
       header: () => <div className="text-left">Fazenda</div>,
-      cell: ({ row: { original: original } }) => {
-        return <div className="text-left">{original.talhao.farm.name}</div>;
-      },
+      cell: ({ row: { original } }) => <div className="text-left">{original.talhao.farm.name}</div>,
     },
     {
       accessorKey: "quantityKg",
@@ -99,14 +97,8 @@ export function ListHarvestTable() {
         const colheita = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <UpsertHarvestButton
-              colheita={colheita}
-              onUpdated={fetchHarvests}
-            />
-            <DeleteHarvestButton
-              colheita={colheita}
-              onDeleted={fetchHarvests}
-            />
+            <UpsertHarvestButton colheita={colheita} onUpdated={fetchHarvests} />
+            <DeleteHarvestButton colheita={colheita} onDeleted={fetchHarvests} />
           </div>
         );
       },

@@ -138,7 +138,6 @@ export async function POST(req: NextRequest) {
  *         description: Token ausente ou inválido
  */
 
-
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
@@ -157,13 +156,18 @@ export async function GET(req: NextRequest) {
   }
 
   const { companyId } = payload;
+  const cycleId = req.nextUrl.searchParams.get("cycleId");
 
   try {
     const harvests = await db.harvest.findMany({
-      where: { companyId },
+      where: { companyId, ...(cycleId && { cycleId }) },
       include: {
         talhao: {
-          select: { id: true, name: true, farm: { select: { id: true, name: true } } },
+          select: {
+            id: true,
+            name: true,
+            farm: { select: { id: true, name: true } },
+          },
         },
         cultivar: {
           select: { id: true, name: true },
