@@ -112,7 +112,7 @@ export default async function RootLayout({
                   <SaleProvider>
                     <BeneficiationProvider>
                       <ConsumptionProvider>
-                        <CycleProvider cycles={null}>
+                        <CycleProvider>
                           <Sidebar />
                           <MobileMenu />
                           {children}

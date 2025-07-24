@@ -17,6 +17,7 @@ import { getToken } from "@/lib/auth-client";
 import { Cultivar } from "@/types";
 import UseByCultivarChart from "./UseByCultivarChart";
 import { CultivarStatusBadge } from "../../estoque/_components/CultivarStatusBadge";
+import CreateCycleButton from "./CreateCycleButton";
 
 const DashboardContent = () => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
@@ -161,7 +162,10 @@ const DashboardContent = () => {
               <CreateFarmButton />
               <CreatePlotButton />
             </div>
-            <CreateCustomerButton />
+            <div className="flex gap-4">
+              <CreateCustomerButton />
+              <CreateCycleButton />
+            </div>
           </CardContent>
         </Card>
 
