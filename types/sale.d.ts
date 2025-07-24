@@ -16,5 +16,6 @@ export interface Sale {
     saleValue: number
     notes?: string
     companyId: string
+    cycleId: string
     createdAt: Date
 }

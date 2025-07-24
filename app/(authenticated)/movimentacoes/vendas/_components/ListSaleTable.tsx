@@ -11,16 +11,20 @@ import { SaleDataTable } from "./SaleDataTable";
 import DeleteSaleButton from "./DeleteSaleButton";
 import UpsertSaleButton from "./UpsertSaleButton";
 import { Sale } from "@/types/sale";
+import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 
 export function ListSaleTable() {
+  const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function fetchSales() {
+    if (!selectedCycle?.id) return;
+
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("/api/sales", {
+      const res = await fetch(`/api/sales?cycleId=${selectedCycle.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -40,7 +44,7 @@ export function ListSaleTable() {
 
   useEffect(() => {
     fetchSales();
-  }, []);
+  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
 
   const columns: ColumnDef<Sale>[] = [
     {
