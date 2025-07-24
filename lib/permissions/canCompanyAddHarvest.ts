@@ -13,5 +13,5 @@ export async function canCompanyAddHarvest() {
     where: { companyId },
   });
 
-  return count < 1; // limite do plano BASIC
+  return count < 2; // limite do plano BASIC
 }
