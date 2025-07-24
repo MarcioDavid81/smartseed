@@ -13,6 +13,7 @@ import { SaleProvider } from "@/contexts/SaleContext";
 import { BeneficiationProvider } from "@/contexts/BeneficiationContext";
 import { ConsumptionProvider } from "@/contexts/ConsumptionContext";
 import { MobileMenu } from "./_components/MenuMobile";
+import { CycleProvider } from "@/contexts/CycleContext";
 
 const robotoFont = roboto({
   src: [
@@ -87,7 +88,7 @@ export default async function RootLayout({
         role: user?.role ?? "USER",
       }
     : null;
-    console.log("Vieram os dados fdp",safeUser);
+  console.log("Vieram os dados fdp", safeUser);
 
   const safeCompany = company
     ? {
@@ -96,14 +97,14 @@ export default async function RootLayout({
         plan: company.plan ?? "",
       }
     : null;
-    console.log("vieram aqui tbm corno",safeCompany);
+  console.log("vieram aqui tbm corno", safeCompany);
 
   return (
     <html lang="pt-BR">
       <body
         className={`${robotoFont.className} antialiased  md:flex  w-full min-h-screen`}
       >
-        <CompanyProvider name={safeCompany} >
+        <CompanyProvider name={safeCompany}>
           <StockProvider>
             <UserProvider user={safeUser}>
               <HarvestProvider>
@@ -111,10 +112,12 @@ export default async function RootLayout({
                   <SaleProvider>
                     <BeneficiationProvider>
                       <ConsumptionProvider>
-                        <Sidebar />
-                        <MobileMenu />
-                        {children}
-                        <Toaster richColors />
+                        <CycleProvider cycles={null}>
+                          <Sidebar />
+                          <MobileMenu />
+                          {children}
+                          <Toaster richColors />
+                        </CycleProvider>
                       </ConsumptionProvider>
                     </BeneficiationProvider>
                   </SaleProvider>

@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Saudacao from "../_components/Saudacao";
 import Navbar from "../_components/Navbar";
 import DashboardContent from "./_components/DashboardContent";
+import SelectCycle from "../_components/SelectCycle";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -25,6 +26,7 @@ export default async function DashboardPage() {
             <h1 className="text-2xl font-medium mb-4">Dashboard</h1>
             <div className="flex items-center space-x-10">
               <Navbar />
+              <SelectCycle />
               <Saudacao />
             </div>
           </div>
