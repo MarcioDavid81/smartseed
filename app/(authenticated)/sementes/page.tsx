@@ -1,6 +1,4 @@
-import Navbar from "../_components/Navbar";
 import NavItems from "../_components/NavItems";
-import Saudacao from "../_components/Saudacao";
 import { ListCultivarTable } from "./_components/ListCultivarTable";
 import { Metadata } from "next";
 
