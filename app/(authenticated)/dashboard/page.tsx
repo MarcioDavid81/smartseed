@@ -1,8 +1,5 @@
 import { Metadata } from "next";
-import Saudacao from "../_components/Saudacao";
-import Navbar from "../_components/Navbar";
 import DashboardContent from "./_components/DashboardContent";
-import SelectCycle from "../_components/SelectCycle";
 import NavItems from "../_components/NavItems";
 
 export const metadata: Metadata = {

@@ -2,14 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Cycle } from "@/types/cycles";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
 import { useCycle } from "@/contexts/CycleContext";
 import { getToken } from "@/lib/auth-client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -52,7 +44,7 @@ const SelectCycle = () => {
         }}
         disabled={loading}
       >
-        <SelectTrigger className="w-[200px] text-sm">
+        <SelectTrigger className="w-[200px] text-sm font-light">
           <SelectValue placeholder={loading ? "Carregando..." : "Selecione uma safra"} />
         </SelectTrigger>
         <SelectContent>
