@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
+import { getCycle } from "@/lib/cycle";
 import { Cultivar, Harvest, Talhao } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
@@ -101,9 +102,19 @@ const UpsertHarvestModal = ({
   }, [isOpen]);
 
   const onSubmit = async (data: HarvestFormData) => {
-    console.log(" 📦 Data enviada:",data);
     setLoading(true);
     const token = getToken();
+    const cycle = getCycle();
+    if (!cycle || !cycle.id) {
+      toast.error("Nenhum ciclo de produção selecionado.");
+      setLoading(false);
+      return;
+    }
+    const cycleId = cycle.id;
+    console.log("Dados enviados para API:", {
+      ...data,
+      cycleId,
+    });
 
     const url = colheita ? `/api/harvest/${colheita.id}` : "/api/harvest";
     const method = colheita ? "PUT" : "POST";
@@ -114,30 +125,34 @@ const UpsertHarvestModal = ({
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        cycleId,
+      }),
     });
 
     const result = await res.json();
 
     if (!res.ok) {
       toast.warning(result.error || "Erro ao salvar colheita.", {
-            style: {
-                backgroundColor: "#F0C531",
-                color: "white",
-              },
-            icon: "❌",
-        });
+        style: {
+          backgroundColor: "#F0C531",
+          color: "white",
+        },
+        icon: "❌",
+      });
     } else {
       toast.success(
         colheita
           ? "Colheita atualizada com sucesso!"
-          : "Colheita cadastrada com sucesso!", {
-        style: {
+          : "Colheita cadastrada com sucesso!",
+        {
+          style: {
             backgroundColor: "#63B926",
             color: "white",
-        },
-        icon: "✅",
-    }
+          },
+          icon: "✅",
+        }
       );
       onClose();
       reset();
