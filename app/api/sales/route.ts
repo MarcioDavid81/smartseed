@@ -78,16 +78,8 @@ export async function POST(req: NextRequest) {
       invoiceNumber,
       saleValue,
       notes,
+      cycleId,
     } = await req.json();
-
-    // // ✅ Tratamento de campos opcionais
-    // const parsedCustomerId =
-    //   customerId && customerId !== "" ? customerId : null;
-    // const parsedInvoiceNumber =
-    //   invoiceNumber && invoiceNumber !== "" ? invoiceNumber : null;
-    // const parsedSaleValue =
-    //   saleValue && saleValue !== "" ? Number(saleValue) : null;
-    // const parsedNotes = notes && notes !== "" ? notes : null;
 
     if (!cultivarId || !date || !quantityKg || !companyId) {
       return NextResponse.json(
@@ -116,6 +108,7 @@ export async function POST(req: NextRequest) {
         saleValue,
         notes,
         companyId,
+        cycleId,
       },
     });
     console.log("Atualizando estoque da cultivar:", cultivarId);

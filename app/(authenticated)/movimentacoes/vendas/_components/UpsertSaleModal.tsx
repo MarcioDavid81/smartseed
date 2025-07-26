@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
+import { getCycle } from "@/lib/cycle";
 import { Cultivar } from "@/types";
 import { Customer } from "@/types/customers";
 import { Sale } from "@/types/sale";
@@ -135,9 +136,19 @@ const UpsertSaleModal = ({
   }, [isOpen]);
 
   const onSubmit = async (data: SaleFormData) => {
-    console.log(" 📦 Data enviada:", data);
     setLoading(true);
     const token = getToken();
+    const cycle = getCycle();
+        if (!cycle || !cycle.id) {
+          toast.error("Nenhum ciclo de produção selecionado.");
+          setLoading(false);
+          return;
+        }
+        const cycleId = cycle.id;
+        console.log("Dados enviados para API:", {
+          ...data,
+          cycleId,
+        });
 
     const url = venda ? `/api/sales/${venda.id}` : "/api/sales";
     const method = venda ? "PUT" : "POST";
@@ -148,7 +159,10 @@ const UpsertSaleModal = ({
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        cycleId,
+      }),
     });
 
     const result = await res.json();
