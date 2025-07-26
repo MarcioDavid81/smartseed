@@ -2,7 +2,11 @@
 
 import { motion } from "framer-motion";
 
-const MenuMobile = ({ onClose }: { onClose: () => void }) => {
+interface MenuMobileProps {
+  onClose: () => void;
+}
+
+const MenuMobile = ({ onClose }: MenuMobileProps) => {
     return (
         <motion.div
           initial={{ height: 0, opacity: 0 }}
