@@ -36,14 +36,14 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function POST(req: NextRequest) {
   const allowed = await canCompanyAddHarvest();
-  if(!allowed) {
+  if (!allowed) {
     return Response.json(
       {
         error:
           "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
       },
       { status: 403 }
-    )
+    );
   }
 
   const authHeader = req.headers.get("Authorization");
@@ -65,7 +65,8 @@ export async function POST(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const { cultivarId, talhaoId, date, quantityKg, notes, cycleId } = await req.json();
+    const { cultivarId, talhaoId, date, quantityKg, notes, cycleId } =
+      await req.json();
 
     if (!cultivarId || !talhaoId || !date || !quantityKg) {
       return NextResponse.json(
