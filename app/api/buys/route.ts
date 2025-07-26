@@ -38,19 +38,19 @@ import { NextRequest, NextResponse } from "next/server";
  *                 type: string
  *     responses:
  *       200:
- *         description: Colheita criada com sucesso
+ *         description: Compra criada com sucesso
  */
 export async function POST(req: NextRequest) {
   const allowed = await canCompanyAddPurchase();
-    if(!allowed) {
-      return Response.json(
-        {
-          error:
-            "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
-        },
-        { status: 403 }
-      )
-    }
+  if (!allowed) {
+    return Response.json(
+      {
+        error:
+          "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
+      },
+      { status: 403 }
+    );
+  }
 
   const authHeader = req.headers.get("Authorization");
 
@@ -71,7 +71,17 @@ export async function POST(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const { cultivarId, date, invoice, unityPrice, totalPrice, customerId, quantityKg, notes } = await req.json();
+    const {
+      cultivarId,
+      date,
+      invoice,
+      unityPrice,
+      totalPrice,
+      customerId,
+      quantityKg,
+      cycleId,
+      notes,
+    } = await req.json();
 
     if (!cultivarId || !date || !invoice || !quantityKg) {
       return NextResponse.json(
@@ -91,6 +101,7 @@ export async function POST(req: NextRequest) {
         quantityKg,
         notes,
         companyId,
+        cycleId,
       },
     });
     console.log("Atualizando estoque da cultivar:", cultivarId);
@@ -176,12 +187,12 @@ export async function GET(req: NextRequest) {
     const buys = await db.buy.findMany({
       where: { companyId, ...(cycleId && { cycleId }) },
       include: {
-        cultivar:{
-          select: { id: true, name: true }
+        cultivar: {
+          select: { id: true, name: true },
         },
         customer: {
-          select: { id: true, name: true }
-        }
+          select: { id: true, name: true },
+        },
       },
       orderBy: { date: "desc" },
     });

@@ -29,6 +29,7 @@ import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { z } from "zod";
+import { getCycle } from "@/lib/cycle";
 
 interface UpsertBuyModalProps {
   compra?: Buy;
@@ -150,9 +151,19 @@ const UpsertBuyModal = ({
   }, [isOpen]);
 
   const onSubmit = async (data: BuyFormData) => {
-    console.log(" 📦 Data enviada:", data);
     setLoading(true);
     const token = getToken();
+    const cycle = getCycle();
+        if (!cycle || !cycle.id) {
+          toast.error("Nenhum ciclo de produção selecionado.");
+          setLoading(false);
+          return;
+        }
+        const cycleId = cycle.id;
+        console.log("Dados enviados para API:", {
+          ...data,
+          cycleId,
+        });
 
     const url = compra ? `/api/buys/${compra.id}` : "/api/buys";
     const method = compra ? "PUT" : "POST";
@@ -172,6 +183,7 @@ const UpsertBuyModal = ({
         unityPrice: unity,
         quantityKg: qty,
         totalPrice: total,
+        cycleId,
       }),
     });
 
