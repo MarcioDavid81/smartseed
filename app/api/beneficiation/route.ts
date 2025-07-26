@@ -35,15 +35,15 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function POST(req: NextRequest) {
   const allowed = await canCompanyAddBeneficiation();
-        if(!allowed) {
-          return Response.json(
-            {
-              error:
-                "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
-            },
-            { status: 403 }
-          )
-        }
+  if (!allowed) {
+    return Response.json(
+      {
+        error:
+          "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
+      },
+      { status: 403 }
+    );
+  }
 
   const authHeader = req.headers.get("Authorization");
 
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const { cultivarId, date, quantityKg, notes } = await req.json();
+    const { cultivarId, date, quantityKg, notes, cycleId } = await req.json();
 
     if (!cultivarId || !date || !quantityKg) {
       return NextResponse.json(
@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
         quantityKg,
         notes,
         companyId,
+        cycleId,
       },
     });
     console.log("Atualizando estoque da cultivar:", cultivarId);

@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
+import { getCycle } from "@/lib/cycle";
 import { Beneficiation, Cultivar } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -114,9 +115,19 @@ const UpsertBeneficiationModal = ({
   }, [isOpen]);
 
   const onSubmit = async (data: BeneficiationFormData) => {
-    console.log(" 📦 Data enviada:", data);
     setLoading(true);
     const token = getToken();
+    const cycle = getCycle();
+    if (!cycle || !cycle.id) {
+      toast.error("Nenhum ciclo de produção selecionado.");
+      setLoading(false);
+      return;
+    }
+    const cycleId = cycle.id;
+    console.log("Dados enviados para API:", {
+      ...data,
+      cycleId,
+    });
 
     const url = descarte
       ? `/api/beneficiation/${descarte.id}`
@@ -129,7 +140,10 @@ const UpsertBeneficiationModal = ({
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        cycleId,
+      }),
     });
 
     const result = await res.json();
