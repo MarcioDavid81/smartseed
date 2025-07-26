@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const { cultivarId, date, quantityKg, farmId, notes } = await req.json();
+    const { cultivarId, date, quantityKg, farmId, notes, cycleId } = await req.json();
 
     if (!cultivarId || !date || !quantityKg || !farmId) {
       return NextResponse.json(
@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
         farmId,
         notes,
         companyId,
+        cycleId,
       },
     });
     console.log("Atualizando estoque da cultivar:", cultivarId);

@@ -139,16 +139,16 @@ const UpsertSaleModal = ({
     setLoading(true);
     const token = getToken();
     const cycle = getCycle();
-        if (!cycle || !cycle.id) {
-          toast.error("Nenhum ciclo de produção selecionado.");
-          setLoading(false);
-          return;
-        }
-        const cycleId = cycle.id;
-        console.log("Dados enviados para API:", {
-          ...data,
-          cycleId,
-        });
+    if (!cycle || !cycle.id) {
+      toast.error("Nenhum ciclo de produção selecionado.");
+      setLoading(false);
+      return;
+    }
+    const cycleId = cycle.id;
+    console.log("Dados enviados para API:", {
+      ...data,
+      cycleId,
+    });
 
     const url = venda ? `/api/sales/${venda.id}` : "/api/sales";
     const method = venda ? "PUT" : "POST";

@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
+import { getCycle } from "@/lib/cycle";
 import { Cultivar, Farm } from "@/types";
 import { Consumption } from "@/types/consumption";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -125,9 +126,19 @@ const UpsertConsumptionModal = ({
   }, [isOpen]);
 
   const onSubmit = async (data: ConsumptionFormData) => {
-    console.log(" 📦 Data enviada:", data);
     setLoading(true);
     const token = getToken();
+    const cycle = getCycle();
+    if (!cycle || !cycle.id) {
+      toast.error("Nenhum ciclo de produção selecionado.");
+      setLoading(false);
+      return;
+    }
+    const cycleId = cycle.id;
+    console.log("Dados enviados para API:", {
+      ...data,
+      cycleId,
+    });
 
     const url = plantio ? `/api/consumption/${plantio.id}` : "/api/consumption";
     const method = plantio ? "PUT" : "POST";
@@ -138,7 +149,10 @@ const UpsertConsumptionModal = ({
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        cycleId,
+      }),
     });
 
     const result = await res.json();
