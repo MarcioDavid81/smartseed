@@ -17,7 +17,7 @@ const SelectCycle = () => {
         const token = getToken();
         const res = await fetch("/api/cycles", {
           headers: {
-            Authorization: `Bearer ${token}`, // ajuste conforme sua auth
+            Authorization: `Bearer ${token}`,
           },
         });
         const data = await res.json();

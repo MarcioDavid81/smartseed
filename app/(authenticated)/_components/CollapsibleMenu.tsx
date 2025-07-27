@@ -72,13 +72,13 @@ export const SidebarCollapsibleItem = ({
           <TooltipTrigger asChild>
             <CollapsibleTrigger asChild>
               <div
-                className={`flex items-center text-white py-2 px-2 rounded-lg hover:bg-green cursor-pointer ${
+                className={`flex cursor-pointer items-center rounded-lg px-2 py-2 text-white hover:bg-green ${
                   isSidebarOpen ? "justify-between" : "justify-center"
                 }`}
               >
                 <div
                   className={`flex items-center gap-3 ${
-                    !isSidebarOpen && "justify-center w-full"
+                    !isSidebarOpen && "w-full justify-center"
                   }`}
                 >
                   {icon}
@@ -108,7 +108,7 @@ export const SidebarCollapsibleItem = ({
 
       {/* {isSidebarOpen && ( */}
       <CollapsibleContent
-        className={`${isSidebarOpen ? "flex flex-col gap-1 ml-8" : ""}`}
+        className={`${isSidebarOpen ? "ml-8 flex flex-col gap-1" : ""}`}
       >
         {children.map((child) => (
           <SidebarSubItem
