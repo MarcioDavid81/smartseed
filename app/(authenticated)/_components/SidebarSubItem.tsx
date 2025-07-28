@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { usePathname } from "next/navigation";
 
 interface SidebarSubItemProps {
   name: string;
@@ -11,6 +12,7 @@ interface SidebarSubItemProps {
 }
 
 export function SidebarSubItem({ name, href, icon, isSidebarOpen }: SidebarSubItemProps) {
+  const pathname = usePathname();
   return (
     <TooltipProvider>
       <Tooltip>
@@ -19,6 +21,7 @@ export function SidebarSubItem({ name, href, icon, isSidebarOpen }: SidebarSubIt
             href={href}
             className={`flex items-center gap-2 text-sm font-extralight mt-2 p-2 rounded-md hover:bg-green text-white transition-all
               ${isSidebarOpen ? "justify-start" : "justify-center"}
+              ${pathname === href ? "bg-green" : ""}
             `}
           >
             {icon}

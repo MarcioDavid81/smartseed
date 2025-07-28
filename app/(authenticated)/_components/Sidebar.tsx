@@ -17,6 +17,7 @@ import { UserMenu } from "./UserMenu";
 import { SidebarCollapsibleItem } from "./CollapsibleMenu";
 import { AdminCollapsibleItem } from "./AdminCollapsibleMenu";
 import { useUser } from "@/contexts/UserContext";
+import { usePathname } from "next/navigation";
 
 const routes = [
   {
@@ -68,6 +69,7 @@ const routes = [
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const { user } = useUser();
+  const pathname = usePathname();
   console.log("Usuário logado:", user);
   console.log("Role:", user?.role);
 
@@ -144,7 +146,7 @@ const Sidebar = () => {
                           href={route.path}
                           className={`flex items-center text-white ${
                             !isOpen && "justify-center"
-                          } rounded-lg px-1 py-2 hover:bg-green hover:text-white`}
+                          } rounded-lg px-1 py-2 hover:bg-green hover:text-white ${pathname === route.path ? "bg-green" : ""}`}
                         >
                           {route.icon}
                           <span
