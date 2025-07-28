@@ -99,7 +99,7 @@ export function LoginForm({
                     className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
                     tabIndex={-1}
                   >
-                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                    {showPassword ? <FiEye /> : <FiEyeOff />}
                   </button>
                 </div>
               </div>
@@ -117,7 +117,7 @@ export function LoginForm({
               <div className="text-center text-sm">
                 Ainda não tem uma conta?{" "}
                 <a
-                  href="https://bit.ly/4hVljO0"
+                  href="https://smartseed.app.br/#contact"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline underline-offset-4"
