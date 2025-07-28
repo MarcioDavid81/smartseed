@@ -1,6 +1,4 @@
-import Saudacao from "../_components/Saudacao";
 import { Metadata } from "next";
-import Navbar from "../_components/Navbar";
 import NavItems from "../_components/NavItems";
 
 export const metadata: Metadata = {

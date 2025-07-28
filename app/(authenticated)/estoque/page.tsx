@@ -1,7 +1,5 @@
-import Saudacao from "../_components/Saudacao";
 import { Metadata } from "next";
 import { ListStockTable } from "./_components/ListStockTable";
-import Navbar from "../_components/Navbar";
 import NavItems from "../_components/NavItems";
 
 export const metadata: Metadata = {

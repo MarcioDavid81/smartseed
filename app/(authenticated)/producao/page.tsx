@@ -1,6 +1,4 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
-import Navbar from "../_components/Navbar";
-import Saudacao from "../_components/Saudacao";
 import { Metadata } from "next";
 import NavItems from "../_components/NavItems";
 
