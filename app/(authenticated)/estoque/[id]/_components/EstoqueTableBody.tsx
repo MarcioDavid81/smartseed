@@ -42,19 +42,19 @@ export default function EstoqueTableBody({ movements }: { movements: any[] }) {
       {movementsState.map((mov) => {
         return (
           <tr key={mov.id} className="bg-white border-b hover:bg-gray-50">
-            <td className="px-6 py-4">
+            <td className="px-6 py-2">
               {new Date(mov.date).toLocaleDateString()}
             </td>
-            <td className="px-6 py-4">
+            <td className="px-6 py-2">
               {new Intl.NumberFormat("pt-BR", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               }).format(mov.quantity)}
             </td>
-            <td className="whitespace-nowrap px-6 py-4">
+            <td className="whitespace-nowrap px-6 py-2">
               {renderTipoMovimentacao(mov.type)}
             </td>
-            <td className="flex items-center justify-start gap-4 px-6 py-4">
+            <td className="flex items-center justify-start gap-4 px-6 py-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>

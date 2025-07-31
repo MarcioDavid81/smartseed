@@ -1,6 +1,4 @@
 import React from "react";
-import Navbar from "../../_components/Navbar";
-import Saudacao from "../../_components/Saudacao";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import HoverButton from "@/components/HoverButton";

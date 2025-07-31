@@ -18,11 +18,11 @@ export const metadata: Metadata = {
 export default async function SeedsPage() {
 
     return (
-      <div className="flex flex-col w-full min-h-screen bg-found">
-        <div className="min-h-screen w-full flex bg-background">
-          <main className="flex-1 py-4 px-4 md:px-8 text-gray-800">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-              <h1 className="text-2xl font-medium mb-4">Sementes</h1>
+      <div className="flex min-h-screen w-full flex-col bg-found">
+        <div className="flex min-h-screen w-full bg-background">
+          <main className="flex-1 px-4 py-4 text-gray-800 md:px-8">
+            <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
+              <h1 className="mb-4 text-2xl font-medium">Sementes</h1>
               <NavItems />
             </div>
 

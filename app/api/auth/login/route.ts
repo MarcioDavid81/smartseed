@@ -1,7 +1,5 @@
-// app/api/auth/login/route.ts
 import { NextResponse } from "next/server";
 import { compare } from "bcryptjs";
-import { sign } from "jsonwebtoken";
 import { db } from "@/lib/prisma";
 import { SignJWT } from "jose";
 
@@ -32,8 +30,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Senha incorreta" }, { status: 401 });
   }
 
-  // const token = sign({ userId: user.id, companyId: user.companyId }, JWT_SECRET, { expiresIn: "7d" });
-
+  // 🔐 Gera o token JWT com os dados do usuário
   const token = await new SignJWT({
     userId: user.id,
     companyId: user.companyId,

@@ -154,16 +154,16 @@ const UpsertBuyModal = ({
     setLoading(true);
     const token = getToken();
     const cycle = getCycle();
-        if (!cycle || !cycle.id) {
-          toast.error("Nenhum ciclo de produção selecionado.");
-          setLoading(false);
-          return;
-        }
-        const cycleId = cycle.id;
-        console.log("Dados enviados para API:", {
-          ...data,
-          cycleId,
-        });
+    if (!cycle || !cycle.id) {
+      toast.error("Nenhum ciclo de produção selecionado.");
+      setLoading(false);
+      return;
+    }
+    const cycleId = cycle.id;
+    console.log("Dados enviados para API:", {
+      ...data,
+      cycleId,
+    });
 
     const url = compra ? `/api/buys/${compra.id}` : "/api/buys";
     const method = compra ? "PUT" : "POST";
@@ -208,7 +208,7 @@ const UpsertBuyModal = ({
             color: "white",
           },
           icon: "✅",
-        }
+        },
       );
       onClose();
       form.reset();
@@ -244,7 +244,7 @@ const UpsertBuyModal = ({
                     <FormControl>
                       <select
                         {...field}
-                        className="w-full border rounded px-2 py-1"
+                        className="w-full rounded border px-2 py-1"
                       >
                         <option value="">Selecione</option>
                         {cultivars.map((c) => (
@@ -268,7 +268,7 @@ const UpsertBuyModal = ({
                     <FormControl>
                       <select
                         {...field}
-                        className="w-full border rounded px-2 py-1"
+                        className="w-full rounded border px-2 py-1"
                       >
                         <option value="">Selecione</option>
                         {customers.map((c) => (
@@ -378,7 +378,7 @@ const UpsertBuyModal = ({
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-green text-white mt-4"
+                className="mt-4 w-full bg-green text-white"
               >
                 {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
