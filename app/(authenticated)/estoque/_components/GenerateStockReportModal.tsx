@@ -21,15 +21,23 @@ export default function GenerateStockReportModal() {
   const { cultivars } = useStock();
   const { harvests } = useHarvest();
   const [cultivar, setCultivar] = useState<string | null>(null);
+  const [product, setProduct] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const { user } = useUser();
 
+  const produtosUnicos = Array.from(new Set(cultivars.map((c) => c.product)));
+
   const cultivaresUnicos = Array.from(
-    new Set(harvests.map((h) => h.cultivar.name))
+    new Set(harvests.map((h) => h.cultivar.name)),
   );
 
+  const statusUnicos = Array.from(new Set(cultivars.map((c) => c.status)));
+
   const filteredStock = cultivars.filter((c) => {
+    const matchProduct = !product || c.product === product;
     const matchCultivar = !cultivar || c.name === cultivar;
-    return matchCultivar;
+    const matchStatus = !status || c.status === status;
+    return matchCultivar && matchProduct && matchStatus;
   });
 
   const generatePDF = () => {
@@ -44,7 +52,9 @@ export default function GenerateStockReportModal() {
       doc.text("Relatório de Estoque", 110, 20, { align: "center" });
 
       doc.setFontSize(10);
-      doc.text(`Cultivar: ${cultivar || "Todos"}`, 14, 35);
+      doc.text(`Produto: ${product || "Todos"}`, 14, 35);
+      doc.text(`Cultivar: ${cultivar || "Todos"}`, 14, 40);
+      doc.text(`Status: ${status || "Todos"}`, 14, 45);
 
       autoTable(doc, {
         startY: 50,
@@ -78,7 +88,7 @@ export default function GenerateStockReportModal() {
           doc.text(
             `Relatório gerado em ${formattedDate} por: ${userName}`,
             10,
-            pageHeight - 10
+            pageHeight - 10,
           );
 
           const centerText = "Sistema Smart Seed";
@@ -86,29 +96,32 @@ export default function GenerateStockReportModal() {
           doc.text(
             centerText,
             pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10
+            pageHeight - 10,
           );
 
           const pageNumber = (doc as any).internal.getNumberOfPages();
           doc.text(
             `${pageNumber}/${pageNumber}`,
             pageWidth - 20,
-            pageHeight - 10
+            pageHeight - 10,
           );
         },
       });
 
       // === SOMATÓRIO POR CULTIVAR ===
-      const totalsByCultivar = filteredStock.reduce((acc, curr) => {
-        const name = curr.name;
-        if (!acc[name]) acc[name] = 0;
-        acc[name] += curr.stock;
-        return acc;
-      }, {} as Record<string, number>);
+      const totalsByCultivar = filteredStock.reduce(
+        (acc, curr) => {
+          const name = curr.name;
+          if (!acc[name]) acc[name] = 0;
+          acc[name] += curr.stock;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       const totalGeral = filteredStock.reduce(
         (acc, curr) => acc + curr.stock,
-        0
+        0,
       );
 
       let finalY = (doc as any).lastAutoTable.finalY + 10;
@@ -123,7 +136,7 @@ export default function GenerateStockReportModal() {
             minimumFractionDigits: 2,
           })} kg`,
           14,
-          finalY + 6 + index * 6
+          finalY + 6 + index * 6,
         );
       });
 
@@ -133,7 +146,7 @@ export default function GenerateStockReportModal() {
           minimumFractionDigits: 2,
         })} kg`,
         14,
-        finalY + 6 + Object.keys(totalsByCultivar).length * 6 + 6
+        finalY + 6 + Object.keys(totalsByCultivar).length * 6 + 6,
       );
 
       const fileNumber = new Date().getTime().toString();
@@ -155,6 +168,28 @@ export default function GenerateStockReportModal() {
         <h2 className="text-xl font-semibold">Filtrar Relatório</h2>
 
         <div className="space-y-2">
+          <label className="text-sm font-medium">Produto</label>
+          <Select
+            value={product ?? ""}
+            onValueChange={(value) =>
+              setProduct(value === "todos" ? null : value)
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              {produtosUnicos.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
           <label className="text-sm font-medium">Cultivar</label>
           <Select
             value={cultivar ?? ""}
@@ -168,6 +203,28 @@ export default function GenerateStockReportModal() {
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               {cultivaresUnicos.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Status</label>
+          <Select
+            value={status ?? ""}
+            onValueChange={(value) =>
+              setStatus(value === "todos" ? null : value)
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              {statusUnicos.map((c) => (
                 <SelectItem key={c} value={c}>
                   {c}
                 </SelectItem>
