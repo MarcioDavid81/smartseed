@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 
 type Cultivar = {
@@ -40,12 +47,16 @@ export default function CultivarsList() {
     fetchCultivars();
   }, []);
 
-  if (loading) return <p className="text-sm text-muted-foreground">Carregando cultivares...</p>;
+  if (loading)
+    return (
+      <p className="text-sm text-muted-foreground">Carregando cultivares...</p>
+    );
 
-  if (cultivars.length === 0) return <p className="text-sm">Nenhuma cultivar cadastrada.</p>;
+  if (cultivars.length === 0)
+    return <p className="text-sm">Nenhuma cultivar cadastrada.</p>;
 
   return (
-    <div className="mt-4 border rounded-lg">
+    <div className="mt-4 rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
