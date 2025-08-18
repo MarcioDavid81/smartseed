@@ -35,9 +35,13 @@ const routes = [
     icon: <FaSeedling size={20} />,
   },
   {
-    path: "/producao",
-    name: "Produção",
+    name: "Insumos",
     icon: <PiFarm size={20} />,
+    subRoutes: [
+      { path: "/insumos/aplicacoes", name: "Aplicação" },
+      { path: "/insumos/compras", name: "Compra" },
+      { path: "/insumos/transferencias", name: "Transferência" },
+    ],
   },
   {
     name: "Movimentações",

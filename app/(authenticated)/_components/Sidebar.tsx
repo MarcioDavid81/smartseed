@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FaHome, FaSeedling, FaTruck } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { useState } from "react";
-import { PanelRightOpen, Scroll, Warehouse } from "lucide-react";
+import { DollarSign, PanelRightOpen, Scroll, ShoppingCart, Trash2, Warehouse } from "lucide-react";
 import { PiFarm } from "react-icons/pi";
 import {
   Tooltip,
@@ -15,9 +15,11 @@ import {
 } from "@/components/ui/tooltip";
 import { UserMenu } from "./UserMenu";
 import { SidebarCollapsibleItem } from "./CollapsibleMenu";
-import { AdminCollapsibleItem } from "./AdminCollapsibleMenu";
 import { useUser } from "@/contexts/UserContext";
 import { usePathname } from "next/navigation";
+import { Building2, User } from "lucide-react";
+import { TbTransferIn } from "react-icons/tb";
+import { GiFarmTractor } from "react-icons/gi";
 
 const routes = [
   {
@@ -36,19 +38,23 @@ const routes = [
     icon: <FaSeedling size={20} />,
   },
   {
-    path: "/producao",
-    name: "Produção",
+    name: "Insumos",
     icon: <PiFarm size={20} />,
+    subRoutes: [
+      { path: "/insumos/compras", name: "Compra", icon: <ShoppingCart size={16} /> },
+      { path: "/insumos/aplicacoes", name: "Aplicação", icon: <GiFarmTractor size={16} /> },
+      { path: "/insumos/transferencias", name: "Transferência", icon: <TbTransferIn size={16} /> },
+    ],
   },
   {
     name: "Movimentações",
     icon: <FaTruck size={20} />,
     subRoutes: [
-      { path: "/movimentacoes/colheitas", name: "Colheita" },
-      { path: "/movimentacoes/compras", name: "Compra" },
-      { path: "/movimentacoes/vendas", name: "Venda" },
-      { path: "/movimentacoes/consumos", name: "Consumo" },
-      { path: "/movimentacoes/descartes", name: "Descarte" },
+      { path: "/movimentacoes/colheitas", name: "Colheita", icon: <GiFarmTractor size={16} />},
+      { path: "/movimentacoes/compras", name: "Compra", icon: <ShoppingCart size={16} /> },
+      { path: "/movimentacoes/vendas", name: "Venda", icon: <DollarSign size={16} /> },
+      { path: "/movimentacoes/consumos", name: "Consumo", icon: <TbTransferIn size={16} /> },
+      { path: "/movimentacoes/descartes", name: "Descarte", icon: <Trash2 size={16} /> },
     ],
   },
   {
@@ -59,10 +65,11 @@ const routes = [
   {
     name: "Cadastros",
     icon: <Scroll size={20} />,
-    adminRoutes: [
-      { path: "/cadastros/empresas", name: "Empresas" },
-      { path: "/cadastros/usuarios", name: "Usuários" },
+    subRoutes: [
+      { path: "/cadastros/empresas", name: "Empresas", icon: <Building2 size={16} /> },
+      { path: "/cadastros/usuarios", name: "Usuários", icon: <User size={16} /> },
     ],
+    adminOnly: true, // 🔑 só renderiza se role for ADMIN
   },
 ];
 
@@ -70,8 +77,7 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const { user } = useUser();
   const pathname = usePathname();
-  console.log("Usuário logado:", user);
-  console.log("Role:", user?.role);
+   const [openItem, setOpenItem] = useState<string | null>(null);
 
   return (
     <div
@@ -79,6 +85,7 @@ const Sidebar = () => {
         isOpen ? "w-64" : "w-20"
       } sticky top-0 hidden min-h-screen flex-col bg-found text-text transition-all duration-300 ease-in-out md:flex`}
     >
+      {/* Botão de expandir/retrair */}
       <div
         className={`absolute -right-4 top-[50px] cursor-pointer rounded-full bg-background p-1 text-primary dark:bg-primary dark:text-secondary ${
           !isOpen && "rotate-180"
@@ -88,6 +95,7 @@ const Sidebar = () => {
         <PanelRightOpen className="h-6 w-6 text-green" />
       </div>
 
+      {/* Logo */}
       <div className="flex items-center justify-center border-b-2 border-zinc-500 bg-green pb-4 pt-2 text-2xl font-bold">
         <Link href="/dashboard">
           {isOpen ? (
@@ -109,10 +117,13 @@ const Sidebar = () => {
           )}
         </Link>
       </div>
+
+      {/* Menu */}
       <div className="p-2">
         <nav className="mt-4 flex flex-col space-y-4 border-b-2 border-zinc-500 pb-4">
           {routes.map((route, index) => {
             if (route.subRoutes) {
+              if (route.adminOnly && user?.role !== "ADMIN") return null; // 🔑 só admin vê
               return (
                 <SidebarCollapsibleItem
                   key={index}
@@ -120,18 +131,8 @@ const Sidebar = () => {
                   name={route.name}
                   subRoutes={route.subRoutes}
                   isSidebarOpen={isOpen}
-                />
-              );
-            }
-
-            if (route.adminRoutes && user?.role === "ADMIN") {
-              return (
-                <AdminCollapsibleItem
-                  key={index}
-                  icon={route.icon}
-                  name={route.name}
-                  subRoutes={route.adminRoutes}
-                  isSidebarOpen={isOpen}
+                  open={openItem === route.name}
+                  onOpenChange={(isOpen) => setOpenItem(isOpen ? route.name : null)}
                 />
               );
             }
@@ -146,7 +147,9 @@ const Sidebar = () => {
                           href={route.path}
                           className={`flex items-center text-white ${
                             !isOpen && "justify-center"
-                          } rounded-lg px-1 py-2 hover:bg-green hover:text-white ${pathname === route.path ? "bg-green" : ""}`}
+                          } rounded-lg px-1 py-2 hover:bg-green hover:text-white ${
+                            pathname === route.path ? "bg-green" : ""
+                          }`}
                         >
                           {route.icon}
                           <span
@@ -171,6 +174,8 @@ const Sidebar = () => {
           })}
         </nav>
       </div>
+
+      {/* Menu do usuário */}
       <div className="absolute bottom-4 flex flex-col items-center">
         <UserMenu />
       </div>

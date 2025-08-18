@@ -11,15 +11,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChevronDown, DollarSign, ShoppingCart, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { SidebarSubItem } from "./SidebarSubItem";
-import { GiFarmTractor } from "react-icons/gi";
-import { TbTransferIn } from "react-icons/tb";
 
 interface SubRoute {
   path: string;
   name: string;
+  icon?: React.ReactNode;
 }
 
 interface SidebarCollapsibleItemProps {
@@ -27,46 +25,20 @@ interface SidebarCollapsibleItemProps {
   name: string;
   subRoutes: SubRoute[];
   isSidebarOpen: boolean;
+  open: boolean; // 🔹 estado controlado
+  onOpenChange: (isOpen: boolean) => void; // 🔹 callback
 }
-
-const children = [
-  {
-    name: "Colheitas",
-    href: "/movimentacoes/colheitas",
-    icon: <GiFarmTractor size={16} />,
-  },
-  {
-    name: "Compras",
-    href: "/movimentacoes/compras",
-    icon: <ShoppingCart size={16} />,
-  },
-  {
-    name: "Vendas",
-    href: "/movimentacoes/vendas",
-    icon: <DollarSign size={16} />,
-  },
-  {
-    name: "Consumos",
-    href: "/movimentacoes/consumos",
-    icon: <TbTransferIn size={16} />,
-  },
-  {
-    name: "Descartes",
-    href: "/movimentacoes/descartes",
-    icon: <Trash2 size={16} />,
-  },
-];
 
 export const SidebarCollapsibleItem = ({
   icon,
   name,
   subRoutes,
   isSidebarOpen,
+  open,
+  onOpenChange,
 }: SidebarCollapsibleItemProps) => {
-  const [open, setOpen] = useState(false);
-
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={open} onOpenChange={onOpenChange}>
       <TooltipProvider delayDuration={100}>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -106,21 +78,19 @@ export const SidebarCollapsibleItem = ({
         </Tooltip>
       </TooltipProvider>
 
-      {/* {isSidebarOpen && ( */}
       <CollapsibleContent
         className={`${isSidebarOpen ? "ml-8 flex flex-col gap-1" : ""}`}
       >
-        {children.map((child) => (
+        {subRoutes.map((route) => (
           <SidebarSubItem
-            key={child.href}
-            name={child.name}
-            href={child.href}
-            icon={child.icon}
+            key={route.path}
+            name={route.name}
+            href={route.path}
+            icon={route.icon}
             isSidebarOpen={isSidebarOpen}
           />
         ))}
       </CollapsibleContent>
-      {/* // )} */}
     </Collapsible>
   );
 };
