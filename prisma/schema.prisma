@@ -28,6 +28,9 @@ model Company {
   buys             Buy[]
   consumptionsExit ConsumptionExit[]
   salesExit        SaleExit[]
+  purchases        Purchase[]
+  transfers        TransferExit[]
+  applications     Application[]
   productionCycles ProductionCycle[]
   createdAt        DateTime          @default(now())
 }
@@ -39,6 +42,8 @@ model Farm {
   talhoes          Talhao[]
   area             Float
   consumptionsExit ConsumptionExit[]
+  transfers        TransferExit[]
+  applications     Application[]
   company          Company           @relation(fields: [companyId], references: [id])
   companyId        String
   createdAt        DateTime          @default(now())
@@ -83,6 +88,7 @@ model Customer {
   companyId String
   sales     SaleExit[]
   buys      Buy[]
+  purchases Purchase[]
   createdAt DateTime   @default(now())
 }
 
@@ -108,15 +114,16 @@ enum OperationType {
 
 //talhões
 model Talhao {
-  id        String    @id @default(cuid())
-  name      String
-  area      Float
-  company   Company   @relation(fields: [companyId], references: [id])
-  companyId String
-  farmId    String
-  farm      Farm      @relation(fields: [farmId], references: [id])
-  harvests  Harvest[]
-  createdAt DateTime  @default(now())
+  id           String        @id @default(cuid())
+  name         String
+  area         Float
+  company      Company       @relation(fields: [companyId], references: [id])
+  companyId    String
+  farmId       String
+  farm         Farm          @relation(fields: [farmId], references: [id])
+  harvests     Harvest[]
+  applications Application[]
+  createdAt    DateTime      @default(now())
 }
 
 // status do cultivar
@@ -249,5 +256,117 @@ model ProductionCycle {
   beneficiations   Beneficiation[]
   consumptionsExit ConsumptionExit[]
   salesExit        SaleExit[]
+  purchases        Purchase[]
+  transfers        TransferExit[]
+  applications     Application[]
   createdAt        DateTime          @default(now())
+}
+
+//classes
+enum ProductClass {
+  ADUBO_DE_BASE
+  ADUBO_DE_COBERTURA
+  HERBICIDA
+  INSETICIDA
+  FUNGICIDA
+  OLEO_MINERAL
+  ADJUVANTE
+  CORRETIVO
+  OUTROS
+}
+
+//unidade
+enum Unit {
+  KG
+  GR
+  L
+  ML
+  SC
+  UN
+  CX
+}
+
+//tipo de operação
+enum InsumoOperationType {
+  COMPRA
+  TRANSFERENCIA
+  APLICACAO
+}
+
+//produtos
+model Product {
+  id           String         @id @default(cuid())
+  name         String
+  description  String?
+  class        ProductClass
+  unit         Unit
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  purchases    Purchase[]
+  transfers    TransferExit[]
+  applications Application[]
+}
+
+//compras
+model Purchase {
+  id            String              @id @default(cuid())
+  productId     String
+  product       Product             @relation(fields: [productId], references: [id])
+  date          DateTime
+  quantity      Float
+  unit          Unit
+  invoiceNumber String
+  unitPrice     Float
+  totalPrice    Float
+  customerId    String
+  customer      Customer            @relation(fields: [customerId], references: [id])
+  notes         String?
+  companyId     String
+  company       Company             @relation(fields: [companyId], references: [id])
+  type          InsumoOperationType @default(COMPRA)
+  cycleId       String?
+  cycle         ProductionCycle?    @relation(fields: [cycleId], references: [id])
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+}
+
+//transferências
+model TransferExit {
+  id        String              @id @default(cuid())
+  date      DateTime
+  productId String
+  product   Product             @relation(fields: [productId], references: [id])
+  quantity  Float
+  unit      Unit
+  farmId    String
+  farm      Farm                @relation(fields: [farmId], references: [id])
+  companyId String
+  company   Company             @relation(fields: [companyId], references: [id])
+  type      InsumoOperationType @default(TRANSFERENCIA)
+  cycleId   String?
+  cycle     ProductionCycle?    @relation(fields: [cycleId], references: [id])
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+}
+
+//aplicações
+model Application {
+  id        String              @id @default(cuid())
+  productId String
+  product   Product             @relation(fields: [productId], references: [id])
+  date      DateTime
+  quantity  Float
+  unit      Unit
+  farmId    String
+  farm      Farm                @relation(fields: [farmId], references: [id])
+  talhaoId  String
+  talhao    Talhao              @relation(fields: [talhaoId], references: [id])
+  notes     String?
+  companyId String
+  company   Company             @relation(fields: [companyId], references: [id])
+  type      InsumoOperationType @default(APLICACAO)
+  cycleId   String?
+  cycle     ProductionCycle?    @relation(fields: [cycleId], references: [id])
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 }
