@@ -28,9 +28,11 @@ model Company {
   buys             Buy[]
   consumptionsExit ConsumptionExit[]
   salesExit        SaleExit[]
+  products         Product[]
   purchases        Purchase[]
   transfers        TransferExit[]
   applications     Application[]
+  productStocks    ProductStock[]
   productionCycles ProductionCycle[]
   createdAt        DateTime          @default(now())
 }
@@ -42,10 +44,13 @@ model Farm {
   talhoes          Talhao[]
   area             Float
   consumptionsExit ConsumptionExit[]
-  transfers        TransferExit[]
   applications     Application[]
+  productStocks    ProductStock[]
+  purchases        Purchase[]
   company          Company           @relation(fields: [companyId], references: [id])
   companyId        String
+  originTransfers  TransferExit[]    @relation("OriginFarm")
+  destTransfers    TransferExit[]    @relation("DestFarm")
   createdAt        DateTime          @default(now())
 }
 
@@ -300,11 +305,30 @@ model Product {
   description  String?
   class        ProductClass
   unit         Unit
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  companyId    String
+  company      Company        @relation(fields: [companyId], references: [id])
   purchases    Purchase[]
   transfers    TransferExit[]
   applications Application[]
+  stocks       ProductStock[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+// tabela de estoque por produto em cada fazenda
+model ProductStock {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  farmId    String
+  farm      Farm     @relation(fields: [farmId], references: [id])
+  stock     Float    @default(0)
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, farmId]) // garante 1 registro por produto em cada fazenda
 }
 
 //compras
@@ -321,6 +345,8 @@ model Purchase {
   customerId    String
   customer      Customer            @relation(fields: [customerId], references: [id])
   notes         String?
+  farmId        String
+  farm          Farm                @relation(fields: [farmId], references: [id])
   companyId     String
   company       Company             @relation(fields: [companyId], references: [id])
   type          InsumoOperationType @default(COMPRA)
@@ -332,21 +358,23 @@ model Purchase {
 
 //transferências
 model TransferExit {
-  id        String              @id @default(cuid())
-  date      DateTime
-  productId String
-  product   Product             @relation(fields: [productId], references: [id])
-  quantity  Float
-  unit      Unit
-  farmId    String
-  farm      Farm                @relation(fields: [farmId], references: [id])
-  companyId String
-  company   Company             @relation(fields: [companyId], references: [id])
-  type      InsumoOperationType @default(TRANSFERENCIA)
-  cycleId   String?
-  cycle     ProductionCycle?    @relation(fields: [cycleId], references: [id])
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
+  id           String              @id @default(cuid())
+  date         DateTime
+  productId    String
+  product      Product             @relation(fields: [productId], references: [id])
+  quantity     Float
+  unit         Unit
+  originFarmId String
+  originFarm   Farm                @relation("OriginFarm", fields: [originFarmId], references: [id])
+  destFarmId   String
+  destFarm     Farm                @relation("DestFarm", fields: [destFarmId], references: [id])
+  companyId    String
+  company      Company             @relation(fields: [companyId], references: [id])
+  type         InsumoOperationType @default(TRANSFERENCIA)
+  cycleId      String?
+  cycle        ProductionCycle?    @relation(fields: [cycleId], references: [id])
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
 }
 
 //aplicações
