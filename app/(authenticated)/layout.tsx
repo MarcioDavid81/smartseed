@@ -14,6 +14,7 @@ import { BeneficiationProvider } from "@/contexts/BeneficiationContext";
 import { ConsumptionProvider } from "@/contexts/ConsumptionContext";
 import { MobileMenu } from "./_components/MenuMobile";
 import { CycleProvider } from "@/contexts/CycleContext";
+import { InsumoStockProvider } from "@/contexts/InsumoStockContext";
 
 const robotoFont = roboto({
   src: [
@@ -102,29 +103,31 @@ export default async function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${robotoFont.className} antialiased  md:flex  w-full min-h-screen`}
+        className={`${robotoFont.className} min-h-screen w-full antialiased md:flex`}
       >
         <CompanyProvider name={safeCompany}>
-          <StockProvider>
-            <UserProvider user={safeUser}>
-              <HarvestProvider>
-                <BuyProvider>
-                  <SaleProvider>
-                    <BeneficiationProvider>
-                      <ConsumptionProvider>
-                        <CycleProvider>
-                          <Sidebar />
-                          <MobileMenu />
-                          {children}
-                          <Toaster richColors />
-                        </CycleProvider>
-                      </ConsumptionProvider>
-                    </BeneficiationProvider>
-                  </SaleProvider>
-                </BuyProvider>
-              </HarvestProvider>
-            </UserProvider>
-          </StockProvider>
+          <InsumoStockProvider>
+            <StockProvider>
+              <UserProvider user={safeUser}>
+                <HarvestProvider>
+                  <BuyProvider>
+                    <SaleProvider>
+                      <BeneficiationProvider>
+                        <ConsumptionProvider>
+                          <CycleProvider>
+                            <Sidebar />
+                            <MobileMenu />
+                            {children}
+                            <Toaster richColors />
+                          </CycleProvider>
+                        </ConsumptionProvider>
+                      </BeneficiationProvider>
+                    </SaleProvider>
+                  </BuyProvider>
+                </HarvestProvider>
+              </UserProvider>
+            </StockProvider>
+          </InsumoStockProvider>
         </CompanyProvider>
       </body>
     </html>

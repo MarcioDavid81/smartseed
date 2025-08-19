@@ -41,6 +41,7 @@ const routes = [
       { path: "/insumos/aplicacoes", name: "Aplicação" },
       { path: "/insumos/compras", name: "Compra" },
       { path: "/insumos/transferencias", name: "Transferência" },
+      { path: "/insumos/estoque", name: "Estoque" },
     ],
   },
   {

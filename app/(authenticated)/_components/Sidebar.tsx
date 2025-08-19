@@ -44,6 +44,7 @@ const routes = [
       { path: "/insumos/compras", name: "Compra", icon: <ShoppingCart size={16} /> },
       { path: "/insumos/aplicacoes", name: "Aplicação", icon: <GiFarmTractor size={16} /> },
       { path: "/insumos/transferencias", name: "Transferência", icon: <TbTransferIn size={16} /> },
+      { path: "/insumos/estoque", name: "Estoque", icon: <Warehouse size={16} /> },
     ],
   },
   {

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   ],
 };
 
-export default async function InsumosPage() {
+export default async function InsumosPurchasePage() {
 
     return (
       <div className="flex flex-col w-full min-h-screen bg-found">

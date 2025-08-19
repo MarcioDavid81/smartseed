@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems"
+import { InsumosStockTable } from "./_components/InsumosStockTable";
 
 export const metadata: Metadata = {
-  title: "Transferência de Insumos",
+  title: "Estoque de Insumos",
   keywords: [
     "produção de sementes",
     "gestão de sementeiras",
@@ -14,16 +15,17 @@ export const metadata: Metadata = {
   ],
 };
 
-export default async function InsumosTransferPage() {
+export default async function InsumosStockPage() {
 
     return (
       <div className="flex flex-col w-full min-h-screen bg-found">
         <div className="min-h-screen w-full flex bg-background">
           <main className="flex-1 py-4 px-4 md:px-8 text-gray-800">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-              <h1 className="text-2xl font-medium mb-4">Transferência de Insumos</h1>
+              <h1 className="text-2xl font-medium mb-4">Estoque de Insumos</h1>
               <NavItems />
             </div>
+            <InsumosStockTable />
           </main>
         </div>
       </div>
