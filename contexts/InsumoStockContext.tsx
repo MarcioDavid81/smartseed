@@ -28,7 +28,7 @@ export function InsumoStockProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       const token = getToken();
-      const response = await fetch("/api/insumos", {
+      const response = await fetch("/api/insumos/estoque", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

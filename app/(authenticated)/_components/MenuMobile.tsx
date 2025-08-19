@@ -42,6 +42,7 @@ const routes = [
       { path: "/insumos/compras", name: "Compra" },
       { path: "/insumos/transferencias", name: "Transferência" },
       { path: "/insumos/estoque", name: "Estoque" },
+      { path: "/insumos/produtos", name: "Produtos" },
     ],
   },
   {

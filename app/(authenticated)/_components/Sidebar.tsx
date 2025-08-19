@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FaHome, FaSeedling, FaTruck } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { useState } from "react";
-import { DollarSign, PanelRightOpen, Scroll, ShoppingCart, Trash2, Warehouse } from "lucide-react";
+import { DollarSign, PanelRightOpen, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch } from "lucide-react";
 import { PiFarm } from "react-icons/pi";
 import {
   Tooltip,
@@ -45,6 +45,7 @@ const routes = [
       { path: "/insumos/aplicacoes", name: "Aplicação", icon: <GiFarmTractor size={16} /> },
       { path: "/insumos/transferencias", name: "Transferência", icon: <TbTransferIn size={16} /> },
       { path: "/insumos/estoque", name: "Estoque", icon: <Warehouse size={16} /> },
+      { path: "/insumos/produtos", name: "Produtos", icon: <PackageSearch size={16} /> },
     ],
   },
   {
