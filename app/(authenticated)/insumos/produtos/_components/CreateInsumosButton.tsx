@@ -3,18 +3,16 @@
 import HoverButton from "@/components/HoverButton";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { useStock } from "@/contexts/StockContext";
-import { Harvest } from "@/types";
+import { Insumo } from "@/types/insumo"
 import UpsertInsumosModal from "./UpsertInsumosModal";
 
 interface Props {
-  colheita?: Harvest;
+  product: Insumo;
   onUpdated?: () => void;
 }
 
-const CreateInsumosButton = ({ colheita, onUpdated }: Props) => {
+const CreateInsumosButton = ({ product, onUpdated }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { fetchCultivars } = useStock();
   return (
     <div>
       <HoverButton onClick={() => setIsOpen(true)}>
@@ -24,12 +22,8 @@ const CreateInsumosButton = ({ colheita, onUpdated }: Props) => {
       <UpsertInsumosModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onHarvestCreated={() => {
-          fetchCultivars();
-          setIsOpen(false);
-        }}
-        colheita={colheita}
         onUpdated={onUpdated}
+        product={product}
       />
     </div>
   );
