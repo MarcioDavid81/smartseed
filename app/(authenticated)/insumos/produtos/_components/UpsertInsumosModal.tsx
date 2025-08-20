@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 interface UpsertInsumoModalProps {
-  product: Insumo;
+  product?: Insumo;
   isOpen: boolean;
   onClose: () => void;
   onUpdated?: () => void;
