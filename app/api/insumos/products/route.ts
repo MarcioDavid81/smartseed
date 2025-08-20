@@ -5,6 +5,47 @@ import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 
+/**
+ * @swagger
+ * /api/insumos/products:
+ *   post:
+ *     summary: Registrar nova insumo
+ *     tags:
+ *       - Insumos
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               class:
+ *                 type: string
+ *               unit:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Insumo criado com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Limite de registros atingido para seu plano
+ *       404:
+ *         description: Usuário ou empresa não encontrada
+ *       409:
+ *         description: Produto já cadastrado para esta empresa
+ *       500:
+ *         description: Erro interno do servidor
+ */
+
 const productSchema = z.object({
   name: z.string().min(2).max(100),
   description: z.string().max(500).optional(),
@@ -96,6 +137,39 @@ export async function POST(req: Request) {
   }
 
 }
+
+/**
+ * @swagger
+ * /api/insumos/products:
+ *   get:
+ *     summary: Listar todos os insumos da empresa do usuário logado
+ *     tags:
+ *       - Insumos
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de insumos retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *                   class:
+ *                     type: string
+ *                   unit:
+ *                     type: string
+ *       401:
+ *         description: Token ausente ou inválido
+ */
 
 export async function GET(req: Request) {
   try {

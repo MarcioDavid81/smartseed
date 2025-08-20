@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import CreateInsumosButton from "./CreateInsumosButton";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -77,6 +78,7 @@ export function InsumosDataTable<TData, TValue>({
           }
           className="max-w-sm bg-gray-50 text-primary"
         />
+        <CreateInsumosButton />
       </div>
       <div className="rounded-md border">
         <Table>
