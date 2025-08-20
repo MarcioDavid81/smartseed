@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getToken } from "@/lib/auth-client";
 import { InsumosDataTable } from "./InsumosDataTable";
-import { Trash2Icon, SquarePenIcon } from "lucide-react";
+import EditInsumosButton from "./EditInsumosButton";
+import DeleteInsumosButton from "./DeleteInsumosButton";
+import { getProductClassLabel, getProductUnitLabel } from "@/app/_helpers/getProductLabel";
 
 export function InsumosGetTable() {
   const [insumo, setInsumo] = useState<Insumo[]>([]);
@@ -54,25 +56,22 @@ export function InsumosGetTable() {
     {
       accessorKey: "class",
       header: "Classe",
-      cell: ({ row }) => <p>{row.original.class}</p>,
+      cell: ({ row: { original: product } }) => getProductClassLabel(product.class),
     },
     {
       accessorKey: "unit",
       header: "Unidade",
-      cell: ({ row }) => <p>{row.original.unit}</p>,
+      cell: ({ row: { original: product } }) => getProductUnitLabel(product.unit),
     },
     {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
+        const product = row.original
         return (
-          <div className="flex justify-center gap-2">
-            <Button variant="ghost" size="sm">
-              <SquarePenIcon />
-            </Button>
-            <Button variant="destructive" size="sm">
-              <Trash2Icon />
-            </Button>
+          <div className="flex items-center justify-center gap-4">
+            <EditInsumosButton product={product} onUpdated={fetchProducts} />
+            <DeleteInsumosButton product={product} onDeleted={fetchProducts} />
           </div>
         );
       },
