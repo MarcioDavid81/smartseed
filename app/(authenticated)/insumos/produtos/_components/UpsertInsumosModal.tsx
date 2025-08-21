@@ -147,7 +147,7 @@ const UpsertInsumosModal = ({
           <div className="grid gap-4">
               <div>
                 <Label>Nome</Label>
-                <Input {...register("name")} placeholder="Ex: Fertilizante A" />
+                <Input {...register("name")} placeholder="Ex: Ópera Ultra" />
                 {errors.name && (
                   <span className="text-xs text-red-500">
                     {errors.name.message}
@@ -158,7 +158,7 @@ const UpsertInsumosModal = ({
                 <Label>Descrição</Label>
                 <Textarea
                   {...register("description")}
-                  placeholder="Ex: Fertilizante para plantas"
+                  placeholder="Ex: Fungicida de ação sistêmica"
                 />
               </div>
               <div>

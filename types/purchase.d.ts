@@ -24,7 +24,6 @@ export interface Purchase {
     name: string;
   };
   notes: string;
-  type: InsumoOperationType;
   companyId: string;
   cycleId: string;
   createdAt: Date;

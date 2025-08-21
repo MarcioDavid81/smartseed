@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
  *   put:
  *     summary: Atualizar um insumo
  *     tags:
- *       - Insumos
+ *       - Cadastro de Insumos
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -84,7 +84,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
  *   delete:
  *     summary: Deletar um insumo
  *     tags:
- *       - Insumos
+ *       - Cadastro de Insumos
  *     security:
  *       - bearerAuth: []
  *     parameters:

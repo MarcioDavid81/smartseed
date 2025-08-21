@@ -11,7 +11,7 @@ import { db } from "@/lib/prisma";
  *   post:
  *     summary: Registrar nova insumo
  *     tags:
- *       - Insumos
+ *       - Cadastro de Insumos
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -144,7 +144,7 @@ export async function POST(req: Request) {
  *   get:
  *     summary: Listar todos os insumos da empresa do usuário logado
  *     tags:
- *       - Insumos
+ *       - Cadastro de Insumos
  *     security:
  *       - bearerAuth: []
  *     responses:
