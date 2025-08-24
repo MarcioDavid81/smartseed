@@ -3,18 +3,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyToken } from "@/lib/auth";
 import { canCompanyAddCultivar } from "@/lib/permissions/canCompanyAddSeed";
+import { ProductType } from "@prisma/client";
 
 const cultivarSchema = z.object({
   name: z.string().min(2, "Nome obrigatório"),
-  product: z.enum([
-    "SOJA",
-    "TRIGO",
-    "MILHO",
-    "AVEIA_BRANCA",
-    "AVEIA_PRETA",
-    "AVEIA_UCRANIANA",
-    "AZEVEM",
-  ]),
+  product: z.nativeEnum(ProductType)
 });
 
 export async function POST(req: Request) {

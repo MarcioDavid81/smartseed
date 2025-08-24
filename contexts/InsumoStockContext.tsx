@@ -8,10 +8,10 @@ import {
   ReactNode,
 } from "react";
 import { getToken } from "@/lib/auth-client";
-import { Insumo } from "@/types/insumo";
+import { ProductStock } from "@/types/productStock"
 
 type InsumoStockContextType = {
-  insumos: Insumo[];
+  insumos: ProductStock[];
   isLoading: boolean;
   fetchInsumos: () => Promise<void>;
 };
@@ -21,14 +21,14 @@ const InsumoStockContext = createContext<InsumoStockContextType | undefined>(
 );
 
 export function InsumoStockProvider({ children }: { children: ReactNode }) {
-  const [insumos, setInsumos] = useState<Insumo[]>([]);
+  const [insumos, setInsumos] = useState<ProductStock[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const fetchInsumos = async () => {
     try {
       setIsLoading(true);
       const token = getToken();
-      const response = await fetch("/api/insumos/estoque", {
+      const response = await fetch("/api/insumos/stock", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

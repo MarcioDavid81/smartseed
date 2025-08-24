@@ -3,7 +3,7 @@ import { ListStockTable } from "./_components/ListStockTable";
 import NavItems from "../_components/NavItems";
 
 export const metadata: Metadata = {
-  title: "Estoque",
+  title: "Estoque de Sementes",
   keywords: [
     "produção de sementes",
     "gestão de sementeiras",

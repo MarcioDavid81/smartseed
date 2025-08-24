@@ -4,23 +4,24 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
-import { Cultivar } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { useStock } from "@/contexts/StockContext";
 import { getToken } from "@/lib/auth-client";
-import { getProductLabel } from "@/app/_helpers/getProductLabel";
-import { ProductDataTable } from "@/components/ui/product-data-table";
+import { ProductStock } from "@/types/productStock";
+import { useInsumoStock } from "@/contexts/InsumoStockContext";
+import { InsumosDataTable } from "./InsumosDataTable";
+import { Trash2Icon } from "lucide-react";
+import { SquarePenIcon } from "lucide-react";
 
 export function InsumosStockTable() {
-  const [products, setProducts] = useState<Cultivar[]>([]);
+  const [products, setProducts] = useState<ProductStock[]>([]);
   const [loading, setLoading] = useState(true);
-  const { cultivars, isLoading } = useStock();
+  const { insumos } = useInsumoStock();
 
   async function fetchProducts() {
     try {
       const token = getToken();
-      const res = await fetch("/api/cultivars/get", {
+      const res = await fetch("/api/insumos/stock", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -28,7 +29,7 @@ export function InsumosStockTable() {
 
       const data = await res.json();
       const filteredData = data.filter(
-        (product: Cultivar) => product.stock > 0
+        (product: ProductStock) => product.stock > 0
       );
       setProducts(filteredData);
     } catch (error) {
@@ -42,25 +43,32 @@ export function InsumosStockTable() {
     fetchProducts();
   }, []);
 
-  const columns: ColumnDef<Cultivar>[] = [
+  const columns: ColumnDef<ProductStock>[] = [
     {
-      accessorKey: "name",
+      accessorKey: "product",
       header: ({ column }) => (
         <Button
           variant="ghost"
           className="text-left px-0"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Nome
+          Produto
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
+      cell: ({ row: { original: insumo } }) =>
+        (insumo.product.name),
     },
     {
-      accessorKey: "product",
-      header: "Produto",
-      cell: ({ row: { original: cultivar } }) =>
-        getProductLabel(cultivar.product),
+      accessorKey: "class",
+      header: () => <div className="text-center">Classe</div>,
+      cell: ({ row: { original: insumo } }) => {
+        return (
+          <div className="text-center">
+            {insumo.product.class}
+          </div>
+        )
+      }
     },
     {
       accessorKey: "stock",
@@ -78,20 +86,40 @@ export function InsumosStockTable() {
       },
     },
     {
-      accessorKey: "status",
-      header: () => <div className="text-center">Status</div>,
-      cell: ({ row }) => {
-        return <p>Status</p>;
-      },
+      accessorKey: "farm",
+      header: () => <div className="text-center">Fazenda</div>,
+      cell: ({ row: { original: insumo } }) => {
+        return (
+          <div className="text-center">
+            {insumo.farm?.name}
+          </div>
+        );
+      }
     },
     {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
-      cell: ({ row }) => {
-        const cultivar = row.original;
+      cell: ({ row: { original: insumo } }) => {
         return (
-          <div className="flex justify-center gap-2">
-            Ações
+          <div className="flex items-center justify-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                alert("Editar ação");
+              }}
+            >
+              <SquarePenIcon size={20} className="text-green" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                alert("Excluir ação");
+              }}
+            >
+              <Trash2Icon size={20} className="text-red-500" />
+            </Button>
           </div>
         );
       },
@@ -109,7 +137,7 @@ export function InsumosStockTable() {
           <p className="text-lg">Carregando Estoque...</p>
         </div>
       ) : (
-        <ProductDataTable columns={columns} data={cultivars} />
+        <InsumosDataTable columns={columns} data={insumos} />
       )}
     </Card>
   );
