@@ -7,7 +7,7 @@ import Footer from "./_components/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen w-full scroll-smooth">
+    <main className="min-h-screen w-full">
       <Navbar />
       <HeroSection />
       <AboutSection />
