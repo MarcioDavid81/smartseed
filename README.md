@@ -61,9 +61,11 @@ O **Smart Seed** é uma solução completa para gestão de pequenas propriedades
 
 ### Backend
 
-<img src="./public//icons//node.svg" width="30" height="30"/> Node.js 22.16.0
 
-<img src="./public//icons//prisma.svg" width="30" height="30"/> Prisma ORM – modelagem segura e performática do banco de dados.
+<img src="./public/icons/node.svg" width="30" height="30"/> Node.js 22.16.0
+
+
+<img src="./public/icons/prisma.svg" width="30" height="30"/> Prisma ORM – modelagem segura e performática do banco de dados.
 
 <img src="./public/icons/postgre.svg" width="30" height="30"/> PostgreSQL - banco de dados relacional.
 
