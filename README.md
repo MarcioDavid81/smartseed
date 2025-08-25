@@ -95,7 +95,7 @@ O **Smart Seed** é uma solução completa para gestão de pequenas propriedades
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seuusuario/smartseed.git
+git clone https://github.com/MarcioDavid81/smartseed
 
 # Acesse a pasta do projeto
 cd smartseed
@@ -122,6 +122,6 @@ Email: marciodavid81@gmail.com
 
 LinkedIn: https://www.linkedin.com/in/marcio-david-a8152733/
 
-Instagram: @o_marciodavid
+Instagram: [@o_marciodavid](https://www.instagram.com/o_marciodavid/)
 
 Desenvolvido por [MD - Web Developer](https://md-webdeveloper.vercel.app/) 🤝
