@@ -116,6 +116,7 @@ npm run dev
 ---
 
 📩 Contato
+
 Quer usar o SmartSeed na sua propriedade? Fale comigo:
 
 Email: marciodavid81@gmail.com
