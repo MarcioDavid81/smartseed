@@ -69,7 +69,7 @@ O **Smart Seed** é uma solução completa para gestão de pequenas propriedades
 
 ### Frontend
 
-<img src="./public/icons/nextjs.svg" width="30" height="30"/> Next.js 14.2.16>
+<img src="./public/icons/next.svg" width="30" height="30"/> Next.js 14.2.16>
 
 <img src="./public/icons/react.svg" width="30" height="30"/> React 18.2.0
 
