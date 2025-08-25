@@ -73,7 +73,7 @@ O **Smart Seed** é uma solução completa para gestão de pequenas propriedades
 
 <img src="./public/icons/next.svg" width="30" height="30"/> Next.js 14.2.16>
 
-<img src="./public/icons/react.svg" width="30" height="30"/> React 18.2.0
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" width="20" height="20"/> React 18.2.0
 
 <img src="./public/icons/tailwindcss.svg" width="30" height="30"/> Tailwind CSS – estilização moderna e responsiva.
 
