@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { ListPurchaseTable } from "./_components/ListPurchaseTable";
 import NavItems from "../../_components/NavItems"
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default async function InsumosPurchasePage() {
               <h1 className="text-2xl font-medium mb-4">Compra de Insumos</h1>
               <NavItems />
             </div>
+            <ListPurchaseTable />
           </main>
         </div>
       </div>
