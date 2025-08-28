@@ -27,6 +27,7 @@ export function ListPurchaseTable() {
       });
 
       const data = await res.json();
+      console.log("Api retornou", data);
       const filteredData = data.filter(
         (product: Purchase) => product.quantity > 0
       );

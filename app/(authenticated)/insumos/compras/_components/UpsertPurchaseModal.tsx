@@ -127,7 +127,6 @@ const UpsertPurchaseModal = ({
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
-
       setProducts(await productRes.json());
       setCustomers(await customerRes.json());
       setFarms(await farmRes.json());
@@ -212,9 +211,9 @@ const UpsertPurchaseModal = ({
                         className="w-full rounded border px-2 py-1"
                       >
                         <option value="">Selecione</option>
-                        {products.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
+                        {products.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name}
                           </option>
                         ))}
                       </select>
@@ -311,7 +310,7 @@ const UpsertPurchaseModal = ({
                   name="quantity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Quantidade (kg)</FormLabel>
+                      <FormLabel>Quantidade</FormLabel>
                       <FormControl>
                         <Input
                           {...field}

@@ -207,14 +207,12 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const farmId = searchParams.get("farmId");
-    const cycleId = searchParams.get("cycleId");
     const productId = searchParams.get("productId");
 
     const purchases = await db.purchase.findMany({
       where: {
         companyId,
         ...(farmId ? { farmId } : {}),
-        ...(cycleId ? { cycleId } : {}),
         ...(productId ? { productId } : {}),
       },
       include: {
