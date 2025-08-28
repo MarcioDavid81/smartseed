@@ -15,7 +15,6 @@ export async function GET(
         id: true,
         date: true,
         quantity: true,
-        unit: true,
         farmId: true,
       },
     });
@@ -25,7 +24,6 @@ export async function GET(
       date: p.date,
       type: "COMPRA" as const,
       quantity: p.quantity,
-      unit: p.unit,
       farmId: p.farmId,
       originFarm: null,
       destFarm: p.farmId,
