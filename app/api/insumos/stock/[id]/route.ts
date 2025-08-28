@@ -59,7 +59,6 @@ export async function GET(
         farmName: p.farm.name,
         productId: p.productId,
         quantity: p.quantity,
-        unit: p.unit,
       })),
       ...transferOuts.map((t) => ({
         id: t.id,
