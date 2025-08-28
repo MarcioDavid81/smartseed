@@ -7,9 +7,9 @@ import { NextRequest, NextResponse } from "next/server";
  * @swagger
  * /api/buys/{id}:
  *   put:
- *     summary: Atualizar uma compra
+ *     summary: Atualizar uma compra de semente
  *     tags:
- *       - Compra
+ *       - Compra de Semente
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -138,9 +138,9 @@ export async function PUT(
  * @swagger
  * /api/buys/{id}:
  *   delete:
- *     summary: Deletar uma compra
+ *     summary: Deletar uma compra de semente
  *     tags:
- *       - Compra
+ *       - Compra de Semente
  *     security:
  *       - bearerAuth: []
  *     parameters:

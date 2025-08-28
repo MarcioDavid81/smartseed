@@ -338,7 +338,6 @@ model Purchase {
   product       Product             @relation(fields: [productId], references: [id])
   date          DateTime
   quantity      Float
-  unit          Unit
   invoiceNumber String
   unitPrice     Float
   totalPrice    Float

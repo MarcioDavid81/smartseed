@@ -129,7 +129,7 @@ export default function GeneratePurchaseReportModal() {
         doc.text(
           `${name}: ${total.toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
-          })} kg`,
+          })}`,
           14,
           finalY + 6 + index * 6
         );
@@ -139,7 +139,7 @@ export default function GeneratePurchaseReportModal() {
       doc.text(
         `Total Geral: ${totalGeral.toLocaleString("pt-BR", {
           minimumFractionDigits: 2,
-        })} kg`,
+        })}`,
         14,
         finalY + 6 + Object.keys(totalsByProduct).length * 6 + 6
       );

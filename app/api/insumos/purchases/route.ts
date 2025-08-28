@@ -34,11 +34,7 @@ import { NextRequest, NextResponse } from "next/server";
  *                 type: number
  *               quantity:
  *                 type: number
- *               unit:
- *                 type: string
  *               farmId:
- *                 type: string
- *               cycleId:
  *                 type: string
  *               notes:
  *                 type: string
@@ -47,16 +43,16 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Compra de insumo criada com sucesso
  */
 export async function POST(req: NextRequest) {
-  const allowed = await canCompanyAddPurchase();
-  if (!allowed) {
-    return NextResponse.json(
-      {
-        error:
-          "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
-      },
-      { status: 403 }
-    );
-  }
+  // const allowed = await canCompanyAddPurchase();
+  // if (!allowed) {
+  //   return NextResponse.json(
+  //     {
+  //       error:
+  //         "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
+  //     },
+  //     { status: 403 }
+  //   );
+  // }
 
   const authHeader = req.headers.get("Authorization");
 
@@ -85,7 +81,6 @@ export async function POST(req: NextRequest) {
       unitPrice,
       totalPrice,
       quantity,
-      unit,
       farmId,
       cycleId,
       notes,
@@ -108,7 +103,6 @@ export async function POST(req: NextRequest) {
         unitPrice,
         totalPrice,
         quantity,
-        unit,
         farmId,
         cycleId,
         notes,
@@ -152,30 +146,44 @@ export async function POST(req: NextRequest) {
  * @swagger
  * /api/insumos/purchases:
  *   get:
- *     summary: Listar compras de insumos
+ *     summary: Listar todas as compras de insumos da empresa do usuário logado
  *     tags:
  *       - Compra de Insumos
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - name: farmId
- *         in: query
- *         required: false
- *         schema:
- *           type: string
- *       - name: cycleId
- *         in: query
- *         required: false
- *         schema:
- *           type: string
- *       - name: productId
- *         in: query
- *         required: false
- *         schema:
- *           type: string
  *     responses:
  *       200:
- *         description: Lista de compras de insumos
+ *         description: Lista de compras retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   productId:
+ *                     type: string
+ *                   customerId:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   invoiceNumber:
+ *                     type: string
+ *                   unitPrice:
+ *                     type: number
+ *                   totalPrice:
+ *                     type: number
+ *                   quantity:
+ *                     type: number
+ *                   farmId:
+ *                     type: string
+ *                   notes:
+ *                     type: string
+ *       401:
+ *         description: Token ausente ou inválido
  */
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");

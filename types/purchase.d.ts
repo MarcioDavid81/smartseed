@@ -12,8 +12,8 @@ export interface Purchase {
   product: {
     id: string;
     name: string;
+    unit: Unit;
   };
-  unit: Unit;
   invoiceNumber: string;
   quantity: number;
   unitPrice: number;

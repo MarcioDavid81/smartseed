@@ -23,7 +23,7 @@ import { getToken } from "@/lib/auth-client";
 import { Insumo } from "@/types/insumo";
 import { Purchase } from "@/types/purchase";
 import { Customer } from "@/types/customers";
-import { Unit } from "@prisma/client";
+import { Farm } from "@/types/farm";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -31,6 +31,7 @@ import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { z } from "zod";
+import { NumericFormat } from "react-number-format";
 
 interface UpsertPurchaseModalProps {
   compra?: Purchase;
@@ -43,7 +44,6 @@ const purchaseSchema = z.object({
   date: z.string().min(1, "Selecione uma data"),
   customerId: z.string().min(1, "Selecione um cliente"),
   productId: z.string().min(1, "Selecione um produto"),
-  unit: z.nativeEnum(Unit),
   invoiceNumber: z.string().min(1, "Informe a nota fiscal"),
   quantity: z.coerce.number().min(1, "Quantidade é obrigatória"),
   unitPrice: z.coerce.number().min(1, "Preço unitário é obrigatório"),
@@ -63,6 +63,7 @@ const UpsertPurchaseModal = ({
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<Insumo[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [farms, setFarms] = useState<Farm[]>([]);
   const [totalPrice, setTotalPrice] = useState("");
 
   const form = useForm<PurchaseFormData>({
@@ -73,7 +74,6 @@ const UpsertPurchaseModal = ({
         : format(new Date(), "yyyy-MM-dd"),
       customerId: compra?.customerId ?? "",
       productId: compra?.productId ?? "",
-      unit: compra?.unit ?? Unit.KG,
       invoiceNumber: compra?.invoiceNumber ?? "",
       quantity: compra?.quantity ?? 0,
       unitPrice: compra?.unitPrice ?? 0,
@@ -87,75 +87,50 @@ const UpsertPurchaseModal = ({
   const quantity = form.watch("quantity");
 
   useEffect(() => {
-    const price = unitPrice;
-    const qty = quantity;
-
-    if (!isNaN(price) && !isNaN(qty)) {
-      const total = price * qty;
+    if (!isNaN(unitPrice) && !isNaN(quantity)) {
+      const total = unitPrice * quantity;
       setTotalPrice(formatCurrency(total));
     } else {
       setTotalPrice("");
     }
   }, [unitPrice, quantity]);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<PurchaseFormData>({
-    resolver: zodResolver(purchaseSchema),
-    defaultValues: {
-      date: compra ? new Date(compra.date).toISOString().split("T")[0] : "",
-      customerId: compra?.customerId ?? "",
-      productId: compra?.productId ?? "",
-      unit: compra?.unit ?? Unit.KG,
-      invoiceNumber: compra?.invoiceNumber ?? "",
-      quantity: compra?.quantity ?? 0,
-      unitPrice: compra?.unitPrice ?? 0,
-      totalPrice: compra?.totalPrice ?? 0,
-      farmId: compra?.farmId ?? "",
-      notes: compra?.notes ?? "",
-    },
-  });
-
   useEffect(() => {
     if (compra) {
-      reset({
-        date: compra ? new Date(compra.date).toISOString().split("T")[0] : "",
-        customerId: compra?.customerId ?? "",
-        productId: compra?.productId ?? "",
-        unit: compra?.unit ?? Unit.KG,
-        invoiceNumber: compra?.invoiceNumber ?? "",
-        quantity: compra?.quantity ?? 0,
-        unitPrice: compra?.unitPrice ?? 0,
-        totalPrice: compra?.totalPrice ?? 0,
-        farmId: compra?.farmId ?? "",
-        notes: compra?.notes ?? "",
+      form.reset({
+        date: new Date(compra.date).toISOString().split("T")[0],
+        customerId: compra.customerId,
+        productId: compra.productId,
+        invoiceNumber: compra.invoiceNumber,
+        quantity: compra.quantity,
+        unitPrice: compra.unitPrice,
+        totalPrice: compra.totalPrice,
+        farmId: compra.farmId,
+        notes: compra.notes ?? "",
       });
     } else {
-      reset();
+      form.reset();
     }
-  }, [compra, isOpen, reset]);
+  }, [compra, isOpen, form]);
 
   useEffect(() => {
     const fetchData = async () => {
       const token = getToken();
-
-      const [productRes, customerRes] = await Promise.all([
+      const [productRes, customerRes, farmRes] = await Promise.all([
         fetch("/api/insumos/products", {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch("/api/customers", {
           headers: { Authorization: `Bearer ${token}` },
         }),
+        fetch("/api/farms", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
-      const productData = await productRes.json();
-      const customerData = await customerRes.json();
-
-      setProducts(productData);
-      setCustomers(customerData);
+      setProducts(await productRes.json());
+      setCustomers(await customerRes.json());
+      setFarms(await farmRes.json());
     };
 
     if (isOpen) fetchData();
@@ -165,12 +140,12 @@ const UpsertPurchaseModal = ({
     setLoading(true);
     const token = getToken();
 
-    const url = compra ? `/api/insumos/purchases/${compra.id}` : "/api/insumos/purchases";
+    const url = compra
+      ? `/api/insumos/purchases/${compra.id}`
+      : "/api/insumos/purchases";
     const method = compra ? "PUT" : "POST";
 
-    const price = data.unitPrice;
-    const quantity = data.quantity;
-    const total = price * quantity;
+    const total = data.unitPrice * data.quantity;
 
     const res = await fetch(url, {
       method,
@@ -180,8 +155,7 @@ const UpsertPurchaseModal = ({
       },
       body: JSON.stringify({
         ...data,
-        unitPrice: price,
-        quantityKg: quantity,
+        quantityKg: data.quantity,
         totalPrice: total,
       }),
     });
@@ -190,10 +164,7 @@ const UpsertPurchaseModal = ({
 
     if (!res.ok) {
       toast.warning(result.error || "Erro ao salvar Compra.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
+        style: { backgroundColor: "#F0C531", color: "white" },
         icon: "❌",
       });
     } else {
@@ -201,25 +172,20 @@ const UpsertPurchaseModal = ({
         compra
           ? "Compra atualizada com sucesso!"
           : "Compra cadastrada com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        },
+        { style: { backgroundColor: "#63B926", color: "white" }, icon: "✅" },
       );
       onClose();
       form.reset();
       setTotalPrice("");
+      onUpdated?.();
     }
 
     setLoading(false);
   };
 
   useEffect(() => {
-    if (!isOpen) reset();
-  }, [isOpen, reset]);
+    if (!isOpen) form.reset();
+  }, [isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -233,6 +199,7 @@ const UpsertPurchaseModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
+              {/* Produto */}
               <FormField
                 control={form.control}
                 name="productId"
@@ -257,6 +224,7 @@ const UpsertPurchaseModal = ({
                 )}
               />
 
+              {/* Fornecedor */}
               <FormField
                 control={form.control}
                 name="customerId"
@@ -282,6 +250,7 @@ const UpsertPurchaseModal = ({
               />
 
               <div className="grid grid-cols-2 gap-4">
+                {/* Data */}
                 <FormField
                   control={form.control}
                   name="date"
@@ -295,6 +264,7 @@ const UpsertPurchaseModal = ({
                     </FormItem>
                   )}
                 />
+                {/* Nota Fiscal */}
                 <FormField
                   control={form.control}
                   name="invoiceNumber"
@@ -311,6 +281,7 @@ const UpsertPurchaseModal = ({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
+                {/* Preço Unitário */}
                 <FormField
                   control={form.control}
                   name="unitPrice"
@@ -318,27 +289,23 @@ const UpsertPurchaseModal = ({
                     <FormItem>
                       <FormLabel>Preço Unitário</FormLabel>
                       <FormControl>
-                        {/* <NumericFormat
-                          {...field}
+                        <NumericFormat
                           customInput={Input}
                           thousandSeparator="."
                           decimalSeparator=","
                           prefix="R$ "
                           allowNegative={false}
-                          value={field.value}
-                          onValueChange={(values) => {
-                            const value = values.floatValue;
-                            field.onChange(
-                              typeof value === "number" ? value : 0
-                            );
-                          }}
-                        /> */}
-                        <Input {...field} type="text" placeholder="Ex: 10.00" />
+                          value={field.value ?? ""}
+                          onValueChange={(values) =>
+                            field.onChange(values.floatValue ?? 0)
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                {/* Quantidade */}
                 <FormField
                   control={form.control}
                   name="quantity"
@@ -346,7 +313,11 @@ const UpsertPurchaseModal = ({
                     <FormItem>
                       <FormLabel>Quantidade (kg)</FormLabel>
                       <FormControl>
-                        <Input {...field} type="text" placeholder="Ex: 1000" />
+                        <Input
+                          {...field}
+                          type="number"
+                          onChange={(e) => field.onChange(+e.target.value || 0)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -354,11 +325,38 @@ const UpsertPurchaseModal = ({
                 />
               </div>
 
+              {/* Valor Total */}
               <div>
                 <label className="text-sm font-medium">Valor Total</label>
                 <Input type="text" value={totalPrice} disabled />
               </div>
 
+              {/* Fazenda */}
+              <FormField
+                control={form.control}
+                name="farmId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fazenda</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="w-full rounded border px-2 py-1"
+                      >
+                        <option value="">Selecione</option>
+                        {farms.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Observações */}
               <FormField
                 control={form.control}
                 name="notes"

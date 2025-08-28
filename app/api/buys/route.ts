@@ -7,9 +7,9 @@ import { NextRequest, NextResponse } from "next/server";
  * @swagger
  * /api/buys:
  *   post:
- *     summary: Registrar nova compra
+ *     summary: Registrar nova compra de semente
  *     tags:
- *       - Compra
+ *       - Compra de Semente
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
  *   get:
  *     summary: Listar todas as compras da empresa do usuário logado
  *     tags:
- *       - Compra
+ *       - Compra de Semente
  *     security:
  *       - bearerAuth: []
  *     responses:

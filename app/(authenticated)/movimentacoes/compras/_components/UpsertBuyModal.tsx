@@ -30,6 +30,7 @@ import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { z } from "zod";
 import { getCycle } from "@/lib/cycle";
+import { NumericFormat } from "react-number-format";
 
 interface UpsertBuyModalProps {
   compra?: Buy;
@@ -93,27 +94,9 @@ const UpsertBuyModal = ({
     }
   }, [unityPrice, quantityKg]);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<BuyFormData>({
-    resolver: zodResolver(buySchema),
-    defaultValues: {
-      cultivarId: compra?.cultivarId ?? "",
-      customerId: compra?.customerId ?? "",
-      date: compra ? new Date(compra.date).toISOString().split("T")[0] : "",
-      invoice: compra?.invoice ?? "",
-      unityPrice: compra?.unityPrice ?? 0,
-      quantityKg: compra?.quantityKg ?? 0,
-      notes: compra?.notes ?? "",
-    },
-  });
-
   useEffect(() => {
     if (compra) {
-      reset({
+      form.reset({
         cultivarId: compra.cultivarId,
         customerId: compra.customerId,
         date: new Date(compra.date).toISOString().split("T")[0],
@@ -123,9 +106,9 @@ const UpsertBuyModal = ({
         notes: compra.notes || "",
       });
     } else {
-      reset();
+      form.reset();
     }
-  }, [compra, isOpen, reset]);
+  }, [compra, isOpen, form]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -220,8 +203,8 @@ const UpsertBuyModal = ({
   };
 
   useEffect(() => {
-    if (!isOpen) reset();
-  }, [isOpen, reset]);
+    if (!isOpen) form.reset();
+  }, [isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -313,6 +296,7 @@ const UpsertBuyModal = ({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
+                {/* Preço Unitário */}
                 <FormField
                   control={form.control}
                   name="unityPrice"
@@ -320,27 +304,23 @@ const UpsertBuyModal = ({
                     <FormItem>
                       <FormLabel>Preço Unitário</FormLabel>
                       <FormControl>
-                        {/* <NumericFormat
-                          {...field}
+                        <NumericFormat
                           customInput={Input}
                           thousandSeparator="."
                           decimalSeparator=","
                           prefix="R$ "
                           allowNegative={false}
-                          value={field.value}
-                          onValueChange={(values) => {
-                            const value = values.floatValue;
-                            field.onChange(
-                              typeof value === "number" ? value : 0
-                            );
-                          }}
-                        /> */}
-                        <Input {...field} type="text" placeholder="Ex: 10.00" />
+                          value={field.value ?? ""}
+                          onValueChange={(values) =>
+                            field.onChange(values.floatValue ?? 0)
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                {/* Quantidade (kg) */}
                 <FormField
                   control={form.control}
                   name="quantityKg"

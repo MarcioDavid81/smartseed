@@ -73,10 +73,10 @@ export function PurchaseDataTable<TData, TValue>({
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex items-center justify-between py-4">
         <Input
-          placeholder="Procure por cultivar"
-          value={(table.getColumn("cultivar")?.getFilterValue() as string) ?? ""}
+          placeholder="Procure por produto"
+          value={(table.getColumn("product")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("cultivar")?.setFilterValue(event.target.value)
+            table.getColumn("product")?.setFilterValue(event.target.value)
           }
           className="max-w-sm bg-gray-50 text-primary"
         />

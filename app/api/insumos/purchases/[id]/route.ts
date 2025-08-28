@@ -2,6 +2,59 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/insumos/purchases/{id}:
+ *   put:
+ *     summary: Atualizar uma compra de insumos
+ *     tags:
+ *       - Compra de Insumos
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da compra
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               productId:
+ *                 type: string
+ *               customerId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               invoiceNumber:
+ *                 type: string
+ *               unitPrice:
+ *                 type: number
+ *               totalPrice:
+ *                 type: number
+ *               quantityKg:
+ *                 type: number
+ *               farmId:
+ *                 type: string
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Compra atualizada com sucesso
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Compra não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
+// Atualizar compra
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -22,7 +75,6 @@ export async function PUT(
       unitPrice,
       totalPrice,
       quantity,
-      unit,
       farmId,
       notes,
     } = await req.json();
@@ -90,7 +142,6 @@ export async function PUT(
           unitPrice,
           totalPrice,
           quantity,
-          unit,
           farmId,
           notes,
         },
@@ -104,7 +155,34 @@ export async function PUT(
   }
 }
 
+/**
+ * @swagger
+ * /api/insumos/purchases/{id}:
+ *   delete:
+ *     summary: Deletar uma compra de insumos
+ *     tags:
+ *       - Compra de Insumos
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da compra
+ *     responses:
+ *       200:
+ *         description: Compra deletada com sucesso
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Compra não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 
+// Deletar compra
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
