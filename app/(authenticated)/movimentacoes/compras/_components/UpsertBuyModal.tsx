@@ -358,7 +358,7 @@ const UpsertBuyModal = ({
               <Button
                 type="submit"
                 disabled={loading}
-                className="mt-4 w-full bg-green text-white"
+                className="mt-4 w-full bg-green text-white hover:bg-green/90"
               >
                 {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>

@@ -43,16 +43,16 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Compra de insumo criada com sucesso
  */
 export async function POST(req: NextRequest) {
-  // const allowed = await canCompanyAddPurchase();
-  // if (!allowed) {
-  //   return NextResponse.json(
-  //     {
-  //       error:
-  //         "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
-  //     },
-  //     { status: 403 }
-  //   );
-  // }
+  const allowed = await canCompanyAddPurchase();
+  if (!allowed) {
+    return NextResponse.json(
+      {
+        error:
+          "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
+      },
+      { status: 403 }
+    );
+  }
 
   const authHeader = req.headers.get("Authorization");
 
@@ -82,7 +82,6 @@ export async function POST(req: NextRequest) {
       totalPrice,
       quantity,
       farmId,
-      cycleId,
       notes,
     } = await req.json();
 
@@ -104,7 +103,6 @@ export async function POST(req: NextRequest) {
         totalPrice,
         quantity,
         farmId,
-        cycleId,
         notes,
         companyId,
         type: "COMPRA", // vem do enum InsumoOperationType

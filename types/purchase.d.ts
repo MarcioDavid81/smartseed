@@ -25,7 +25,6 @@ export interface Purchase {
   };
   notes: string;
   companyId: string;
-  cycleId: string;
   createdAt: Date;
   updatedAt: Date;
 }

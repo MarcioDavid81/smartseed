@@ -47,7 +47,6 @@ const purchaseSchema = z.object({
   invoiceNumber: z.string().min(1, "Informe a nota fiscal"),
   quantity: z.coerce.number().min(1, "Quantidade é obrigatória"),
   unitPrice: z.coerce.number().min(1, "Preço unitário é obrigatório"),
-  totalPrice: z.coerce.number().min(1, "Preço total é obrigatório"),
   farmId: z.string().min(1, "Selecione uma fazenda"),
   notes: z.string(),
 });
@@ -77,7 +76,6 @@ const UpsertPurchaseModal = ({
       invoiceNumber: compra?.invoiceNumber ?? "",
       quantity: compra?.quantity ?? 0,
       unitPrice: compra?.unitPrice ?? 0,
-      totalPrice: compra?.totalPrice ?? 0,
       farmId: compra?.farmId ?? "",
       notes: compra?.notes ?? "",
     },
@@ -104,9 +102,8 @@ const UpsertPurchaseModal = ({
         invoiceNumber: compra.invoiceNumber,
         quantity: compra.quantity,
         unitPrice: compra.unitPrice,
-        totalPrice: compra.totalPrice,
         farmId: compra.farmId,
-        notes: compra.notes ?? "",
+        notes: compra.notes || "",
       });
     } else {
       form.reset();
@@ -139,6 +136,10 @@ const UpsertPurchaseModal = ({
     setLoading(true);
     const token = getToken();
 
+    console.log("Dados enviados para API:", {
+      ...data,
+    });
+
     const url = compra
       ? `/api/insumos/purchases/${compra.id}`
       : "/api/insumos/purchases";
@@ -154,6 +155,7 @@ const UpsertPurchaseModal = ({
       },
       body: JSON.stringify({
         ...data,
+        unitPrice: data.unitPrice,
         quantityKg: data.quantity,
         totalPrice: total,
       }),
@@ -176,7 +178,6 @@ const UpsertPurchaseModal = ({
       onClose();
       form.reset();
       setTotalPrice("");
-      onUpdated?.();
     }
 
     setLoading(false);
@@ -373,7 +374,8 @@ const UpsertPurchaseModal = ({
               <Button
                 type="submit"
                 disabled={loading}
-                className="mt-4 w-full bg-green text-white"
+                className="mt-4 w-full bg-green text-white hover:bg-green/90"
+                onClick={() => console.log(form.getValues())}
               >
                 {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
