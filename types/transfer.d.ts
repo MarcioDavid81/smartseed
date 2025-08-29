@@ -3,18 +3,18 @@ import { Unit, InsumoOperationType } from "@prisma/client";
 export interface Transfer {
     id: string;
     date: Date;
-    productId: string;
-    product: {
-        id: string;
-        name: string;
+    productStockId: {
+        productId: {
+            id: string;
+            name: string;
+            unit: Unit;
+        };
+        farmId: {
+            id: string;
+            name: string;
+        };
     };
-    unit: Unit;
     quantity: number;
-    originFarmId: string;
-    originFarm: {
-        id: string;
-        name: string;
-    };
     destFarmId: string;
     destFarm: {
         id: string;
@@ -22,7 +22,7 @@ export interface Transfer {
     };
     type: InsumoOperationType;
     companyId: string;
-    cycleId: string;
+    cycleId?: string;
     createdAt: Date;
     updatedAt: Date;
 }

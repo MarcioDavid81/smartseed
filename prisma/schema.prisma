@@ -44,7 +44,6 @@ model Farm {
   talhoes          Talhao[]
   area             Float
   consumptionsExit ConsumptionExit[]
-  applications     Application[]
   productStocks    ProductStock[]
   purchases        Purchase[]
   company          Company           @relation(fields: [companyId], references: [id])
@@ -300,33 +299,33 @@ enum InsumoOperationType {
 
 //produtos
 model Product {
-  id           String         @id @default(cuid())
-  name         String
-  description  String?
-  class        ProductClass
-  unit         Unit
-  companyId    String
-  company      Company        @relation(fields: [companyId], references: [id])
-  purchases    Purchase[]
-  transfers    TransferExit[]
-  applications Application[]
-  stocks       ProductStock[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  class       ProductClass
+  unit        Unit
+  companyId   String
+  company     Company        @relation(fields: [companyId], references: [id])
+  purchases   Purchase[]
+  transfers   TransferExit[]
+  stocks      ProductStock[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 // tabela de estoque por produto em cada fazenda
 model ProductStock {
-  id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  farmId    String
-  farm      Farm     @relation(fields: [farmId], references: [id])
-  stock     Float    @default(0)
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(cuid())
+  productId    String
+  product      Product       @relation(fields: [productId], references: [id])
+  farmId       String
+  farm         Farm          @relation(fields: [farmId], references: [id])
+  stock        Float         @default(0)
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
 
   @@unique([productId, farmId]) // garante 1 registro por produto em cada fazenda
 }
@@ -362,7 +361,6 @@ model TransferExit {
   productId    String
   product      Product             @relation(fields: [productId], references: [id])
   quantity     Float
-  unit         Unit
   originFarmId String
   originFarm   Farm                @relation("OriginFarm", fields: [originFarmId], references: [id])
   destFarmId   String
@@ -378,22 +376,19 @@ model TransferExit {
 
 //aplicações
 model Application {
-  id        String              @id @default(cuid())
-  productId String
-  product   Product             @relation(fields: [productId], references: [id])
-  date      DateTime
-  quantity  Float
-  unit      Unit
-  farmId    String
-  farm      Farm                @relation(fields: [farmId], references: [id])
-  talhaoId  String
-  talhao    Talhao              @relation(fields: [talhaoId], references: [id])
-  notes     String?
-  companyId String
-  company   Company             @relation(fields: [companyId], references: [id])
-  type      InsumoOperationType @default(APLICACAO)
-  cycleId   String?
-  cycle     ProductionCycle?    @relation(fields: [cycleId], references: [id])
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
+  id             String              @id @default(cuid())
+  date           DateTime
+  productStockId String
+  productStock   ProductStock        @relation(fields: [productStockId], references: [id])
+  quantity       Float
+  talhaoId       String
+  talhao         Talhao              @relation(fields: [talhaoId], references: [id])
+  notes          String?
+  companyId      String
+  company        Company             @relation(fields: [companyId], references: [id])
+  type           InsumoOperationType @default(APLICACAO)
+  cycleId        String?
+  cycle          ProductionCycle?    @relation(fields: [cycleId], references: [id])
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 }
