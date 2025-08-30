@@ -37,7 +37,6 @@ export async function GET(
         id: true,
         date: true,
         quantity: true,
-        unit: true,
         originFarmId: true,
         destFarmId: true,
       },
@@ -49,7 +48,6 @@ export async function GET(
         date: t.date,
         type: "TRANSFERENCIA" as const,
         quantity: -t.quantity,
-        unit: t.unit,
         farmId: t.originFarmId,
         originFarm: t.originFarmId,
         destFarm: t.destFarmId,
@@ -60,7 +58,6 @@ export async function GET(
         date: t.date,
         type: "TRANSFERENCIA" as const,
         quantity: t.quantity,
-        unit: t.unit,
         farmId: t.destFarmId,
         originFarm: t.originFarmId,
         destFarm: t.destFarmId,
@@ -68,36 +65,34 @@ export async function GET(
       },
     ]);
 
-    // 3. Aplicações (saídas)
-    const applications = await db.application.findMany({
-      where: { productId }, // 🔹 também produto
-      select: {
-        id: true,
-        date: true,
-        quantity: true,
-        unit: true,
-        farmId: true,
-        talhao: true,
-      },
-    });
+    // // 3. Aplicações (saídas)
+    // const applications = await db.application.findMany({
+    //   where: { productStockId: { product: { id: productId } } }, // 🔹 também produto
+    //   select: {
+    //     id: true,
+    //     date: true,
+    //     quantity: true,
+    //     farmId: true,
+    //     talhao: true,
+    //   },
+    // });
 
-    const applicationsNormalized = applications.map((a) => ({
-      id: a.id,
-      date: a.date,
-      type: "APLICACAO" as const,
-      quantity: -a.quantity,
-      unit: a.unit,
-      farmId: a.farmId,
-      originFarm: a.farmId,
-      destFarm: null,
-      talhao: a.talhao,
-    }));
+    // const applicationsNormalized = applications.map((a) => ({
+    //   id: a.id,
+    //   date: a.date,
+    //   type: "APLICACAO" as const,
+    //   quantity: -a.quantity,
+    //   farmId: a.farmId,
+    //   originFarm: a.farmId,
+    //   destFarm: null,
+    //   talhao: a.talhao,
+    // }));
 
     // 🔹 Junta tudo
     const allMovements = [
       ...purchasesNormalized,
       ...transfersNormalized,
-      ...applicationsNormalized,
+      // ...applicationsNormalized,
     ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     // 🔹 Calcula saldo acumulado

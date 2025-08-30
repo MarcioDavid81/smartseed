@@ -1,6 +1,7 @@
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { verifyToken } from "@/lib/auth";
 
 const createApplicationSchema = z.object({
   productStockId: z.string().cuid(),
@@ -13,9 +14,34 @@ const createApplicationSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+    const authHeader = req.headers.get("Authorization");
+  
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Token não enviado ou mal formatado" },
+        { status: 401 }
+      );
+    }
+  
+    const token = authHeader.split(" ")[1];
+    const payload = await verifyToken(token);
+  
+    if (!payload) {
+      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+    }
+  
+    const { companyId } = payload;
   try {
-    const body = await req.json();
-    const data = createApplicationSchema.parse(body);
+    const { productStockId, quantity, talhaoId, date, notes, cycleId } = await req.json();
+    const data = createApplicationSchema.parse({
+      productStockId,
+      quantity,
+      talhaoId,
+      date,
+      notes,
+      cycleId,
+      companyId,
+    });
 
     // pega o estoque
     const stock = await db.productStock.findUnique({

@@ -43,11 +43,11 @@ export async function GET(
       include: { destFarm: true },
     });
 
-    // Aplicações (consumo)
-    const consumptions = await db.application.findMany({
-      where: { productId, companyId: payload.companyId },
-      include: { farm: true },
-    });
+    // // Aplicações (consumo)
+    // const consumptions = await db.application.findMany({
+    //   where: { productStockId: { product: { id: productId } }, companyId: payload.companyId },
+    //   include: { farm: true },
+    // });
 
     // Normalização
     const extract = [
@@ -77,15 +77,15 @@ export async function GET(
         farmName: t.destFarm.name,
         quantity: t.quantity, // entrada positiva
       })),
-      ...consumptions.map((c) => ({
-        id: c.id,
-        date: c.date,
-        type: "APLICACAO",
-        farmId: c.farmId,
-        farmName: c.farm.name,
-        quantity: -c.quantity, // saída negativa
-        unit: c.unit,
-      })),
+      // ...consumptions.map((c) => ({
+      //   id: c.id,
+      //   date: c.date,
+      //   type: "APLICACAO",
+      //   farmId: c.farmId,
+      //   farmName: c.farm.name,
+      //   quantity: -c.quantity, // saída negativa
+      //   unit: c.unit,
+      // })),
     ];
 
     // Ordenar por data
