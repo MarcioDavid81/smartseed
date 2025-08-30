@@ -16,6 +16,7 @@ import { MobileMenu } from "./_components/MenuMobile";
 import { CycleProvider } from "@/contexts/CycleContext";
 import { InsumoStockProvider } from "@/contexts/InsumoStockContext";
 import { PurchaseProvider } from "@/contexts/PurchaseContext";
+import { ApplicationProvider } from "@/contexts/ApplicationContext";
 
 const robotoFont = roboto({
   src: [
@@ -117,10 +118,12 @@ export default async function RootLayout({
                         <ConsumptionProvider>
                           <CycleProvider>
                             <PurchaseProvider>
-                              <Sidebar />
-                              <MobileMenu />
-                              {children}
-                              <Toaster richColors />
+                              <ApplicationProvider>
+                                <Sidebar />
+                                <MobileMenu />
+                                {children}
+                                <Toaster richColors />
+                              </ApplicationProvider>
                             </PurchaseProvider>
                           </CycleProvider>
                         </ConsumptionProvider>

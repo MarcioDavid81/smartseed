@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems"
+import { ListApplicationTable } from "./_components/ListApplicationTable"
 
 export const metadata: Metadata = {
   title: "Aplicação de Insumos",
@@ -24,6 +25,7 @@ export default async function InsumosApplicationPage() {
               <h1 className="text-2xl font-medium mb-4">Aplicação de Insumos</h1>
               <NavItems />
             </div>
+            <ListApplicationTable />
           </main>
         </div>
       </div>

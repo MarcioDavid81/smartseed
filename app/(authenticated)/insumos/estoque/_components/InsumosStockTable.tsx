@@ -10,8 +10,7 @@ import { getToken } from "@/lib/auth-client";
 import { ProductStock } from "@/types/productStock";
 import { useInsumoStock } from "@/contexts/InsumoStockContext";
 import { InsumosDataTable } from "./InsumosDataTable";
-import { Trash2Icon } from "lucide-react";
-import { SquarePenIcon } from "lucide-react";
+import { Trash2Icon, SquarePenIcon } from "lucide-react";
 
 export function InsumosStockTable() {
   const [products, setProducts] = useState<ProductStock[]>([]);

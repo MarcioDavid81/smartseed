@@ -22,6 +22,7 @@ export interface Application {
     talhao: {
         id: string;
         name: string;
+        area: number;
     };
     notes: string;
     type: InsumoOperationType;

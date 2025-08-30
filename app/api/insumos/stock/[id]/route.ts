@@ -68,7 +68,6 @@ export async function GET(
         farmName: t.originFarm.name,
         productId: t.productId,
         quantity: -t.quantity, // saída negativa
-        unit: t.unit,
       })),
       ...transferIns.map((t) => ({
         id: t.id,
@@ -77,7 +76,6 @@ export async function GET(
         farmId: t.destFarmId,
         farmName: t.destFarm.name,
         quantity: t.quantity, // entrada positiva
-        unit: t.unit,
       })),
       ...consumptions.map((c) => ({
         id: c.id,
