@@ -2,17 +2,21 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { getToken } from "@/lib/auth-client";
 import { Application } from "@/types/application";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, RefreshCw } from "lucide-react";
+import {
+  ArrowUpDown,
+  RefreshCw,
+  SquarePenIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-// import UpsertApplicationButton from "./UpsertApplicationButton";
-// import DeleteApplicationButton from "./DeleteApplicationButton";
-import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
-import { SquarePenIcon, Trash2Icon } from "lucide-react";
 import { ApplicationDataTable } from "./ApplicationDataTable";
+import DeleteApplicationButton from "./DeleteApplicationButton";
+import UpsertApplicationButton from "./UpsertApplicationButton";
 
 export function ListApplicationTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -113,35 +117,17 @@ export function ListApplicationTable() {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
-        const plantio = row.original;
+        const aplicacao = row.original;
         return (
-          <div className="flex items-center justify-center gap-1">
-            {/* <UpsertConsumptionButton
-              plantio={plantio}
-              onUpdated={fetchConsumptions}
+          <div className="flex items-center justify-center gap-4">
+            <UpsertApplicationButton
+              aplicacao={aplicacao}
+              onUpdated={fetchApplications}
             />
-            <DeleteConsumptionButton
-              plantio={plantio}
-              onDeleted={fetchConsumptions}
-            /> */}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                alert("Editar ação");
-              }}
-            >
-              <SquarePenIcon size={20} className="text-green" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                alert("Excluir ação");
-              }}
-            >
-              <Trash2Icon size={20} className="text-red-500" />
-            </Button>
+            <DeleteApplicationButton
+              aplicacao={aplicacao}
+              onDeleted={fetchApplications}
+            />
           </div>
         );
       },

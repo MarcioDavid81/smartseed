@@ -4,12 +4,14 @@ export interface Transfer {
     id: string;
     date: Date;
     productStockId: {
-        productId: {
+        productId: string;
+        product: {
             id: string;
             name: string;
             unit: Unit;
         };
-        farmId: {
+        farmId: string;
+        farm: {
             id: string;
             name: string;
         };

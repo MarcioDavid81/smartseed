@@ -1,7 +1,5 @@
 "use client";
 
-import { SquarePenIcon } from "lucide-react";
-import { useState } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -9,6 +7,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Purchase } from "@/types/purchase";
+import { SquarePenIcon } from "lucide-react";
+import { useState } from "react";
 import UpsertPurchaseModal from "./UpsertPurchaseModal";
 
 interface Props {
