@@ -3,6 +3,37 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyToken } from "@/lib/auth";
 
+/**
+ * @swagger
+ * /api/insumos/applications/{id}:
+ *   put:
+ *     summary: Atualizar aplicação de insumos
+ *     tags:
+ *       - Aplicação de Insumos
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               productStockId:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               quantity:
+ *                 type: number
+ *               talhaoId:
+ *                 type: string
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Aplicação de insumo atualizada com sucesso
+ */
 const updateApplicationSchema = z.object({
   productStockId: z.string().cuid(),
   quantity: z.number().positive(),
@@ -82,6 +113,25 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
+/**
+ * @swagger
+ * /api/insumos/applications/{id}:
+ *   delete:
+ *     summary: Excluir aplicação de insumos
+ *     tags:
+ *       - Aplicação de Insumos
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Aplicação deletada com sucesso
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Aplicação não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
