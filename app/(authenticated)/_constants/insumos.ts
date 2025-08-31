@@ -52,6 +52,7 @@ export const PRODUCT_CLASS_OPTIONS = [
 ]
 
 export const PRODUCT_UNIT_LABELS = {
+    TN: "Tonelada",
     KG: "Kilograma",
     GR: "Grama",
     L: "Litro",
@@ -62,6 +63,10 @@ export const PRODUCT_UNIT_LABELS = {
 }
 
 export const PRODUCT_UNIT_OPTIONS = [
+    {
+        value: Unit.TN,
+        label: PRODUCT_UNIT_LABELS.TN
+    },
     {
         value: Unit.KG,
         label: PRODUCT_UNIT_LABELS.KG
