@@ -24,21 +24,22 @@ export default function GenerateApplicationReportModal() {
   const { user } = useUser();
 
   const produtosUnicos = Array.from(
-    new Set(aplicacoes.map((h) => h.productStock.product.name))
+    new Set(aplicacoes.map((h) => h.productStock.product.name)),
   );
 
   const depositosUnicos = Array.from(
-    new Set(aplicacoes.map((h) => h.productStock.farm.name))
+    new Set(aplicacoes.map((h) => h.productStock.farm.name)),
   );
 
   const talhoesUnicos = Array.from(
-    new Set(aplicacoes.map((h) => h.talhao.name))
+    new Set(aplicacoes.map((h) => h.talhao.name)),
   );
 
   const filtered = aplicacoes.filter((h) => {
     const matchProduto = !produto || h.productStock.product.name === produto;
     const matchFarm = !farm || h.productStock.farm.name === farm;
-    return matchProduto && matchFarm;
+    const matchTalhao = !talhao || h.talhao.name === talhao;
+    return matchProduto && matchFarm && matchTalhao;
   });
 
   const generatePDF = () => {
@@ -50,23 +51,39 @@ export default function GenerateApplicationReportModal() {
     logo.onload = () => {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
-      doc.text("Relatório de Plantio", 150, 20, { align: "center" });
+      doc.text("Relatório de Aplicações", 150, 20, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Produto: ${produto || "Todos"}`, 14, 35);
       doc.text(`Depósito: ${farm || "Todas"}`, 14, 40);
+      doc.text(`Talhão: ${talhao || "Todos"}`, 14, 45);
 
       autoTable(doc, {
         startY: 50,
-        head: [["Data", "Produto", "Destino", "Quantidade (kg)"]],
-        body: filtered.map((h) => [
-          new Date(h.date).toLocaleDateString("pt-BR"),
-          h.productStock.product.name,
-          h.productStock.farm.name,
-          h.quantity.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          }),
-        ]),
+        head: [
+          [
+            "Data",
+            "Produto",
+            "Talhão",
+            "Área (Ha)",
+            "Quantidade",
+            "Dosagem",
+          ],
+        ],
+        body: filtered.map((h) => {
+          const area = h.talhao.area;
+          const quantidade = h.quantity;
+          const dosagem = quantidade / area;
+
+          return [
+            new Date(h.date).toLocaleDateString("pt-BR"),
+            h.productStock.product.name,
+            h.talhao.name,
+            area.toLocaleString("pt-BR", { minimumFractionDigits: 2 }),
+            quantidade.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + ` ${h.productStock.product.unit}`,
+            dosagem.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + ` ${h.productStock.product.unit}/Ha`,
+          ];
+        }),
         styles: {
           fontSize: 9,
         },
@@ -88,7 +105,7 @@ export default function GenerateApplicationReportModal() {
           doc.text(
             `Relatório gerado em ${formattedDate} por: ${userName}`,
             10,
-            pageHeight - 10
+            pageHeight - 10,
           );
 
           const centerText = "Sistema Smart Seed";
@@ -96,30 +113,30 @@ export default function GenerateApplicationReportModal() {
           doc.text(
             centerText,
             pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10
+            pageHeight - 10,
           );
 
           const pageNumber = (doc as any).internal.getNumberOfPages();
           doc.text(
             `${pageNumber}/${pageNumber}`,
             pageWidth - 20,
-            pageHeight - 10
+            pageHeight - 10,
           );
         },
       });
 
       // === SOMATÓRIO POR PRODUTO ===
-      const totalsByProduto = filtered.reduce((acc, curr) => {
-        const name = curr.productStock.product.name;
-        if (!acc[name]) acc[name] = 0;
-        acc[name] += curr.quantity;
-        return acc;
-      }, {} as Record<string, number>);
-
-      const totalGeral = filtered.reduce(
-        (acc, curr) => acc + curr.quantity,
-        0
+      const totalsByProduto = filtered.reduce(
+        (acc, curr) => {
+          const name = curr.productStock.product.name;
+          if (!acc[name]) acc[name] = 0;
+          acc[name] += curr.quantity;
+          return acc;
+        },
+        {} as Record<string, number>,
       );
+
+      const totalGeral = filtered.reduce((acc, curr) => acc + curr.quantity, 0);
 
       let finalY = (doc as any).lastAutoTable.finalY + 10;
 
@@ -133,7 +150,7 @@ export default function GenerateApplicationReportModal() {
             minimumFractionDigits: 2,
           })}`,
           14,
-          finalY + 6 + index * 6
+          finalY + 6 + index * 6,
         );
       });
 
@@ -141,9 +158,9 @@ export default function GenerateApplicationReportModal() {
       doc.text(
         `Total Geral: ${totalGeral.toLocaleString("pt-BR", {
           minimumFractionDigits: 2,
-        })} kg`,
+        })}`,
         14,
-        finalY + 6 + Object.keys(totalsByProduto).length * 6 + 6
+        finalY + 6 + Object.keys(totalsByProduto).length * 6 + 6,
       );
 
       const fileNumber = new Date().getTime().toString();
@@ -190,9 +207,7 @@ export default function GenerateApplicationReportModal() {
           <label className="text-sm font-medium">Depósito de Origem</label>
           <Select
             value={farm ?? ""}
-            onValueChange={(value) =>
-              setFarm(value === "todos" ? null : value)
-            }
+            onValueChange={(value) => setFarm(value === "todos" ? null : value)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Todos" />
