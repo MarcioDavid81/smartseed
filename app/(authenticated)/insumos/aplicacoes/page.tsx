@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import NavItems from "../../_components/NavItems"
-import { ListApplicationTable } from "./_components/ListApplicationTable"
+import NavItems from "../../_components/NavItems";
+import { ListApplicationTable } from "./_components/ListApplicationTable";
 
 export const metadata: Metadata = {
   title: "Aplicação de Insumos",

@@ -23,6 +23,11 @@ export interface Application {
         id: string;
         name: string;
         area: number;
+        farmId: string;
+        farm: {
+            id: string;
+            name: string;
+        }
     };
     notes: string;
     type: InsumoOperationType;

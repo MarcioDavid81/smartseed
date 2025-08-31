@@ -1,18 +1,18 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, RefreshCw, Square } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { getToken } from "@/lib/auth-client";
 import { Application } from "@/types/application";
+import { ColumnDef } from "@tanstack/react-table";
+import { ArrowUpDown, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FaSpinner } from "react-icons/fa";
 // import UpsertApplicationButton from "./UpsertApplicationButton";
 // import DeleteApplicationButton from "./DeleteApplicationButton";
-import { Trash2Icon, SquarePenIcon } from "lucide-react";
-import { ApplicationDataTable } from "./ApplicationDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
+import { SquarePenIcon, Trash2Icon } from "lucide-react";
+import { ApplicationDataTable } from "./ApplicationDataTable";
 
 export function ListApplicationTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado

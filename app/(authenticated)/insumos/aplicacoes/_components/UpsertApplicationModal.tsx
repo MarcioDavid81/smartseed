@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
-import { Talhao, Farm, ProductStock } from "@/types";
+import { Farm, ProductStock, Talhao } from "@/types";
 import { Application } from "@/types/application";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
