@@ -166,8 +166,12 @@ export async function POST(req: NextRequest) {
  *                     type: string
  *                   notes:
  *                     type: string
+ *       201:
+ *         description: Aplicações de insumos retornadas com sucesso
  *       401:
  *         description: Token ausente ou inválido
+ *       500:
+ *         description: Erro interno no servidor
  */
 const querySchema = z.object({
   farmId: z.string().cuid().optional(),

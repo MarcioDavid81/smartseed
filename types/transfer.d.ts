@@ -3,20 +3,18 @@ import { Unit, InsumoOperationType } from "@prisma/client";
 export interface Transfer {
     id: string;
     date: Date;
-    productStockId: {
-        productId: string;
-        product: {
-            id: string;
-            name: string;
-            unit: Unit;
-        };
-        farmId: string;
-        farm: {
-            id: string;
-            name: string;
-        };
+    productId: string;
+    product: {
+        id: string;
+        name: string;
+        unit: Unit;
     };
     quantity: number;
+    originFarmId: string;
+    originFarm: {
+        id: string;
+        name: string;
+    };
     destFarmId: string;
     destFarm: {
         id: string;
