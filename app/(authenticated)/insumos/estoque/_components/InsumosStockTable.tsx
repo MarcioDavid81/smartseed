@@ -11,6 +11,7 @@ import { ProductStock } from "@/types/productStock";
 import { useInsumoStock } from "@/contexts/InsumoStockContext";
 import { InsumosDataTable } from "./InsumosDataTable";
 import { Trash2Icon, SquarePenIcon } from "lucide-react";
+import { getProductUnitLabel } from "@/app/_helpers/getProductLabel";
 
 export function InsumosStockTable() {
   const [products, setProducts] = useState<ProductStock[]>([]);
@@ -60,14 +61,8 @@ export function InsumosStockTable() {
     },
     {
       accessorKey: "class",
-      header: () => <div className="text-center">Classe</div>,
-      cell: ({ row: { original: insumo } }) => {
-        return (
-          <div className="text-center">
-            {insumo.product.class}
-          </div>
-        )
-      }
+      header: "Classe",
+      cell: ({ row: { original: insumo } }) => getProductUnitLabel(insumo.product.class)
     },
     {
       accessorKey: "stock",
