@@ -18,6 +18,7 @@ export function InsumosStockTable() {
   const { insumos } = useInsumoStock();
 
   async function fetchProducts() {
+    setLoading(true);
     try {
       const token = getToken();
       const res = await fetch("/api/insumos/stock", {

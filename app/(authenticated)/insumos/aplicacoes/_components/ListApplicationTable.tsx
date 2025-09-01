@@ -6,12 +6,7 @@ import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { getToken } from "@/lib/auth-client";
 import { Application } from "@/types/application";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  RefreshCw,
-  SquarePenIcon,
-  Trash2Icon,
-} from "lucide-react";
+import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { ApplicationDataTable } from "./ApplicationDataTable";
