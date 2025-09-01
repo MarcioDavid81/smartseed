@@ -81,7 +81,7 @@ export function InsumosGetTable() {
   return (
     <Card className="p-4 font-light dark:bg-primary">
       <div className="flex items-center gap-2 mb-2">
-        <h2 className="font-medium">Lista de Insumos</h2>
+        <h2 className="font-light">Lista de Insumos</h2>
         <Button variant={"ghost"} onClick={fetchProducts} disabled={loading}>
           <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
         </Button>

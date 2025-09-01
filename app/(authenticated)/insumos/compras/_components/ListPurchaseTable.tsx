@@ -93,7 +93,7 @@ export function ListPurchaseTable() {
     },
     {
       accessorKey: "unitPrice",
-      header: () => <div className="text-left">Preço</div>,
+      header: () => <div className="text-left">Preço Unitário</div>,
       cell: ({ row }) => {
         const valor = row.original.unitPrice;
         return (

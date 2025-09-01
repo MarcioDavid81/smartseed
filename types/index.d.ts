@@ -13,3 +13,4 @@ export * from "./saleExit";
 export * from "./company";
 export * from "./talhao";
 export * from "./productStock";
+export * from "./insumo";

@@ -23,8 +23,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useState } from "react";
-import CreateApplicationButton from "./CreateApplicationButton";
-import GenerateApplicationReportModal from "./GenerateApplicationReportModal";
+import CreateTransferButton from "./CreateTransferButton";
+import GenerateTransferReportModal from "./GenerateTransferReportModal";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -33,7 +33,7 @@ interface DataTableProps<TData, TValue> {
   searchFields?: string[];
 }
 
-export function ApplicationDataTable<TData, TValue>({
+export function TransferDataTable<TData, TValue>({
   columns,
   data,
   pageSize = 8,
@@ -73,14 +73,14 @@ export function ApplicationDataTable<TData, TValue>({
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex items-center justify-between py-4">
         <Input
-          placeholder="Procure por talhão"
-          value={(table.getColumn("talhao")?.getFilterValue() as string) ?? ""}
+          placeholder="Procure por produto"
+          value={(table.getColumn("produto")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("talhao")?.setFilterValue(event.target.value)
+            table.getColumn("produto")?.setFilterValue(event.target.value)
           }
           className="max-w-sm bg-gray-50 text-primary"
         />
-        <CreateApplicationButton  />
+        <CreateTransferButton  />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -120,7 +120,7 @@ export function ApplicationDataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Nenhuma aplicação encontrada.
+                  Nenhuma transferência encontrada.
                 </TableCell>
               </TableRow>
             )}
@@ -130,7 +130,7 @@ export function ApplicationDataTable<TData, TValue>({
 
       {/* Paginação */}
       <div className="flex items-center justify-between space-x-2 dark:text-primary">
-        <GenerateApplicationReportModal  />
+        <GenerateTransferReportModal  />
         <div className="flex items-center space-x-2 justify-end">
           <Button
             variant="secondary"

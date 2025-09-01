@@ -66,11 +66,11 @@ export function InsumosStockTable() {
     },
     {
       accessorKey: "stock",
-      header: () => <div className="text-center">Estoque (kg)</div>,
+      header: () => <div className="text-left">Estoque (kg)</div>,
       cell: ({ row }) => {
         const stock = row.original.stock;
         return (
-          <div className="text-center">
+          <div className="text-left">
             {new Intl.NumberFormat("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -81,9 +81,9 @@ export function InsumosStockTable() {
     },
     {
       accessorKey: "farm",
-      header: () => <div className="text-center">Fazenda</div>,
+      header: () => <div className="text-left">Fazenda</div>,
       cell: ({ row: { original: insumo } }) => {
-        return <div className="text-center">{insumo.farm?.name}</div>;
+        return <div className="text-left">{insumo.farm?.name}</div>;
       },
     },
     {
@@ -119,7 +119,7 @@ export function InsumosStockTable() {
   return (
     <Card className="p-4 font-light dark:bg-primary">
       <div className="mb-4">
-        <h2 className="font-medium">Estoque das Cultivares</h2>
+        <h2 className="font-medium">Estoque de Insumos</h2>
       </div>
       {loading ? (
         <div className="py-10 text-center text-gray-500">

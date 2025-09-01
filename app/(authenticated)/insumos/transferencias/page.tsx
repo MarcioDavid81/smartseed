@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems"
+import { ListTransferTable } from "./_components/ListTransferTable";
 
 export const metadata: Metadata = {
   title: "Transferência de Insumos",
@@ -24,6 +25,7 @@ export default async function InsumosTransferPage() {
               <h1 className="text-2xl font-medium mb-4">Transferência de Insumos</h1>
               <NavItems />
             </div>
+            <ListTransferTable />
           </main>
         </div>
       </div>
