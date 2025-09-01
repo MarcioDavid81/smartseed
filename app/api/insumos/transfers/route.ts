@@ -32,7 +32,7 @@ import { verifyToken } from "@/lib/auth";
  *                 type: string
  *     responses:
  *       201:
- *         description: Aplicação de insumo criada com sucesso
+ *         description: Transferência de insumo criada com sucesso
  */
 const createTransferSchema = z.object({
   date: z.coerce.date(),
@@ -40,7 +40,6 @@ const createTransferSchema = z.object({
   quantity: z.number().positive(),
   originFarmId: z.string().uuid(),
   destFarmId: z.string().uuid(),
-  companyId: z.string().uuid(),
 });
 
 export async function POST(req: NextRequest) {
