@@ -7,7 +7,7 @@ import { useInsumoStock } from "@/contexts/InsumoStockContext";
 import { getToken } from "@/lib/auth-client";
 import { ProductStock } from "@/types/productStock";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, SquarePenIcon, Trash2Icon } from "lucide-react";
+import { ArrowUpDown, SquarePenIcon, Trash2Icon, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { InsumosDataTable } from "./InsumosDataTable";
@@ -75,14 +75,14 @@ export function InsumosStockTable() {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }).format(stock)}
-            <span>{row.original.product.unit}</span>
+            <span>{` ${row.original.product.unit.toLocaleLowerCase()}`}</span>
           </div>
         );
       },
     },
     {
       accessorKey: "farm",
-      header: () => <div className="text-left">Fazenda</div>,
+      header: () => <div className="text-left">Depósito</div>,
       cell: ({ row: { original: insumo } }) => {
         return <div className="text-left">{insumo.farm?.name}</div>;
       },
@@ -119,8 +119,11 @@ export function InsumosStockTable() {
 
   return (
     <Card className="p-4 font-light dark:bg-primary">
-      <div className="mb-4">
+      <div className="flex items-center gap-2 mb-2">
         <h2 className="font-medium">Estoque de Insumos</h2>
+        <Button variant={"ghost"} onClick={fetchProducts} disabled={loading}>
+          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        </Button>
       </div>
       {loading ? (
         <div className="py-10 text-center text-gray-500">

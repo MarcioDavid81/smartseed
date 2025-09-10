@@ -87,6 +87,7 @@ export function ListPurchaseTable() {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }).format(peso)}
+            <span>{` ${row.original.product.unit.toLocaleLowerCase()}`}</span>
           </div>
         );
       },

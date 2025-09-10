@@ -83,6 +83,7 @@ export function ListApplicationTable() {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }).format(peso)}
+            <span>{` ${row.original.productStock.product.unit.toLocaleLowerCase()}`}</span>
           </div>
         );
       },
