@@ -66,7 +66,7 @@ export function InsumosStockTable() {
     },
     {
       accessorKey: "stock",
-      header: () => <div className="text-left">Estoque (kg)</div>,
+      header: () => <div className="text-left">Estoque</div>,
       cell: ({ row }) => {
         const stock = row.original.stock;
         return (
@@ -75,6 +75,7 @@ export function InsumosStockTable() {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }).format(stock)}
+            <span>{row.original.product.unit}</span>
           </div>
         );
       },

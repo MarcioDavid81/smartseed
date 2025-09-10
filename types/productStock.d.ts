@@ -1,3 +1,5 @@
+import { Unit } from "@prisma/client";
+
 export interface ProductStock {
     id: string;
     productId: string;
@@ -5,6 +7,7 @@ export interface ProductStock {
         id: string;
         name: string;
         class: string;
+        unit: Unit;
     };
     farmId: string;
     farm: {
