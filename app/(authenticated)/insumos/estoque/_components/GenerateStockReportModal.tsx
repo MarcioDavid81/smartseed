@@ -14,28 +14,30 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
-import { usePurchase } from "@/contexts/PurchaseContext";
+import { useInsumoStock } from "@/contexts/InsumoStockContext";
 
-
-export default function GeneratePurchaseReportModal() {
-  const { purchases } = usePurchase();
+export default function GenerateStockReportModal() {
+  const { insumos } = useInsumoStock();
   const [product, setProduct] = useState<string | null>(null);
-  const [customer, setCustomer] = useState<string | null>(null);
+  const [classe, setClasse] = useState<string | null>(null);
+  const [deposito, setDeposito] = useState<string | null>(null);
   const { user } = useUser();
 
-  const produtosUnicos = Array.from(
-    new Set(purchases.map((h) => h.product.name))
+  const insumosUnicos = Array.from(new Set(insumos.map((h) => h.product.name)));
+  const classesUnicas = Array.from(
+    new Set(insumos.map((h) => h.product.class)),
   );
-  const customersUnicos = Array.from(new Set(purchases.map((h) => h.customer.name)));
+  const depositosUnicos = Array.from(new Set(insumos.map((h) => h.farm.name)));
 
-  const filtered = purchases.filter((h) => {
-    const matchProduto = !product || h.product.name === product;
-    const matchCustomer = !customer || h.customer.name === customer;
-    return matchProduto && matchCustomer;
+  const filtered = insumos.filter((h) => {
+    const matchInsumo = !product || h.product.name === product;
+    const matchClasse = !product || h.product.class === classe;
+    const matchDeposito = !product || h.farm.name === deposito;
+    return matchInsumo && matchClasse && matchDeposito;
   });
 
   const generatePDF = () => {
-    const doc = new jsPDF({ orientation: "landscape" });
+    const doc = new jsPDF({ orientation: "portrait" });
 
     const logo = new window.Image();
     logo.src = "/logo.png";
@@ -47,23 +49,26 @@ export default function GeneratePurchaseReportModal() {
 
       doc.setFontSize(10);
       doc.text(`Produto: ${product || "Todos"}`, 14, 35);
-      doc.text(`Fornecedor: ${customer || "Todos"}`, 14, 40);
+      doc.text(`Classe: ${classe || "Todos"}`, 14, 40);
+      doc.text(`Depósito: ${deposito || "Todos"}`, 14, 45);
 
       autoTable(doc, {
         startY: 50,
-        head: [["Data", "Produto", "Fornecedor", "Nota Fiscal", "Quantidade", "Valor (R$)"]],
+        head: [
+          [
+            "Produto",
+            "Classe",
+            "Depósito",
+            "Estoque",
+          ],
+        ],
         body: filtered.map((h) => [
-          new Date(h.date).toLocaleDateString("pt-BR"),
           h.product.name,
-          h.customer.name,
-          h.invoiceNumber,
-          h.quantity.toLocaleString("pt-BR", {
+          h.product.class,
+          h.farm.name,
+          h.stock.toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
-          }),
-          h.totalPrice.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          }),
+          }).concat(` ${h.product.unit}`),
         ]),
         styles: {
           fontSize: 9,
@@ -86,7 +91,7 @@ export default function GeneratePurchaseReportModal() {
           doc.text(
             `Relatório gerado em ${formattedDate} por: ${userName}`,
             10,
-            pageHeight - 10
+            pageHeight - 10,
           );
 
           const centerText = "Sistema Smart Seed";
@@ -94,35 +99,35 @@ export default function GeneratePurchaseReportModal() {
           doc.text(
             centerText,
             pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10
+            pageHeight - 10,
           );
 
           const pageNumber = (doc as any).internal.getNumberOfPages();
           doc.text(
             `${pageNumber}/${pageNumber}`,
             pageWidth - 20,
-            pageHeight - 10
+            pageHeight - 10,
           );
         },
       });
 
       // === SOMATÓRIO POR PRODUTO ===
-      const totalsByProduct = filtered.reduce((acc, curr) => {
-        const name = curr.product.name;
-        if (!acc[name]) acc[name] = 0;
-        acc[name] += curr.quantity;
-        return acc;
-      }, {} as Record<string, number>);
-
-      const totalGeral = filtered.reduce(
-        (acc, curr) => acc + curr.quantity,
-        0
+      const totalsByProduct = filtered.reduce(
+        (acc, curr) => {
+          const name = curr.product.name;
+          if (!acc[name]) acc[name] = 0;
+          acc[name] += curr.stock;
+          return acc;
+        },
+        {} as Record<string, number>,
       );
+
+      const totalGeral = filtered.reduce((acc, curr) => acc + curr.stock, 0);
 
       let finalY = (doc as any).lastAutoTable.finalY + 10;
 
       doc.setFontSize(9);
-      doc.text("Total comprado por Produto", 14, finalY);
+      doc.text("Total em Estoque por Produto", 14, finalY);
 
       doc.setFontSize(9);
       Object.entries(totalsByProduct).forEach(([name, total], index) => {
@@ -131,7 +136,7 @@ export default function GeneratePurchaseReportModal() {
             minimumFractionDigits: 2,
           })}`,
           14,
-          finalY + 6 + index * 6
+          finalY + 6 + index * 6,
         );
       });
 
@@ -141,14 +146,15 @@ export default function GeneratePurchaseReportModal() {
           minimumFractionDigits: 2,
         })}`,
         14,
-        finalY + 6 + Object.keys(totalsByProduct).length * 6 + 6
+        finalY + 6 + Object.keys(totalsByProduct).length * 6 + 6,
       );
 
       const fileNumber = new Date().getTime().toString();
-      const fileName = `Relatorio de Compras - ${fileNumber}.pdf`;
+      const fileName = `Relatorio de Estoque - ${fileNumber}.pdf`;
       doc.save(fileName);
       setProduct(null);
-      setCustomer(null);
+      setClasse(null);
+      setDeposito(null);
     };
   };
 
@@ -176,7 +182,7 @@ export default function GeneratePurchaseReportModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
-              {produtosUnicos.map((c) => (
+              {insumosUnicos.map((c) => (
                 <SelectItem key={c} value={c}>
                   {c}
                 </SelectItem>
@@ -186,11 +192,11 @@ export default function GeneratePurchaseReportModal() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Fornecedor</label>
+          <label className="text-sm font-medium">Classe</label>
           <Select
-            value={customer ?? ""}
+            value={classe ?? ""}
             onValueChange={(value) =>
-              setCustomer(value === "todos" ? null : value)
+              setClasse(value === "todos" ? null : value)
             }
           >
             <SelectTrigger className="w-full">
@@ -198,7 +204,29 @@ export default function GeneratePurchaseReportModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
-              {customersUnicos.map((t) => (
+              {classesUnicas.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Depósito</label>
+          <Select
+            value={deposito ?? ""}
+            onValueChange={(value) =>
+              setClasse(value === "todos" ? null : value)
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              {depositosUnicos.map((t) => (
                 <SelectItem key={t} value={t}>
                   {t}
                 </SelectItem>

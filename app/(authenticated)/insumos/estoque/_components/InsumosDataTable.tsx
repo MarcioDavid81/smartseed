@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import GenerateStockReportModal from "./GenerateStockReportModal";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -126,7 +127,7 @@ export function InsumosDataTable<TData, TValue>({
 
       {/* Paginação */}
       <div className="flex items-center justify-between space-x-2 dark:text-primary">
-        {/* <GenerateStockReportModal /> */}
+        <GenerateStockReportModal />
         <div className="flex items-center space-x-2 justify-end">
           <Button
             variant="secondary"
