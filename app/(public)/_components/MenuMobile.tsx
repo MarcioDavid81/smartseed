@@ -1,28 +1,57 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
+import Link from "next/link";
 
-interface MenuMobileProps {
-  onClose: () => void;
-}
 
-const MenuMobile = ({ onClose }: MenuMobileProps) => {
-    return (
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="md:hidden bg-white border-t border-gray-200 px-6 py-4 shadow-md overflow-hidden"
-        >
-          <ul className="flex flex-col gap-4 text-gray-700 font-medium">
-            <li><a href="#home" onClick={onClose} className="hover:text-green-600">Home</a></li>
-            <li><a href="#about" onClick={onClose} className="hover:text-green-600">Sobre</a></li>
-            <li><a href="#planos" onClick={onClose} className="hover:text-green-600">Planos</a></li>
-            <li><a href="#contact" onClick={onClose} className="hover:text-green-600">Contato</a></li>
-          </ul>
-        </motion.div>
-      );
-}
- 
+const internalLinks = [
+  { name: "Home", href: "/" },
+  { name: "Sobre", href: "#about" },
+  { name: "Planos", href: "#planos" },
+  { name: "Contato", href: "#contact" },
+];
+
+const MenuMobile = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" className="p-0">
+            <Menu size={24} className="text-gray-900" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-64">
+          <SheetHeader>
+            <SheetTitle className="text-left">SmartSeed Menu</SheetTitle>
+          </SheetHeader>
+          <nav className="mb-20 mt-4 space-y-4">
+            {internalLinks.map((link) => {
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  className="block text-sm text-muted-foreground hover:text-primary"
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
+          </nav>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+};
+
 export default MenuMobile;

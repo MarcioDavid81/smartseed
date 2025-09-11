@@ -12,11 +12,10 @@ const HeroSection = () => {
         Smart Seed
       </h1>
       <h1 className="text-3xl md:text-4xl font-bold mb-4 z-10">
-        O sistema completo para controle de produção de sementes
+        O sistema completo para gestão agrícola!
       </h1>
       <p className="text-lg md:text-xl mb-6 max-w-3xl mx-auto z-10">
-        Organize, acompanhe e escale sua produção com tecnologia pensada para
-        sementeiras e produtores de sementes.
+        Organize, acompanhe e escale sua gestão agrícola com tecnologia pensada para produtores rurais.
       </p>
       <div className="flex flex-col md:flex-row justify-center gap-4 z-10">
         <Link

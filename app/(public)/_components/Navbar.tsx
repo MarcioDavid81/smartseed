@@ -1,15 +1,19 @@
 "use client";
 
-import { AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import MenuMobile from "./MenuMobile";
 import Image from "next/image";
 import Logo from "../../../public/logo.png";
 import Link from "next/link";
 
+const internalLinks = [
+  { name: "Home", href: "/" },
+  { name: "Sobre", href: "#about" },
+  { name: "Planos", href: "#planos" },
+  { name: "Contato", href: "#contact" },
+];
+
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
 
   useEffect(() => {
@@ -33,50 +37,32 @@ const Navbar = () => {
   }, []);
 
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 ${isScrolling ? "bg-white shadow-md" : "bg-transparent"}`}>
-      <nav className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
-        <Link href="/">
-          <Image
-            src={Logo}
-            alt="Smart Seed"
-            width={200}
-            height={100}
-            className="rounded-full"
-          />
-        </Link>
-        <ul className={`hidden md:flex space-x-6 text-lg ${isScrolling ? "text-gray-800" : "text-white"}`}>
-          <li>
-            <a href="/" className="hover:text-green-600">
-              Home
-            </a>
-          </li>
-          <li>
-            <a href="#about" className="hover:text-green-600">
-              Sobre
-            </a>
-          </li>
-          <li>
-            <a href="#planos" className="hover:text-green-600">
-              Planos
-            </a>
-          </li>
-          <li>
-            <a href="#contact" className="hover:text-green-600">
-              Contato
-            </a>
-          </li>
-        </ul>
-        <button
-          className="md:hidden text-green-700"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Abrir menu"
-        >
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
+    <header className="flex items-center justify-center">
+      <nav className={`fixed top-4 w-full rounded-2xl z-50 transition-all duration-300 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
+          isScrolling ? "bg-white/20 backdrop-blur-xl shadow-lg" : "bg-transparent"
+        }`}>
+        <div className="flex justify-between items-center h-16">
+          <Link href="/">
+            <Image
+              src={Logo}
+              alt="Smart Seed"
+              width={200}
+              height={100}
+              className="rounded-full"
+            />
+          </Link>
+          <ul className={`hidden md:flex space-x-6 text-lg ${isScrolling ? "text-gray-900" : "text-white"}`}>
+            {internalLinks.map((link) => (
+              <li key={link.name}>
+                <Link href={link.href} className="hover:text-green" aria-label={`Ir para ${link.name}`}>{link.name}</Link>
+              </li>
+            ))}
+          </ul>
+          <div className="md:hidden">
+            <MenuMobile />
+          </div>
+        </div>
       </nav>
-      <AnimatePresence>
-        {isOpen && <MenuMobile onClose={() => setIsOpen(false)} />}
-      </AnimatePresence>
     </header>
   );
 };

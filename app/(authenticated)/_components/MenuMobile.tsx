@@ -94,7 +94,7 @@ export function MobileMenu() {
         </div>
         <SheetContent side="right" className="w-64">
           <SheetHeader>
-            <SheetTitle>Menu</SheetTitle>
+            <SheetTitle className="text-left">SmartSeed Menu</SheetTitle>
           </SheetHeader>
           <nav className="mt-4 mb-20 space-y-4">
             {routes.map((route, index) => {

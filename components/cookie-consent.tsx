@@ -9,14 +9,36 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const hasAccepted = localStorage.getItem("cookie-consent");
-    if (!hasAccepted) setVisible(true);
+    const consent = localStorage.getItem("cookie-consent");
+
+    if (consent) {
+      try {
+        const dados = JSON.parse(consent);
+        const agora = new Date().getTime();
+
+        if (dados.expiracao && agora > dados.expiracao) {
+          // Expirou, então remove e mostra o banner novamente
+          localStorage.removeItem("cookie-consent");
+          setVisible(true);
+        }
+      } catch (error) {
+        console.error("Erro ao ler consentimento:", error);
+        setVisible(true);
+      }
+    } else {
+      // Nunca aceitou
+      setVisible(true);
+    }
   }, []);
 
   // Função para aceitar cookies e esconder o banner
-  // Armazena a aceitação no localStorage para não exibir novamente
-  const acceptCookies = () => {
-    localStorage.setItem("cookie-consent", "true");
+  const acceptCookies = (minutos: number = 1) => {
+    const agora = new Date().getTime();
+    const dados = {
+      valor: "aceito",
+      expiracao: agora + minutos * 60 * 1000, // tempo em minutos
+    };
+    localStorage.setItem("cookie-consent", JSON.stringify(dados));
     setVisible(false);
   };
 
