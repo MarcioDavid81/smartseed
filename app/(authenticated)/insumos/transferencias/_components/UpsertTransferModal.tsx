@@ -206,9 +206,9 @@ const UpsertTransferModal = ({
                         {...field}
                         className="w-full rounded border px-2 py-1"
                       >
-                        <option value="">Selecione</option>
+                        <option value="" className="text-sm font-light">Selecione</option>
                         {insumo.map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.id} value={c.id} className="text-sm font-light">
                             {c.name}
                           </option>
                         ))}
@@ -229,9 +229,9 @@ const UpsertTransferModal = ({
                         {...field}
                         className="w-full rounded border px-2 py-1"
                       >
-                        <option value="">Selecione</option>
+                        <option value="" className="text-sm font-light">Selecione</option>
                         {farms.map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.id} value={c.id} className="text-sm font-light">
                             {c.name}
                           </option>
                         ))}
@@ -253,9 +253,9 @@ const UpsertTransferModal = ({
                         {...field}
                         className="w-full rounded border px-2 py-1"
                       >
-                        <option value="">Selecione</option>
+                        <option value="" className="text-sm font-light">Selecione</option>
                         {farms.map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.id} value={c.id} className="text-sm font-light">
                             {c.name}
                           </option>
                         ))}

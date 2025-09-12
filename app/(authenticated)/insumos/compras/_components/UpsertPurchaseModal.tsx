@@ -211,9 +211,9 @@ const UpsertPurchaseModal = ({
                         {...field}
                         className="w-full rounded border px-2 py-1"
                       >
-                        <option value="">Selecione</option>
+                        <option value="" className="text-sm font-light">Selecione</option>
                         {products.map((p) => (
-                          <option key={p.id} value={p.id}>
+                          <option key={p.id} value={p.id} className="text-sm font-light">
                             {p.name}
                           </option>
                         ))}
@@ -236,9 +236,9 @@ const UpsertPurchaseModal = ({
                         {...field}
                         className="w-full rounded border px-2 py-1"
                       >
-                        <option value="">Selecione</option>
+                        <option value="" className="text-sm font-light">Selecione</option>
                         {customers.map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.id} value={c.id} className="text-sm font-light">
                             {c.name}
                           </option>
                         ))}
@@ -343,9 +343,9 @@ const UpsertPurchaseModal = ({
                         {...field}
                         className="w-full rounded border px-2 py-1"
                       >
-                        <option value="">Selecione</option>
+                        <option value="" className="text-sm font-light">Selecione</option>
                         {farms.map((f) => (
-                          <option key={f.id} value={f.id}>
+                          <option key={f.id} value={f.id} className="text-sm font-light">
                             {f.name}
                           </option>
                         ))}

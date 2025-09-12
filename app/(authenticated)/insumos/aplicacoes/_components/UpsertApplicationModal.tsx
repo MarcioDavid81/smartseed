@@ -219,9 +219,9 @@ const UpsertApplicationModal = ({
                         {...field}
                         className="w-full border rounded px-2 py-1"
                       >
-                        <option value="">Selecione</option>
+                        <option value="" className="text-sm font-light">Selecione</option>
                         {productStocks.map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.id} value={c.id} className="text-sm font-light">
                             {c.product.name}
                           </option>
                         ))}
@@ -242,9 +242,9 @@ const UpsertApplicationModal = ({
                         {...field}
                         className="w-full border rounded px-2 py-1"
                       >
-                        <option value="">Selecione</option>
+                        <option value="" className="text-sm font-light">Selecione</option>
                         {productStocks.map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.id} value={c.id} className="text-sm font-light">
                             {c.farm.name}
                           </option>
                         ))}
@@ -295,9 +295,9 @@ const UpsertApplicationModal = ({
                         {...field}
                         className="w-full border rounded px-2 py-1"
                       >
-                        <option value="">Selecione</option>
+                        <option value="" className="text-sm font-light">Selecione</option>
                         {talhao.map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.id} value={c.id} className="text-sm font-light">
                             {c.name}
                           </option>
                         ))}

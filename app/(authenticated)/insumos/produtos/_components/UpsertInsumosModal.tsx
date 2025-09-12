@@ -167,9 +167,9 @@ const UpsertInsumosModal = ({
                   {...register("class")}
                   className="w-full rounded border px-2 py-1"
                 >
-                  <option value="">Selecione</option>
+                  <option value="" className="font-light">Selecione</option>
                   {PRODUCT_CLASS_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <option key={option.value} value={option.value} className="font-light">
                       {option.label}
                     </option>
                   ))}
@@ -181,9 +181,9 @@ const UpsertInsumosModal = ({
                   {...register("unit")}
                   className="w-full rounded border px-2 py-1"
                 >
-                  <option value="">Selecione</option>
+                  <option value="" className="font-light">Selecione</option>
                   {PRODUCT_UNIT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <option key={option.value} value={option.value} className="font-light">
                       {option.label}
                     </option>
                   ))}

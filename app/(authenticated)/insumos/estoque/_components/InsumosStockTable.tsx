@@ -120,7 +120,7 @@ export function InsumosStockTable() {
   return (
     <Card className="p-4 font-light dark:bg-primary">
       <div className="flex items-center gap-2 mb-2">
-        <h2 className="font-medium">Estoque de Insumos</h2>
+        <h2 className="font-light">Estoque de Insumos</h2>
         <Button variant={"ghost"} onClick={fetchProducts} disabled={loading}>
           <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
         </Button>
