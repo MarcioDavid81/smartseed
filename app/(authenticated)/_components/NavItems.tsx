@@ -4,10 +4,10 @@ import SelectCycle from "./SelectCycle"
 
 const NavItems = () => {
     return (
-        <div className="flex items-center space-x-10">
+        <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-10">
+              <Saudacao />
               <Navbar />
               <SelectCycle />
-              <Saudacao />
             </div>
     )
 }

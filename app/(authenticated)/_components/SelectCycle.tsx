@@ -33,7 +33,7 @@ const SelectCycle = () => {
   }, []);
 
   return (
-    <div className="text-left">
+    <div>
       <p className="text-green text-sm">Safra</p>
 
       <Select
