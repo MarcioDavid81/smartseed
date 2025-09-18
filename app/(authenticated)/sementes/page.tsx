@@ -20,7 +20,7 @@ export default async function SeedsPage() {
     return (
       <div className="flex min-h-screen w-full flex-col bg-found">
         <div className="flex min-h-screen w-full bg-background">
-          <main className="flex-1 px-4 py-4 text-gray-800 md:px-8">
+          <main className="flex-1 px-4 py-4 text-gray-800 md:px-8 overflow-x-auto min-w-0">
             <div className="mb-6 flex flex-col items-start justify-between md:flex-row md:items-center">
               <h1 className="mb-4 text-2xl font-medium">Sementes</h1>
               <NavItems />

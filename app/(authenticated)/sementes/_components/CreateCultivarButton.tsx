@@ -18,7 +18,7 @@ const CreateCultivarButton = ({ onCreated }: { onCreated: () => void }) => {
       <SheetTrigger asChild>
         <HoverButton onClick={openSheet}>
           <PlusIcon size={20} />
-          Criar cultivar
+          Cultivar
         </HoverButton>
       </SheetTrigger>
       <UpsertCultivarSheetContent closeSheet={closeSheet} onCreated={onCreated}  />
