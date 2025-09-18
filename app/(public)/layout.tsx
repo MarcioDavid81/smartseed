@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "../globals.css";
 import { Toaster } from "sonner";
 import CookieConsent from "@/components/cookie-consent";
+import { BackToTop } from "./_components/BackToTop";
 
 const inter = Inter({
   weight: ["400", "700"],
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body
         className={`${inter.className} antialiased`}
       >
+        <BackToTop />
         {children}
         <Toaster richColors />
         <CookieConsent />
