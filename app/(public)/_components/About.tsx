@@ -1,9 +1,21 @@
+"use client";
+import { motion } from "framer-motion";
+
 const AboutSection = () => {
   return (
     <section id="about">
-      <section className="min-h-screen flex flex-col items-center justify-center py-16 px-4 bg-gray-50 text-center">
-        <h2 className="text-3xl font-bold mb-12">Benefícios do Smart Seed</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <section className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-16 text-center">
+        <motion.h2
+          className="mb-12 text-3xl font-bold"
+          initial={{ opacity: 0, x: -100 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -100 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          Benefícios do Smart Seed
+        </motion.h2>
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-3">
           {[
             {
               title: "Controle de Lotes",
@@ -30,28 +42,51 @@ const AboutSection = () => {
               desc: "Equipe pronta para ajudar você em todas as etapas.",
             },
           ].map((item, idx) => (
-            <div key={idx} className="bg-white p-6 rounded-xl shadow-md">
-              <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+            <motion.div
+              key={idx}
+              className="rounded-xl bg-white p-6 shadow-md"
+              initial={{ opacity: 0, y: 100 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              transition={{ duration: 0.6, delay: idx * 0.2 }}
+            >
+              <h3 className="mb-2 text-xl font-semibold">{item.title}</h3>
               <p className="text-gray-600">{item.desc}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
 
       {/* Como funciona */}
-      <section className="min-h-screen flex flex-col items-center justify-center py-16 px-4 bg-white text-center">
-        <h2 className="text-3xl font-bold mb-12">Como funciona?</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+      <section className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-16 text-center">
+        <motion.h2
+          className="mb-12 text-3xl font-bold"
+          initial={{ opacity: 0, x: -100 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -100 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          Como funciona?
+        </motion.h2>
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-4">
           {[
             "Cadastre seus lotes de produção",
             "Registre entradas e saídas de sementes",
             "Monitore validade e estoque",
             "Gere relatórios e etiquetas automaticamente",
           ].map((text, i) => (
-            <div key={i} className="p-6 border rounded-xl">
-              <span className="text-green text-4xl font-bold">{i + 1}</span>
+            <motion.div
+              key={i}
+              className="rounded-xl border p-6"
+              initial={{ opacity: 0, y: 100 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              transition={{ duration: 0.6, delay: i * 0.2 }}
+            >
+              <span className="text-4xl font-bold text-green">{i + 1}</span>
               <p className="mt-4 text-gray-700">{text}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>

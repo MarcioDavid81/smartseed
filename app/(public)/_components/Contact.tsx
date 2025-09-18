@@ -4,7 +4,10 @@ import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 import { FaSpinner } from "react-icons/fa";
 import { z } from "zod";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
 
+// Esquema de validação com Zod
 const contactSchema = z.object({
   user_name: z.string().min(1, "Nome é obrigatório"),
   user_email: z.string().email("Email inválido").min(1, "Email é obrigatório"),
@@ -72,12 +75,33 @@ const ContactSection = () => {
   return (
     <section id="contact" className="py-20 px-6 bg-white">
       <div className="max-w-xl mx-auto text-center">
-        <h3 className="text-3xl font-bold text-green mb-6">Entre em contato!</h3>
-        <p className="text-gray-700 mb-6">
+        <motion.h3
+          className="text-3xl font-bold text-green mb-6"
+          initial={{ opacity: 0, x: -100 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -100 }}
+          transition={{ duration: 0.6 }}
+        >
+          Entre em contato!
+        </motion.h3>
+        <motion.p
+          className="text-gray-700 mb-6"
+          initial={{ opacity: 0, x: -100 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -100 }}
+          transition={{ duration: 0.6 }}
+        >
           Preencha o formulário abaixo e entraremos em contato com você para apresentar o Smart Seed.
-        </p>
+        </motion.p>
 
-        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 text-left">
+        <motion.form
+          ref={formRef} onSubmit={handleSubmit} 
+          className="space-y-4 text-left"
+          initial={{ opacity: 0, y: 100 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 100 }}
+          transition={{ duration: 0.6 }}
+        >
           <div>
             <input
               type="text"
@@ -118,7 +142,7 @@ const ContactSection = () => {
           >
             {isSending ? <FaSpinner className="animate-spin" /> : "Enviar mensagem"}
           </button>
-        </form>
+        </motion.form>
 
         {success && (
           <p className="text-green mt-4">Mensagem enviada com sucesso!</p>
