@@ -1,9 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,11 +8,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { getToken } from "@/lib/auth-client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import InputMask from "react-input-mask";
-import { Label } from "@/components/ui/label";
-import { getToken } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { z } from "zod";
 
 interface NewCustomerModalProps {
   isOpen: boolean;
@@ -48,7 +49,7 @@ const customerSchema = z.object({
       (val) =>
         val.replace(/\D/g, "").length === 14 ||
         val.replace(/\D/g, "").length === 11,
-      "CPF ou CNPJ inválido"
+      "CPF ou CNPJ inválido",
     ),
 });
 
@@ -59,6 +60,7 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
   const [citiesList, setCitiesList] = useState<City[]>([]);
   const [loading, setLoading] = useState(false);
   const [cpfCnpj, setCpfCnpj] = useState("");
+  const [personType, setPersonType] = useState<"fisica" | "juridica">("fisica");
 
   const {
     register,
@@ -88,7 +90,7 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
   useEffect(() => {
     if (currentState) {
       fetch(
-        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${currentState}/municipios`
+        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${currentState}/municipios`,
       )
         .then((res) => res.json())
         .then((data: City[]) => {
@@ -144,7 +146,7 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
               <Label htmlFor="name">Nome</Label>
               <Input placeholder="Nome do cliente" {...register("name")} />
               {errors.name && (
-                <p className="text-red-500 text-xs">{errors.name.message}</p>
+                <p className="text-xs text-red-500">{errors.name.message}</p>
               )}
             </div>
             <div>
@@ -155,21 +157,21 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
                 {...register("email")}
               />
               {errors.email && (
-                <p className="text-red-500 text-xs">{errors.email.message}</p>
+                <p className="text-xs text-red-500">{errors.email.message}</p>
               )}
             </div>
             <div>
               <Label htmlFor="adress">Endereço</Label>
               <Input placeholder="Endereço" {...register("adress")} />
               {errors.adress && (
-                <p className="text-red-500 text-xs">{errors.adress.message}</p>
+                <p className="text-xs text-red-500">{errors.adress.message}</p>
               )}
             </div>
             <div>
               <Label htmlFor="state">Estado</Label>
               <select
                 {...register("state")}
-                className="border rounded px-3 py-2 text-sm text-muted-foreground w-full"
+                className="w-full rounded border px-3 py-2 text-sm text-muted-foreground"
               >
                 <option value="">Selecione o estado</option>
                 {statesList.map((uf) => (
@@ -179,7 +181,7 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
                 ))}
               </select>
               {errors.state && (
-                <p className="text-red-500 text-xs">{errors.state.message}</p>
+                <p className="text-xs text-red-500">{errors.state.message}</p>
               )}
             </div>
             <div>
@@ -187,7 +189,7 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
               <select
                 {...register("city")}
                 disabled={!currentState}
-                className="border rounded px-3 py-2 text-sm text-muted-foreground w-full"
+                className="w-full rounded border px-3 py-2 text-sm text-muted-foreground"
               >
                 <option value="">Selecione a cidade</option>
                 {citiesList.map((city) => (
@@ -197,7 +199,7 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
                 ))}
               </select>
               {errors.city && (
-                <p className="text-red-500 text-xs">{errors.city.message}</p>
+                <p className="text-xs text-red-500">{errors.city.message}</p>
               )}
             </div>
             <div>
@@ -222,18 +224,34 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
                 )}
               />
               {errors.phone && (
-                <p className="text-red-500 text-xs">{errors.phone.message}</p>
+                <p className="text-xs text-red-500">{errors.phone.message}</p>
               )}
             </div>
             <div>
-              <Label htmlFor="cpf_cnpj">CPF/CNPJ</Label>
+              <Label htmlFor="personType">Tipo de Pessoa</Label>
+              <RadioGroup
+                value={personType}
+                onValueChange={(value) =>
+                  setPersonType(value as "fisica" | "juridica")
+                }
+                className="flex gap-4 py-2"
+              >
+                <RadioGroupItem value="fisica" id="fisica" />
+                <Label htmlFor="fisica">Física</Label>
+                <RadioGroupItem value="juridica" id="juridica" />
+                <Label htmlFor="juridica">Jurídica</Label>
+              </RadioGroup>
+            </div>
+            <div>
+              <Label htmlFor="cpf_cnpj">
+                {personType === "juridica" ? "CNPJ" : "CPF"}
+              </Label>
               <Controller
                 control={control}
                 name="cpf_cnpj"
                 render={({ field }) => {
-                  const numeric = cpfCnpj.replace(/\D/g, "");
                   const mask =
-                    numeric.length < 15
+                    personType === "juridica"
                       ? "99.999.999/9999-99"
                       : "999.999.999-99";
                   return (
@@ -243,13 +261,15 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
                       onChange={(e) => {
                         const value = e.target.value;
                         setCpfCnpj(value);
-                        field.onChange(value); // sincroniza com react-hook-form
+                        field.onChange(value);
                       }}
                     >
                       {(inputProps: any) => (
                         <Input
                           {...inputProps}
-                          placeholder="CPF ou CNPJ"
+                          placeholder={
+                            personType === "juridica" ? "CNPJ" : "CPF"
+                          }
                           type="text"
                         />
                       )}
@@ -258,7 +278,7 @@ const NewCustomerModal = ({ isOpen, onClose }: NewCustomerModalProps) => {
                 }}
               />
               {errors.cpf_cnpj && (
-                <p className="text-red-500 text-xs">
+                <p className="text-xs text-red-500">
                   {errors.cpf_cnpj.message}
                 </p>
               )}
