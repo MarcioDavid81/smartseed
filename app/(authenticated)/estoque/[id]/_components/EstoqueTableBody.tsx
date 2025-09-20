@@ -11,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { TableCell, TableRow } from "@/components/ui/table";
 
 export default function EstoqueTableBody({ movements }: { movements: any[] }) {
   function renderTipoMovimentacao(tipo: string) {
@@ -41,20 +42,20 @@ export default function EstoqueTableBody({ movements }: { movements: any[] }) {
     <>
       {movementsState.map((mov) => {
         return (
-          <tr key={mov.id} className="bg-white border-b hover:bg-gray-50">
-            <td className="px-6 py-2">
+          <TableRow key={mov.id} className="bg-white border-b hover:bg-gray-50">
+            <TableCell className="px-6 py-2">
               {new Date(mov.date).toLocaleDateString()}
-            </td>
-            <td className="px-6 py-2">
+            </TableCell>
+            <TableCell className="px-6 py-2">
               {new Intl.NumberFormat("pt-BR", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               }).format(mov.quantity)}
-            </td>
-            <td className="whitespace-nowrap px-6 py-2">
+            </TableCell>
+            <TableCell className="whitespace-nowrap px-6 py-2">
               {renderTipoMovimentacao(mov.type)}
-            </td>
-            <td className="flex items-center justify-start gap-4 px-6 py-2">
+            </TableCell>
+            <TableCell className="flex items-center justify-start gap-4 px-6 py-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -70,8 +71,8 @@ export default function EstoqueTableBody({ movements }: { movements: any[] }) {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            </td>
-          </tr>
+            </TableCell>
+          </TableRow>
         );
       })}
     </>

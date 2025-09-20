@@ -5,6 +5,7 @@ import EstoqueTableBody from "./EstoqueTableBody";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Movement {
   id: string;
@@ -74,21 +75,19 @@ export default function StockDetailContent({
           Nenhuma movimentação encontrada.
         </p>
       ) : (
-        <ScrollArea className="h-[450px] w-full">
-          <table className="w-full font-light text-sm text-left text-gray-500">
-            <thead className="sticky top-0 text-sm text-gray-700 bg-gray-50">
-              <tr>
-                <th className="font-medium px-6 py-3">Data</th>
-                <th className="font-medium px-6 py-3">Quantidade</th>
-                <th className="font-medium px-6 py-3">Tipo de Movimentação</th>
-                <th className="font-medium px-6 py-3">Ação</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="w-full font-light text-sm text-left text-gray-500">
+            <TableHeader className="sticky top-0 text-sm text-gray-700 bg-gray-50">
+              <TableRow>
+                <TableHead className="font-medium px-6 py-3">Data</TableHead>
+                <TableHead className="font-medium px-6 py-3">Quantidade</TableHead>
+                <TableHead className="font-medium px-6 py-3">Tipo de Movimentação</TableHead>
+                <TableHead className="font-medium px-6 py-3">Ação</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-gray-200">
               <EstoqueTableBody movements={movements} />
-            </tbody>
-          </table>
-        </ScrollArea>
+            </TableBody>
+          </Table>
       )}
     </div>
   );
