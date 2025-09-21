@@ -7,12 +7,15 @@ import EstoqueDetalhado from "./_components/EstoqueDetalhado";
 import { getBaseUrl } from "@/app/_helpers/getBaseUrl";
 import GenerateExtractReportModal from "./_components/GenerateExtractReportModal";
 import NavItems from "../../_components/NavItems";
+import { ListStockDetailTable } from "./_components/ListStockDetailTable";
+
 
 interface StockDetailProps {
   params: {
     id: string;
   };
 }
+
 
 export default async function StockDetailPage({ params }: StockDetailProps) {
   const cookieStore = cookies();
@@ -65,10 +68,9 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
             <h1 className="text-2xl font-medium mb-4">Estoque</h1>
             <NavItems />
           </div>
-          <EstoqueDetalhado
-            cultivar={cultivar}
-            initialMovements={allMovements}
-          />
+          <div>            
+            <ListStockDetailTable allMovements={allMovements} cultivar={cultivar} />
+          </div>
           <div className="flex items-center justify-between mt-6">
             <GenerateExtractReportModal movements={allMovements} cultivarName={cultivar.name} />
             <Link href="/estoque">

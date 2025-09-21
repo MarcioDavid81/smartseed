@@ -5,7 +5,7 @@ import EstoqueTableBody from "./EstoqueTableBody";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Movement {
   id: string;
@@ -75,19 +75,34 @@ export default function StockDetailContent({
           Nenhuma movimentação encontrada.
         </p>
       ) : (
-          <Table className="w-full font-light text-sm text-left text-gray-500">
-            <TableHeader className="sticky top-0 text-sm text-gray-700 bg-gray-50">
-              <TableRow>
-                <TableHead className="font-medium px-6 py-3">Data</TableHead>
-                <TableHead className="font-medium px-6 py-3">Quantidade</TableHead>
-                <TableHead className="font-medium px-6 py-3">Tipo de Movimentação</TableHead>
-                <TableHead className="font-medium px-6 py-3">Ação</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y divide-gray-200">
-              <EstoqueTableBody movements={movements} />
-            </TableBody>
-          </Table>
+          <div className="rounded-md border w-full font-light text-sm text-left">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-medium px-6 py-3">Data</TableHead>
+                  <TableHead className="font-medium px-6 py-3">Quantidade</TableHead>
+                  <TableHead className="font-medium px-6 py-3">Tipo de Movimentação</TableHead>
+                  <TableHead className="font-medium px-6 py-3 text-center">Ação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-gray-200">
+                <EstoqueTableBody movements={movements} />
+              </TableBody>
+              <TableFooter className="text-muted-foreground bg-inherit">
+                <TableRow>
+                  <TableCell colSpan={3} className="font-medium px-6 py-3">
+                    Total de Movimentações: {movements.length}
+                  </TableCell>
+                  <TableCell className="text-center font-medium px-6 py-3">
+                    Estoque Atual: {new Intl.NumberFormat("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }).format(estoqueAtual)} kg
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </div>
       )}
     </div>
   );

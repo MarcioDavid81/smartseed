@@ -17,6 +17,7 @@ import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { getApiRouteFromTipo } from "@/app/_helpers/typeForRoute";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 interface DeleteMovementButtonProps {
@@ -63,7 +64,7 @@ export default function DeleteMovementButton({
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error("❌ Erro ao deletar descarte:", errorText);
+        console.error("❌ Erro ao deletar operação:", errorText);
         throw new Error(errorText);
       }
 
@@ -82,11 +83,20 @@ export default function DeleteMovementButton({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogTrigger asChild>
-        <button aria-label="Excluir movimentação">
-          <Trash2 size={18} className="text-red-600" />
-        </button>
-      </AlertDialogTrigger>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <AlertDialogTrigger asChild>
+              <button aria-label="Excluir movimentação">
+                <Trash2 size={18} className="text-red-600" />
+              </button>
+            </AlertDialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Excluir movimentação</p>
+          </TooltipContent>  
+        </Tooltip>
+      </TooltipProvider>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>

@@ -55,7 +55,7 @@ export default function EstoqueTableBody({ movements }: { movements: any[] }) {
             <TableCell className="whitespace-nowrap px-6 py-2">
               {renderTipoMovimentacao(mov.type)}
             </TableCell>
-            <TableCell className="flex items-center justify-start gap-4 px-6 py-2">
+            <TableCell className="flex items-center justify-center gap-4 px-6 py-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
