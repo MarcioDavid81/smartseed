@@ -8,13 +8,15 @@ import GenerateExtractReportModal from "./_components/GenerateExtractReportModal
 import NavItems from "../../_components/NavItems";
 import { ListStockDetailTable } from "./_components/ListStockDetailTable";
 import { Metadata } from "next";
+import { extractIdFromSlug } from "@/app/_helpers/slug";
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const id = extractIdFromSlug(params.slug);
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
   const baseUrl = getBaseUrl();
 
-  const res = await fetch(`${baseUrl}/api/cultivars/${params.id}`, {
+  const res = await fetch(`${baseUrl}/api/cultivars/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -42,13 +44,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 
 interface StockDetailProps {
-  params: {
-    id: string;
-  };
+  params: { slug: string };
 }
 
 
 export default async function StockDetailPage({ params }: StockDetailProps) {
+  const id = extractIdFromSlug(params.slug);
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -64,7 +65,7 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
 
   const baseUrl = getBaseUrl();
   const [cultivarRes, ...movementsRes] = await Promise.all([
-    fetch(`${baseUrl}/api/cultivars/${params.id}`, {
+    fetch(`${baseUrl}/api/cultivars/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
     ...endpoints.map((url) =>
@@ -82,7 +83,7 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
     await Promise.all(movementsRes.map((res) => res.json()))
   )
     .flat()
-    .filter((mov: any) => mov.cultivarId === params.id)
+    .filter((mov: any) => mov.cultivarId === id)
     .map((mov) => ({
       id: mov.id,
       date: mov.date,
