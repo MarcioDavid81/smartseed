@@ -44,15 +44,15 @@ const routes = [
     ],
   },
   {
-    name: "Movimentações",
-    icon: <FaTruck size={20} />,
+    name: "Sementes",
+    icon: <FaSeedling size={20} />,
     subRoutes: [
-      { path: "/movimentacoes/colheitas", name: "Colheita", icon: <GiFarmTractor size={16} />},
-      { path: "/movimentacoes/compras", name: "Compra", icon: <ShoppingCart size={16} /> },
-      { path: "/movimentacoes/vendas", name: "Venda", icon: <DollarSign size={16} /> },
-      { path: "/movimentacoes/consumos", name: "Consumo", icon: <TbTransferIn size={16} /> },
-      { path: "/movimentacoes/descartes", name: "Descarte", icon: <Trash2 size={16} /> },
-      { path: "/movimentacoes/cultivares", name: "Cultivares", icon: <FaSeedling size={16} /> },
+      { path: "/sementes/colheitas", name: "Colheita", icon: <GiFarmTractor size={16} />},
+      { path: "/sementes/compras", name: "Compra", icon: <ShoppingCart size={16} /> },
+      { path: "/sementes/vendas", name: "Venda", icon: <DollarSign size={16} /> },
+      { path: "/sementes/consumos", name: "Consumo", icon: <TbTransferIn size={16} /> },
+      { path: "/sementes/descartes", name: "Descarte", icon: <Trash2 size={16} /> },
+      { path: "/sementes/cultivares", name: "Cultivares", icon: <FaSeedling size={16} /> },
     ],
   },
   {

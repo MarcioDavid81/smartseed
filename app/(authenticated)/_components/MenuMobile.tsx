@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Scroll, Warehouse } from "lucide-react";
-import { FaHome, FaSeedling, FaTruck } from "react-icons/fa";
+import { FaHome, FaSeedling } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { PiFarm } from "react-icons/pi";
 import { useUser } from "@/contexts/UserContext";
@@ -41,15 +41,15 @@ const routes = [
     ],
   },
   {
-    name: "Movimentações",
-    icon: <FaTruck size={20} />,
+    name: "Sementes",
+    icon: <FaSeedling size={20} />,
     subRoutes: [
-      { path: "/movimentacoes/colheitas", name: "Colheita" },
-      { path: "/movimentacoes/compras", name: "Compra" },
-      { path: "/movimentacoes/vendas", name: "Venda" },
-      { path: "/movimentacoes/consumos", name: "Consumo" },
-      { path: "/movimentacoes/descartes", name: "Descarte" },
-      { path: "/movimentacoes/cultivares", name: "Cultivares" },
+      { path: "/sementes/colheitas", name: "Colheita" },
+      { path: "/sementes/compras", name: "Compra" },
+      { path: "/sementes/vendas", name: "Venda" },
+      { path: "/sementes/consumos", name: "Consumo" },
+      { path: "/sementes/descartes", name: "Descarte" },
+      { path: "/sementes/cultivares", name: "Cultivares" },
     ],
   },
   {
