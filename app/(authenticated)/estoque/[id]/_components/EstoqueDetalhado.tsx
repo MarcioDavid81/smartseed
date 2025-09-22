@@ -1,6 +1,5 @@
 "use client";
 
-import { ScrollArea } from "@/components/ui/scroll-area";
 import EstoqueTableBody from "./EstoqueTableBody";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";

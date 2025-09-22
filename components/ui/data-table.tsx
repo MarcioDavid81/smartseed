@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import CreateCultivarButton from "@/app/(authenticated)/sementes/_components/CreateCultivarButton";
+import CreateCultivarButton from "@/app/(authenticated)/movimentacoes/cultivares/_components/CreateCultivarBurron";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
