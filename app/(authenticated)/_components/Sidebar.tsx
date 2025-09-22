@@ -33,11 +33,6 @@ const routes = [
     icon: <AiOutlineDashboard size={20} />,
   },
   {
-    path: "/sementes",
-    name: "Sementes",
-    icon: <FaSeedling size={20} />,
-  },
-  {
     name: "Insumos",
     icon: <PiFarm size={20} />,
     subRoutes: [
@@ -57,6 +52,7 @@ const routes = [
       { path: "/movimentacoes/vendas", name: "Venda", icon: <DollarSign size={16} /> },
       { path: "/movimentacoes/consumos", name: "Consumo", icon: <TbTransferIn size={16} /> },
       { path: "/movimentacoes/descartes", name: "Descarte", icon: <Trash2 size={16} /> },
+      { path: "/movimentacoes/cultivares", name: "Cultivares", icon: <FaSeedling size={16} /> },
     ],
   },
   {

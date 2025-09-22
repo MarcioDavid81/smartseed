@@ -30,11 +30,6 @@ const routes = [
     icon: <AiOutlineDashboard size={20} />,
   },
   {
-    path: "/sementes",
-    name: "Sementes",
-    icon: <FaSeedling size={20} />,
-  },
-  {
     name: "Insumos",
     icon: <PiFarm size={20} />,
     subRoutes: [
@@ -54,6 +49,7 @@ const routes = [
       { path: "/movimentacoes/vendas", name: "Venda" },
       { path: "/movimentacoes/consumos", name: "Consumo" },
       { path: "/movimentacoes/descartes", name: "Descarte" },
+      { path: "/movimentacoes/cultivares", name: "Cultivares" },
     ],
   },
   {

@@ -3,11 +3,42 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import HoverButton from "@/components/HoverButton";
 import Link from "next/link";
-import EstoqueDetalhado from "./_components/EstoqueDetalhado";
 import { getBaseUrl } from "@/app/_helpers/getBaseUrl";
 import GenerateExtractReportModal from "./_components/GenerateExtractReportModal";
 import NavItems from "../../_components/NavItems";
 import { ListStockDetailTable } from "./_components/ListStockDetailTable";
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const cookieStore = cookies();
+  const token = cookieStore.get("token")?.value;
+  const baseUrl = getBaseUrl();
+
+  const res = await fetch(`${baseUrl}/api/cultivars/${params.id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    return {
+      title: "Estoque",
+    };
+  }
+
+  const cultivar = await res.json();
+
+  return {
+    title: `Estoque de ${cultivar.name}`,
+    keywords: [
+      "produção de sementes",
+      "gestão de sementeiras",
+      "controle de produção e estoque de sementes",
+    ],
+    description: "O seu sistema de gestão de produção de sementes",
+    authors: [
+      { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    ],
+  };
+}
 
 
 interface StockDetailProps {
