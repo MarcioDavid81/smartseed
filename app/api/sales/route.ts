@@ -2,6 +2,7 @@ import { validateStock } from "@/app/_helpers/validateStock";
 import { verifyToken } from "@/lib/auth";
 import { canCompanyAddSale } from "@/lib/permissions/canCompanyAddSale";
 import { db } from "@/lib/prisma";
+import { PaymentCondition } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -41,22 +42,22 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function POST(req: NextRequest) {
   const allowed = await canCompanyAddSale();
-          if(!allowed) {
-            return Response.json(
-              {
-                error:
-                  "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
-              },
-              { status: 403 }
-            )
-          }
+  if (!allowed) {
+    return Response.json(
+      {
+        error:
+          "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
+      },
+      { status: 403 },
+    );
+  }
 
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
       { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -79,19 +80,21 @@ export async function POST(req: NextRequest) {
       saleValue,
       notes,
       cycleId,
+      paymentCondition,
+      dueDate,
     } = await req.json();
 
     if (!cultivarId || !date || !quantityKg || !companyId) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!cultivarId || !date || !quantityKg) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -109,8 +112,23 @@ export async function POST(req: NextRequest) {
         notes,
         companyId,
         cycleId,
+        paymentCondition,
+        dueDate: dueDate ? new Date(dueDate) : null,
       },
     });
+    //Se for a prazo → cria conta a receber
+    if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+      await db.accountReceivable.create({
+        data: {
+          description: `Venda de semente - NF ${invoiceNumber}`,
+          amount: saleValue,
+          dueDate: new Date(dueDate),
+          companyId,
+          customerId,
+          saleExitId: sales.id,
+        },
+      });
+    }
     console.log("Atualizando estoque da cultivar:", cultivarId);
     // Atualiza o estoque da cultivar
     await db.cultivar.update({
@@ -176,7 +194,7 @@ export async function GET(req: NextRequest) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
       { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 

@@ -1,6 +1,7 @@
 import { adjustStockWhenDeleteMov } from "@/app/_helpers/adjustStockWhenDeleteMov";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { PaymentCondition } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -54,7 +55,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Atualizar venda
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -72,6 +73,8 @@ export async function PUT(
       invoiceNumber,
       saleValue,
       notes,
+      paymentCondition,
+      dueDate,
     } = await req.json();
 
     // ✅ Tratamento de campos opcionais
@@ -84,9 +87,12 @@ export async function PUT(
     const parsedNotes = notes && notes !== "" ? notes : null;
 
     // Buscar o venda para garantir que pertence à empresa do usuário
-    const existing = await db.saleExit.findUnique({ where: { id } });
+    const existingSale = await db.saleExit.findUnique({
+      where: { id },
+      include: { accountReceivable: true },
+    });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existingSale || existingSale.companyId !== payload.companyId) {
       return new NextResponse("Venda não encontrado ou acesso negado", {
         status: 403,
       });
@@ -94,15 +100,15 @@ export async function PUT(
 
     // Se quantidade ou cultivar mudarem, ajustar o estoque
     if (
-      existing.quantityKg !== quantityKg ||
-      existing.cultivarId !== cultivarId
+      existingSale.quantityKg !== quantityKg ||
+      existingSale.cultivarId !== cultivarId
     ) {
       // Reverter estoque anterior
       await db.cultivar.update({
-        where: { id: existing.cultivarId },
+        where: { id: existingSale.cultivarId },
         data: {
           stock: {
-            increment: existing.quantityKg,
+            increment: existingSale.quantityKg,
           },
         },
       });
@@ -118,8 +124,8 @@ export async function PUT(
       });
     }
 
-    // Atualizar estoque
-    const updated = await db.saleExit.update({
+    // Atualizar venda
+    const updatedSaleExit = await db.saleExit.update({
       where: { id },
       data: {
         cultivarId,
@@ -129,10 +135,43 @@ export async function PUT(
         invoiceNumber: parsedInvoiceNumber,
         saleValue: parsedSaleValue,
         notes: parsedNotes,
+        paymentCondition,
+        dueDate: dueDate ? new Date(dueDate) : null,
       },
     });
+    //sincronizar AccountReceivable
+    if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+      if (existingSale.accountReceivable) {
+        await db.accountReceivable.update({
+          where: { id: existingSale.accountReceivable.id },
+          data: {
+            description: `Venda de semente - NF ${invoiceNumber}`,
+            amount: saleValue,
+            dueDate: new Date(dueDate),
+          },
+        });
+      } else {
+        await db.accountReceivable.create({
+          data: {
+            description: `Venda de semente - NF ${invoiceNumber}`,
+            amount: saleValue,
+            dueDate: new Date(dueDate),
+            companyId: existingSale.companyId,
+            customerId,
+            saleExitId: updatedSaleExit.id,
+          },
+        });
+      }
+    } else {
+      // Se mudou para AVISTA → apaga a conta vinculada
+      if (existingSale.accountReceivable) {
+        await db.accountReceivable.delete({
+          where: { id: existingSale.accountReceivable.id },
+        });
+      }
+    }
 
-    return NextResponse.json(updated);
+    return NextResponse.json(updatedSaleExit);
   } catch (error) {
     console.error("Erro ao atualizar venda:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });
@@ -169,7 +208,7 @@ export async function PUT(
 // Deletar venda
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -181,9 +220,9 @@ export async function DELETE(
     const { id } = params;
 
     // Buscar o venda para garantir que pertence à empresa do usuário
-    const existing = await db.saleExit.findUnique({ where: { id } });
+    const existingSale = await db.saleExit.findUnique({ where: { id }, include: { accountReceivable: true } });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existingSale || existingSale.companyId !== payload.companyId) {
       return new NextResponse("Venda não encontrado ou acesso negado", {
         status: 403,
       });
@@ -191,11 +230,18 @@ export async function DELETE(
 
     await adjustStockWhenDeleteMov(
       "venda",
-      existing.cultivarId,
-      existing.quantityKg
+      existingSale.cultivarId,
+      existingSale.quantityKg,
     );
 
     const deleted = await db.saleExit.delete({ where: { id } });
+
+    //sincronizar accountReceivable
+    if (existingSale.accountReceivable) {
+      await db.accountReceivable.delete({
+        where: { id: existingSale.accountReceivable.id },
+      });
+    }
 
     return NextResponse.json(deleted);
   } catch (error) {
@@ -207,7 +253,7 @@ export async function DELETE(
 // Buscar venda
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -219,15 +265,15 @@ export async function GET(
     const { id } = params;
 
     // Buscar o venda para garantir que pertence à empresa do usuário
-    const venda = await db.saleExit.findUnique({ where: { id } });
+    const existingSale = await db.saleExit.findUnique({ where: { id } });
 
-    if (!venda || venda.companyId !== payload.companyId) {
+    if (!existingSale || existingSale.companyId !== payload.companyId) {
       return new NextResponse("Venda não encontrado ou acesso negado", {
         status: 403,
       });
     }
 
-    return NextResponse.json(venda);
+    return NextResponse.json(existingSale);
   } catch (error) {
     console.error("Erro ao buscar venda:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });
