@@ -31,6 +31,15 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { getCycle } from "@/lib/cycle";
 import { NumericFormat } from "react-number-format";
+import { PaymentCondition } from "@prisma/client";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UpsertBuyModalProps {
   compra?: Buy;
@@ -48,6 +57,8 @@ const buySchema = z.object({
   unityPrice: z.coerce.number().min(1, "Preço unitário é obrigatório"),
   quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
   notes: z.string(),
+  paymentCondition: z.nativeEnum(PaymentCondition),
+  dueDate: z.string().min(1, "Selecione uma data de vencimento"),
 });
 
 type BuyFormData = z.infer<typeof buySchema>;
@@ -76,6 +87,10 @@ const UpsertBuyModal = ({
       unityPrice: compra?.unityPrice ?? 0,
       quantityKg: compra?.quantityKg ?? 0,
       notes: compra?.notes ?? "",
+      paymentCondition: compra?.paymentCondition ?? "AVISTA",
+      dueDate: compra?.dueDate
+        ? new Date(compra.dueDate).toISOString().split("T")[0]
+        : "",
     },
   });
 
@@ -104,6 +119,10 @@ const UpsertBuyModal = ({
         unityPrice: compra.unityPrice,
         quantityKg: compra.quantityKg,
         notes: compra.notes || "",
+        paymentCondition: compra.paymentCondition ?? "AVISTA",
+        dueDate: compra.dueDate
+          ? new Date(compra.dueDate).toISOString().split("T")[0]
+          : "",
       });
     } else {
       form.reset();
@@ -206,6 +225,8 @@ const UpsertBuyModal = ({
     if (!isOpen) form.reset();
   }, [isOpen, form]);
 
+  const paymentCondition = form.watch("paymentCondition");
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -218,53 +239,54 @@ const UpsertBuyModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="cultivarId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cultivar</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="w-full rounded border px-2 py-1"
-                      >
-                        <option value="">Selecione</option>
-                        {cultivars.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="customerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fornecedor</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="w-full rounded border px-2 py-1"
-                      >
-                        <option value="">Selecione</option>
-                        {customers.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="cultivarId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cultivar</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="w-full rounded border px-2 py-1"
+                        >
+                          <option value="">Selecione</option>
+                          {cultivars.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="customerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fornecedor</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="w-full rounded border px-2 py-1"
+                        >
+                          <option value="">Selecione</option>
+                          {customers.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -339,6 +361,35 @@ const UpsertBuyModal = ({
               <div>
                 <label className="text-sm font-medium">Valor Total</label>
                 <Input type="text" value={totalPrice} disabled />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="paymentCondition">Condição de Pagamento</Label>
+                  <Select
+                    onValueChange={(value: "AVISTA" | "APRAZO") =>
+                      form.setValue("paymentCondition", value)
+                    }
+                    defaultValue={form.getValues("paymentCondition")}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a condição" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AVISTA">À Vista</SelectItem>
+                      <SelectItem value="APRAZO">À Prazo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {paymentCondition  === "APRAZO" && (
+                  <div>
+                    <Label htmlFor="installments">Data de Vencimento</Label>
+                    <Input
+                      type="date"
+                      {...form.register("dueDate")}
+                    />
+                  </div>
+                )}
               </div>
 
               <FormField

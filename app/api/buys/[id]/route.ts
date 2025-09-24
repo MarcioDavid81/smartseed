@@ -218,7 +218,7 @@ export async function DELETE(
     const { id } = params;
 
     // Buscar o compra para garantir que pertence à empresa do usuário
-    const existing = await db.buy.findUnique({ where: { id } });
+    const existing = await db.buy.findUnique({ where: { id }, include: { accountPayable: true } });
 
     if (!existing || existing.companyId !== payload.companyId) {
       return new NextResponse("Compra não encontrada ou acesso negado", {
@@ -233,6 +233,13 @@ export async function DELETE(
     );
 
     const deleted = await db.buy.delete({ where: { id } });
+
+    //sincronizar accountPayable
+    if (existing.accountPayable) {
+      await db.accountPayable.delete({
+        where: { id: existing.accountPayable.id },
+      })
+    }
 
     return NextResponse.json(deleted);
   } catch (error) {

@@ -51,9 +51,9 @@ export async function POST(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const { name, startDate, endDate } = await req.json();
+    const { name, productType, startDate, endDate } = await req.json();
 
-    if (!name || !startDate || !endDate) {
+    if (!name || !productType || !startDate || !endDate) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
         { status: 400 }
@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
     const cycle = await db.productionCycle.create({
       data: {
         name,
+        productType,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         companyId,

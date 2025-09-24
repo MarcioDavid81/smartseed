@@ -1,8 +1,9 @@
-import { Beneficiation, Buy, ConsumptionExit, Harvest, SaleExit } from "@prisma/client";
+import { Beneficiation, Buy, ConsumptionExit, Harvest, ProductType, SaleExit } from "@prisma/client";
 
 export interface Cycle {
     id: string;
     name: string;
+    productType: ProductType;
     startDate: Date;
     endDate: Date;
     isActive: boolean;
