@@ -1,3 +1,5 @@
+import { AccountPayable, PaymentCondition } from "@prisma/client"
+
 export interface Buy {
     id: string
     cultivarId: string
@@ -9,7 +11,7 @@ export interface Buy {
     invoice: string
     unityPrice: number
     totalPrice: number
-    customerId?: string
+    customerId: string
     customer: {
         id: string
         name: string
@@ -17,6 +19,9 @@ export interface Buy {
     quantityKg: number
     notes?: string
     companyId: string
-    cycleId: string
+    cycleId?: string | null
+    paymentCondition?: PaymentCondition
+    dueDate?: Date
+    accountPayable?: AccountPayable | null
     createdAt: Date
 }

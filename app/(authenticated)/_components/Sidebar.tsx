@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FaHome, FaSeedling, FaTruck } from "react-icons/fa";
+import { FaHome, FaSeedling } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { useState } from "react";
 import { DollarSign, PanelRightOpen, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch } from "lucide-react";

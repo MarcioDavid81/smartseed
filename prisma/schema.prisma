@@ -15,26 +15,28 @@ datasource db {
 
 // empresa
 model Company {
-  id               String            @id @default(uuid())
-  name             String
-  plan             Plan?             @default(BASIC)
-  farms            Farm[]
-  users            User[]
-  customers        Customer[]
-  cultivars        Cultivar[]
-  talhoes          Talhao[]
-  harvests         Harvest[]
-  beneficiations   Beneficiation[]
-  buys             Buy[]
-  consumptionsExit ConsumptionExit[]
-  salesExit        SaleExit[]
-  products         Product[]
-  purchases        Purchase[]
-  transfers        TransferExit[]
-  applications     Application[]
-  productStocks    ProductStock[]
-  productionCycles ProductionCycle[]
-  createdAt        DateTime          @default(now())
+  id                 String              @id @default(uuid())
+  name               String
+  plan               Plan?               @default(BASIC)
+  farms              Farm[]
+  users              User[]
+  customers          Customer[]
+  cultivars          Cultivar[]
+  talhoes            Talhao[]
+  harvests           Harvest[]
+  beneficiations     Beneficiation[]
+  buys               Buy[]
+  consumptionsExit   ConsumptionExit[]
+  salesExit          SaleExit[]
+  products           Product[]
+  purchases          Purchase[]
+  transfers          TransferExit[]
+  applications       Application[]
+  productStocks      ProductStock[]
+  productionCycles   ProductionCycle[]
+  accountsPayable    AccountPayable[]
+  accountsReceivable AccountReceivable[]
+  createdAt          DateTime            @default(now())
 }
 
 // fazenda
@@ -80,20 +82,22 @@ enum Role {
 
 // clientes
 model Customer {
-  id        String     @id @default(uuid())
-  name      String
-  email     String?
-  adress    String?
-  city      String?
-  state     String?
-  phone     String?
-  cpf_cnpj  String?    @unique
-  company   Company    @relation(fields: [companyId], references: [id])
-  companyId String
-  sales     SaleExit[]
-  buys      Buy[]
-  purchases Purchase[]
-  createdAt DateTime   @default(now())
+  id                 String              @id @default(uuid())
+  name               String
+  email              String?
+  adress             String?
+  city               String?
+  state              String?
+  phone              String?
+  cpf_cnpj           String?             @unique
+  company            Company             @relation(fields: [companyId], references: [id])
+  companyId          String
+  sales              SaleExit[]
+  buys               Buy[]
+  purchases          Purchase[]
+  accountsReceivable AccountReceivable[]
+  accountsPayable    AccountPayable[]
+  createdAt          DateTime            @default(now())
 }
 
 // enums para produtos
@@ -173,23 +177,26 @@ model Harvest {
 
 //compras
 model Buy {
-  id         String           @id @default(cuid())
-  cultivarId String
-  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
-  date       DateTime
-  invoice    String
-  unityPrice Float
-  totalPrice Float
-  customerId String
-  customer   Customer         @relation(fields: [customerId], references: [id])
-  quantityKg Float
-  notes      String?
-  companyId  String
-  company    Company          @relation(fields: [companyId], references: [id])
-  type       OperationType    @default(Compra)
-  cycleId    String?
-  cycle      ProductionCycle? @relation(fields: [cycleId], references: [id])
-  createdAt  DateTime         @default(now())
+  id               String            @id @default(cuid())
+  cultivarId       String
+  cultivar         Cultivar          @relation(fields: [cultivarId], references: [id])
+  date             DateTime
+  invoice          String
+  unityPrice       Float
+  totalPrice       Float
+  customerId       String
+  customer         Customer          @relation(fields: [customerId], references: [id])
+  quantityKg       Float
+  notes            String?
+  companyId        String
+  company          Company           @relation(fields: [companyId], references: [id])
+  type             OperationType     @default(Compra)
+  cycleId          String?
+  cycle            ProductionCycle?  @relation(fields: [cycleId], references: [id])
+  paymentCondition PaymentCondition?
+  dueDate          DateTime? // só se for a prazo
+  accountPayable   AccountPayable?
+  createdAt        DateTime          @default(now())
 }
 
 // beneficiamento
@@ -228,22 +235,25 @@ model ConsumptionExit {
 
 //venda
 model SaleExit {
-  id            String           @id @default(cuid())
-  cultivarId    String
-  cultivar      Cultivar         @relation(fields: [cultivarId], references: [id])
-  date          DateTime
-  quantityKg    Float
-  customerId    String?
-  customer      Customer?        @relation(fields: [customerId], references: [id])
-  invoiceNumber String?
-  saleValue     Float?
-  notes         String?
-  companyId     String
-  company       Company          @relation(fields: [companyId], references: [id])
-  type          OperationType    @default(Venda)
-  cycleId       String?
-  cycle         ProductionCycle? @relation(fields: [cycleId], references: [id])
-  createdAt     DateTime         @default(now())
+  id                String             @id @default(cuid())
+  cultivarId        String
+  cultivar          Cultivar           @relation(fields: [cultivarId], references: [id])
+  date              DateTime
+  quantityKg        Float
+  customerId        String?
+  customer          Customer?          @relation(fields: [customerId], references: [id])
+  invoiceNumber     String?
+  saleValue         Float?
+  notes             String?
+  companyId         String
+  company           Company            @relation(fields: [companyId], references: [id])
+  type              OperationType      @default(Venda)
+  cycleId           String?
+  cycle             ProductionCycle?   @relation(fields: [cycleId], references: [id])
+  paymentCondition  PaymentCondition?
+  dueDate           DateTime? // só se for a prazo
+  accountReceivable AccountReceivable?
+  createdAt         DateTime           @default(now())
 }
 
 //safras/ciclos
@@ -333,26 +343,29 @@ model ProductStock {
 
 //compras
 model Purchase {
-  id            String              @id @default(cuid())
-  productId     String
-  product       Product             @relation(fields: [productId], references: [id])
-  date          DateTime
-  quantity      Float
-  invoiceNumber String
-  unitPrice     Float
-  totalPrice    Float
-  customerId    String
-  customer      Customer            @relation(fields: [customerId], references: [id])
-  notes         String?
-  farmId        String
-  farm          Farm                @relation(fields: [farmId], references: [id])
-  companyId     String
-  company       Company             @relation(fields: [companyId], references: [id])
-  type          InsumoOperationType @default(COMPRA)
-  cycleId       String?
-  cycle         ProductionCycle?    @relation(fields: [cycleId], references: [id])
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  id               String              @id @default(cuid())
+  productId        String
+  product          Product             @relation(fields: [productId], references: [id])
+  date             DateTime
+  quantity         Float
+  invoiceNumber    String
+  unitPrice        Float
+  totalPrice       Float
+  customerId       String
+  customer         Customer            @relation(fields: [customerId], references: [id])
+  notes            String?
+  farmId           String
+  farm             Farm                @relation(fields: [farmId], references: [id])
+  companyId        String
+  company          Company             @relation(fields: [companyId], references: [id])
+  type             InsumoOperationType @default(COMPRA)
+  cycleId          String?
+  cycle            ProductionCycle?    @relation(fields: [cycleId], references: [id])
+  paymentCondition PaymentCondition?
+  dueDate          DateTime?
+  accountPayable   AccountPayable?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 }
 
 //transferências
@@ -392,4 +405,68 @@ model Application {
   cycle          ProductionCycle?    @relation(fields: [cycleId], references: [id])
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+}
+
+//MÓDULO FINANCEIRO
+
+//condicao de pagamento
+enum PaymentCondition {
+  AVISTA
+  APRAZO
+}
+
+//status da conta
+enum AccountStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELED
+}
+
+//conta a pagar
+model AccountPayable {
+  id          String        @id @default(cuid())
+  description String
+  amount      Float
+  dueDate     DateTime
+  paymentDate DateTime?
+  status      AccountStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  // Relacionamentos opcionais
+  buyId String? @unique
+  buy   Buy?    @relation(fields: [buyId], references: [id])
+
+  purchaseId String?   @unique
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
+
+  // relacionamento com cliente
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+}
+
+//conta a receber
+model AccountReceivable {
+  id           String        @id @default(cuid())
+  description  String
+  amount       Float
+  dueDate      DateTime
+  receivedDate DateTime?
+  status       AccountStatus @default(PENDING)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  saleExitId String?   @unique
+  saleExit   SaleExit? @relation(fields: [saleExitId], references: [id])
+
+  // relacionamento com cliente
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
 }

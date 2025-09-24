@@ -2,6 +2,7 @@ import { adjustStockWhenDeleteMov } from "@/app/_helpers/adjustStockWhenDeleteMo
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { PaymentCondition } from "@prisma/client"
 
 /**
  * @swagger
@@ -75,10 +76,15 @@ export async function PUT(
       customerId,
       quantityKg,
       notes,
+      paymentCondition,
+      dueDate,
     } = await req.json();
 
     // Buscar o compra para garantir que pertence à empresa do usuário
-    const existing = await db.buy.findUnique({ where: { id } });
+    const existing = await db.buy.findUnique({
+      where: { id },
+      include: { accountPayable: true },
+    })
 
     if (!existing || existing.companyId !== payload.companyId) {
       return new NextResponse("Compra não encontrada ou acesso negado", {
@@ -112,8 +118,8 @@ export async function PUT(
       });
     }
 
-    // Atualizar estoque
-    const updated = await db.buy.update({
+    // Atualizar compra
+    const updatedBuy = await db.buy.update({
       where: { id },
       data: {
         cultivarId,
@@ -124,10 +130,46 @@ export async function PUT(
         customerId,
         quantityKg,
         notes,
+        paymentCondition,
+        dueDate: dueDate ? new Date(dueDate) : null,
       },
     });
+    // Sincronizar AccountPayable
+    if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+      if (existing.accountPayable) {
+        // Atualiza conta existente
+        await db.accountPayable.update({
+          where: { id: existing.accountPayable.id },
+          data: {
+            description: `Compra de semente - NF ${invoice}`,
+            amount: totalPrice,
+            dueDate: new Date(dueDate),
+            customerId,
+          },
+        })
+      } else {
+        // Cria nova conta
+        await db.accountPayable.create({
+          data: {
+            description: `Compra de semente - NF ${invoice}`,
+            amount: totalPrice,
+            dueDate: new Date(dueDate),
+            companyId: payload.companyId,
+            customerId,
+            buyId: updatedBuy.id,
+          },
+        })
+      }
+    } else {
+      // Se mudou para AVISTA → apaga a conta vinculada
+      if (existing.accountPayable) {
+        await db.accountPayable.delete({
+          where: { id: existing.accountPayable.id },
+        })
+      }
+    } 
 
-    return NextResponse.json(updated);
+    return NextResponse.json(updatedBuy);
   } catch (error) {
     console.error("Erro ao atualizar compra:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });

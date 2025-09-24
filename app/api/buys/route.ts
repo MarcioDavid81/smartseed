@@ -2,6 +2,7 @@ import { verifyToken } from "@/lib/auth";
 import { canCompanyAddPurchase } from "@/lib/permissions/canCompanyAddPurchase";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { PaymentCondition } from "@prisma/client"
 
 /**
  * @swagger
@@ -78,19 +79,21 @@ export async function POST(req: NextRequest) {
       unityPrice,
       totalPrice,
       customerId,
-      quantityKg,
+      quantityKg, 
       cycleId,
       notes,
+      paymentCondition,
+      dueDate,
     } = await req.json();
 
-    if (!cultivarId || !date || !invoice || !quantityKg) {
+    if (!cultivarId || !date || !invoice || !quantityKg || !customerId) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
         { status: 400 }
       );
     }
 
-    const buys = await db.buy.create({
+    const buy = await db.buy.create({
       data: {
         cultivarId,
         date: new Date(date),
@@ -102,8 +105,23 @@ export async function POST(req: NextRequest) {
         notes,
         companyId,
         cycleId,
+        paymentCondition,
+        dueDate: dueDate ? new Date(dueDate) : null,
       },
     });
+    // Se for a prazo → cria conta a pagar
+    if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+      await db.accountPayable.create({
+        data: {
+          description: `Compra de semente - NF ${invoice}`,
+          amount: totalPrice,
+          dueDate: new Date(dueDate),
+          companyId,
+          customerId,
+          buyId: buy.id,
+        },
+      });
+    }
     console.log("Atualizando estoque da cultivar:", cultivarId);
     // Atualiza o estoque da cultivar
     await db.cultivar.update({
@@ -115,7 +133,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(buys, { status: 201 });
+    return NextResponse.json(buy, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar compra:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
