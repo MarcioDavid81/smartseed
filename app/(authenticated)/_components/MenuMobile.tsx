@@ -10,7 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Scroll, Warehouse } from "lucide-react";
+import { ChartNoAxesCombined, Menu, Scroll, Warehouse } from "lucide-react";
 import { FaHome, FaSeedling } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { PiFarm } from "react-icons/pi";
@@ -56,6 +56,11 @@ const routes = [
     path: "/estoque",
     name: "Estoque",
     icon: <Warehouse size={20} />,
+  },
+  {
+    path: "/financeiro",
+    name: "Financeiro",
+    icon: <ChartNoAxesCombined size={20} />,
   },
   {
     name: "Cadastros",

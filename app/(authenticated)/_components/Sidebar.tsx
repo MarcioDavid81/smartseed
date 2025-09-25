@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FaHome, FaSeedling } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { useState } from "react";
-import { DollarSign, PanelRightOpen, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch } from "lucide-react";
+import { DollarSign, PanelRightOpen, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch, ChartNoAxesCombined } from "lucide-react";
 import { PiFarm } from "react-icons/pi";
 import {
   Tooltip,
@@ -59,6 +59,11 @@ const routes = [
     path: "/estoque",
     name: "Estoque",
     icon: <Warehouse size={20} />,
+  },
+  {
+    path: "/financeiro",
+    name: "Financeiro",
+    icon: <ChartNoAxesCombined size={20} />,
   },
   {
     name: "Cadastros",
