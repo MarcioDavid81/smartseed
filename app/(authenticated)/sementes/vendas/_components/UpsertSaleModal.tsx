@@ -18,6 +18,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
@@ -25,6 +27,7 @@ import { Cultivar } from "@/types";
 import { Customer } from "@/types/customers";
 import { Sale } from "@/types/sale";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PaymentCondition } from "@prisma/client";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -48,6 +51,8 @@ const saleSchema = z.object({
   quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
   saleValue: z.coerce.number().min(1, "Preço total é obrigatório"),
   notes: z.string(),
+  paymentCondition: z.nativeEnum(PaymentCondition),
+  dueDate: z.string().min(1, "Selecione uma data de vencimento"),
 });
 
 type SaleFormData = z.infer<typeof saleSchema>;
@@ -75,6 +80,10 @@ const UpsertSaleModal = ({
       saleValue: venda?.saleValue ?? 0,
       quantityKg: venda?.quantityKg ?? 0,
       notes: venda?.notes ?? "",
+      paymentCondition: venda?.paymentCondition ?? PaymentCondition.AVISTA,
+      dueDate: venda?.dueDate
+        ? new Date(venda.dueDate).toISOString().split("T")[0]
+        : "",
     },
   });
 
@@ -93,6 +102,10 @@ const UpsertSaleModal = ({
       saleValue: venda?.saleValue ?? 0,
       quantityKg: venda?.quantityKg ?? 0,
       notes: venda?.notes ?? "",
+      paymentCondition: venda?.paymentCondition ?? PaymentCondition.AVISTA,
+      dueDate: venda?.dueDate
+        ? new Date(venda.dueDate).toISOString().split("T")[0]
+        : "",
     },
   });
 
@@ -106,6 +119,10 @@ const UpsertSaleModal = ({
         saleValue: venda.saleValue,
         quantityKg: venda.quantityKg,
         notes: venda.notes || "",
+        paymentCondition: venda.paymentCondition ?? PaymentCondition.AVISTA,
+        dueDate: venda?.dueDate
+          ? new Date(venda.dueDate).toISOString().split("T")[0]
+          : "",
       });
     } else {
       reset();
@@ -199,6 +216,8 @@ const UpsertSaleModal = ({
   useEffect(() => {
     if (!isOpen) reset();
   }, [isOpen, reset]);
+
+  const paymentCondition = form.watch("paymentCondition");
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -320,6 +339,35 @@ const UpsertSaleModal = ({
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="paymentCondition">Condição de Pagamento</Label>
+                  <Select
+                    onValueChange={(value: PaymentCondition) =>
+                      form.setValue("paymentCondition", value)
+                    }
+                    defaultValue={form.getValues("paymentCondition")}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a condição" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AVISTA">À Vista</SelectItem>
+                      <SelectItem value="APRAZO">À Prazo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {paymentCondition  === "APRAZO" && (
+                  <div>
+                    <Label htmlFor="installments">Data de Vencimento</Label>
+                    <Input
+                      type="date"
+                      {...form.register("dueDate")}
+                    />
+                  </div>
+                )}
               </div>
 
               <FormField

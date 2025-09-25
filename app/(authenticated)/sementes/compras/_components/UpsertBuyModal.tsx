@@ -87,7 +87,7 @@ const UpsertBuyModal = ({
       unityPrice: compra?.unityPrice ?? 0,
       quantityKg: compra?.quantityKg ?? 0,
       notes: compra?.notes ?? "",
-      paymentCondition: compra?.paymentCondition ?? "AVISTA",
+      paymentCondition: compra?.paymentCondition ?? PaymentCondition.AVISTA,
       dueDate: compra?.dueDate
         ? new Date(compra.dueDate).toISOString().split("T")[0]
         : "",
@@ -119,7 +119,7 @@ const UpsertBuyModal = ({
         unityPrice: compra.unityPrice,
         quantityKg: compra.quantityKg,
         notes: compra.notes || "",
-        paymentCondition: compra.paymentCondition ?? "AVISTA",
+        paymentCondition: compra.paymentCondition ?? PaymentCondition.AVISTA,
         dueDate: compra.dueDate
           ? new Date(compra.dueDate).toISOString().split("T")[0]
           : "",
@@ -367,7 +367,7 @@ const UpsertBuyModal = ({
                 <div>
                   <Label htmlFor="paymentCondition">Condição de Pagamento</Label>
                   <Select
-                    onValueChange={(value: "AVISTA" | "APRAZO") =>
+                    onValueChange={(value: PaymentCondition) =>
                       form.setValue("paymentCondition", value)
                     }
                     defaultValue={form.getValues("paymentCondition")}
