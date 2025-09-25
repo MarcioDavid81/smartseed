@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import NavItems from "../_components/NavItems";
+import FinanceContent from "./_components/finance-content";
 
 export const metadata: Metadata = {
   title: "Financeiro",
@@ -23,6 +24,7 @@ export default async function FinancialPage() {
             <h1 className="text-2xl font-medium mb-4">Financeiro</h1>
             <NavItems />
           </div>
+          <FinanceContent />
         </main>
       </div>
     </div>
