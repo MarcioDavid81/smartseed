@@ -1,7 +1,9 @@
 import { verifyToken } from "@/lib/auth";
 import { canCompanyAddPurchase } from "@/lib/permissions/canCompanyAddPurchase";
 import { db } from "@/lib/prisma";
+import { PaymentCondition } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+
 
 /**
  * @swagger
@@ -83,6 +85,8 @@ export async function POST(req: NextRequest) {
       quantity,
       farmId,
       notes,
+      paymentCondition,
+      dueDate,
     } = await req.json();
 
     if (!productId || !date || !invoiceNumber || !quantity || !farmId) {
@@ -106,8 +110,35 @@ export async function POST(req: NextRequest) {
         notes,
         companyId,
         type: "COMPRA", // vem do enum InsumoOperationType
+        paymentCondition,
+        dueDate: dueDate ? new Date(dueDate) : null,
       },
     });
+    // Se for a prazo → cria conta a pagar
+    const product = await db.product.findUnique({
+      where: { id: productId },
+      select: {
+        name: true,
+      },
+    });
+    const customer = await db.customer.findUnique({
+      where: { id: customerId },
+      select: {
+        name: true,
+      },
+    });
+    if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+      await db.accountPayable.create({
+        data: {
+          description: `Compra de ${product?.name ?? "insumo"}, cfe NF ${invoiceNumber}, de ${customer?.name ?? "cliente"}`,
+          amount: totalPrice,
+          dueDate: new Date(dueDate),
+          companyId,
+          customerId,
+          purchaseId: purchase.id,
+        },
+      });
+    }
 
     // Atualiza/insere o estoque da fazenda
     await db.productStock.upsert({

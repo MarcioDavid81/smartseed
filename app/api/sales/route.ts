@@ -118,9 +118,21 @@ export async function POST(req: NextRequest) {
     });
     //Se for a prazo → cria conta a receber
     if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+      const cultivar = await db.cultivar.findUnique({
+        where: { id: cultivarId },
+        select: {
+          name: true,
+        },
+      });
+      const customer = await db.customer.findUnique({
+        where: { id: customerId },
+        select: {
+          name: true,
+        },
+      });
       await db.accountReceivable.create({
         data: {
-          description: `Venda de semente - NF ${invoiceNumber}`,
+          description: `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${invoiceNumber}, para ${customer?.name ?? "cliente"}`,
           amount: saleValue,
           dueDate: new Date(dueDate),
           companyId,

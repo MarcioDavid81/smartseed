@@ -1,4 +1,4 @@
-import { Unit, InsumoOperationType } from "@prisma/client";
+import { AccountPayable, PaymentCondition, Unit } from "@prisma/client";
 
 export interface Purchase {
   id: string;
@@ -25,6 +25,10 @@ export interface Purchase {
   };
   notes: string;
   companyId: string;
+  cycleId?: string | null;
+  paymentCondition?: PaymentCondition;
+  dueDate?: Date;
+  accountPayable?: AccountPayable | null;
   createdAt: Date;
   updatedAt: Date;
 }

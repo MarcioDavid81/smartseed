@@ -1,6 +1,7 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { PaymentCondition } from "@prisma/client";
 
 /**
  * @swagger
@@ -57,7 +58,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Atualizar compra
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -77,10 +78,15 @@ export async function PUT(
       quantity,
       farmId,
       notes,
+      paymentCondition,
+      dueDate,
     } = await req.json();
 
     // 1. Buscar a compra e validar empresa
-    const existing = await db.purchase.findUnique({ where: { id } });
+    const existing = await db.purchase.findUnique({
+      where: { id },
+      include: { accountPayable: true },
+    });
     if (!existing || existing.companyId !== payload.companyId) {
       return new NextResponse("Compra não encontrada ou acesso negado", {
         status: 403,
@@ -144,9 +150,57 @@ export async function PUT(
           quantity,
           farmId,
           notes,
+          paymentCondition,
+          dueDate: dueDate ? new Date(dueDate) : null,
         },
       });
     });
+    // Sincronizar AccountPayable
+    if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+      const product = await db.product.findUnique({
+        where: { id: productId },
+        select: {
+          name: true,
+        },
+      });
+      const customer = await db.customer.findUnique({
+        where: { id: customerId },
+        select: {
+          name: true,
+        },
+      });
+      if (existing.accountPayable) {
+        // Atualiza conta existente
+        await db.accountPayable.update({
+          where: { id: existing.accountPayable.id },
+          data: {
+            description: `Compra de ${product?.name ?? "insumo"}, cfe NF ${invoiceNumber}, de ${customer?.name ?? "cliente"}`,
+            amount: totalPrice,
+            dueDate: new Date(dueDate),
+            customerId,
+          },
+        });
+      } else {
+        // Cria nova conta
+        await db.accountPayable.create({
+          data: {
+            description: `Compra de ${product?.name ?? "insumo"}, cfe NF ${invoiceNumber}, de ${customer?.name ?? "cliente"}`,
+            amount: totalPrice,
+            dueDate: new Date(dueDate),
+            companyId: payload.companyId,
+            customerId,
+            purchaseId: updated.id,
+          },
+        });
+      }
+    } else {
+      // Se mudou para AVISTA → apaga a conta vinculada
+      if (existing.accountPayable) {
+        await db.accountPayable.delete({
+          where: { id: existing.accountPayable.id },
+        });
+      }
+    }
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -185,7 +239,7 @@ export async function PUT(
 // Deletar compra
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -197,7 +251,10 @@ export async function DELETE(
     const { id } = params;
 
     // 1. Buscar compra e validar empresa
-    const existing = await db.purchase.findUnique({ where: { id } });
+    const existing = await db.purchase.findUnique({
+      where: { id },
+      include: { accountPayable: true },
+    });
     if (!existing || existing.companyId !== payload.companyId) {
       return new NextResponse("Compra não encontrada ou acesso negado", {
         status: 403,
@@ -223,6 +280,12 @@ export async function DELETE(
       // 3. Excluir compra
       return await tx.purchase.delete({ where: { id } });
     });
+    // 4. Sincronizar accountPayable
+    if (existing.accountPayable) {
+      await db.accountPayable.delete({
+        where: { id: existing.accountPayable.id },
+      });
+    }
 
     return NextResponse.json(deleted);
   } catch (error) {
@@ -234,7 +297,7 @@ export async function DELETE(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -248,9 +311,9 @@ export async function GET(
     const purchase = await db.purchase.findUnique({
       where: { id },
       include: {
-        product: true,  // traz informações do insumo
+        product: true, // traz informações do insumo
         customer: true, // traz fornecedor
-        farm: true,     // traz fazenda
+        farm: true, // traz fazenda
       },
     });
 

@@ -2,7 +2,7 @@ import { adjustStockWhenDeleteMov } from "@/app/_helpers/adjustStockWhenDeleteMo
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { PaymentCondition } from "@prisma/client"
+import { PaymentCondition } from "@prisma/client";
 
 /**
  * @swagger
@@ -57,7 +57,7 @@ import { PaymentCondition } from "@prisma/client"
 // Atualizar compra
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -84,7 +84,7 @@ export async function PUT(
     const existing = await db.buy.findUnique({
       where: { id },
       include: { accountPayable: true },
-    })
+    });
 
     if (!existing || existing.companyId !== payload.companyId) {
       return new NextResponse("Compra não encontrada ou acesso negado", {
@@ -136,38 +136,50 @@ export async function PUT(
     });
     // Sincronizar AccountPayable
     if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+      const cultivar = await db.cultivar.findUnique({
+        where: { id: cultivarId },
+        select: {
+          name: true,
+        },
+      });
+      const customer = await db.customer.findUnique({
+        where: { id: customerId },
+        select: {
+          name: true,
+        },
+      });
       if (existing.accountPayable) {
         // Atualiza conta existente
         await db.accountPayable.update({
           where: { id: existing.accountPayable.id },
           data: {
-            description: `Compra de semente - NF ${invoice}`,
+            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice}, para ${customer?.name ?? "cliente"}`,
             amount: totalPrice,
             dueDate: new Date(dueDate),
             customerId,
           },
-        })
+        });
       } else {
         // Cria nova conta
         await db.accountPayable.create({
           data: {
-            description: `Compra de semente - NF ${invoice}`,
+            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice}, para ${customer?.name ?? "cliente"}`,
             amount: totalPrice,
             dueDate: new Date(dueDate),
             companyId: payload.companyId,
             customerId,
             buyId: updatedBuy.id,
           },
-        })
+        });
       }
     } else {
       // Se mudou para AVISTA → apaga a conta vinculada
       if (existing.accountPayable) {
         await db.accountPayable.delete({
           where: { id: existing.accountPayable.id },
-        })
+        });
       }
-    } 
+    }
 
     return NextResponse.json(updatedBuy);
   } catch (error) {
@@ -206,7 +218,7 @@ export async function PUT(
 // Deletar compra
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -218,7 +230,10 @@ export async function DELETE(
     const { id } = params;
 
     // Buscar o compra para garantir que pertence à empresa do usuário
-    const existing = await db.buy.findUnique({ where: { id }, include: { accountPayable: true } });
+    const existing = await db.buy.findUnique({
+      where: { id },
+      include: { accountPayable: true },
+    });
 
     if (!existing || existing.companyId !== payload.companyId) {
       return new NextResponse("Compra não encontrada ou acesso negado", {
@@ -229,7 +244,7 @@ export async function DELETE(
     await adjustStockWhenDeleteMov(
       "compra",
       existing.cultivarId,
-      existing.quantityKg
+      existing.quantityKg,
     );
 
     const deleted = await db.buy.delete({ where: { id } });
@@ -238,7 +253,7 @@ export async function DELETE(
     if (existing.accountPayable) {
       await db.accountPayable.delete({
         where: { id: existing.accountPayable.id },
-      })
+      });
     }
 
     return NextResponse.json(deleted);
@@ -251,7 +266,7 @@ export async function DELETE(
 // Buscar compra
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
