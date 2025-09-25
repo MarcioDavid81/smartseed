@@ -376,12 +376,12 @@ const UpsertBuyModal = ({
                       <SelectValue placeholder="Selecione a condição" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="AVISTA">À Vista</SelectItem>
-                      <SelectItem value="APRAZO">À Prazo</SelectItem>
+                      <SelectItem value={PaymentCondition.AVISTA}>À Vista</SelectItem>
+                      <SelectItem value={PaymentCondition.APRAZO}>À Prazo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                {paymentCondition  === "APRAZO" && (
+                {form.getValues("paymentCondition") === PaymentCondition.APRAZO && (
                   <div>
                     <Label htmlFor="installments">Data de Vencimento</Label>
                     <Input

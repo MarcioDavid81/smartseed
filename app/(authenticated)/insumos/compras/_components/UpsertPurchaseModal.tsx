@@ -32,6 +32,15 @@ import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { z } from "zod";
 import { NumericFormat } from "react-number-format";
+import { PaymentCondition } from "@prisma/client";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UpsertPurchaseModalProps {
   compra?: Purchase;
@@ -49,6 +58,8 @@ const purchaseSchema = z.object({
   unitPrice: z.coerce.number().min(1, "Preço unitário é obrigatório"),
   farmId: z.string().min(1, "Selecione uma fazenda"),
   notes: z.string(),
+  paymentCondition: z.nativeEnum(PaymentCondition),
+  dueDate: z.string().min(1, "Selecione uma data de vencimento"),
 });
 
 type PurchaseFormData = z.infer<typeof purchaseSchema>;
@@ -78,6 +89,10 @@ const UpsertPurchaseModal = ({
       unitPrice: compra?.unitPrice ?? 0,
       farmId: compra?.farmId ?? "",
       notes: compra?.notes ?? "",
+      paymentCondition: compra?.paymentCondition ?? PaymentCondition.AVISTA,
+      dueDate: compra?.dueDate
+        ? new Date(compra.dueDate).toISOString().split("T")[0]
+        : "",
     },
   });
 
@@ -104,6 +119,10 @@ const UpsertPurchaseModal = ({
         unitPrice: compra.unitPrice,
         farmId: compra.farmId,
         notes: compra.notes || "",
+        paymentCondition: compra.paymentCondition ?? PaymentCondition.AVISTA,
+        dueDate: compra.dueDate
+          ? new Date(compra.dueDate).toISOString().split("T")[0]
+          : "",
       });
     } else {
       form.reset();
@@ -187,6 +206,8 @@ const UpsertPurchaseModal = ({
     if (!isOpen) form.reset();
   }, [isOpen, form]);
 
+  const paymentCondition = form.watch("paymentCondition");
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -199,55 +220,56 @@ const UpsertPurchaseModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
-              {/* Produto */}
-              <FormField
-                control={form.control}
-                name="productId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Produto</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="w-full rounded border px-2 py-1"
-                      >
-                        <option value="" className="text-sm font-light">Selecione</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id} className="text-sm font-light">
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Fornecedor */}
-              <FormField
-                control={form.control}
-                name="customerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fornecedor</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="w-full rounded border px-2 py-1"
-                      >
-                        <option value="" className="text-sm font-light">Selecione</option>
-                        {customers.map((c) => (
-                          <option key={c.id} value={c.id} className="text-sm font-light">
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                {/* Produto */}
+                <FormField
+                  control={form.control}
+                  name="productId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Produto</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="w-full rounded border px-2 py-1"
+                        >
+                          <option value="" className="text-sm font-light">Selecione</option>
+                          {products.map((p) => (
+                            <option key={p.id} value={p.id} className="text-sm font-light">
+                              {p.name}
+                            </option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Fornecedor */}
+                <FormField
+                  control={form.control}
+                  name="customerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fornecedor</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="w-full rounded border px-2 py-1"
+                        >
+                          <option value="" className="text-sm font-light">Selecione</option>
+                          {customers.map((c) => (
+                            <option key={c.id} value={c.id} className="text-sm font-light">
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Data */}
@@ -337,7 +359,7 @@ const UpsertPurchaseModal = ({
                 name="farmId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fazenda</FormLabel>
+                    <FormLabel>Depósito</FormLabel>
                     <FormControl>
                       <select
                         {...field}
@@ -355,6 +377,35 @@ const UpsertPurchaseModal = ({
                   </FormItem>
                 )}
               />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="paymentCondition">Condição de Pagamento</Label>
+                  <Select
+                    onValueChange={(value: PaymentCondition) =>
+                      form.setValue("paymentCondition", value)
+                    }
+                    defaultValue={form.getValues("paymentCondition")}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a condição" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={PaymentCondition.AVISTA}>À Vista</SelectItem>
+                      <SelectItem value={PaymentCondition.APRAZO}>À Prazo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {paymentCondition === PaymentCondition.APRAZO && (
+                  <div>
+                    <Label htmlFor="installments">Data de Vencimento</Label>
+                    <Input
+                      type="date"
+                      {...form.register("dueDate")}
+                    />
+                  </div>
+                )}
+              </div>
 
               {/* Observações */}
               <FormField
