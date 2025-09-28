@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Table,
   TableBody,
@@ -5,19 +7,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { AccountPayable, AccountReceivable } from "@/types"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { formatCurrency } from "@/app/_helpers/currency"
 
 interface FinanceTableProps {
-  data: {
-    id: string;
-    description: string;
-    amount: number;
-    dueDate: string;
-    status: string;
-  }[];
+  data: (AccountPayable | AccountReceivable)[]
 }
 
 export function FinanceTable({ data }: FinanceTableProps) {
+  if (!data.length) {
+    return (
+      <div className="rounded-lg border p-4 text-center text-muted-foreground">
+        Nenhum registro encontrado
+      </div>
+    )
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -32,12 +41,26 @@ export function FinanceTable({ data }: FinanceTableProps) {
         {data.map((item) => (
           <TableRow key={item.id}>
             <TableCell>{item.description}</TableCell>
-            <TableCell>R$ {item.amount.toFixed(2)}</TableCell>
-            <TableCell>{item.dueDate}</TableCell>
-            <TableCell>{item.status}</TableCell>
+            <TableCell>{formatCurrency(item.amount)}</TableCell>
+            <TableCell>
+              {item.dueDate
+                ? format(new Date(item.dueDate), "dd/MM/yyyy", { locale: ptBR })
+                : "-"}
+            </TableCell>
+            <TableCell>
+              <Badge
+                variant={
+                  item.status === "PAID" || item.status === "PENDING"
+                    ? "destructive"
+                    : "secondary"
+                }
+              >
+                {item.status}
+              </Badge>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
     </Table>
-  );
+  )
 }

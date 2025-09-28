@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
       // Cria conta a pagar
       await db.accountPayable.create({
         data: {
-          description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice}, para ${customer?.name ?? "cliente"}`,
+          description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice ?? "S/NF"}, para ${customer?.name ?? "cliente"}`,
           amount: totalPrice,
           dueDate: new Date(dueDate),
           companyId,

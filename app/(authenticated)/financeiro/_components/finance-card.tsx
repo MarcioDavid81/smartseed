@@ -14,7 +14,7 @@ export function FinanceCard({ title, value, trend }: FinanceCardProps) {
       </CardHeader>
       <CardContent>
         <p className="text-2xl font-bold">{value}</p>
-        <p className="text-xs text-green-500">{trend}</p>
+        <p className={`text-xs ${trend.startsWith('-') ? 'text-red-500' : 'text-green-500'}`}>{trend}</p>
       </CardContent>
     </Card>
   )

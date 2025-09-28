@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
       });
       await db.accountReceivable.create({
         data: {
-          description: `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${invoiceNumber}, para ${customer?.name ?? "cliente"}`,
+          description: `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${invoiceNumber ?? "S/NF"}, para ${customer?.name ?? "cliente"}`,
           amount: saleValue,
           dueDate: new Date(dueDate),
           companyId,

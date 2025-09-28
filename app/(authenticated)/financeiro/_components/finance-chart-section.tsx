@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   ResponsiveContainer,
@@ -8,12 +8,12 @@ import {
   YAxis,
   Tooltip,
   Legend,
-} from "recharts";
+} from "recharts"
 
 interface ChartData {
-  month: string;
-  payables: number;
-  receivables: number;
+  month: string
+  payables: number
+  receivables: number
 }
 
 export function FinanceChartSection({ data }: { data: ChartData[] }) {
@@ -24,7 +24,7 @@ export function FinanceChartSection({ data }: { data: ChartData[] }) {
         <AreaChart data={data}>
           <XAxis dataKey="month" />
           <YAxis />
-          <Tooltip />
+          <Tooltip formatter={(value: number) => `R$ ${value.toFixed(2)}`} />
           <Legend />
           <Area
             type="monotone"
@@ -45,5 +45,5 @@ export function FinanceChartSection({ data }: { data: ChartData[] }) {
         </AreaChart>
       </ResponsiveContainer>
     </section>
-  );
+  )
 }

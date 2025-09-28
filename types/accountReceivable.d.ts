@@ -1,6 +1,6 @@
 import { AccountStatus, SaleExit } from "@prisma/client";
 
-export interface AccountPayable {
+export interface AccountReceivable {
   id: string;
   description: string;
   amount: number;

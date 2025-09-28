@@ -1,11 +1,12 @@
-"use client";
+"use client"
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FinanceTable } from "./finance-table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { FinanceTable } from "./finance-table"
+import { AccountPayable, AccountReceivable } from "@/types"
 
 interface FinanceTabsSectionProps {
-  payables: any[];
-  receivables: any[];
+  payables: AccountPayable[]
+  receivables: AccountReceivable[]
 }
 
 export function FinanceTabsSection({
@@ -13,11 +14,12 @@ export function FinanceTabsSection({
   receivables,
 }: FinanceTabsSectionProps) {
   return (
-    <section>
-      <Tabs defaultValue="payables">
-        <TabsList>
-          <TabsTrigger value="payables">Contas a Pagar</TabsTrigger>
-          <TabsTrigger value="receivables">Contas a Receber</TabsTrigger>
+    <section className="rounded-2xl bg-card p-4 shadow">
+      <h2 className="mb-4 text-lg font-semibold">Detalhamento</h2>
+      <Tabs defaultValue="payables" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="payables">A Pagar</TabsTrigger>
+          <TabsTrigger value="receivables">A Receber</TabsTrigger>
         </TabsList>
         <TabsContent value="payables">
           <FinanceTable data={payables} />
@@ -27,5 +29,5 @@ export function FinanceTabsSection({
         </TabsContent>
       </Tabs>
     </section>
-  );
+  )
 }
