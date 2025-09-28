@@ -1,13 +1,20 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface FinanceTableProps {
   data: {
-    id: string
-    description: string
-    amount: number
-    dueDate: string
-    status: string
-  }[]
+    id: string;
+    description: string;
+    amount: number;
+    dueDate: string;
+    status: string;
+  }[];
 }
 
 export function FinanceTable({ data }: FinanceTableProps) {
@@ -32,5 +39,5 @@ export function FinanceTable({ data }: FinanceTableProps) {
         ))}
       </TableBody>
     </Table>
-  )
+  );
 }

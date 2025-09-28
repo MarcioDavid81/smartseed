@@ -14,3 +14,5 @@ export * from "./company";
 export * from "./talhao";
 export * from "./productStock";
 export * from "./insumo";
+export * from "./accountPayable";
+export * from "./accountReceivable";
