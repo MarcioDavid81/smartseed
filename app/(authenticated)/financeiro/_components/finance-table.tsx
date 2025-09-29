@@ -35,31 +35,47 @@ export function FinanceTable({ data }: FinanceTableProps) {
           <TableHead>Valor</TableHead>
           <TableHead>Vencimento</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Data do Pagamento</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data.map((item) => (
-          <TableRow key={item.id}>
-            <TableCell>{item.description}</TableCell>
-            <TableCell>{formatCurrency(item.amount)}</TableCell>
-            <TableCell>
-              {item.dueDate
-                ? format(new Date(item.dueDate), "dd/MM/yyyy", { locale: ptBR })
-                : "-"}
-            </TableCell>
-            <TableCell>
-              <Badge
-                variant={
-                  item.status === "PAID" || item.status === "PENDING"
-                    ? "destructive"
-                    : "secondary"
-                }
-              >
-                {item.status}
-              </Badge>
-            </TableCell>
-          </TableRow>
-        ))}
+        {data.map((item) => {
+          // Determinar data de pagamento/recebimento
+          let paymentDateDisplay = "-"
+          if (item.status === "PAID") {
+            if ("paymentDate" in item && item.paymentDate) {
+              // Compra (AccountPayable)
+              paymentDateDisplay = format(new Date(item.paymentDate), "dd/MM/yyyy", { locale: ptBR })
+            } else if ("receivedDate" in item && item.receivedDate) {
+              // Venda (AccountReceivable)
+              paymentDateDisplay = format(new Date(item.receivedDate), "dd/MM/yyyy", { locale: ptBR })
+            }
+          }
+
+          return (
+            <TableRow key={item.id}>
+              <TableCell>{item.description}</TableCell>
+              <TableCell>{formatCurrency(item.amount)}</TableCell>
+              <TableCell>
+                {item.dueDate
+                  ? format(new Date(item.dueDate), "dd/MM/yyyy", { locale: ptBR })
+                  : "-"}
+              </TableCell>
+              <TableCell>
+                <Badge
+                  className={
+                    item.status === "PENDING"
+                      ? "bg-red text-white rounded-full text-xs font-light hover:bg-opacity-90"
+                      : "bg-green text-white rounded-full text-xs font-light hover:bg-opacity-90"
+                  }
+                >
+                  {item.status}
+                </Badge>
+              </TableCell>
+              <TableCell>{paymentDateDisplay}</TableCell>
+            </TableRow>
+          )
+        })}
       </TableBody>
     </Table>
   )

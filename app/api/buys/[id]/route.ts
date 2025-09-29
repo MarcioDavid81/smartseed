@@ -153,7 +153,7 @@ export async function PUT(
         await db.accountPayable.update({
           where: { id: existing.accountPayable.id },
           data: {
-            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice}, para ${customer?.name ?? "cliente"}`,
+            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice}, de ${customer?.name ?? "cliente"}`,
             amount: totalPrice,
             dueDate: new Date(dueDate),
             customerId,
@@ -163,7 +163,7 @@ export async function PUT(
         // Cria nova conta
         await db.accountPayable.create({
           data: {
-            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice}, para ${customer?.name ?? "cliente"}`,
+            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice}, de ${customer?.name ?? "cliente"}`,
             amount: totalPrice,
             dueDate: new Date(dueDate),
             companyId: payload.companyId,
