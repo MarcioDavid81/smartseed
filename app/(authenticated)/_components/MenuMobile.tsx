@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ChartNoAxesCombined, Menu, Scroll, Warehouse } from "lucide-react";
-import { FaHome, FaSeedling } from "react-icons/fa";
+import { FaSeedling } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { PiFarm } from "react-icons/pi";
 import { useUser } from "@/contexts/UserContext";
@@ -19,11 +19,6 @@ import LogoutButton from "./LogoutButton";
 import Image from "next/image";
 
 const routes = [
-  {
-    path: "/",
-    name: "Início",
-    icon: <FaHome size={20} />,
-  },
   {
     path: "/dashboard",
     name: "Dashboard",
@@ -80,13 +75,15 @@ export function MobileMenu() {
     <div className="md:hidden sticky top-0 z-50 bg-green p-4">
       <Sheet open={open} onOpenChange={setOpen}>
         <div className="flex items-center justify-between">
-          <Image
-            src="/logo3.png"
-            alt="Logo"
-            width={100}
-            height={40}
-            className="rounded-full"
-          />
+          <Link href="/">
+            <Image
+              src="/logo3.png"
+              alt="Logo"
+              width={100}
+              height={40}
+              className="rounded-full"
+            />
+          </Link>
           <SheetTrigger asChild>
             <Button variant="ghost">
               <Menu size={40} className="text-white" />

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FaHome, FaSeedling } from "react-icons/fa";
+import { FaSeedling } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { useState } from "react";
 import { DollarSign, PanelRightOpen, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch, ChartNoAxesCombined } from "lucide-react";
@@ -22,11 +22,6 @@ import { TbTransferIn } from "react-icons/tb";
 import { GiFarmTractor } from "react-icons/gi";
 
 const routes = [
-  {
-    path: "/",
-    name: "Início",
-    icon: <FaHome size={20} />,
-  },
   {
     path: "/dashboard",
     name: "Dashboard",
@@ -100,7 +95,7 @@ const Sidebar = () => {
 
       {/* Logo */}
       <div className="flex items-center justify-center border-b-2 border-zinc-500 bg-green pb-4 pt-2 text-2xl font-bold">
-        <Link href="/dashboard">
+        <Link href="/">
           {isOpen ? (
             <Image
               src="/logo3.png"
