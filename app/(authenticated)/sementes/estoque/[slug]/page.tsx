@@ -105,7 +105,7 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
           </div>
           <div className="flex items-center justify-between mt-6">
             <GenerateExtractReportModal movements={allMovements} cultivarName={cultivar.name} />
-            <Link href="/estoque">
+            <Link href="/sementes/estoque">
               <HoverButton className="mt-4">Voltar</HoverButton>
             </Link>
           </div>
