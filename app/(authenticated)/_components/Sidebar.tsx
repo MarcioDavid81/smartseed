@@ -142,7 +142,7 @@ const Sidebar = () => {
     <div
       className={`${
         isOpen ? "w-64" : "w-20"
-      } sticky top-0 hidden min-h-screen flex-col bg-found text-text transition-all duration-300 ease-in-out md:flex`}
+      } sticky top-0 hidden max-h-screen flex-col bg-found text-text transition-all duration-300 ease-in-out md:flex`}
     >
       {/* Botão de expandir/retrair */}
       <div
