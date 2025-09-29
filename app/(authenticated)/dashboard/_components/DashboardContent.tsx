@@ -16,8 +16,8 @@ import StockByProductTypeChart from "./StockByProductTypeChart";
 import { getToken } from "@/lib/auth-client";
 import { Cultivar } from "@/types";
 import UseByCultivarChart from "./UseByCultivarChart";
-import { CultivarStatusBadge } from "../../estoque/_components/CultivarStatusBadge";
 import CreateCycleButton from "./CreateCycleButton";
+import { CultivarStatusBadge } from "../../sementes/estoque/_components/CultivarStatusBadge";
 
 const DashboardContent = () => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
