@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getToken } from "@/lib/auth-client";
 import UpsertBuyButton from "./UpsertBuyButton";
-import DeleteBuyButton from "@/app/(authenticated)/estoque/_components/DeleteBuyButton";
 import { BuyDataTable } from "./BuyDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
+import DeleteBuyButton from "./DeleteBuyButton";
 
 export function ListBuyTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
