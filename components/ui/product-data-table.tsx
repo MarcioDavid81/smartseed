@@ -23,7 +23,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import GenerateStockReportModal from "@/app/(authenticated)/insumos/estoque/_components/GenerateStockReportModal";
+import GenerateStockReportModal from "@/app/(authenticated)/sementes/estoque/_components/GenerateStockReportModal";
+
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
