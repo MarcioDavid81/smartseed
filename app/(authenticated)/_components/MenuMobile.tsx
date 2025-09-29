@@ -49,9 +49,13 @@ const routes = [
     ],
   },
   {
-    path: "/financeiro",
     name: "Financeiro",
     icon: <ChartNoAxesCombined size={20} />,
+    subRoutes: [
+      { path: "/financeiro/dashboard", name: "Dashboard" },
+      { path: "/financeiro/contas-a-pagar", name: "Contas a Pagar" },
+      { path: "/financeiro/contas-a-receber", name: "Contas a Receber" },
+    ],
   },
   {
     name: "Cadastros",

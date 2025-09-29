@@ -13,6 +13,7 @@ import { AccountPayable, AccountReceivable } from "@/types"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { formatCurrency } from "@/app/_helpers/currency"
+import { Button } from "@/components/ui/button"
 
 interface FinanceTableProps {
   data: (AccountPayable | AccountReceivable)[]
@@ -36,6 +37,7 @@ export function FinanceTable({ data }: FinanceTableProps) {
           <TableHead>Vencimento</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Data do Pagamento</TableHead>
+          <TableHead>Alterar Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -73,6 +75,9 @@ export function FinanceTable({ data }: FinanceTableProps) {
                 </Badge>
               </TableCell>
               <TableCell>{paymentDateDisplay}</TableCell>
+              <TableCell>
+                <Button variant="outline">...</Button>
+              </TableCell>
             </TableRow>
           )
         })}

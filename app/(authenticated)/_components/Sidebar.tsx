@@ -14,6 +14,8 @@ import {
   Warehouse,
   PackageSearch,
   ChartNoAxesCombined,
+  BanknoteArrowUp,
+  BanknoteArrowDown,
 } from "lucide-react";
 import { PiFarm } from "react-icons/pi";
 import {
@@ -109,9 +111,25 @@ const routes = [
     ],
   },
   {
-    path: "/financeiro",
     name: "Financeiro",
     icon: <ChartNoAxesCombined size={20} />,
+    subRoutes: [
+      {
+        path: "/financeiro/dashboard",
+        name: "Dashboard",
+        icon: <ChartNoAxesCombined size={16} />,
+      },
+      {
+        path: "/financeiro/contas-a-pagar",
+        name: "Contas a Pagar",
+        icon: <BanknoteArrowDown size={16} />,
+      },
+      {
+        path: "/financeiro/contas-a-receber",
+        name: "Contas a Receber",
+        icon: <BanknoteArrowUp size={16} />,
+      },
+    ],
   },
   {
     name: "Cadastros",
