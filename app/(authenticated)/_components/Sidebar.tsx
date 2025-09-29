@@ -5,7 +5,16 @@ import Link from "next/link";
 import { FaSeedling } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { useState } from "react";
-import { DollarSign, PanelRightOpen, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch, ChartNoAxesCombined } from "lucide-react";
+import {
+  DollarSign,
+  PanelRightOpen,
+  Scroll,
+  ShoppingCart,
+  Trash2,
+  Warehouse,
+  PackageSearch,
+  ChartNoAxesCombined,
+} from "lucide-react";
 import { PiFarm } from "react-icons/pi";
 import {
   Tooltip,
@@ -31,29 +40,73 @@ const routes = [
     name: "Insumos",
     icon: <PiFarm size={20} />,
     subRoutes: [
-      { path: "/insumos/compras", name: "Compra", icon: <ShoppingCart size={16} /> },
-      { path: "/insumos/aplicacoes", name: "Aplicação", icon: <GiFarmTractor size={16} /> },
-      { path: "/insumos/transferencias", name: "Transferência", icon: <TbTransferIn size={16} /> },
-      { path: "/insumos/estoque", name: "Estoque", icon: <Warehouse size={16} /> },
-      { path: "/insumos/produtos", name: "Produtos", icon: <PackageSearch size={16} /> },
+      {
+        path: "/insumos/compras",
+        name: "Compra",
+        icon: <ShoppingCart size={16} />,
+      },
+      {
+        path: "/insumos/aplicacoes",
+        name: "Aplicação",
+        icon: <GiFarmTractor size={16} />,
+      },
+      {
+        path: "/insumos/transferencias",
+        name: "Transferência",
+        icon: <TbTransferIn size={16} />,
+      },
+      {
+        path: "/insumos/estoque",
+        name: "Estoque",
+        icon: <Warehouse size={16} />,
+      },
+      {
+        path: "/insumos/produtos",
+        name: "Produtos",
+        icon: <PackageSearch size={16} />,
+      },
     ],
   },
   {
     name: "Sementes",
     icon: <FaSeedling size={20} />,
     subRoutes: [
-      { path: "/sementes/colheitas", name: "Colheita", icon: <GiFarmTractor size={16} />},
-      { path: "/sementes/compras", name: "Compra", icon: <ShoppingCart size={16} /> },
-      { path: "/sementes/vendas", name: "Venda", icon: <DollarSign size={16} /> },
-      { path: "/sementes/consumos", name: "Consumo", icon: <TbTransferIn size={16} /> },
-      { path: "/sementes/descartes", name: "Descarte", icon: <Trash2 size={16} /> },
-      { path: "/sementes/cultivares", name: "Cultivares", icon: <FaSeedling size={16} /> },
+      {
+        path: "/sementes/colheitas",
+        name: "Colheita",
+        icon: <GiFarmTractor size={16} />,
+      },
+      {
+        path: "/sementes/compras",
+        name: "Compra",
+        icon: <ShoppingCart size={16} />,
+      },
+      {
+        path: "/sementes/vendas",
+        name: "Venda",
+        icon: <DollarSign size={16} />,
+      },
+      {
+        path: "/sementes/consumos",
+        name: "Consumo",
+        icon: <TbTransferIn size={16} />,
+      },
+      {
+        path: "/sementes/descartes",
+        name: "Descarte",
+        icon: <Trash2 size={16} />,
+      },
+      {
+        path: "/sementes/cultivares",
+        name: "Cultivares",
+        icon: <FaSeedling size={16} />,
+      },
+      {
+        path: "/sementes/estoque",
+        name: "Estoque",
+        icon: <Warehouse size={16} />,
+      },
     ],
-  },
-  {
-    path: "/estoque",
-    name: "Estoque",
-    icon: <Warehouse size={20} />,
   },
   {
     path: "/financeiro",
@@ -64,8 +117,16 @@ const routes = [
     name: "Cadastros",
     icon: <Scroll size={20} />,
     subRoutes: [
-      { path: "/cadastros/empresas", name: "Empresas", icon: <Building2 size={16} /> },
-      { path: "/cadastros/usuarios", name: "Usuários", icon: <User size={16} /> },
+      {
+        path: "/cadastros/empresas",
+        name: "Empresas",
+        icon: <Building2 size={16} />,
+      },
+      {
+        path: "/cadastros/usuarios",
+        name: "Usuários",
+        icon: <User size={16} />,
+      },
     ],
     adminOnly: true, // 🔑 só renderiza se role for ADMIN
   },
@@ -75,7 +136,7 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const { user } = useUser();
   const pathname = usePathname();
-   const [openItem, setOpenItem] = useState<string | null>(null);
+  const [openItem, setOpenItem] = useState<string | null>(null);
 
   return (
     <div
@@ -130,7 +191,9 @@ const Sidebar = () => {
                   subRoutes={route.subRoutes}
                   isSidebarOpen={isOpen}
                   open={openItem === route.name}
-                  onOpenChange={(isOpen) => setOpenItem(isOpen ? route.name : null)}
+                  onOpenChange={(isOpen) =>
+                    setOpenItem(isOpen ? route.name : null)
+                  }
                 />
               );
             }

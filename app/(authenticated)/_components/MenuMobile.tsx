@@ -45,12 +45,8 @@ const routes = [
       { path: "/sementes/consumos", name: "Consumo" },
       { path: "/sementes/descartes", name: "Descarte" },
       { path: "/sementes/cultivares", name: "Cultivares" },
+      { path: "/sementes/estoque", name: "Estoque" },
     ],
-  },
-  {
-    path: "/estoque",
-    name: "Estoque",
-    icon: <Warehouse size={20} />,
   },
   {
     path: "/financeiro",
