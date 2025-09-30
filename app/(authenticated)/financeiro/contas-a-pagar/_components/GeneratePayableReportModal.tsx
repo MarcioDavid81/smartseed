@@ -15,12 +15,13 @@ import autoTable from "jspdf-autotable";
 import { usePayable } from "@/contexts/PayableContext";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
+import { Input } from "@/components/ui/input";
 
 
 export default function GeneratePayableReportModal() {
   const { payables } = usePayable();
   const [customer, setCustomer] = useState<string | null>(null);
-  const [payable, setPayable] = useState<string | null>(null);
+  const [dueDate, setDueDate] = useState<string | null>(null);
   const { user } = useUser();
 
   const customersUnicos = Array.from(
@@ -30,8 +31,8 @@ export default function GeneratePayableReportModal() {
 
   const filtered = payables.filter((p) => {
     const matchCustomer = !customer || p.customer.name === customer;
-    const matchPayable = !payable || p.description === payable;
-    return matchCustomer && matchPayable;
+    const matchDueDate = !dueDate || new Date(p.dueDate).toLocaleDateString() === dueDate;
+    return matchCustomer && matchDueDate;
   });
 
   const generatePDF = () => {
@@ -43,15 +44,15 @@ export default function GeneratePayableReportModal() {
     logo.onload = () => {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
-      doc.text("Relatório de Contas a Pagar", 150, 20, { align: "center" });
+      doc.text("Relatório de Contas à Pagar", 150, 20, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Cliente: ${customer || "Todos"}`, 14, 35);
-      doc.text(`Conta a Pagar: ${payable || "Todos"}`, 14, 40);
+      doc.text(`Data de Vencimento: ${dueDate || "Todos"}`, 14, 40);
 
       autoTable(doc, {
         startY: 50,
-        head: [["Vencimento", "Cliente", "Conta a Pagar", "Valor (R$)"]],
+        head: [["Vencimento", "Cliente", "Conta à Pagar", "Valor (R$)"]],
         body: filtered.map((p) => [
           new Date(p.dueDate).toLocaleDateString("pt-BR"),
           p.customer.name,
@@ -117,9 +118,9 @@ export default function GeneratePayableReportModal() {
       doc.setFontSize(9);
       Object.entries(totalsByCustomer).forEach(([name, total], index) => {
         doc.text(
-          `${name}: ${total.toLocaleString("pt-BR", {
+          `${name}: R$ ${total.toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
-          })} R$`,
+          })}`,
           14,
           finalY + 6 + index * 6
         );
@@ -127,21 +128,21 @@ export default function GeneratePayableReportModal() {
 
       doc.setFontSize(9);
       doc.text(
-        `Total Geral: ${Object.values(totalsByCustomer).reduce(
+        `Total Geral: R$ ${Object.values(totalsByCustomer).reduce(
           (acc, curr) => acc + curr,
           0
         ).toLocaleString("pt-BR", {
           minimumFractionDigits: 2,
-        })} R$`,
+        })}`,
         14,
         finalY + 6 + Object.keys(totalsByCustomer).length * 6 + 6
       );
 
       const fileNumber = new Date().getTime().toString();
-      const fileName = `Relatorio de Contas a Pagar - ${fileNumber}.pdf`;
+      const fileName = `Relatório de Contas à Pagar - ${fileNumber}.pdf`;
       doc.save(fileName);
       setCustomer(null);
-      setPayable(null);
+      setDueDate(null);
     };
   };
 
@@ -179,25 +180,12 @@ export default function GeneratePayableReportModal() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Conta a Pagar</label>
-          <Select
-            value={payable ?? ""}
-            onValueChange={(value) =>
-              setPayable(value === "todos" ? null : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {payables.map((p) => (
-                <SelectItem key={p.description} value={p.description}>
-                  {p.description}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <label className="text-sm font-medium">Vencimento</label>
+          <Input
+            type="date"
+            value={dueDate ?? ""}
+            onChange={(e) => setDueDate(e.target.value)}
+          />
         </div>
 
         <Button onClick={generatePDF} className="bg-green text-white">

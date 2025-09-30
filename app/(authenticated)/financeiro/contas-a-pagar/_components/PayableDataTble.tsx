@@ -72,10 +72,11 @@ export function PayableDataTable<TData, TValue>({
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex items-center justify-between py-4">
         <Input
-          placeholder="Procure por cultivar"
-          value={(table.getColumn("cultivar")?.getFilterValue() as string) ?? ""}
+          type="date"
+          placeholder="Procure por data de vencimento"
+          value={(table.getColumn("dueDate")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("cultivar")?.setFilterValue(event.target.value)
+            table.getColumn("dueDate")?.setFilterValue(event.target.value)
           }
           className="max-w-sm bg-gray-50 text-primary"
         />

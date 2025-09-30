@@ -121,12 +121,12 @@ const routes = [
       },
       {
         path: "/financeiro/contas-a-pagar",
-        name: "Contas a Pagar",
+        name: "Contas à Pagar",
         icon: <BanknoteArrowDown size={16} />,
       },
       {
         path: "/financeiro/contas-a-receber",
-        name: "Contas a Receber",
+        name: "Contas à Receber",
         icon: <BanknoteArrowUp size={16} />,
       },
     ],

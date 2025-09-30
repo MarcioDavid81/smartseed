@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
 
 export const metadata: Metadata = {
-  title: "Contas a Receber",
+  title: "Contas à Receber",
   keywords: [
     "produção de sementes",
     "gestão de sementeiras",

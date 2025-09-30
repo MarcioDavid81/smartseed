@@ -67,11 +67,21 @@ export function FinanceTable({ data }: FinanceTableProps) {
                 <Badge
                   className={
                     item.status === "PENDING"
-                      ? "bg-red text-white rounded-full text-xs font-light hover:bg-opacity-90"
-                      : "bg-green text-white rounded-full text-xs font-light hover:bg-opacity-90"
+                      ? "bg-yellow-500 text-white rounded-full text-xs font-light hover:bg-opacity-90"
+                      : item.status === "PAID"
+                      ? "bg-green-500 text-white rounded-full text-xs font-light hover:bg-opacity-90"
+                      : item.status === "OVERDUE"
+                      ? "bg-red-500 text-white rounded-full text-xs font-light hover:bg-opacity-90"
+                      : item.status === "CANCELED"
+                      ? "bg-gray-500 text-white rounded-full text-xs font-light hover:bg-opacity-90"
+                      : "bg-gray-400 text-white rounded-full text-xs font-light hover:bg-opacity-90"
                   }
                 >
-                  {item.status}
+                  {item.status === "PENDING" ? "Pendente" 
+                   : item.status === "PAID" ? "Pago"
+                   : item.status === "OVERDUE" ? "Vencido"
+                   : item.status === "CANCELED" ? "Cancelado"
+                   : item.status}
                 </Badge>
               </TableCell>
               <TableCell>{paymentDateDisplay}</TableCell>

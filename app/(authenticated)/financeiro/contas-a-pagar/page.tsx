@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
+import { ListPayableTable } from "./_components/ListPayableTable";
 
 export const metadata: Metadata = {
-  title: "Contas a Pagar",
+  title: "Contas à Pagar",
   keywords: [
     "produção de sementes",
     "gestão de sementeiras",
@@ -23,7 +24,7 @@ export default async function FinancialPage() {
             <h1 className="text-2xl font-medium mb-4">Contas a Pagar</h1> 
             <NavItems />
           </div>
-          
+          <ListPayableTable />
         </main>
       </div>
     </div>
