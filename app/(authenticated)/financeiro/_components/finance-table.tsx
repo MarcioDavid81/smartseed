@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   Table,
@@ -7,117 +7,82 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { AccountPayable, AccountReceivable } from "@/types";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { formatCurrency } from "@/app/_helpers/currency";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Search } from "lucide-react";
-import Link from "next/link";
-import { FinanceDetailModal } from "./finance-detail-modal";
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Search } from "lucide-react"
+import { AccountPayable, AccountReceivable } from "@/types"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { formatCurrency } from "@/app/_helpers/currency"
+import { ACCOUNT_STATUS_LABELS } from "../../_constants/financial"
+import { FinanceDetailModal } from "./finance-detail-modal"
+import { useState } from "react"
 
 interface FinanceTableProps {
-  data: (AccountPayable | AccountReceivable)[];
+  data: (AccountPayable | AccountReceivable)[]
 }
 
 export function FinanceTable({ data }: FinanceTableProps) {
-  if (!data.length) {
-    return (
-      <div className="rounded-lg border p-4 text-center text-muted-foreground">
-        Nenhum registro encontrado
-      </div>
-    );
+  const [open, setOpen] = useState(false)
+  const [selectedAccount, setSelectedAccount] = useState<
+    AccountPayable | AccountReceivable | null
+  >(null)
+
+  const handleOpenDetails = (account: AccountPayable | AccountReceivable) => {
+    setSelectedAccount(account)
+    setOpen(true)
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Descrição</TableHead>
-          <TableHead>Valor</TableHead>
-          <TableHead>Vencimento</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Data do Pagamento</TableHead>
-          <TableHead>Detalhes</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data
-          .map((item) => {
-            // Determinar data de pagamento/recebimento
-            let paymentDateDisplay = "-";
-            if (item.status === "PAID") {
-              if ("paymentDate" in item && item.paymentDate) {
-                // Compra (AccountPayable)
-                paymentDateDisplay = format(
-                  new Date(item.paymentDate),
-                  "dd/MM/yyyy",
-                  { locale: ptBR },
-                );
-              } else if ("receivedDate" in item && item.receivedDate) {
-                // Venda (AccountReceivable)
-                paymentDateDisplay = format(
-                  new Date(item.receivedDate),
-                  "dd/MM/yyyy",
-                  { locale: ptBR },
-                );
-              }
-            }
-
-            return (
+    <>
+      {!data.length ? (
+        <div className="rounded-lg border p-4 text-center text-muted-foreground">
+          Nenhum registro encontrado
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Valor</TableHead>
+              <TableHead>Vencimento</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-center">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>{item.description}</TableCell>
                 <TableCell>{formatCurrency(item.amount)}</TableCell>
                 <TableCell>
                   {item.dueDate
-                    ? format(new Date(item.dueDate), "dd/MM/yyyy", {
-                        locale: ptBR,
-                      })
+                    ? format(new Date(item.dueDate), "dd/MM/yyyy", { locale: ptBR })
                     : "-"}
                 </TableCell>
                 <TableCell>
                   <Badge
                     className={
                       item.status === "PENDING"
-                        ? "rounded-full bg-yellow-500 text-xs font-light text-white hover:bg-opacity-90"
-                        : item.status === "PAID"
-                          ? "rounded-full bg-green text-xs font-light text-white hover:bg-opacity-90"
-                          : item.status === "OVERDUE"
-                            ? "rounded-full bg-red text-xs font-light text-white hover:bg-opacity-90"
-                            : item.status === "CANCELED"
-                              ? "rounded-full bg-gray-500 text-xs font-light text-white hover:bg-opacity-90"
-                              : "rounded-full bg-gray-400 text-xs font-light text-white hover:bg-opacity-90"
+                        ? "bg-yellow-500 text-white rounded-full text-xs font-light hover:bg-opacity-90"
+                        : "bg-green text-white rounded-full text-xs font-light hover:bg-opacity-90"
                     }
                   >
-                    {item.status === "PENDING"
-                      ? "Pendente"
-                      : item.status === "PAID"
-                        ? "Pago"
-                        : item.status === "OVERDUE"
-                          ? "Vencido"
-                          : item.status === "CANCELED"
-                            ? "Cancelado"
-                            : item.status}
+                    {ACCOUNT_STATUS_LABELS[item.status]}
                   </Badge>
                 </TableCell>
-                <TableCell>{paymentDateDisplay}</TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <FinanceDetailModal account={item}>
-                          <Button variant="ghost">
-                            <Search className="text-green" size={20} />
-                          </Button>
-                        </FinanceDetailModal>
+                        <Button
+                          variant="ghost"
+                          onClick={() => handleOpenDetails(item)}
+                        >
+                          <Search className="text-green" size={20} />
+                        </Button>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>Detalhes da Conta</p>
@@ -126,10 +91,16 @@ export function FinanceTable({ data }: FinanceTableProps) {
                   </TooltipProvider>
                 </TableCell>
               </TableRow>
-            );
-          })
-          .slice(0, 5)}
-      </TableBody>
-    </Table>
-  );
+            ))}
+          </TableBody>
+        </Table>
+      )}
+
+      <FinanceDetailModal
+        open={open}
+        onOpenChange={setOpen}
+        account={selectedAccount}
+      />
+    </>
+  )
 }

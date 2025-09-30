@@ -1,67 +1,78 @@
 "use client"
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
-import { AccountPayable, AccountReceivable } from "@/types"
+import { ptBR } from "date-fns/locale"
 import { formatCurrency } from "@/app/_helpers/currency"
+import { AccountPayable, AccountReceivable } from "@/types"
 import { ACCOUNT_STATUS_LABELS } from "../../_constants/financial"
 
 interface FinanceDetailModalProps {
-  account: AccountPayable | AccountReceivable
-  children: React.ReactNode
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  account: AccountPayable | AccountReceivable | null
 }
 
-export function FinanceDetailModal({ account, children }: FinanceDetailModalProps) {
+export function FinanceDetailModal({ open, onOpenChange, account }: FinanceDetailModalProps) {
+  if (!account) return null
+
+  const isPayable = "paymentDate" in account
+  const paymentOrReceivedDate =
+    account.status === "PAID"
+      ? isPayable
+        ? account.paymentDate
+        : (account as AccountReceivable).receivedDate
+      : null
+
   return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Detalhes da Conta</DialogTitle>
-          <DialogDescription>
-            Informações detalhadas da operação financeira.
-          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span className="font-medium">Descrição:</span>
-            <span>{account.description}</span>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">Descrição</p>
+            <p className="font-medium">{account.description}</p>
           </div>
 
-          <div className="flex justify-between">
-            <span className="font-medium">Valor:</span>
-            <span>{formatCurrency(account.amount)}</span>
+          <div>
+            <p className="text-muted-foreground">Valor</p>
+            <p className="font-medium">{formatCurrency(account.amount)}</p>
           </div>
 
-          <div className="flex justify-between">
-            <span className="font-medium">Vencimento:</span>
-            <span>{format(new Date(account.dueDate), "dd/MM/yyyy")}</span>
+          <div>
+            <p className="text-muted-foreground">Vencimento</p>
+            <p className="font-medium">
+              {account.dueDate
+                ? format(new Date(account.dueDate), "dd/MM/yyyy", { locale: ptBR })
+                : "-"}
+            </p>
           </div>
 
-          <div className="flex justify-between">
-            <span className="font-medium">Status:</span>
-            <span>{ACCOUNT_STATUS_LABELS[account.status]}</span>
+          <div>
+            <p className="text-muted-foreground">Status</p>
+            <Badge
+              className={
+                account.status === "PENDING"
+                  ? "bg-yellow-500 text-white rounded-full text-xs font-light"
+                  : "bg-green text-white rounded-full text-xs font-light"
+              }
+            >
+              {ACCOUNT_STATUS_LABELS[account.status]}
+            </Badge>
           </div>
 
-          {"paymentDate" in account && account.paymentDate && (
-            <div className="flex justify-between">
-              <span className="font-medium">Data de Pagamento:</span>
-              <span>{format(new Date(account.paymentDate), "dd/MM/yyyy")}</span>
-            </div>
-          )}
-
-          {"receivedDate" in account && account.receivedDate && (
-            <div className="flex justify-between">
-              <span className="font-medium">Data de Recebimento:</span>
-              <span>{format(new Date(account.receivedDate), "dd/MM/yyyy")}</span>
+          {paymentOrReceivedDate && (
+            <div className="col-span-2">
+              <p className="text-muted-foreground">
+                {isPayable ? "Data do Pagamento" : "Data do Recebimento"}
+              </p>
+              <p className="font-medium">
+                {format(new Date(paymentOrReceivedDate), "dd/MM/yyyy", { locale: ptBR })}
+              </p>
             </div>
           )}
         </div>
