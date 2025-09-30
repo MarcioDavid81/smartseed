@@ -90,7 +90,7 @@ export function MobileMenu() {
             </Button>
           </SheetTrigger>
         </div>
-        <SheetContent side="right" className="w-64">
+        <SheetContent side="right" className="w-64 overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="text-left">SmartSeed Menu</SheetTitle>
           </SheetHeader>
