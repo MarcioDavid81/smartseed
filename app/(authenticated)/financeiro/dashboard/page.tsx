@@ -3,7 +3,7 @@ import NavItems from "../../_components/NavItems";
 import FinanceContent from "../_components/finance-content";
 
 export const metadata: Metadata = {
-  title: "Financeiro",
+  title: "Dashboard Financeiro",
   keywords: [
     "produção de sementes",
     "gestão de sementeiras",
@@ -19,9 +19,9 @@ export default async function FinancialPage() {
   return (
     <div className="flex flex-col w-full min-h-screen bg-found">
       <div className="min-h-screen w-full flex bg-background">
-        <main className="flex-1 py-4 px-4 md:px-8 text-gray-800">
+        <main className="flex-1 py-4 px-4 md:px-8 text-gray-800 overflow-x-auto min-w-0">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <h1 className="text-2xl font-medium mb-4">Financeiro</h1>
+            <h1 className="text-2xl font-medium mb-4">Dashboard Financeiro</h1>
             <NavItems />
           </div>
           <FinanceContent />

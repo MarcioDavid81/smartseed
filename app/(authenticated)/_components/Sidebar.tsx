@@ -117,17 +117,17 @@ const routes = [
       {
         path: "/financeiro/dashboard",
         name: "Dashboard",
-        icon: <ChartNoAxesCombined size={16} />,
+        icon: <AiOutlineDashboard size={16} />,
       },
       {
         path: "/financeiro/contas-a-pagar",
         name: "Contas à Pagar",
-        icon: <BanknoteArrowDown size={16} />,
+        icon: <BanknoteArrowUp size={16} />,
       },
       {
         path: "/financeiro/contas-a-receber",
         name: "Contas à Receber",
-        icon: <BanknoteArrowUp size={16} />,
+        icon: <BanknoteArrowDown size={16} />,
       },
     ],
   },

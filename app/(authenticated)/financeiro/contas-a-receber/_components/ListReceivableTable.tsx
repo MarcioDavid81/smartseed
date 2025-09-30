@@ -4,43 +4,43 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
-import { AccountPayable } from "@/types";
+import { AccountPayable, AccountReceivable } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { getToken } from "@/lib/auth-client";
-import { PayableDataTable } from "./PayableDataTble";
-import { usePayable } from "@/contexts/PayableContext";
-import { PayableStatusButton } from "./EditPayableStatusButton";
+import { useReceivable } from "@/contexts/ReceivableContext";
+import { ReceivableStatusButton } from "./EditReceivableStatusButton";
 import { Badge } from "@/components/ui/badge";
+import { ReceivableDataTable } from "./ReceivableDataTable";
 
-export function ListPayableTable() {
-  const [newPayables, setNewPayables] = useState<AccountPayable[]>([]);
+export function ListReceivableTable() {
+  const [newReceivables, setNewReceivables] = useState<AccountReceivable[]>([]);
   const [loading, setLoading] = useState(true);
-  const { payables, isLoading } = usePayable();
+  const { receivables, isLoading } = useReceivable();
 
-  async function fetchPayables() {
+  async function fetchReceivables() {
     try {
       const token = getToken();
-      const res = await fetch("/api/financial/payables", {
+      const res = await fetch("/api/financial/receivables", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       const data = await res.json();
-      setNewPayables(data);
+      setNewReceivables(data);
     } catch (error) {
-      console.error("Erro ao buscar contas a pagar:", error);
+      console.error("Erro ao buscar contas a receber:", error);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchPayables();
+    fetchReceivables();
   }, []);
 
-  const columns: ColumnDef<AccountPayable>[] = [
+  const columns: ColumnDef<AccountReceivable>[] = [
     {
       accessorKey: "description",
       header: ({ column }) => (
@@ -132,17 +132,17 @@ export function ListPayableTable() {
       accessorKey: "paymentDate",
       header: () => <div className="text-left">Data de Pagamento</div>,
       cell: ({ row: { original } }) => {
-        return original.paymentDate ? new Date(original.paymentDate).toLocaleDateString("pt-BR") : "-";
+        return original.receivedDate ? new Date(original.receivedDate).toLocaleDateString("pt-BR") : "-";
       },
     },
     {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
-        const accountPayable = row.original;
+        const accountReceivable = row.original;
         return (
           <div className="flex justify-center gap-2">
-            <PayableStatusButton accountPayableId={accountPayable.id} status={accountPayable.status} />
+            <ReceivableStatusButton accountReceivableId={accountReceivable.id} status={accountReceivable.status} />
           </div>
         );
       },
@@ -152,15 +152,15 @@ export function ListPayableTable() {
   return (
     <Card className="p-4 dark:bg-primary font-light">
       <div className="mb-4">
-        <h2 className="font-medium">Contas a Pagar</h2>
+        <h2 className="font-medium">Contas a Receber</h2>
       </div>
       {isLoading ? (
         <div className="text-center py-10 text-gray-500">
           <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando Contas a Pagar...</p>
+          <p className="text-lg">Carregando Contas a Receber...</p>
         </div>
       ) : (
-        <PayableDataTable columns={columns} data={payables} />
+        <ReceivableDataTable columns={columns} data={newReceivables} />
       )}
     </Card>
   );

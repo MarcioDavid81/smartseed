@@ -15,7 +15,7 @@ export function FinanceTabsSection({
 }: FinanceTabsSectionProps) {
   return (
     <section className="rounded-2xl bg-card p-4 shadow">
-      <h2 className="mb-4 text-lg font-semibold">Detalhamento</h2>
+      <h2 className="mb-4 text-lg font-semibold">Últimos Registros</h2>
       <Tabs defaultValue="payables" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="payables">A Pagar</TabsTrigger>
