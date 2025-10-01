@@ -54,7 +54,7 @@ export default function StockByProductTypeChart() {
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip />
-          <Bar dataKey="stock" fill="#63B926" />
+          <Bar dataKey="stock" fill="#63B926" name="Estoque" />
         </BarChart>
       </ResponsiveContainer>
     </div>

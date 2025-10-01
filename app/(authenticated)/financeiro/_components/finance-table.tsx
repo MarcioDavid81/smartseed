@@ -52,17 +52,17 @@ export function FinanceTable({ data }: FinanceTableProps) {
               <TableHead className="text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="font-light">
             {data.map((item) => (
               <TableRow key={item.id}>
-                <TableCell>{item.description}</TableCell>
-                <TableCell>{formatCurrency(item.amount)}</TableCell>
-                <TableCell>
+                <TableCell className="px-2 py-0">{item.description}</TableCell>
+                <TableCell className="px-2 py-0">{formatCurrency(item.amount)}</TableCell>
+                <TableCell className="px-2 py-0">
                   {item.dueDate
                     ? format(new Date(item.dueDate), "dd/MM/yyyy", { locale: ptBR })
                     : "-"}
                 </TableCell>
-                <TableCell>
+                <TableCell className="px-2 py-0">
                   <Badge
                     className={
                       item.status === "PENDING"
@@ -73,7 +73,7 @@ export function FinanceTable({ data }: FinanceTableProps) {
                     {ACCOUNT_STATUS_LABELS[item.status]}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center px-2 py-0">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>

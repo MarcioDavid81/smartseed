@@ -108,7 +108,7 @@ export function ListStockTable() {
   return (
     <Card className="p-4 dark:bg-primary font-light">
       <div className="mb-4">
-        <h2 className="font-medium">Estoque das Cultivares</h2>
+        <h2 className="font-light">Estoque das Cultivares</h2>
       </div>
       {loading ? (
         <div className="text-center py-10 text-gray-500">

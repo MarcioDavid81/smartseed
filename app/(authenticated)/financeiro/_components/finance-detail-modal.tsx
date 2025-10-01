@@ -34,18 +34,18 @@ export function FinanceDetailModal({ open, onOpenChange, account }: FinanceDetai
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground">Descrição</p>
-            <p className="font-medium">{account.description}</p>
+            <p className="font-medium">Descrição</p>
+            <p className="text-muted-foreground">{account.description}</p>
           </div>
 
           <div>
-            <p className="text-muted-foreground">Valor</p>
-            <p className="font-medium">{formatCurrency(account.amount)}</p>
+            <p className="font-medium">Valor</p>
+            <p className="text-muted-foreground">{formatCurrency(account.amount)}</p>
           </div>
 
           <div>
-            <p className="text-muted-foreground">Vencimento</p>
-            <p className="font-medium">
+            <p className="font-medium">Vencimento</p>
+            <p className="text-muted-foreground">
               {account.dueDate
                 ? format(new Date(account.dueDate), "dd/MM/yyyy", { locale: ptBR })
                 : "-"}
@@ -53,7 +53,7 @@ export function FinanceDetailModal({ open, onOpenChange, account }: FinanceDetai
           </div>
 
           <div>
-            <p className="text-muted-foreground">Status</p>
+            <p className="font-medium">Status</p>
             <Badge
               className={
                 account.status === "PENDING"
@@ -67,10 +67,10 @@ export function FinanceDetailModal({ open, onOpenChange, account }: FinanceDetai
 
           {paymentOrReceivedDate && (
             <div className="col-span-2">
-              <p className="text-muted-foreground">
+              <p className="font-medium">
                 {isPayable ? "Data do Pagamento" : "Data do Recebimento"}
               </p>
-              <p className="font-medium">
+              <p className="text-muted-foreground">
                 {format(new Date(paymentOrReceivedDate), "dd/MM/yyyy", { locale: ptBR })}
               </p>
             </div>

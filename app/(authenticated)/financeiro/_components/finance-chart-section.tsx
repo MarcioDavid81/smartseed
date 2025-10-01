@@ -19,9 +19,9 @@ interface ChartData {
 export function FinanceChartSection({ data }: { data: ChartData[] }) {
   return (
     <section className="rounded-2xl bg-card p-4 shadow">
-      <h2 className="mb-4 text-lg font-semibold">Evolução Financeira</h2>
+      <h2 className="mb-4 text-lg font-normal">Evolução Financeira</h2>
       <ResponsiveContainer width="100%" height={300}>
-        <AreaChart data={data}>
+        <AreaChart data={data} className="font-light text-xs">
           <XAxis dataKey="month" />
           <YAxis />
           <Tooltip formatter={(value: number) => `R$ ${value.toFixed(2)}`} />

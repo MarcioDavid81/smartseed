@@ -152,12 +152,12 @@ export function ListPayableTable() {
   return (
     <Card className="p-4 dark:bg-primary font-light">
       <div className="mb-4">
-        <h2 className="font-medium">Contas a Pagar</h2>
+        <h2 className="font-light">Lista de Contas à Pagar</h2>
       </div>
       {isLoading ? (
         <div className="text-center py-10 text-gray-500">
           <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando Contas a Pagar...</p>
+          <p className="text-lg">Carregando Contas à Pagar...</p>
         </div>
       ) : (
         <PayableDataTable columns={columns} data={payables} />
