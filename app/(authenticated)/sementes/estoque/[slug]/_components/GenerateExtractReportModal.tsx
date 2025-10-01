@@ -107,6 +107,11 @@ export default function GenerateExtractReportModal({
       },
     });
 
+    // === SALDO DA CULTIVAR ===
+    let finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(9);
+    doc.text(`Estoque atual: ${saldo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} kg`, 14, finalY);
+
     const fileName = `Extrato - ${cultivarName} - ${Date.now()}.pdf`;
     doc.save(fileName);
     setLoading(false);
