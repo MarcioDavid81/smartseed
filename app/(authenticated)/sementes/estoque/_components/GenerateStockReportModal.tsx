@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FaFilePdf } from "react-icons/fa";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useHarvest } from "@/contexts/HarvestContext";
@@ -24,6 +24,8 @@ export default function GenerateStockReportModal() {
   const [product, setProduct] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const produtosUnicos = Array.from(new Set(cultivars.map((c) => c.product)));
 
@@ -41,6 +43,7 @@ export default function GenerateStockReportModal() {
   });
 
   const generatePDF = () => {
+    setLoading(true);
     const doc = new jsPDF({ orientation: "portrait" });
 
     const logo = new window.Image();
@@ -153,11 +156,15 @@ export default function GenerateStockReportModal() {
       const fileName = `Relatorio de Estoque - ${fileNumber}.pdf`;
       doc.save(fileName);
       setCultivar(null);
+      setProduct(null);
+      setStatus(null);
+      setLoading(false);
+      setModalOpen(false);
     };
   };
 
   return (
-    <Dialog>
+    <Dialog open={modalOpen} onOpenChange={setModalOpen}>
       <DialogTrigger asChild>
         <HoverButton className="flex gap-2">
           <FaFilePdf />
@@ -233,8 +240,12 @@ export default function GenerateStockReportModal() {
           </Select>
         </div>
 
-        <Button onClick={generatePDF} className="bg-green text-white">
-          Baixar PDF
+        <Button
+          onClick={generatePDF}
+          className="bg-green text-white"
+          disabled={loading}
+        >
+          {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>
       </DialogContent>
     </Dialog>

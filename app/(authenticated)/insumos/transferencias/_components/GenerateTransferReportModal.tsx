@@ -14,13 +14,15 @@ import { useUser } from "@/contexts/UserContext";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useState } from "react";
-import { FaFilePdf } from "react-icons/fa";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 
 export default function GenerateTransferReportModal() {
   const { transferencias } = useTransfer();
   const [produto, setProduto] = useState<string | null>(null);
   const [farm, setFarm] = useState<string | null>(null);
   const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const produtosUnicos = Array.from(
     new Set(transferencias.map((h) => h.product.name)),
@@ -42,6 +44,7 @@ export default function GenerateTransferReportModal() {
   });
 
   const generatePDF = () => {
+    setLoading(true);
     const doc = new jsPDF({ orientation: "landscape" });
 
     const logo = new window.Image();
@@ -159,11 +162,13 @@ export default function GenerateTransferReportModal() {
       doc.save(fileName);
       setProduto(null);
       setFarm(null);
+      setLoading(false);
+      setModalOpen(false);
     };
   };
 
   return (
-    <Dialog>
+    <Dialog open={modalOpen} onOpenChange={setModalOpen}>
       <DialogTrigger asChild>
         <HoverButton className="flex gap-2">
           <FaFilePdf />
@@ -237,8 +242,8 @@ export default function GenerateTransferReportModal() {
           </Select>
         </div>
 
-        <Button onClick={generatePDF} className="bg-green text-white">
-          Baixar PDF
+        <Button onClick={generatePDF} className="bg-green text-white" disabled={loading}>
+          {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>
       </DialogContent>
     </Dialog>

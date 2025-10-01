@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FaFilePdf } from "react-icons/fa";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useUser } from "@/contexts/UserContext";
@@ -22,6 +22,8 @@ export default function GenerateStockReportModal() {
   const [classe, setClasse] = useState<string | null>(null);
   const [deposito, setDeposito] = useState<string | null>(null);
   const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const insumosUnicos = Array.from(new Set(insumos.map((h) => h.product.name)));
   const classesUnicas = Array.from(
@@ -37,6 +39,7 @@ export default function GenerateStockReportModal() {
   });
 
   const generatePDF = () => {
+    setLoading(true);
     const doc = new jsPDF({ orientation: "portrait" });
 
     const logo = new window.Image();
@@ -54,21 +57,16 @@ export default function GenerateStockReportModal() {
 
       autoTable(doc, {
         startY: 50,
-        head: [
-          [
-            "Produto",
-            "Classe",
-            "Depósito",
-            "Estoque",
-          ],
-        ],
+        head: [["Produto", "Classe", "Depósito", "Estoque"]],
         body: filtered.map((h) => [
           h.product.name,
           h.product.class,
           h.farm.name,
-          h.stock.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          }).concat(` ${h.product.unit}`),
+          h.stock
+            .toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+            })
+            .concat(` ${h.product.unit}`),
         ]),
         styles: {
           fontSize: 9,
@@ -155,11 +153,13 @@ export default function GenerateStockReportModal() {
       setProduct(null);
       setClasse(null);
       setDeposito(null);
+      setLoading(false);
+      setModalOpen(false);
     };
   };
 
   return (
-    <Dialog>
+    <Dialog open={modalOpen} onOpenChange={setModalOpen}>
       <DialogTrigger asChild>
         <HoverButton className="flex gap-2">
           <FaFilePdf />
@@ -235,8 +235,12 @@ export default function GenerateStockReportModal() {
           </Select>
         </div>
 
-        <Button onClick={generatePDF} className="bg-green text-white">
-          Baixar PDF
+        <Button
+          onClick={generatePDF}
+          className="bg-green text-white"
+          disabled={loading}
+        >
+          {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>
       </DialogContent>
     </Dialog>

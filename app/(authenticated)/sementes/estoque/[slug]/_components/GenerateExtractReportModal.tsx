@@ -2,12 +2,13 @@
 
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { FaFilePdf } from "react-icons/fa";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
 import { tipoMovimentacaoInfo } from "@/app/_helpers/movimentacao";
+import { useState } from "react";
 
 interface Movement {
   id: string;
@@ -26,8 +27,11 @@ export default function GenerateExtractReportModal({
   movements,
 }: Props) {
   const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const generatePDF = () => {
+    setLoading(true);
     const doc = new jsPDF();
     const logo = new Image();
     logo.src = "/logo.png";
@@ -43,7 +47,7 @@ export default function GenerateExtractReportModal({
 
     // Ordenar e montar dados
     const sorted = [...movements].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
 
     let saldo = 0;
@@ -91,24 +95,26 @@ export default function GenerateExtractReportModal({
         doc.text(
           footerText,
           pageWidth / 2 - centerTextWidth / 2,
-          pageHeight - 10
+          pageHeight - 10,
         );
 
         const pageNumber = (doc as any).internal.getNumberOfPages();
         doc.text(
           `${pageNumber}/${pageNumber}`,
           pageWidth - 20,
-          pageHeight - 10
+          pageHeight - 10,
         );
       },
     });
 
     const fileName = `Extrato - ${cultivarName} - ${Date.now()}.pdf`;
     doc.save(fileName);
+    setLoading(false);
+    setModalOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={modalOpen} onOpenChange={setModalOpen}>
       <DialogTrigger asChild>
         <HoverButton className="flex gap-2">
           <FaFilePdf />
@@ -117,8 +123,12 @@ export default function GenerateExtractReportModal({
       </DialogTrigger>
       <DialogContent className="space-y-4">
         <h2 className="text-xl font-semibold">Gerar Extrato em PDF</h2>
-        <Button onClick={generatePDF} className="bg-green text-white">
-          Baixar PDF
+        <Button
+          onClick={generatePDF}
+          className="bg-green text-white"
+          disabled={loading}
+        >
+          {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>
       </DialogContent>
     </Dialog>

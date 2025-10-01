@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FaFilePdf } from "react-icons/fa";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useUser } from "@/contexts/UserContext";
@@ -21,14 +21,14 @@ export default function GenerateConsumptionReportModal() {
   const [cultivar, setCultivar] = useState<string | null>(null);
   const [farm, setFarm] = useState<string | null>(null);
   const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const cultivaresUnicos = Array.from(
-    new Set(plantios.map((h) => h.cultivar.name))
+    new Set(plantios.map((h) => h.cultivar.name)),
   );
 
-  const farmsUnicos = Array.from(
-    new Set(plantios.map((h) => h.farm.name))
-  );
+  const farmsUnicos = Array.from(new Set(plantios.map((h) => h.farm.name)));
 
   const filtered = plantios.filter((h) => {
     const matchCultivar = !cultivar || h.cultivar.name === cultivar;
@@ -37,6 +37,7 @@ export default function GenerateConsumptionReportModal() {
   });
 
   const generatePDF = () => {
+    setLoading(true);
     const doc = new jsPDF({ orientation: "landscape" });
 
     const logo = new window.Image();
@@ -83,7 +84,7 @@ export default function GenerateConsumptionReportModal() {
           doc.text(
             `Relatório gerado em ${formattedDate} por: ${userName}`,
             10,
-            pageHeight - 10
+            pageHeight - 10,
           );
 
           const centerText = "Sistema Smart Seed";
@@ -91,29 +92,32 @@ export default function GenerateConsumptionReportModal() {
           doc.text(
             centerText,
             pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10
+            pageHeight - 10,
           );
 
           const pageNumber = (doc as any).internal.getNumberOfPages();
           doc.text(
             `${pageNumber}/${pageNumber}`,
             pageWidth - 20,
-            pageHeight - 10
+            pageHeight - 10,
           );
         },
       });
 
       // === SOMATÓRIO POR CULTIVAR ===
-      const totalsByCultivar = filtered.reduce((acc, curr) => {
-        const name = curr.cultivar.name;
-        if (!acc[name]) acc[name] = 0;
-        acc[name] += curr.quantityKg;
-        return acc;
-      }, {} as Record<string, number>);
+      const totalsByCultivar = filtered.reduce(
+        (acc, curr) => {
+          const name = curr.cultivar.name;
+          if (!acc[name]) acc[name] = 0;
+          acc[name] += curr.quantityKg;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       const totalGeral = filtered.reduce(
         (acc, curr) => acc + curr.quantityKg,
-        0
+        0,
       );
 
       let finalY = (doc as any).lastAutoTable.finalY + 10;
@@ -128,7 +132,7 @@ export default function GenerateConsumptionReportModal() {
             minimumFractionDigits: 2,
           })} kg`,
           14,
-          finalY + 6 + index * 6
+          finalY + 6 + index * 6,
         );
       });
 
@@ -138,7 +142,7 @@ export default function GenerateConsumptionReportModal() {
           minimumFractionDigits: 2,
         })} kg`,
         14,
-        finalY + 6 + Object.keys(totalsByCultivar).length * 6 + 6
+        finalY + 6 + Object.keys(totalsByCultivar).length * 6 + 6,
       );
 
       const fileNumber = new Date().getTime().toString();
@@ -146,11 +150,13 @@ export default function GenerateConsumptionReportModal() {
       doc.save(fileName);
       setCultivar(null);
       setFarm(null);
+      setLoading(false);
+      setModalOpen(false);
     };
   };
 
   return (
-    <Dialog>
+    <Dialog open={modalOpen} onOpenChange={setModalOpen}>
       <DialogTrigger asChild>
         <HoverButton className="flex gap-2">
           <FaFilePdf />
@@ -185,9 +191,7 @@ export default function GenerateConsumptionReportModal() {
           <label className="text-sm font-medium">Destino</label>
           <Select
             value={farm ?? ""}
-            onValueChange={(value) =>
-              setFarm(value === "todos" ? null : value)
-            }
+            onValueChange={(value) => setFarm(value === "todos" ? null : value)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Todos" />
@@ -203,8 +207,12 @@ export default function GenerateConsumptionReportModal() {
           </Select>
         </div>
 
-        <Button onClick={generatePDF} className="bg-green text-white">
-          Baixar PDF
+        <Button
+          onClick={generatePDF}
+          className="bg-green text-white"
+          disabled={loading}
+        >
+          {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>
       </DialogContent>
     </Dialog>

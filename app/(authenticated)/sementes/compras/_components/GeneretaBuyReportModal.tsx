@@ -9,22 +9,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FaFilePdf } from "react-icons/fa";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
 import { useBuy } from "@/contexts/BuyContext";
 
-
 export default function GenerateBuyReportModal() {
   const { buys } = useBuy();
   const [cultivar, setCultivar] = useState<string | null>(null);
   const [customer, setCustomer] = useState<string | null>(null);
   const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const cultivaresUnicos = Array.from(
-    new Set(buys.map((h) => h.cultivar.name))
+    new Set(buys.map((h) => h.cultivar.name)),
   );
   const customersUnicos = Array.from(new Set(buys.map((h) => h.customer.name)));
 
@@ -35,6 +36,7 @@ export default function GenerateBuyReportModal() {
   });
 
   const generatePDF = () => {
+    setLoading(true);
     const doc = new jsPDF({ orientation: "landscape" });
 
     const logo = new window.Image();
@@ -51,7 +53,16 @@ export default function GenerateBuyReportModal() {
 
       autoTable(doc, {
         startY: 50,
-        head: [["Data", "Cultivar", "Fornecedor", "Nota Fiscal", "Quantidade (kg)", "Valor (R$)"]],
+        head: [
+          [
+            "Data",
+            "Cultivar",
+            "Fornecedor",
+            "Nota Fiscal",
+            "Quantidade (kg)",
+            "Valor (R$)",
+          ],
+        ],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
           h.cultivar.name,
@@ -86,7 +97,7 @@ export default function GenerateBuyReportModal() {
           doc.text(
             `Relatório gerado em ${formattedDate} por: ${userName}`,
             10,
-            pageHeight - 10
+            pageHeight - 10,
           );
 
           const centerText = "Sistema Smart Seed";
@@ -94,29 +105,32 @@ export default function GenerateBuyReportModal() {
           doc.text(
             centerText,
             pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10
+            pageHeight - 10,
           );
 
           const pageNumber = (doc as any).internal.getNumberOfPages();
           doc.text(
             `${pageNumber}/${pageNumber}`,
             pageWidth - 20,
-            pageHeight - 10
+            pageHeight - 10,
           );
         },
       });
 
       // === SOMATÓRIO POR CULTIVAR ===
-      const totalsByCultivar = filtered.reduce((acc, curr) => {
-        const name = curr.cultivar.name;
-        if (!acc[name]) acc[name] = 0;
-        acc[name] += curr.quantityKg;
-        return acc;
-      }, {} as Record<string, number>);
+      const totalsByCultivar = filtered.reduce(
+        (acc, curr) => {
+          const name = curr.cultivar.name;
+          if (!acc[name]) acc[name] = 0;
+          acc[name] += curr.quantityKg;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       const totalGeral = filtered.reduce(
         (acc, curr) => acc + curr.quantityKg,
-        0
+        0,
       );
 
       let finalY = (doc as any).lastAutoTable.finalY + 10;
@@ -131,7 +145,7 @@ export default function GenerateBuyReportModal() {
             minimumFractionDigits: 2,
           })} kg`,
           14,
-          finalY + 6 + index * 6
+          finalY + 6 + index * 6,
         );
       });
 
@@ -141,7 +155,7 @@ export default function GenerateBuyReportModal() {
           minimumFractionDigits: 2,
         })} kg`,
         14,
-        finalY + 6 + Object.keys(totalsByCultivar).length * 6 + 6
+        finalY + 6 + Object.keys(totalsByCultivar).length * 6 + 6,
       );
 
       const fileNumber = new Date().getTime().toString();
@@ -149,11 +163,13 @@ export default function GenerateBuyReportModal() {
       doc.save(fileName);
       setCultivar(null);
       setCustomer(null);
+      setLoading(false);
+      setModalOpen(false);
     };
   };
 
   return (
-    <Dialog>
+    <Dialog open={modalOpen} onOpenChange={setModalOpen}>
       <DialogTrigger asChild>
         <HoverButton className="flex gap-2">
           <FaFilePdf />
@@ -207,8 +223,12 @@ export default function GenerateBuyReportModal() {
           </Select>
         </div>
 
-        <Button onClick={generatePDF} className="bg-green text-white">
-          Baixar PDF
+        <Button
+          onClick={generatePDF}
+          className="bg-green text-white"
+          disabled={loading}
+        >
+          {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>
       </DialogContent>
     </Dialog>

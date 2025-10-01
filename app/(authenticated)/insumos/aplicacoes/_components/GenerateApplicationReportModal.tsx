@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FaFilePdf } from "react-icons/fa";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useUser } from "@/contexts/UserContext";
@@ -22,6 +22,8 @@ export default function GenerateApplicationReportModal() {
   const [farm, setFarm] = useState<string | null>(null);
   const [talhao, setTalhao] = useState<string | null>(null);
   const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const produtosUnicos = Array.from(
     new Set(aplicacoes.map((h) => h.productStock.product.name)),
@@ -43,6 +45,7 @@ export default function GenerateApplicationReportModal() {
   });
 
   const generatePDF = () => {
+    setLoading(true);
     const doc = new jsPDF({ orientation: "landscape" });
 
     const logo = new window.Image();
@@ -61,14 +64,7 @@ export default function GenerateApplicationReportModal() {
       autoTable(doc, {
         startY: 50,
         head: [
-          [
-            "Data",
-            "Produto",
-            "Talhão",
-            "Área (Ha)",
-            "Quantidade",
-            "Dosagem",
-          ],
+          ["Data", "Produto", "Talhão", "Área (Ha)", "Quantidade", "Dosagem"],
         ],
         body: filtered.map((h) => {
           const area = h.talhao.area;
@@ -80,8 +76,10 @@ export default function GenerateApplicationReportModal() {
             h.productStock.product.name,
             h.talhao.name,
             area.toLocaleString("pt-BR", { minimumFractionDigits: 2 }),
-            quantidade.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + ` ${h.productStock.product.unit}`,
-            dosagem.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + ` ${h.productStock.product.unit}/Ha`,
+            quantidade.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) +
+              ` ${h.productStock.product.unit}`,
+            dosagem.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) +
+              ` ${h.productStock.product.unit}/Ha`,
           ];
         }),
         styles: {
@@ -168,11 +166,14 @@ export default function GenerateApplicationReportModal() {
       doc.save(fileName);
       setProduto(null);
       setFarm(null);
+      setTalhao(null);
+      setLoading(false);
+      setModalOpen(false);
     };
   };
 
   return (
-    <Dialog>
+    <Dialog open={modalOpen} onOpenChange={setModalOpen}>
       <DialogTrigger asChild>
         <HoverButton className="flex gap-2">
           <FaFilePdf />
@@ -246,8 +247,12 @@ export default function GenerateApplicationReportModal() {
           </Select>
         </div>
 
-        <Button onClick={generatePDF} className="bg-green text-white">
-          Baixar PDF
+        <Button
+          onClick={generatePDF}
+          className="bg-green text-white"
+          disabled={loading}
+        >
+          {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>
       </DialogContent>
     </Dialog>
