@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FaFilePdf } from "react-icons/fa";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useReceivable } from "@/contexts/ReceivableContext";
@@ -28,9 +28,10 @@ import { DateRange } from "react-day-picker";
 export default function GenerateReceivableReportModal() {
   const { receivables } = useReceivable();
   const { user } = useUser();
-
+  const [loading, setLoading] = useState(false);
   const [customer, setCustomer] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [open, setOpen] = useState(false);
 
   const customersUnicos = Array.from(
     new Set(receivables.map((r) => r.customer.name)),
@@ -54,6 +55,7 @@ export default function GenerateReceivableReportModal() {
   });
 
   const generatePDF = () => {
+    setLoading(true);
     const doc = new jsPDF({ orientation: "landscape" });
     const logo = new window.Image();
     logo.src = "/logo.png";
@@ -155,11 +157,13 @@ export default function GenerateReceivableReportModal() {
       doc.save(`Relatório de Contas à Receber - ${fileNumber}.pdf`);
       setCustomer(null);
       setDateRange(undefined);
+      setLoading(false);
+      setOpen(false);
     };
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <HoverButton className="flex gap-2">
           <FaFilePdf />
@@ -219,8 +223,8 @@ export default function GenerateReceivableReportModal() {
           </Popover>
         </div>
 
-        <Button onClick={generatePDF} className="bg-green text-white">
-          Baixar PDF
+        <Button onClick={generatePDF} className="bg-green text-white" disabled={loading}>
+          {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>
       </DialogContent>
     </Dialog>
