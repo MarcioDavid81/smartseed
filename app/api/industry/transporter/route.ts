@@ -1,20 +1,7 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import z from "zod";
-
-export const industryTransporterSchema = z.object({
-  name: z.string().min(1, "Nome do transportador é obrigatório"),
-  fantasyName: z.string().optional(),
-  cpf_cnpj: z.string().optional(),
-  adress: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  phone: z.string().optional(),
-  email: z.string().email("Email inválido").optional(),
-});
-
-export type IndustryTransporter = z.infer<typeof industryTransporterSchema>;
+import { industryTransporterSchema } from "@/lib/schemas/industryTransporter";
 
 export async function POST (req: NextRequest) {
   const authHeader = req.headers.get("Authorization");

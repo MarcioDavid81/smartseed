@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FaSeedling } from "react-icons/fa";
+import { FaSeedling, FaTruck } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { useState } from "react";
 import {
@@ -31,6 +31,7 @@ import { usePathname } from "next/navigation";
 import { Building2, User } from "lucide-react";
 import { TbTransferIn } from "react-icons/tb";
 import { GiFarmTractor } from "react-icons/gi";
+import combineIcon from "../../../public/combine.ico";
 
 const routes = [
   {
@@ -76,7 +77,7 @@ const routes = [
       {
         path: "/sementes/colheitas",
         name: "Colheita",
-        icon: <GiFarmTractor size={16} />,
+        icon: <Image src={combineIcon} alt="Agricultura" width={20} height={20} />,
       },
       {
         path: "/sementes/compras",
@@ -105,6 +106,37 @@ const routes = [
       },
       {
         path: "/sementes/estoque",
+        name: "Estoque",
+        icon: <Warehouse size={16} />,
+      },
+    ],
+  },
+  {
+    name: "Agricultura",
+    icon: <GiFarmTractor size={20} />,
+    subRoutes: [
+      {
+        path: "/agricultura/dashboard",
+        name: "Dashboard",
+        icon: <AiOutlineDashboard size={20} />,
+      },
+      {
+        path: "/agricultura/colheitas",
+        name: "Colheita",
+        icon: <Image src={combineIcon} alt="Agricultura" width={24} height={24} />,
+      },
+      {
+        path: "/agricultura/produtos",
+        name: "Produtos",
+        icon: <PackageSearch size={16} />,
+      },
+      {
+        path: "/agricultura/transportadores",
+        name: "Transportadores",
+        icon: <FaTruck size={16} />,
+      },
+      {
+        path: "/agricultura/estoque",
         name: "Estoque",
         icon: <Warehouse size={16} />,
       },

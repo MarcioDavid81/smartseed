@@ -17,6 +17,7 @@ import { PiFarm } from "react-icons/pi";
 import { useUser } from "@/contexts/UserContext";
 import LogoutButton from "./LogoutButton";
 import Image from "next/image";
+import { GiFarmTractor } from "react-icons/gi";
 
 const routes = [
   {
@@ -46,6 +47,17 @@ const routes = [
       { path: "/sementes/descartes", name: "Descarte" },
       { path: "/sementes/cultivares", name: "Cultivares" },
       { path: "/sementes/estoque", name: "Estoque" },
+    ],
+  },
+  {
+    name: "Agricultura",
+    icon: <GiFarmTractor size={20} />,
+    subRoutes: [
+      { path: "/agricultura/dashboard", name: "Dashboard" },
+      { path: "/agricultura/colheitas", name: "Colheita" },
+      { path: "/agricultura/produtos", name: "Produtos" },
+      { path: "/agricultura/transportadores", name: "Transportadores" },
+      { path: "/agricultura/estoque", name: "Estoque" },
     ],
   },
   {
