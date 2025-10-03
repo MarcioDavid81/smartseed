@@ -19,10 +19,13 @@ export async function GET(req: Request) {
         { status: 401 },
       );
     }
+    
+    const { companyId } = payload;
+
 
     const stock = await db.productStock.findMany({
       where: {
-        companyId: payload.companyId,
+        companyId,
         stock: {
           gt: 0,
         },

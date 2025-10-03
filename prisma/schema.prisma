@@ -508,7 +508,7 @@ model IndustryStock {
   companyId         String
   company           Company         @relation(fields: [companyId], references: [id])
 
-  @@unique([industryProductId, industryDepositId])
+  @@unique([industryProductId, industryDepositId], name: "industryProductId_industryDepositId")
 }
 
 model IndustryTransporter {
@@ -529,6 +529,7 @@ model IndustryTransporter {
 model IndustryHarvest {
   id                    String               @id @default(cuid())
   date                  DateTime
+  document              String?
   //produto colhido
   productId             String
   product               IndustryProduct      @relation(fields: [productId], references: [id])
@@ -542,7 +543,7 @@ model IndustryHarvest {
   industryTransporterId String?
   industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id])
   truckPlate            String?
-  truckDiver            String?
+  truckDriver            String?
   //classificação no destino
   weightBt              Decimal              @db.Decimal(12, 2) // Peso bruto
   weightTr              Decimal              @db.Decimal(12, 2) // Tara
@@ -556,8 +557,8 @@ model IndustryHarvest {
   weightLiq             Decimal              @db.Decimal(12, 2) // Peso líquido final
   cycleId               String?
   cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
   companyId             String
   company               Company              @relation(fields: [companyId], references: [id])
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
 }
