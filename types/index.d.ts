@@ -16,3 +16,7 @@ export * from "./productStock";
 export * from "./insumo";
 export * from "./accountPayable";
 export * from "./accountReceivable";
+export * from "./industryProduct";
+export * from "./industryDeposit";
+export * from "./industryTransporter";
+export * from "./industryHarvest";

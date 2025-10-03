@@ -15,9 +15,9 @@ datasource db {
 
 // empresa
 model Company {
-  id                 String              @id @default(uuid())
+  id                 String                @id @default(uuid())
   name               String
-  plan               Plan?               @default(BASIC)
+  plan               Plan?                 @default(BASIC)
   farms              Farm[]
   users              User[]
   customers          Customer[]
@@ -36,7 +36,12 @@ model Company {
   productionCycles   ProductionCycle[]
   accountsPayable    AccountPayable[]
   accountsReceivable AccountReceivable[]
-  createdAt          DateTime            @default(now())
+  industryDeposits   IndustryDeposit[]
+  industryHarvests   IndustryHarvest[]
+  industryProducts   IndustryProduct[]
+  transporters       IndustryTransporter[]
+  industryStocks     IndustryStock[]
+  createdAt          DateTime              @default(now())
 }
 
 // fazenda
@@ -122,16 +127,17 @@ enum OperationType {
 
 //talhões
 model Talhao {
-  id           String        @id @default(cuid())
-  name         String
-  area         Float
-  company      Company       @relation(fields: [companyId], references: [id])
-  companyId    String
-  farmId       String
-  farm         Farm          @relation(fields: [farmId], references: [id])
-  harvests     Harvest[]
-  applications Application[]
-  createdAt    DateTime      @default(now())
+  id               String            @id @default(cuid())
+  name             String
+  area             Float
+  company          Company           @relation(fields: [companyId], references: [id])
+  companyId        String
+  farmId           String
+  farm             Farm              @relation(fields: [farmId], references: [id])
+  harvests         Harvest[]
+  applications     Application[]
+  industryHarvests IndustryHarvest[]
+  createdAt        DateTime          @default(now())
 }
 
 // status do cultivar
@@ -274,6 +280,7 @@ model ProductionCycle {
   purchases        Purchase[]
   transfers        TransferExit[]
   applications     Application[]
+  industryHarvests IndustryHarvest[]
   createdAt        DateTime          @default(now())
 }
 
@@ -470,4 +477,87 @@ model AccountReceivable {
   // relacionamento com cliente
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id])
+}
+
+//MÓDULO DE COLHEITA INDÚSTRIA
+model IndustryProduct {
+  id               String            @id @default(cuid())
+  name             String
+  industryHarvests IndustryHarvest[]
+  industryStocks   IndustryStock[]
+  companyId        String
+  company          Company           @relation(fields: [companyId], references: [id])
+}
+
+model IndustryDeposit {
+  id               String            @id @default(cuid())
+  name             String
+  companyId        String
+  company          Company           @relation(fields: [companyId], references: [id])
+  industryHarvests IndustryHarvest[]
+  industryStocks   IndustryStock[]
+}
+
+model IndustryStock {
+  id                String          @id @default(cuid())
+  industryProductId String
+  industryProduct   IndustryProduct @relation(fields: [industryProductId], references: [id])
+  industryDepositId String
+  industryDeposit   IndustryDeposit @relation(fields: [industryDepositId], references: [id])
+  quantity          Decimal         @db.Decimal(12, 2)
+  companyId         String
+  company           Company         @relation(fields: [companyId], references: [id])
+
+  @@unique([industryProductId, industryDepositId])
+}
+
+model IndustryTransporter {
+  id               String            @id @default(cuid())
+  name             String
+  fantasyName      String?
+  cpf_cnpj         String?             @unique
+  adress           String?
+  city             String?
+  state            String?
+  phone            String?
+  email            String?
+  industryHarvests IndustryHarvest[]
+  companyId        String
+  company          Company           @relation(fields: [companyId], references: [id])
+}
+
+model IndustryHarvest {
+  id                    String               @id @default(cuid())
+  date                  DateTime
+  //produto colhido
+  productId             String
+  product               IndustryProduct      @relation(fields: [productId], references: [id])
+  //talhão colhido
+  talhaoId              String
+  talhao                Talhao               @relation(fields: [talhaoId], references: [id])
+  //local de armazenamento
+  industryDepositId     String
+  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id])
+  //transporte
+  industryTransporterId String?
+  industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id])
+  truckPlate            String?
+  truckDiver            String?
+  //classificação no destino
+  weightBt              Decimal              @db.Decimal(12, 2) // Peso bruto
+  weightTr              Decimal              @db.Decimal(12, 2) // Tara
+  weightSubLiq          Decimal              @db.Decimal(12, 2) // Sub Líquido
+  humidity_percent      Decimal              @db.Decimal(5, 2) // Percentual umidade
+  humidity_discount     Decimal              @db.Decimal(12, 2) // Desconto umidade
+  humidity_kg           Decimal              @db.Decimal(12, 2) // KG umidade
+  impurities_percent    Decimal              @db.Decimal(5, 2) // Percentual impurezas
+  impurities_discount   Decimal              @db.Decimal(12, 2) // Desconto impurezas
+  impurities_kg         Decimal              @db.Decimal(12, 2) // KG impurezas
+  weightLiq             Decimal              @db.Decimal(12, 2) // Peso líquido final
+  cycleId               String?
+  cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  companyId             String
+  company               Company              @relation(fields: [companyId], references: [id])
 }
