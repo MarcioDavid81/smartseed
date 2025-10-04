@@ -58,7 +58,7 @@ export async function GET (req: NextRequest) {
   try {
     const industryProducts = await db.industryProduct.findMany({
       where: { companyId },
-      orderBy: { name: "desc" },
+      orderBy: { name: "asc" },
     });
 
     return NextResponse.json(industryProducts, { status: 200 });
