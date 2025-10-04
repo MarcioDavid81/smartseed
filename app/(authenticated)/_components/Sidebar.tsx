@@ -16,6 +16,7 @@ import {
   ChartNoAxesCombined,
   BanknoteArrowUp,
   BanknoteArrowDown,
+  Home,
 } from "lucide-react";
 import { PiFarm } from "react-icons/pi";
 import {
@@ -134,6 +135,11 @@ const routes = [
         path: "/agricultura/transportadores",
         name: "Transportadores",
         icon: <FaTruck size={16} />,
+      },
+      {
+        path: "/agricultura/depositos",
+        name: "Depósitos",
+        icon: <Home size={16} />,
       },
       {
         path: "/agricultura/estoque",
