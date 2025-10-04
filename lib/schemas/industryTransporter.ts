@@ -11,4 +11,4 @@ export const industryTransporterSchema = z.object({
   email: z.string().email("Email inválido").optional(),
 });
 
-export type IndustryTransporter = z.infer<typeof industryTransporterSchema>;
+export type IndustryTransporterFormData = z.infer<typeof industryTransporterSchema>;

@@ -5,7 +5,7 @@ export interface IndustryTransporter {
   name: string;
   fantasyName?: string;
   cpf_cnpj?: string;
-  address?: string;
+  adress?: string;
   city?: string;
   state?: string;
   phone?: string;

@@ -8,15 +8,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { IndustryProduct } from "@/types";
-import UpsertIndustryProductModal from "./UpsertProductModal";
+import { IndustryTransporter } from "@/types";
+import UpsertIndustryTransporterModal from "./UpsertTransporterModal";
 
 interface Props {
-  industryProduct: IndustryProduct;
+  industryTransporter: IndustryTransporter;
   onUpdated: () => void;
 }
 
-const EditIndustryProductButton = ({ industryProduct, onUpdated }: Props) => {
+const EditIndustryTransporterButton = ({ industryTransporter, onUpdated }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -35,14 +35,14 @@ const EditIndustryProductButton = ({ industryProduct, onUpdated }: Props) => {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <UpsertIndustryProductModal
+      <UpsertIndustryTransporterModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        industryProduct={industryProduct}
+        industryTransporter={industryTransporter}
         onUpdated={onUpdated}
       />
     </>
   );
 };
 
-export default EditIndustryProductButton;
+export default EditIndustryTransporterButton;

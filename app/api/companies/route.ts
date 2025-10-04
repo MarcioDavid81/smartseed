@@ -7,7 +7,6 @@ export async function GET() {
       select: { id: true, name: true },
       where: {},
     });
-    console.log("EMPRESAS PRODUÇÃO", companies);
     return NextResponse.json(companies);
   } catch (error) {
     console.error("Erro ao buscar empresas:", error);

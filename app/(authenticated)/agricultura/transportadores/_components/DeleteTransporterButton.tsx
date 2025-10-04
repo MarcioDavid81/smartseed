@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useHarvest } from "@/contexts/HarvestContext";
 import { getToken } from "@/lib/auth-client";
-import { IndustryProduct } from "@/types";
+import { IndustryTransporter } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
@@ -27,22 +27,22 @@ import { toast } from "sonner";
 
 
 interface Props {
-  industryProduct: IndustryProduct;
+  industryTransporter: IndustryTransporter;
   onDeleted: () => void;
 }
 
-const DeleteIndustryProductButton = ({ industryProduct, onDeleted }: Props) => {
+const DeleteIndustryTransporterButton = ({ industryTransporter, onDeleted }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { fetchHarvests } = useHarvest();
 
-  const handleDelete = async (industryProduct: IndustryProduct) => {
+  const handleDelete = async (industryTransporter: IndustryTransporter) => {
     console.log("🔁 handleDelete chamado");
-    console.log("📦 produto recebido:", industryProduct);
+    console.log("📦 transportador recebido:", industryTransporter);
 
-    if (!industryProduct || !industryProduct.id) {
-      toast.error("ID do produto ausente. Não é possível excluir.");
-      console.warn("❌ industryProduct.id ausente ou inválido");
+    if (!industryTransporter || !industryTransporter.id) {
+      toast.error("ID do transportador ausente. Não é possível excluir.");
+      console.warn("❌ industryTransporter.id ausente ou inválido");
       return;
     }
 
@@ -50,7 +50,7 @@ const DeleteIndustryProductButton = ({ industryProduct, onDeleted }: Props) => {
 
     try {
       const token = getToken();
-      const url = `/api/industry/product/${industryProduct.id}`;
+      const url = `/api/industry/transporter/${industryTransporter.id}`;
       console.log("🌐 Enviando DELETE para:", url);
 
       const res = await fetch(url, {
@@ -104,7 +104,7 @@ const DeleteIndustryProductButton = ({ industryProduct, onDeleted }: Props) => {
         <AlertDialogHeader>
           <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
           <AlertDialogDescription>
-            {`Esta ação é irreversível e excluirá o registro de ${industryProduct.name} permanentemente.`}
+            {`Esta ação é irreversível e excluirá o registro de ${industryTransporter.name} permanentemente.`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -113,7 +113,7 @@ const DeleteIndustryProductButton = ({ industryProduct, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(industryProduct)}
+              onClick={() => handleDelete(industryTransporter)}
               disabled={loading}
               variant="ghost"
               className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
@@ -129,4 +129,4 @@ const DeleteIndustryProductButton = ({ industryProduct, onDeleted }: Props) => {
   );
 };
 
-export default DeleteIndustryProductButton;
+export default DeleteIndustryTransporterButton;
