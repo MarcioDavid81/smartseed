@@ -21,9 +21,18 @@ export async function GET(req: NextRequest) {
 
   const { companyId } = payload;
 
+    const { searchParams } = new URL(req.url);
+  const depositId = searchParams.get("depositId");
+  const productId = searchParams.get("productId");
+
   try {
     const industryStocks = await db.industryStock.findMany({
-      where: { companyId, quantity: { gt: 0 } },
+      where: {
+        companyId,
+        quantity: { gt: 0 },
+        ...(depositId ? { industryDepositId: depositId } : {}),
+        ...(productId ? { productId } : {}),
+      },
       include: {
         industryProduct: {
           select: {
@@ -38,6 +47,11 @@ export async function GET(req: NextRequest) {
           },
         },
       },
+      orderBy: {
+        industryDeposit: {
+          name: "asc",
+        },
+      }
     });
 
     return NextResponse.json(industryStocks, { status: 200 });

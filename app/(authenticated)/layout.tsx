@@ -20,6 +20,8 @@ import { ApplicationProvider } from "@/contexts/ApplicationContext";
 import { TransferProvider } from "@/contexts/TransferContext";
 import { ReceivableProvider } from "@/contexts/ReceivableContext";
 import { PayableProvider } from "@/contexts/PayableContext";
+import { IndustryHarvestProvider } from "@/contexts/IndustryHarvestContext";
+
 
 
 const robotoFont = roboto({
@@ -126,10 +128,12 @@ export default async function RootLayout({
                                 <TransferProvider>
                                   <ReceivableProvider>
                                     <PayableProvider>
+                                      <IndustryHarvestProvider>
                                       <Sidebar />
                                       <MobileMenu />
                                       {children}
                                       <Toaster richColors />
+                                      </IndustryHarvestProvider>
                                     </PayableProvider>
                                   </ReceivableProvider>
                                 </TransferProvider>

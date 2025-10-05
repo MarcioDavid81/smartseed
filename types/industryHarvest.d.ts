@@ -1,6 +1,7 @@
 export interface IndustryHarvest {
   id: string;
   date: Date;
+  document?: string;
   productId: string;
   product: {
     id: string;
@@ -10,6 +11,10 @@ export interface IndustryHarvest {
   talhao: {
     id: string;
     name: string;
+    farm: {
+      id: string;
+      name: string;
+    };
   };
   industryDepositId: string;
   industryDeposit: {

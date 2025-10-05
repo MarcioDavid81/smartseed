@@ -28,4 +28,4 @@ export const industryHarvestSchema = z.object({
   cycleId: z.string().min(1, "Ciclo da colheita é obrigatório"),
 });
 
-export type IndustryHarvest = z.infer<typeof industryHarvestSchema>;
+export type IndustryHarvestFormData = z.infer<typeof industryHarvestSchema>;

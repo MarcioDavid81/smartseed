@@ -88,15 +88,42 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Token inválido" }, { status: 401 });
   }
 
-  const { companyId } = payload;
+  const { searchParams } = new URL(req.url);
+  const depositId = searchParams.get("depositId");
+  const productId = searchParams.get("productId");
+  const cycleId = searchParams.get("cycleId");
 
   try {
     const industryHarvests = await db.industryHarvest.findMany({
-      where: { companyId },
-      orderBy: { date: "desc" },
+      where: {
+        companyId: payload.companyId,
+        ...(depositId ? { industryDepositId: depositId } : {}),
+        ...(productId ? { productId } : {}),
+        ...(cycleId ? { cycleId } : {}),
+      },
+      include: {
+        industryDeposit: true,
+        industryTransporter:{
+          select: {
+            name: true,
+          }
+        },
+        product: true,
+        talhao: {
+          select: {
+            name: true,
+            farm: {
+              select: {
+                name: true,
+              }
+            }
+          }
+        }
+      },
+      orderBy: { document: "asc" },
     });
 
-    return NextResponse.json(industryHarvests, { status: 200 });
+    return NextResponse.json(industryHarvests);
   } catch (error) {
     console.error("Erro ao buscar colheitas:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
