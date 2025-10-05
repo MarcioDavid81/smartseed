@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useCycle } from "@/contexts/CycleContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { IndustryHarvestFormData, industryHarvestSchema } from "@/lib/schemas/industryHarvest";
@@ -32,7 +32,6 @@ const UpsertHarvestModal = ({
   isOpen,
   onClose,
   onHarvestCreated,
-  onUpdated,
 }: UpsertHarvestModalProps) => {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<IndustryProduct[]>([]);
@@ -195,7 +194,7 @@ const UpsertHarvestModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Colheita</DialogTitle>
           <DialogDescription>
@@ -204,102 +203,109 @@ const UpsertHarvestModal = ({
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4">
-            <div>
-              <Label>Data</Label>
-              <Input type="date" {...register("date")} />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Data</Label>
+                <Input type="date" {...register("date")} />
+              </div>
+              <div>
+                <Label>Documento</Label>
+                <Input type="text" {...register("document")} />
+              </div>
             </div>
-            <div>
-              <Label>Documento</Label>
-              <Input type="text" {...register("document")} />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Produto</Label>
+                <select
+                  {...register("productId")}
+                  className="w-full border rounded px-2 py-1"
+                >
+                  <option value="">Selecione</option>
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.productId && (
+                  <span className="text-xs text-red-500">
+                    {errors.productId.message}
+                  </span>
+                )}
+              </div>
+              <div>
+                <Label>Talhão</Label>
+                <select
+                  {...register("talhaoId")}
+                  className="w-full border rounded px-2 py-1"
+                >
+                  <option value="">Selecione</option>
+                  {talhoes.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.talhaoId && (
+                  <span className="text-xs text-red-500">
+                    {errors.talhaoId.message}
+                  </span>
+                )}
+              </div>
             </div>
-            <div>
-              <Label>Produto</Label>
-              <select
-                {...register("productId")}
-                className="w-full border rounded px-2 py-1"
-              >
-                <option value="">Selecione</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              {errors.productId && (
-                <span className="text-xs text-red-500">
-                  {errors.productId.message}
-                </span>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Depósito</Label>
+                <select
+                  {...register("industryDepositId")}
+                  className="w-full border rounded px-2 py-1"
+                >
+                  <option value="">Selecione</option>
+                  {deposits.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.industryDepositId && (
+                  <span className="text-xs text-red-500">
+                    {errors.industryDepositId.message}
+                  </span>
+                )}
+              </div>
+              <div>
+                <Label>Transportador</Label>
+                <select
+                  {...register("industryTransporterId")}
+                  className="w-full border rounded px-2 py-1"
+                >
+                  <option value="">Selecione</option>
+                  {transporters.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.industryTransporterId && (
+                  <span className="text-xs text-red-500">
+                    {errors.industryTransporterId.message}
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div>
-              <Label>Talhão</Label>
-              <select
-                {...register("talhaoId")}
-                className="w-full border rounded px-2 py-1"
-              >
-                <option value="">Selecione</option>
-                {talhoes.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-              {errors.talhaoId && (
-                <span className="text-xs text-red-500">
-                  {errors.talhaoId.message}
-                </span>
-              )}
-            </div>
-            <div>
-              <Label>Depósito</Label>
-              <select
-                {...register("industryDepositId")}
-                className="w-full border rounded px-2 py-1"
-              >
-                <option value="">Selecione</option>
-                {deposits.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-              {errors.industryDepositId && (
-                <span className="text-xs text-red-500">
-                  {errors.industryDepositId.message}
-                </span>
-              )}
-            </div>
-            <div>
-              <Label>Transportador</Label>
-              <select
-                {...register("industryTransporterId")}
-                className="w-full border rounded px-2 py-1"
-              >
-                <option value="">Selecione</option>
-                {transporters.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-              {errors.industryTransporterId && (
-                <span className="text-xs text-red-500">
-                  {errors.industryTransporterId.message}
-                </span>
-              )}
-            </div>
-
-            <div>
-              <Label>Placa</Label>
-              <Input type="text" {...register("truckPlate")} />
-            </div>
-            <div>
-              <Label>Motorista</Label>
-              <Input type="text" {...register("truckDriver")} />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Placa</Label>
+                <Input type="text" {...register("truckPlate")} />
+              </div>
+              <div>
+                <Label>Motorista</Label>
+                <Input type="text" {...register("truckDriver")} />
+              </div>
             </div>
             {/* peso */}
-            <div>
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label>Peso Bruto (kg)</Label>
                 <Input
@@ -341,50 +347,8 @@ const UpsertHarvestModal = ({
               </div>
             </div>
             {/* CLASSIFICAÇÃO */}
-            {/* umidade */}
-            <div>
-              <div>
-                <Label>Umidade</Label>
-                <Input
-                  type="number"
-                  {...register("humidity_percent")}
-                  placeholder="Ex: 1200"
-                />
-                {errors.humidity_percent && (
-                  <span className="text-xs text-red-500">
-                    {errors.humidity_percent.message}
-                  </span>
-                )}
-              </div>
-              <div>
-                <Label>Porcentage (%)</Label>
-                <Input
-                  type="number"
-                  {...register("humidity_discount")}
-                  placeholder="Ex: 1200"
-                />
-                {errors.humidity_discount && (
-                  <span className="text-xs text-red-500">
-                    {errors.humidity_discount.message}
-                  </span>
-                )}
-              </div>
-              <div>
-                <Label>Desconto (kg)</Label>
-                <Input
-                  type="number"
-                  {...register("humidity_kg")}
-                  placeholder="Ex: 1200"
-                />
-                {errors.humidity_kg && (
-                  <span className="text-xs text-red-500">
-                    {errors.humidity_kg.message}
-                  </span>
-                )}
-              </div>
-            </div>
             {/* impureza */}
-            <div>
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label>Impureza</Label>
                 <Input
@@ -425,19 +389,77 @@ const UpsertHarvestModal = ({
                 )}
               </div>
             </div>
+            {/* umidade */}
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label>Umidade</Label>
+                <Input
+                  type="number"
+                  {...register("humidity_percent")}
+                  placeholder="Ex: 1200"
+                />
+                {errors.humidity_percent && (
+                  <span className="text-xs text-red-500">
+                    {errors.humidity_percent.message}
+                  </span>
+                )}
+              </div>
+              <div>
+                <Label>Porcentage (%)</Label>
+                <Input
+                  type="number"
+                  {...register("humidity_discount")}
+                  placeholder="Ex: 1200"
+                />
+                {errors.humidity_discount && (
+                  <span className="text-xs text-red-500">
+                    {errors.humidity_discount.message}
+                  </span>
+                )}
+              </div>
+              <div>
+                <Label>Desconto (kg)</Label>
+                <Input
+                  type="number"
+                  {...register("humidity_kg")}
+                  placeholder="Ex: 1200"
+                />
+                {errors.humidity_kg && (
+                  <span className="text-xs text-red-500">
+                    {errors.humidity_kg.message}
+                  </span>
+                )}
+              </div>
+            </div>
+
             {/* peso líquido */}
-            <div>
-              <Label>Peso Líquido (kg)</Label>
-              <Input
-                type="number"
-                {...register("weightLiq")}
-                placeholder="Ex: 1200"
-              />
-              {errors.weightLiq && (
-                <span className="text-xs text-red-500">
-                  {errors.weightLiq.message}
-                </span>
-              )}
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label>Outros Descontos (kg)</Label>
+                <Input
+                  type="number"
+                  {...register("weightLiq")}
+                  placeholder="Ex: 1200"
+                />
+                {errors.weightLiq && (
+                  <span className="text-xs text-red-500">
+                    {errors.weightLiq.message}
+                  </span>
+                )}
+              </div>
+              <div className="col-span-2">
+                <Label>Peso Líquido (kg)</Label>
+                <Input
+                  type="number"
+                  {...register("weightLiq")}
+                  placeholder="Ex: 1200"
+                />
+                {errors.weightLiq && (
+                  <span className="text-xs text-red-500">
+                    {errors.weightLiq.message}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <Button

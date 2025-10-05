@@ -16,6 +16,8 @@ import { FaSpinner } from "react-icons/fa";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PRODUCT_TYPE_OPTIONS } from "../../_constants/products";
+import { ProductType } from "@prisma/client";
 
 interface NewCycleModalProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ interface NewCycleModalProps {
 
 const cycleSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
+  productType: z.nativeEnum(ProductType),
   startDate: z.string().min(1, "Data de início é obrigatória"),
   endDate: z.string().min(1, "Data de término é obrigatória"),
 });
@@ -89,6 +92,18 @@ const NewCycleModal = ({ isOpen, onClose }: NewCycleModalProps) => {
                 placeholder="Ex: Soja 2025"
               />
               {errors.name && <span className="text-red-500">{errors.name.message}</span>}
+            </div>
+            <div>
+              <Label htmlFor="productType">Produto</Label>
+              <select {...register("productType")} className="w-full border rounded p-2">
+                <option value="">Selecione um produto</option>
+                {PRODUCT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              {errors.productType && <span className="text-red-500">{errors.productType.message}</span>}
             </div>
             <div>
               <Label htmlFor="startDate">Início</Label>
