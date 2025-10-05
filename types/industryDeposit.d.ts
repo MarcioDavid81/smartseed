@@ -1,9 +1,17 @@
-import { IndustryHarvest, IndustryStock } from "@prisma/client";
+import { IndustryHarvest } from "@prisma/client";
+
+export interface IndustryStockWithProduct {
+  quantity: number;
+  industryProduct: {
+    id: string;
+    name: string;
+  };
+}
 
 export interface IndustryDeposit {
   id: string;
-  date: Date;
+  name: string;
   industryHarvests: IndustryHarvest[];
-  industryStocks: IndustryStock[];
+  industryStocks: IndustryStockWithProduct[];
   companyId: string;
 }

@@ -58,6 +58,19 @@ export async function GET (req: NextRequest) {
   try {
     const industryDeposits = await db.industryDeposit.findMany({
       where: { companyId },
+      include: {
+        industryStocks: {
+          select: {
+            industryProduct: {
+              select: {
+                id: true,
+                name: true,
+              }
+            },
+            quantity: true,
+          }
+        },
+      },
       orderBy: { name: "asc" },
     });
 

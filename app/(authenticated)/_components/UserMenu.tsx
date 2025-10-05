@@ -31,7 +31,7 @@ export const UserMenu = () => {
 
         <DropdownMenuContent className="w-48" align="end">
           <div className="px-2 py-1 text-sm font-light">
-            <span>{user?.name}</span>
+            {user?.name ? <span className="text-sm px-2 py-1 font-light">{user?.name}</span> : "NÃO IDENTIFICADO"}
           </div>
           <DropdownMenuSeparator className="my-2" />
 

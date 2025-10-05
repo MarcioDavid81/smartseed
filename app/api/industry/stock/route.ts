@@ -25,8 +25,18 @@ export async function GET(req: NextRequest) {
     const industryStocks = await db.industryStock.findMany({
       where: { companyId, quantity: { gt: 0 } },
       include: {
-        industryProduct: true,
-        industryDeposit: true,
+        industryProduct: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        industryDeposit: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
