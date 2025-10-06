@@ -15,6 +15,7 @@ import autoTable from "jspdf-autotable";
 import { useHarvest } from "@/contexts/HarvestContext";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
+import { formatNumber } from "@/app/_helpers/currency";
 
 export default function GenerateHarvestReportModal() {
   const { harvests } = useHarvest();
@@ -59,9 +60,7 @@ export default function GenerateHarvestReportModal() {
           h.cultivar.name,
           h.talhao.name,
           h.talhao.farm.name,
-          h.quantityKg.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          }),
+          formatNumber(h.quantityKg),
         ]),
         styles: {
           fontSize: 9,
@@ -128,9 +127,7 @@ export default function GenerateHarvestReportModal() {
       doc.setFontSize(9);
       Object.entries(totalsByCultivar).forEach(([name, total], index) => {
         doc.text(
-          `${name}: ${total.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          })} kg`,
+          `${name}: ${formatNumber(total)} kg`,
           14,
           finalY + 6 + index * 6,
         );
@@ -138,9 +135,7 @@ export default function GenerateHarvestReportModal() {
 
       doc.setFontSize(9);
       doc.text(
-        `Total Geral: ${totalGeral.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })} kg`,
+        `Total Geral: ${formatNumber(totalGeral)} kg`,
         14,
         finalY + 6 + Object.keys(totalsByCultivar).length * 6 + 6,
       );

@@ -15,6 +15,7 @@ import autoTable from "jspdf-autotable";
 import { useIndustryHarvest } from "@/contexts/IndustryHarvestContext";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
+import { formatNumber } from "@/app/_helpers/currency";
 
 export default function GenerateHarvestReportModal() {
   const { harvests } = useIndustryHarvest();
@@ -73,9 +74,7 @@ export default function GenerateHarvestReportModal() {
           h.product.name,
           h.talhao.name,
           h.industryDeposit.name,
-          h.weightLiq.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          }),
+          formatNumber(Number(h.weightLiq)),
         ]),
         styles: {
           fontSize: 9,
@@ -123,14 +122,14 @@ export default function GenerateHarvestReportModal() {
         (acc, curr) => {
           const name = curr.talhao.name;
           if (!acc[name]) acc[name] = 0;
-          acc[name] += curr.weightLiq;
+          acc[name] += Number(curr.weightLiq);
           return acc;
         },
         {} as Record<string, number>,
       );
 
       const totalGeral = filtered.reduce(
-        (acc, curr) => acc + curr.weightLiq,
+        (acc, curr) => acc + Number(curr.weightLiq),
         0,
       );
 
@@ -142,9 +141,7 @@ export default function GenerateHarvestReportModal() {
       doc.setFontSize(9);
       Object.entries(totalsByTalhao).forEach(([name, total], index) => {
         doc.text(
-          `${name}: ${total.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          })} kg`,
+          `${name}: ${formatNumber(total)} kg`,
           14,
           finalY + 6 + index * 6,
         );
@@ -152,9 +149,7 @@ export default function GenerateHarvestReportModal() {
 
       doc.setFontSize(9);
       doc.text(
-        `Total Geral: ${totalGeral.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })} kg`,
+        `Total Geral: ${formatNumber(totalGeral)} kg`,
         14,
         finalY + 6 + Object.keys(totalsByTalhao).length * 6 + 6,
       );
