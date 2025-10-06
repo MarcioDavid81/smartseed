@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCycle } from "@/contexts/CycleContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { IndustryHarvestFormData, industryHarvestSchema } from "@/lib/schemas/industryHarvest";
@@ -47,7 +46,7 @@ const UpsertHarvestModal = ({
   } = useForm<IndustryHarvestFormData>({
     resolver: zodResolver(industryHarvestSchema),
     defaultValues: {
-      date: colheita ? new Date(colheita.date).toISOString().split("T")[0] : "",
+      date: colheita ? new Date(colheita.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
       document: colheita?.document || "",
       productId: colheita?.productId || "",
       talhaoId: colheita?.talhaoId || "",
@@ -144,6 +143,13 @@ const UpsertHarvestModal = ({
 
     const url = colheita ? `/api/industry/harvest/${colheita.id}` : "/api/industry/harvest";
     const method = colheita ? "PUT" : "POST";
+
+    const weightSubLiq = data.weightSubLiq;
+    const impuritiePercent = data.impurities_percent;
+    const impuritieKg = weightSubLiq * (impuritiePercent / 100);
+    console.log("Quilos de impurezas:", impuritieKg);
+
+
 
     const res = await fetch(url, {
       method,
@@ -310,7 +316,7 @@ const UpsertHarvestModal = ({
                 <Label>Peso Bruto (kg)</Label>
                 <Input
                   type="number"
-                  {...register("weightBt")}
+                  {...register("weightBt", { valueAsNumber: true })}
                   placeholder="Ex: 1200"
                 />
                 {errors.weightBt && (
@@ -323,7 +329,7 @@ const UpsertHarvestModal = ({
                 <Label>Tara (kg)</Label>
                 <Input
                   type="number"
-                  {...register("weightTr")}
+                  {...register("weightTr", { valueAsNumber: true })}
                   placeholder="Ex: 1200"
                 />
                 {errors.weightTr && (
@@ -336,7 +342,7 @@ const UpsertHarvestModal = ({
                 <Label>Sub Líquido (kg)</Label>
                 <Input
                   type="number"
-                  {...register("weightSubLiq")}
+                  {...register("weightSubLiq", { valueAsNumber: true })}
                   placeholder="Ex: 1200"
                 />
                 {errors.weightSubLiq && (
@@ -353,8 +359,9 @@ const UpsertHarvestModal = ({
                 <Label>Impureza</Label>
                 <Input
                   type="number"
-                  {...register("impurities_percent")}
-                  placeholder="Ex: 1200"
+                  step="0.1"
+                  {...register("impurities_percent", { valueAsNumber: true })}
+                  placeholder="Ex: 14.5"
                 />
                 {errors.impurities_percent && (
                   <span className="text-xs text-red-500">
@@ -366,8 +373,9 @@ const UpsertHarvestModal = ({
                 <Label>Porcentage (%)</Label>
                 <Input
                   type="number"
-                  {...register("impurities_discount")}
-                  placeholder="Ex: 1200"
+                  step="0.1"
+                  {...register("impurities_discount", { valueAsNumber: true })}
+                  placeholder="Ex: 2.5"
                 />
                 {errors.impurities_discount && (
                   <span className="text-xs text-red-500">
@@ -379,7 +387,7 @@ const UpsertHarvestModal = ({
                 <Label>Desconto (kg)</Label>
                 <Input
                   type="number"
-                  {...register("impurities_kg")}
+                  {...register("impurities_kg", { valueAsNumber: true })}
                   placeholder="Ex: 1200"
                 />
                 {errors.impurities_kg && (
@@ -395,8 +403,9 @@ const UpsertHarvestModal = ({
                 <Label>Umidade</Label>
                 <Input
                   type="number"
-                  {...register("humidity_percent")}
-                  placeholder="Ex: 1200"
+                  step="0.1"
+                  {...register("humidity_percent", { valueAsNumber: true })}
+                  placeholder="Ex: 15.2"
                 />
                 {errors.humidity_percent && (
                   <span className="text-xs text-red-500">
@@ -408,8 +417,9 @@ const UpsertHarvestModal = ({
                 <Label>Porcentage (%)</Label>
                 <Input
                   type="number"
-                  {...register("humidity_discount")}
-                  placeholder="Ex: 1200"
+                  step="0.1"
+                  {...register("humidity_discount", { valueAsNumber: true })}
+                  placeholder="Ex: 3.8"
                 />
                 {errors.humidity_discount && (
                   <span className="text-xs text-red-500">
@@ -421,7 +431,7 @@ const UpsertHarvestModal = ({
                 <Label>Desconto (kg)</Label>
                 <Input
                   type="number"
-                  {...register("humidity_kg")}
+                  {...register("humidity_kg", { valueAsNumber: true })}
                   placeholder="Ex: 1200"
                 />
                 {errors.humidity_kg && (
@@ -434,24 +444,11 @@ const UpsertHarvestModal = ({
 
             {/* peso líquido */}
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Outros Descontos (kg)</Label>
-                <Input
-                  type="number"
-                  {...register("weightLiq")}
-                  placeholder="Ex: 1200"
-                />
-                {errors.weightLiq && (
-                  <span className="text-xs text-red-500">
-                    {errors.weightLiq.message}
-                  </span>
-                )}
-              </div>
-              <div className="col-span-2">
+              <div className="col-span-3">
                 <Label>Peso Líquido (kg)</Label>
                 <Input
                   type="number"
-                  {...register("weightLiq")}
+                  {...register("weightLiq", { valueAsNumber: true })}
                   placeholder="Ex: 1200"
                 />
                 {errors.weightLiq && (

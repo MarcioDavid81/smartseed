@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
     const industryHarvest = await db.industryHarvest.create({
       data: {
         ...data,
+        date: new Date(data.date),
         companyId,
       },
     });

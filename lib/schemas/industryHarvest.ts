@@ -14,18 +14,13 @@ export const industryHarvestSchema = z.object({
   weightBt: z.number().min(1, "Peso bruto é obrigatório"),
   weightTr: z.number().min(1, "Peso da tara é obrigatório"),
   weightSubLiq: z.number().min(1, "Peso sub-líquido é obrigatório"),
-  humidity_percent: z.number().min(0, "Porcentagem de umidade é obrigatória"),
-  humidity_discount: z.number().min(0, "Desconto da umidade é obrigatório"),
-  humidity_kg: z.number().min(0, "Peso da umidade é obrigatório"),
-  impurities_percent: z
-    .number()
-    .min(0, "Porcentagem de impurezas é obrigatória"),
-  impurities_discount: z
-    .number()
-    .min(0, "Desconto das impurezas é obrigatório"),
-  impurities_kg: z.number().min(0, "Peso das impurezas é obrigatório"),
+  humidity_percent: z.number(),
+  humidity_discount: z.number(),
+  humidity_kg: z.number(),
+  impurities_percent: z.number(),
+  impurities_discount: z.number(),
+  impurities_kg: z.number(),
   weightLiq: z.number().min(1, "Peso líquido é obrigatório"),
-  cycleId: z.string().min(1, "Ciclo da colheita é obrigatório"),
 });
 
 export type IndustryHarvestFormData = z.infer<typeof industryHarvestSchema>;
