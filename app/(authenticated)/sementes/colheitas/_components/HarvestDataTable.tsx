@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import CreateHarvestButton from "./CreateHarvestButton";
 import GenerateHarvestReportModal from "./GenerateHarvestReportModal";
+import { Harvest } from "@/types";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -39,7 +40,7 @@ export function HarvestDataTable<TData, TValue>({
   pageSize = 8,
   searchFields = [],
 }: DataTableProps<TData, TValue>) {
-  const [modalOpen, setModalOpen] = useState(false);
+  const [selected, setSelected] = useState<Harvest | null>(null);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
   const table = useReactTable({
@@ -52,11 +53,13 @@ export function HarvestDataTable<TData, TValue>({
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     filterFns: {
-      fuzzy: (row, _, search) => {
-        const data = row.original;
-        return searchFields.some(field => data[field].includes(search));
-      }
-    },
+    fuzzy: (row, _, search) => {
+      const s = search.toLowerCase();
+      return searchFields.some(field =>
+        String(row.original[field])?.toLowerCase().includes(s)
+      );
+    }
+  },
     globalFilterFn: "fuzzy" as FilterFnOption<TData>,
     state: {
       sorting,

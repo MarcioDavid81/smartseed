@@ -180,6 +180,48 @@ export async function DELETE(
   }
 }
 
+/**
+ * @swagger
+ * /api/harvest/{id}:
+ *   get:
+ *     summary: Buscar uma colheita por ID
+ *     tags:
+ *       - Colheita
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da colheita
+ *     responses:
+ *       200:
+ *         description: Colheita retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   cultivarId:
+ *                     type: string
+ *                   talhaoId:
+ *                     type: string
+ *                   quantityKg:
+ *                     type: number
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   notes:
+ *                     type: string
+ *       401:
+ *         description: Token ausente ou inválido
+ */
 // Buscar colheita
 export async function GET(
   req: NextRequest,

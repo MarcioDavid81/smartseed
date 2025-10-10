@@ -11,6 +11,7 @@ import { getToken } from "@/lib/auth-client";
 import { HarvestDataTable } from "./HarvestDataTable";
 import DeleteHarvestButton from "./DeleteHarvestButton";
 import UpsertHarvestButton from "./UpsertHarvestButton";
+import DetailHarvestButton from "./DetailHarvestButton";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 
 export function ListHarvestTable() {
@@ -97,6 +98,7 @@ export function ListHarvestTable() {
         const colheita = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
+            <DetailHarvestButton colheita={colheita} onUpdated={fetchHarvests} />
             <UpsertHarvestButton colheita={colheita} onUpdated={fetchHarvests} />
             <DeleteHarvestButton colheita={colheita} onDeleted={fetchHarvests} />
           </div>
