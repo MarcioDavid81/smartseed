@@ -230,6 +230,9 @@ export async function GET(req: NextRequest) {
         customer: {
           select: { id: true, name: true },
         },
+        accountReceivable: {
+          select: { id: true, status: true, dueDate: true },
+        },
       },
       orderBy: { date: "desc" },
     });

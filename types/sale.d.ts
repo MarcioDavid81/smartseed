@@ -1,4 +1,4 @@
-import { AccountPayable, PaymentCondition } from "@prisma/client"
+import { AccountReceivable, PaymentCondition } from "@prisma/client"
 
 export interface Sale {
     id: string
@@ -19,7 +19,7 @@ export interface Sale {
     notes?: string
     paymentCondition?: PaymentCondition
     dueDate?: Date
-    accountPayable?: AccountPayable | null
+    accountReceivable?: AccountReceivable | null
     companyId: string
     cycleId: string
     createdAt: Date

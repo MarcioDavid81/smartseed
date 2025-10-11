@@ -5,27 +5,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { motion, AnimatePresence } from "framer-motion";
-import { Buy } from "@/types";
 import HoverButton from "@/components/HoverButton";
 import { format } from "date-fns";
+import { Sale } from "@/types/sale";
 
 interface Props {
-  compra: Buy | null;
+  venda: Sale | null;
   onClose: () => void;
 }
 
-export function DetailBuyModal({ compra, onClose }: Props) {
+export function DetailSaleModal({ venda, onClose }: Props) {
   return (
-    <Dialog open={!!compra} onOpenChange={onClose}>
+    <Dialog open={!!venda} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Detalhes da Compra</DialogTitle>
+          <DialogTitle>Detalhes da Venda</DialogTitle>
         </DialogHeader>
 
         <AnimatePresence mode="wait">
-          {compra && (
+          {venda && (
             <motion.div
-              key={compra.id as string}
+              key={venda.id as string}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
@@ -38,8 +38,8 @@ export function DetailBuyModal({ compra, onClose }: Props) {
                 transition={{ delay: 0.05 }}
                 className="flex flex-wrap items-center gap-2"
               >
-                <Badge variant="default" className="text-xs bg-green text-white hover:bg-green/90">Fornecedor: {compra.customer.name}</Badge>
-                <Badge variant="outline" className="text-xs">Cultivar: {compra.cultivar.name}</Badge>
+                <Badge variant="default" className="text-xs bg-green text-white hover:bg-green/90">Cliente: {venda.customer.name}</Badge>
+                <Badge variant="outline" className="text-xs">Cultivar: {venda.cultivar.name}</Badge>
               </motion.div>
 
               <Separator className="opacity-60" />
@@ -54,7 +54,7 @@ export function DetailBuyModal({ compra, onClose }: Props) {
                   >
                     <p className="text-xs text-muted-foreground">Data</p>
                     <p className="font-medium">
-                      {new Date(compra.date).toLocaleDateString("pt-BR")}
+                      {new Date(venda.date).toLocaleDateString("pt-BR")}
                     </p>
                   </motion.div>
 
@@ -66,7 +66,7 @@ export function DetailBuyModal({ compra, onClose }: Props) {
                   >
                     <p className="text-xs text-muted-foreground">Documento</p>
                     <p className="font-medium">
-                      {compra.invoice}
+                      {venda.invoiceNumber}
                     </p>
                   </motion.div>
                 </div>
@@ -79,7 +79,7 @@ export function DetailBuyModal({ compra, onClose }: Props) {
                   >
                     <p className="text-xs text-muted-foreground">Preço Unitário</p>
                     <p className="font-medium">
-                      {formatCurrency(compra.unityPrice)}
+                      {formatCurrency(venda.saleValue / Number(venda.quantityKg))}
                     </p>
                   </motion.div>
 
@@ -91,7 +91,7 @@ export function DetailBuyModal({ compra, onClose }: Props) {
                   >
                     <p className="text-xs text-muted-foreground">Quantidade</p>
                     <p className="font-medium">
-                      {formatNumber(Number(compra.quantityKg))} kg
+                      {formatNumber(Number(venda.quantityKg))} kg
                     </p>
                   </motion.div>
                 </div>
@@ -104,7 +104,7 @@ export function DetailBuyModal({ compra, onClose }: Props) {
                   >
                     <p className="text-xs text-muted-foreground">Valor Total</p>
                     <p className="font-medium">
-                      {formatCurrency(compra.totalPrice)}
+                      {formatCurrency(venda.saleValue)}
                     </p>
                   </motion.div>
 
@@ -116,7 +116,7 @@ export function DetailBuyModal({ compra, onClose }: Props) {
                   >
                     <p className="text-xs text-muted-foreground">Condição de Pagamento</p>
                     <p className="font-medium">
-                      {compra.paymentCondition === "AVISTA" ? "À Vista" : "À Prazo"}
+                      {venda.paymentCondition === "AVISTA" ? "À Vista" : "À Prazo"}
                     </p>
                   </motion.div>
                 </div>
@@ -130,8 +130,8 @@ export function DetailBuyModal({ compra, onClose }: Props) {
                   >
                     <p className="text-xs text-muted-foreground">Vencimento</p>
                     <p className="font-medium">
-                      {compra.accountPayable?.dueDate
-                        ? format(new Date(compra.accountPayable.dueDate), "dd/MM/yyyy")
+                      { venda.accountReceivable?.dueDate
+                        ? format(new Date(venda.accountReceivable.dueDate), "dd/MM/yyyy")
                         : "—"}
                     </p>
                   </motion.div>
@@ -145,12 +145,12 @@ export function DetailBuyModal({ compra, onClose }: Props) {
                     <p className="font-medium">
                       <Badge
                         className={
-                          compra.accountPayable?.status === "PENDING"
+                          venda.accountReceivable?.status === "PENDING"
                             ? "bg-yellow-500 text-white rounded-full text-xs font-light"
                             : "bg-green text-white rounded-full text-xs font-light"
                         }
                       >
-                        {compra.accountPayable?.status === "PENDING" ? "Pendente" : "Pago"}
+                        {venda.accountReceivable?.status === "PENDING" ? "Pendente" : "Pago"}
                       </Badge>
                     </p>
                   </motion.div>
