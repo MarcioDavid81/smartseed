@@ -12,6 +12,7 @@ import UpsertBuyButton from "./UpsertBuyButton";
 import { BuyDataTable } from "./BuyDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DeleteBuyButton from "./DeleteBuyButton";
+import DetailBuyButton from "./DetailBuyButton";
 
 export function ListBuyTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -131,6 +132,10 @@ export function ListBuyTable() {
         const compra = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
+            <DetailBuyButton
+              compra={compra}
+              onUpdated={fetchBuys}
+            />
             <UpsertBuyButton
               compra={compra}
               onUpdated={fetchBuys}
