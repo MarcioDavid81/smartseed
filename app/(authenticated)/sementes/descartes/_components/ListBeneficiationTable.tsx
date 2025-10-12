@@ -12,6 +12,7 @@ import UpsertBeneficiationButton from "./UpsertBeneficiationButton";
 import DeleteBeneficiationButton from "./DeleteBeneficiationButton";
 import { BeneficiationDataTable } from "./BeneficiationDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
+import DetailBeneficiationButton from "./DetailBeneficiationButton";
 
 export function ListBeneficiationTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -91,6 +92,10 @@ export function ListBeneficiationTable() {
         const descarte = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
+            <DetailBeneficiationButton
+              descarte={descarte}
+              onUpdated={fetchBeneficiations}
+            />
             <UpsertBeneficiationButton
               descarte={descarte}
               onUpdated={fetchBeneficiations}
