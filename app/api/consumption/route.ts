@@ -37,22 +37,22 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function POST(req: NextRequest) {
   const allowed = await canCompanyAddConsumption();
-      if(!allowed) {
-        return Response.json(
-          {
-            error:
-              "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
-          },
-          { status: 403 }
-        )
-      }
+  if (!allowed) {
+    return Response.json(
+      {
+        error:
+          "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
+      },
+      { status: 403 },
+    );
+  }
 
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
       { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -66,12 +66,13 @@ export async function POST(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const { cultivarId, date, quantityKg, farmId, notes, cycleId } = await req.json();
+    const { cultivarId, date, quantityKg, farmId, notes, cycleId } =
+      await req.json();
 
     if (!cultivarId || !date || !quantityKg || !farmId) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -150,7 +151,7 @@ export async function GET(req: NextRequest) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
       { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -173,6 +174,9 @@ export async function GET(req: NextRequest) {
         },
         farm: {
           select: { id: true, name: true },
+        },
+        talhao: {
+          select: { id: true, name: true, area: true },
         },
       },
       orderBy: { date: "desc" },

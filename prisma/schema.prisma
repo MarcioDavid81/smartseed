@@ -135,6 +135,7 @@ model Talhao {
   farmId           String
   farm             Farm              @relation(fields: [farmId], references: [id])
   harvests         Harvest[]
+  consumptionsExit ConsumptionExit[]
   applications     Application[]
   industryHarvests IndustryHarvest[]
   createdAt        DateTime          @default(now())
@@ -230,6 +231,8 @@ model ConsumptionExit {
   quantityKg Float
   farmId     String
   farm       Farm             @relation(fields: [farmId], references: [id])
+  talhaoId   String?
+  talhao     Talhao?          @relation(fields: [talhaoId], references: [id])
   notes      String?
   companyId  String
   company    Company          @relation(fields: [companyId], references: [id])

@@ -20,6 +20,7 @@ export default function GenerateConsumptionReportModal() {
   const { plantios } = useConsumption();
   const [cultivar, setCultivar] = useState<string | null>(null);
   const [farm, setFarm] = useState<string | null>(null);
+  const [talhao, setTalhao] = useState<string | null>(null);
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -30,10 +31,15 @@ export default function GenerateConsumptionReportModal() {
 
   const farmsUnicos = Array.from(new Set(plantios.map((h) => h.farm.name)));
 
+  const talhaosUnicos = Array.from(
+    new Set(plantios.map((h) => h.talhao?.name || "N/A")),
+  );
+
   const filtered = plantios.filter((h) => {
     const matchCultivar = !cultivar || h.cultivar.name === cultivar;
     const matchFarm = !farm || h.farm.name === farm;
-    return matchCultivar && matchFarm;
+    const matchTalhao = !talhao || h.talhao?.name === talhao;
+    return matchCultivar && matchFarm && matchTalhao;
   });
 
   const generatePDF = () => {
@@ -51,15 +57,23 @@ export default function GenerateConsumptionReportModal() {
       doc.setFontSize(10);
       doc.text(`Cultivar: ${cultivar || "Todos"}`, 14, 35);
       doc.text(`Fazenda: ${farm || "Todas"}`, 14, 40);
+      doc.text(`Talhão: ${talhao || "Todos"}`, 14, 45);
 
       autoTable(doc, {
         startY: 50,
-        head: [["Data", "Cultivar", "Destino", "Quantidade (kg)"]],
+        head: [["Data", "Cultivar", "Fazenda", "Talhão", "Área (ha)", "Quantidade (kg)", "Média (kg/ha)"]],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
           h.cultivar.name,
           h.farm.name,
+          h.talhao?.name || "N/A",
+          (h.talhao?.area || 1).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+          }),
           h.quantityKg.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+          }),
+          (h.quantityKg / (h.talhao?.area || 1)).toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
           }),
         ]),
@@ -150,6 +164,7 @@ export default function GenerateConsumptionReportModal() {
       doc.save(fileName);
       setCultivar(null);
       setFarm(null);
+      setTalhao(null);
       setLoading(false);
       setModalOpen(false);
     };
@@ -188,7 +203,7 @@ export default function GenerateConsumptionReportModal() {
           </Select>
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Destino</label>
+          <label className="text-sm font-medium">Fazenda</label>
           <Select
             value={farm ?? ""}
             onValueChange={(value) => setFarm(value === "todos" ? null : value)}
@@ -199,6 +214,25 @@ export default function GenerateConsumptionReportModal() {
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               {farmsUnicos.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Talhão</label>
+          <Select
+            value={talhao ?? ""}
+            onValueChange={(value) => setTalhao(value === "todos" ? null : value)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              {talhaosUnicos.map((t) => (
                 <SelectItem key={t} value={t}>
                   {t}
                 </SelectItem>

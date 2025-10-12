@@ -12,6 +12,7 @@ import UpsertConsumptionButton from "./UpsertConsumptionButton";
 import DeleteConsumptionButton from "./DeleteConsumptionButton";
 import { ConsumptionDataTable } from "./ConsumptionDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
+import DetailConsumptionButton from "./DetailConsumptionButton";
 
 export function ListConsumptionTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -94,15 +95,19 @@ export function ListConsumptionTable() {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
-        const palntio = row.original;
+        const plantio = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
+            <DetailConsumptionButton
+              plantio={plantio}
+              onUpdated={fetchConsumptions}
+            />
             <UpsertConsumptionButton
-              plantio={palntio}
+              plantio={plantio}
               onUpdated={fetchConsumptions}
             />
             <DeleteConsumptionButton
-              plantio={palntio}
+              plantio={plantio}
               onDeleted={fetchConsumptions}
             />
           </div>
