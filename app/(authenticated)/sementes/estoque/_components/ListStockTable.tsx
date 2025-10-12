@@ -93,7 +93,7 @@ export function ListStockTable() {
       cell: ({ row }) => {
         const cultivar = row.original;
         return (
-          <div className="flex justify-center gap-2">
+          <div className="flex items-center justify-center gap-4">
             <CultivarExtractButton cultivar={cultivar} />
             <CultivarStatusButton
               cultivarId={cultivar.id}

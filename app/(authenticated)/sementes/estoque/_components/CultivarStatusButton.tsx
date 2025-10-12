@@ -26,9 +26,9 @@ export function CultivarStatusButton({ cultivarId, currentStatus }: Props) {
         <Tooltip>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <button className="hover:opacity-80 transition">
                 <SquarePenIcon size={20} className="text-green" />
-              </Button>
+              </button>
             </DialogTrigger>
           </TooltipTrigger>
           <TooltipContent>

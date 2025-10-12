@@ -103,7 +103,7 @@ export function ProductDataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-2 py-0">
+                    <TableCell key={cell.id} className="px-2 py-1">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

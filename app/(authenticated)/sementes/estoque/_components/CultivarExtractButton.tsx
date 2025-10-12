@@ -19,9 +19,9 @@ export function CultivarExtractButton({ cultivar }: Props) {
       <Tooltip>
         <TooltipTrigger asChild>
           <Link href={`/sementes/estoque/${slugify(cultivar.name, cultivar.id)}`}>
-            <Button variant="ghost">
-              <Search className="text-green" size={20} />
-            </Button>
+            <button className="hover:opacity-80 transition">
+              <Search className="text-blue" size={20} />
+            </button>
           </Link>
         </TooltipTrigger>
         <TooltipContent>
