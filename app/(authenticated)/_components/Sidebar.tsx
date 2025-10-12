@@ -92,8 +92,8 @@ const routes = [
       },
       {
         path: "/sementes/consumos",
-        name: "Consumo",
-        icon: <TbTransferIn size={16} />,
+        name: "Plantio",
+        icon: <GiFarmTractor size={16} />,
       },
       {
         path: "/sementes/descartes",

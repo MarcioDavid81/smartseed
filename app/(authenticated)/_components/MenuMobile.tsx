@@ -43,7 +43,7 @@ const routes = [
       { path: "/sementes/colheitas", name: "Colheita" },
       { path: "/sementes/compras", name: "Compra" },
       { path: "/sementes/vendas", name: "Venda" },
-      { path: "/sementes/consumos", name: "Consumo" },
+      { path: "/sementes/consumos", name: "Plantio" },
       { path: "/sementes/descartes", name: "Descarte" },
       { path: "/sementes/cultivares", name: "Cultivares" },
       { path: "/sementes/estoque", name: "Estoque" },
