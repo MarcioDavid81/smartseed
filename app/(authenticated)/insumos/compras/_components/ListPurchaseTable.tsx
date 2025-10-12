@@ -11,6 +11,7 @@ import { getToken } from "@/lib/auth-client";
 import UpsertPurchaseButton from "./UpsertPurchaseButton";
 import DeletePurchaseButton from "./DeletePurchaseButton";
 import { PurchaseDataTable } from "./PurchaseDataTable";
+import DetailPurchaseButton from "./DetailPurchaseButton";
 
 export function ListPurchaseTable() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -129,6 +130,10 @@ export function ListPurchaseTable() {
         const compra = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
+            <DetailPurchaseButton
+              compra={compra}
+              onUpdated={fetchPurchases}
+            />
             <UpsertPurchaseButton
               compra={compra}
               onUpdated={fetchPurchases}

@@ -248,6 +248,7 @@ export async function GET(req: NextRequest) {
         product: true,
         farm: true,
         customer: true,
+        accountPayable: true,
       },
       orderBy: {
         date: "desc",
