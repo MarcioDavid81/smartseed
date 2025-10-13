@@ -17,10 +17,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
-import { Cultivar, Farm } from "@/types";
+import { Cultivar, Talhao } from "@/types";
 import { Consumption } from "@/types/consumption";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -40,7 +41,7 @@ interface UpsertConsumptionModalProps {
 
 const plantioSchema = z.object({
   cultivarId: z.string().min(1, "Selecione uma cultivar"),
-  farmId: z.string().min(1, "Selecione uma fazenda"),
+  talhaoId: z.string().min(1, "Selecione um talhão"),
   date: z.string().min(1, "Selecione uma data"),
   quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
   notes: z.string(),
@@ -57,13 +58,13 @@ const UpsertConsumptionModal = ({
 }: UpsertConsumptionModalProps) => {
   const [loading, setLoading] = useState(false);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
-  const [farms, setFarms] = useState<Farm[]>([]);
+  const [talhao, setTalhao] = useState<Talhao[]>([]);
 
   const form = useForm<ConsumptionFormData>({
     resolver: zodResolver(plantioSchema),
     defaultValues: {
       cultivarId: plantio?.cultivarId ?? "",
-      farmId: plantio?.farmId ?? "",
+      talhaoId: plantio?.talhaoId ?? "",
       date: plantio
         ? new Date(plantio.date).toISOString().split("T")[0]
         : format(new Date(), "yyyy-MM-dd"),
@@ -81,7 +82,7 @@ const UpsertConsumptionModal = ({
     resolver: zodResolver(plantioSchema),
     defaultValues: {
       cultivarId: plantio?.cultivarId ?? "",
-      farmId: plantio?.farmId ?? "",
+      talhaoId: plantio?.talhaoId ?? "",
       date: plantio ? new Date(plantio.date).toISOString().split("T")[0] : "",
       quantityKg: plantio?.quantityKg ?? 0,
       notes: plantio?.notes ?? "",
@@ -92,7 +93,7 @@ const UpsertConsumptionModal = ({
     if (plantio) {
       reset({
         cultivarId: plantio.cultivarId,
-        farmId: plantio.farmId,
+        talhaoId: plantio.talhaoId,
         date: new Date(plantio.date).toISOString().split("T")[0],
         quantityKg: plantio.quantityKg,
         notes: plantio.notes || "",
@@ -106,20 +107,22 @@ const UpsertConsumptionModal = ({
     const fetchData = async () => {
       const token = getToken();
 
-      const [cultivarRes, farmRes] = await Promise.all([
+      const [cultivarRes, talhaoRes] = await Promise.all([
         fetch("/api/cultivars/get", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("/api/farms", {
+        fetch("/api/plots", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
-      const cultivarData = await cultivarRes.json();
-      const farmData = await farmRes.json();
+      const [cultivarData, talhaoData] = await Promise.all([
+        cultivarRes.json(),
+        talhaoRes.json(),
+      ]);
 
       setCultivars(cultivarData);
-      setFarms(farmData);
+      setTalhao(talhaoData);
     };
 
     if (isOpen) fetchData();
@@ -208,46 +211,59 @@ const UpsertConsumptionModal = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Cultivar</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="w-full border rounded px-2 py-1"
-                      >
-                        <option value="">Selecione</option>
-                        {cultivars.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="farmId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Destino</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="w-full border rounded px-2 py-1"
-                      >
-                        <option value="">Selecione</option>
-                        {farms.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma cultivar" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {cultivars.map((cultivar) => (
+                            <SelectItem key={cultivar.id} value={cultivar.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{cultivar.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {`Estoque: ${cultivar.stock} kg`}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="talhaoId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Talhão</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um talhão" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {talhao.map((talhao) => (
+                              <SelectItem key={talhao.id} value={talhao.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{talhao.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {`Fazenda: ${talhao.farm.name}`}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField

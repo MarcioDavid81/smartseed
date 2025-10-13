@@ -21,7 +21,7 @@ export default async function ConsumptionsPage() {
       <div className="min-h-screen w-full flex bg-background">
         <main className="flex-1 py-4 px-4 md:px-8 text-gray-800 overflow-x-auto min-w-0">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <h1 className="text-2xl font-medium mb-4">Consumos</h1>
+            <h1 className="text-2xl font-medium mb-4">Plantios</h1>
             <NavItems />
           </div>
           <ListConsumptionTable />

@@ -7,16 +7,15 @@ export interface Consumption {
   };
   date: string;
   quantityKg: number;
-  farmId: string;
-  farm: {
-    id: string;
-    name: string;
-  };
-  talhaoId?: string;
-  talhao?: {
+  talhaoId: string;
+  talhao: {
     id: string;
     name: string;
     area: number;
+    farm: {
+      id: string;
+      name: string;
+    }
   };
   notes?: string;
   companyId: string;

@@ -22,7 +22,7 @@ import { NextRequest, NextResponse } from "next/server";
  *             properties:
  *               cultivarId:
  *                 type: string
- *               farmId:
+ *               talhaoId:
  *                 type: string
  *               date:
  *                 type: string
@@ -66,10 +66,10 @@ export async function POST(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const { cultivarId, date, quantityKg, farmId, notes, cycleId } =
+    const { cultivarId, date, quantityKg, talhaoId, notes, cycleId } =
       await req.json();
 
-    if (!cultivarId || !date || !quantityKg || !farmId) {
+    if (!cultivarId || !date || !quantityKg || !talhaoId) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
         { status: 400 },
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
         cultivarId,
         date: new Date(date),
         quantityKg,
-        farmId,
+        talhaoId,
         notes,
         companyId,
         cycleId,
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
  *                     type: string
  *                   cultivarId:
  *                     type: string
- *                   farmId:
+ *                   talhaoId:
  *                     type: string
  *                   date:
  *                     type: string
@@ -172,11 +172,15 @@ export async function GET(req: NextRequest) {
         cultivar: {
           select: { id: true, name: true },
         },
-        farm: {
-          select: { id: true, name: true },
-        },
         talhao: {
-          select: { id: true, name: true, area: true },
+          select: {
+            id: true,
+            name: true,
+            area: true,
+            farm: {
+              select: { id: true, name: true },
+            },
+          },
         },
       },
       orderBy: { date: "desc" },

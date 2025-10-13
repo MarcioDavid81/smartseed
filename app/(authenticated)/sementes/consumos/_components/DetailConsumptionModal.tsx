@@ -39,7 +39,7 @@ export function DetailConsumptionModal({ plantio, onClose }: Props) {
                 className="flex flex-wrap items-center gap-2"
               >
                 <Badge variant="default" className="text-xs bg-green text-white hover:bg-green/90">
-                  Fazenda: {plantio.farm.name}
+                  Fazenda: {plantio.talhao.farm.name}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
                   Talhão: {plantio.talhao?.name || "N/A"}

@@ -29,7 +29,7 @@ export default function GenerateConsumptionReportModal() {
     new Set(plantios.map((h) => h.cultivar.name)),
   );
 
-  const farmsUnicos = Array.from(new Set(plantios.map((h) => h.farm.name)));
+  const farmsUnicos = Array.from(new Set(plantios.map((h) => h.talhao.farm.name)));
 
   const talhaosUnicos = Array.from(
     new Set(plantios.map((h) => h.talhao?.name || "N/A")),
@@ -37,7 +37,7 @@ export default function GenerateConsumptionReportModal() {
 
   const filtered = plantios.filter((h) => {
     const matchCultivar = !cultivar || h.cultivar.name === cultivar;
-    const matchFarm = !farm || h.farm.name === farm;
+    const matchFarm = !farm || h.talhao.farm.name === farm;
     const matchTalhao = !talhao || h.talhao?.name === talhao;
     return matchCultivar && matchFarm && matchTalhao;
   });
@@ -65,8 +65,8 @@ export default function GenerateConsumptionReportModal() {
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
           h.cultivar.name,
-          h.farm.name,
-          h.talhao?.name || "N/A",
+          h.talhao.farm.name,
+          h.talhao.name || "N/A",
           (h.talhao?.area || 1).toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
           }),

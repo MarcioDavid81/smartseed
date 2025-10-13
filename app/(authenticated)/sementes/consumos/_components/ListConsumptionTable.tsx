@@ -70,11 +70,17 @@ export function ListConsumptionTable() {
       accessorFn: (row) => row.cultivarId,
       cell: ({ row: { original } }) => original.cultivar.name,
     },
-        {
+    {
       accessorKey: "farm",
-      header: "Destino",
-      accessorFn: (row) => row.farmId,
-      cell: ({ row: { original } }) => original.farm.name,
+      header: "Fazenda",
+      accessorFn: (row) => row.talhaoId,
+      cell: ({ row: { original } }) => original.talhao.farm.name,
+    },
+    {
+      accessorKey: "plot",
+      header: "Talhão",
+      accessorFn: (row) => row.talhaoId,
+      cell: ({ row: { original } }) => original.talhao.name,
     },
     {
       accessorKey: "quantityKg",
