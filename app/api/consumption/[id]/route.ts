@@ -28,7 +28,7 @@ import { NextRequest, NextResponse } from "next/server";
  *             properties:
  *               cultivarId:
  *                 type: string
- *               farmId:
+ *               talhaoId:
  *                 type: string
  *               date:
  *                 type: string
@@ -60,7 +60,7 @@ export async function PUT(
     if (!payload) return new NextResponse("Token inválido", { status: 401 });
 
     const { id } = params;
-    const { cultivarId, date, quantityKg, farmId, notes } = await req.json();
+    const { cultivarId, date, quantityKg, talhaoId, notes } = await req.json();
 
     // Buscar o plantio para garantir que pertence à empresa do usuário
     const existing = await db.consumptionExit.findUnique({ where: { id } });
@@ -104,7 +104,7 @@ export async function PUT(
         cultivarId,
         date: new Date(date),
         quantityKg,
-        farmId,
+        talhaoId,
         notes,
       },
     });
