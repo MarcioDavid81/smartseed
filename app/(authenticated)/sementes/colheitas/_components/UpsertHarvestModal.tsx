@@ -6,13 +6,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { Cultivar, Harvest, Talhao } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ProductType } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
@@ -48,6 +58,17 @@ const UpsertHarvestModal = ({
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
 
+  const form = useForm<HarvestFormData>({
+    resolver: zodResolver(harvestSchema),
+    defaultValues: {
+      cultivarId: colheita?.cultivarId ?? "",
+      talhaoId: colheita?.talhaoId ?? "",
+      date: colheita ? new Date(colheita.date).toISOString().split("T")[0] : "",
+      quantityKg: colheita?.quantityKg ?? 0,
+      notes: colheita?.notes ?? "",
+    },
+  });
+
   const {
     register,
     handleSubmit,
@@ -81,9 +102,14 @@ const UpsertHarvestModal = ({
   useEffect(() => {
     const fetchData = async () => {
       const token = getToken();
+      const cycle = getCycle();
+      if (!cycle || !cycle.productType) {
+        toast.error("Nenhum ciclo de produção selecionado.");
+        return;
+      }
 
       const [cultivarRes, talhaoRes] = await Promise.all([
-        fetch("/api/cultivars/get", {
+        fetch(`/api/cultivars/available-for-harvest?productType=${cycle.productType as ProductType}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch("/api/plots", {
@@ -175,71 +201,101 @@ const UpsertHarvestModal = ({
             {colheita ? "Editar colheita" : "Cadastrar colheita"}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-4">
-            <div>
-              <Label>Cultivar</Label>
-              <select
-                {...register("cultivarId")}
-                className="w-full border rounded px-2 py-1"
-              >
-                <option value="">Selecione</option>
-                {cultivars.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              {errors.cultivarId && (
-                <span className="text-xs text-red-500">
-                  {errors.cultivarId.message}
-                </span>
+            <FormField
+              control={form.control}
+              name="cultivarId"
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel>Cultivar</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma cultivar" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {cultivars.map((cultivar) => (
+                          <SelectItem key={cultivar.id} value={cultivar.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{cultivar.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {`Estoque: ${cultivar.stock} kg`}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                </FormItem>
               )}
-            </div>
-
-            <div>
-              <Label>Talhão</Label>
-              <select
-                {...register("talhaoId")}
-                className="w-full border rounded px-2 py-1"
-              >
-                <option value="">Selecione</option>
-                {talhoes.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-              {errors.talhaoId && (
-                <span className="text-xs text-red-500">
-                  {errors.talhaoId.message}
-                </span>
+            />
+            <FormField
+              control={form.control}
+              name="talhaoId"
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel>Talhão</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um talhão" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {talhoes.map((talhao) => (
+                          <SelectItem key={talhao.id} value={talhao.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{talhao.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {talhao.farm.name}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                </FormItem>
               )}
-            </div>
-
-            <div>
-              <Label>Data</Label>
-              <Input type="date" {...register("date")} />
-            </div>
-
-            <div>
-              <Label>Quantidade (kg)</Label>
-              <Input
-                type="number"
-                {...register("quantityKg")}
-                placeholder="Ex: 1200"
-              />
-              {errors.quantityKg && (
-                <span className="text-xs text-red-500">
-                  {errors.quantityKg.message}
-                </span>
+            />
+            <FormField
+              control={form.control}
+              name="date"
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel>Data</FormLabel>
+                  <Input type="date" {...field} />
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
+            />
+            <FormField
+              control={form.control}
+              name="quantityKg"
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel>Quantidade (kg)</FormLabel>
+                  <Input type="number" {...field} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel>Observações</FormLabel>
+                  <Textarea {...field} placeholder="Opcional" />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div>
-              <Label>Observações</Label>
-              <Textarea {...register("notes")} placeholder="Opcional" />
-            </div>
           </div>
           <Button
             type="submit"
@@ -249,6 +305,7 @@ const UpsertHarvestModal = ({
             {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
           </Button>
         </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

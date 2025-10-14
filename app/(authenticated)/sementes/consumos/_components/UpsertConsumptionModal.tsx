@@ -24,6 +24,7 @@ import { getCycle } from "@/lib/cycle";
 import { Cultivar, Talhao } from "@/types";
 import { Consumption } from "@/types/consumption";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ProductType } from "@prisma/client";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -106,9 +107,14 @@ const UpsertConsumptionModal = ({
   useEffect(() => {
     const fetchData = async () => {
       const token = getToken();
-
+      const cycle = getCycle();
+      if (!cycle || !cycle.productType) {
+        toast.error("Nenhum ciclo de produção selecionado.");
+        return;
+      }
+      
       const [cultivarRes, talhaoRes] = await Promise.all([
-        fetch("/api/cultivars/get", {
+        fetch(`/api/cultivars/available-for-planting?productType=${cycle.productType as ProductType}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch("/api/plots", {
@@ -253,7 +259,7 @@ const UpsertConsumptionModal = ({
                                 <div className="flex items-center gap-2">
                                   <span>{talhao.name}</span>
                                   <span className="text-xs text-muted-foreground">
-                                    {`Fazenda: ${talhao.farm.name}`}
+                                    {talhao.farm.name}
                                   </span>
                                 </div>
                               </SelectItem>
