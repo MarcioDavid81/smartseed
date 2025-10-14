@@ -31,7 +31,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { getCycle } from "@/lib/cycle";
 import { NumericFormat } from "react-number-format";
-import { PaymentCondition } from "@prisma/client";
+import { PaymentCondition, ProductType } from "@prisma/client";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -132,9 +132,14 @@ const UpsertBuyModal = ({
   useEffect(() => {
     const fetchData = async () => {
       const token = getToken();
+      const cycle = getCycle();
+      if (!cycle || !cycle.productType) {
+        toast.error("Nenhum ciclo de produção selecionado.");
+        return;
+      }
 
       const [cultivarRes, customerRes] = await Promise.all([
-        fetch("/api/cultivars/get", {
+        fetch(`/api/cultivars/available-for-harvest?productType=${cycle.productType as ProductType}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch("/api/customers", {
@@ -229,7 +234,7 @@ const UpsertBuyModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[650px]">
         <DialogHeader>
           <DialogTitle>Compra</DialogTitle>
           <DialogDescription>
@@ -243,23 +248,29 @@ const UpsertBuyModal = ({
                 <FormField
                   control={form.control}
                   name="cultivarId"
-                  render={({ field }) => (
+                  render={({field}) => (
                     <FormItem>
                       <FormLabel>Cultivar</FormLabel>
-                      <FormControl>
-                        <select
-                          {...field}
-                          className="w-full rounded border px-2 py-1"
-                        >
-                          <option value="">Selecione</option>
-                          {cultivars.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma cultivar" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {cultivars.map((cultivar) => (
+                              <SelectItem key={cultivar.id} value={cultivar.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{cultivar.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {`Estoque: ${cultivar.stock} kg`}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -269,19 +280,25 @@ const UpsertBuyModal = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Fornecedor</FormLabel>
-                      <FormControl>
-                        <select
-                          {...field}
-                          className="w-full rounded border px-2 py-1"
-                        >
-                          <option value="">Selecione</option>
-                          {customers.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um fornecedor" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {customers.map((customer) => (
+                            <SelectItem key={customer.id} value={customer.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{customer.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {`CPF/CNPJ: ${customer.cpf_cnpj}`}
+                                </span>
+                              </div>
+                            </SelectItem>
                           ))}
-                        </select>
-                      </FormControl>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
