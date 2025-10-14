@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -177,7 +177,7 @@ export default function GenerateBuyReportModal() {
         </HoverButton>
       </DialogTrigger>
       <DialogContent className="space-y-4">
-        <h2 className="text-xl font-semibold">Filtrar Relatório</h2>
+        <DialogTitle>Filtrar Relatório</DialogTitle>
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Cultivar</label>
