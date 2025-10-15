@@ -6,12 +6,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { IndustryHarvestFormData, industryHarvestSchema } from "@/lib/schemas/industryHarvest";
-import { IndustryDeposit, IndustryHarvest, IndustryProduct, IndustryTransporter, Talhao } from "@/types";
+import {
+  IndustryDeposit,
+  IndustryHarvest,
+  IndustryProduct,
+  IndustryTransporter,
+  Talhao
+} from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -37,13 +44,12 @@ const UpsertHarvestModal = ({
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
+  const [subLiquid, setSubLiquid] = useState(0);
+  const [impuritiesKg, setImpuritiesKg] = useState(0);
+  const [humidityKg, setHumidityKg] = useState(0);
+  const [liquid, setLiquid] = useState(0);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<IndustryHarvestFormData>({
+  const form = useForm<IndustryHarvestFormData>({
     resolver: zodResolver(industryHarvestSchema),
     defaultValues: {
       date: colheita ? new Date(colheita.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
@@ -67,9 +73,35 @@ const UpsertHarvestModal = ({
     },
   });
 
+  const weightBt = form.watch("weightBt") || 0;
+  const weightTr = form.watch("weightTr") || 0;
+  const impuritiesPercent = form.watch("impurities_discount") || 0;
+  const humidityPercent = form.watch("humidity_discount") || 0;
+
+  useEffect(() => {
+    // 1. Sub-líquido
+    const subLiq = weightBt - weightTr;
+
+    // 2. Impurezas
+    const impuritiesKg = (subLiq * impuritiesPercent) / 100;
+
+    // 3. Umidade (base: sub-líquido - impurezas)
+    const baseUmidade = subLiq - impuritiesKg;
+    const humidityKg = (baseUmidade * humidityPercent) / 100;
+
+    // 4. Peso líquido
+    const weightLiq = subLiq - impuritiesKg - humidityKg;
+    
+    // Atualiza estados finais
+    setSubLiquid(subLiq);
+    setImpuritiesKg(impuritiesKg);
+    setHumidityKg(humidityKg);
+    setLiquid(weightLiq);
+  }, [weightBt, weightTr, impuritiesPercent, humidityPercent]);
+
   useEffect(() => {
     if (colheita) {
-      reset({
+      form.reset({
         date: new Date(colheita.date).toISOString().split("T")[0],
         document: colheita.document || "",
         productId: colheita.productId,
@@ -89,9 +121,9 @@ const UpsertHarvestModal = ({
         impurities_kg: colheita.impurities_kg,
       });
     } else {
-      reset();
+      form.reset();
     }
-  }, [colheita, isOpen, reset]);
+  }, [colheita, isOpen, form]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -187,7 +219,7 @@ const UpsertHarvestModal = ({
         }
       );
       onClose();
-      reset();
+      form.reset();
       if (onHarvestCreated) onHarvestCreated();
     }
 
@@ -195,8 +227,8 @@ const UpsertHarvestModal = ({
   };
 
   useEffect(() => {
-    if (!isOpen) reset();
-  }, [isOpen, reset]);
+    if (!isOpen) form.reset();
+  }, [isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -207,23 +239,24 @@ const UpsertHarvestModal = ({
             {colheita ? "Editar colheita" : "Cadastrar colheita"}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Data</Label>
-                <Input type="date" {...register("date")} />
+                <Input type="date" {...form.register("date")} />
               </div>
               <div>
                 <Label>Documento</Label>
-                <Input type="text" {...register("document")} />
+                <Input type="text" {...form.register("document")} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Produto</Label>
                 <select
-                  {...register("productId")}
+                  {...form.register("productId")}
                   className="w-full border rounded px-2 py-1"
                 >
                   <option value="">Selecione</option>
@@ -233,16 +266,16 @@ const UpsertHarvestModal = ({
                     </option>
                   ))}
                 </select>
-                {errors.productId && (
+                {form.formState.errors.productId && (
                   <span className="text-xs text-red-500">
-                    {errors.productId.message}
+                    {form.formState.errors.productId.message}
                   </span>
                 )}
               </div>
               <div>
                 <Label>Talhão</Label>
                 <select
-                  {...register("talhaoId")}
+                  {...form.register("talhaoId")}
                   className="w-full border rounded px-2 py-1"
                 >
                   <option value="">Selecione</option>
@@ -252,9 +285,9 @@ const UpsertHarvestModal = ({
                     </option>
                   ))}
                 </select>
-                {errors.talhaoId && (
+                {form.formState.errors.talhaoId && (
                   <span className="text-xs text-red-500">
-                    {errors.talhaoId.message}
+                    {form.formState.errors.talhaoId.message}
                   </span>
                 )}
               </div>
@@ -263,7 +296,7 @@ const UpsertHarvestModal = ({
               <div>
                 <Label>Depósito</Label>
                 <select
-                  {...register("industryDepositId")}
+                  {...form.register("industryDepositId")}
                   className="w-full border rounded px-2 py-1"
                 >
                   <option value="">Selecione</option>
@@ -273,16 +306,16 @@ const UpsertHarvestModal = ({
                     </option>
                   ))}
                 </select>
-                {errors.industryDepositId && (
+                {form.formState.errors.industryDepositId && (
                   <span className="text-xs text-red-500">
-                    {errors.industryDepositId.message}
+                    {form.formState.errors.industryDepositId.message}
                   </span>
                 )}
               </div>
               <div>
                 <Label>Transportador</Label>
                 <select
-                  {...register("industryTransporterId")}
+                  {...form.register("industryTransporterId")}
                   className="w-full border rounded px-2 py-1"
                 >
                   <option value="">Selecione</option>
@@ -292,9 +325,9 @@ const UpsertHarvestModal = ({
                     </option>
                   ))}
                 </select>
-                {errors.industryTransporterId && (
+                {form.formState.errors.industryTransporterId && (
                   <span className="text-xs text-red-500">
-                    {errors.industryTransporterId.message}
+                    {form.formState.errors.industryTransporterId.message}
                   </span>
                 )}
               </div>
@@ -303,11 +336,16 @@ const UpsertHarvestModal = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Placa</Label>
-                <Input type="text" {...register("truckPlate")} />
+                <Input type="text" {...form.register("truckPlate")} />
               </div>
               <div>
                 <Label>Motorista</Label>
-                <Input type="text" {...register("truckDriver")} />
+                <Input type="text" {...form.register("truckDriver")} />
+                {form.formState.errors.truckDriver && (
+                  <span className="text-xs text-red-500">
+                    {form.formState.errors.truckDriver.message}
+                  </span>
+                )}
               </div>
             </div>
             {/* peso */}
@@ -316,12 +354,12 @@ const UpsertHarvestModal = ({
                 <Label>Peso Bruto (kg)</Label>
                 <Input
                   type="number"
-                  {...register("weightBt", { valueAsNumber: true })}
+                  {...form.register("weightBt", { valueAsNumber: true })}
                   placeholder="Ex: 1200"
                 />
-                {errors.weightBt && (
+                {form.formState.errors.weightBt && (
                   <span className="text-xs text-red-500">
-                    {errors.weightBt.message}
+                    {form.formState.errors.weightBt.message}
                   </span>
                 )}
               </div>
@@ -329,12 +367,12 @@ const UpsertHarvestModal = ({
                 <Label>Tara (kg)</Label>
                 <Input
                   type="number"
-                  {...register("weightTr", { valueAsNumber: true })}
+                  {...form.register("weightTr", { valueAsNumber: true })}
                   placeholder="Ex: 1200"
                 />
-                {errors.weightTr && (
+                {form.formState.errors.weightTr && (
                   <span className="text-xs text-red-500">
-                    {errors.weightTr.message}
+                    {form.formState.errors.weightTr.message}
                   </span>
                 )}
               </div>
@@ -342,12 +380,13 @@ const UpsertHarvestModal = ({
                 <Label>Sub Líquido (kg)</Label>
                 <Input
                   type="number"
-                  {...register("weightSubLiq", { valueAsNumber: true })}
-                  placeholder="Ex: 1200"
+                  {...form.register("weightSubLiq", { valueAsNumber: true })}
+                  value={(subLiquid.toFixed(2))}
+                  readOnly
                 />
-                {errors.weightSubLiq && (
+                {form.formState.errors.weightSubLiq && (
                   <span className="text-xs text-red-500">
-                    {errors.weightSubLiq.message}
+                    {form.formState.errors.weightSubLiq.message}
                   </span>
                 )}
               </div>
@@ -360,26 +399,26 @@ const UpsertHarvestModal = ({
                 <Input
                   type="number"
                   step="0.1"
-                  {...register("impurities_percent", { valueAsNumber: true })}
+                  {...form.register("impurities_percent", { valueAsNumber: true })}
                   placeholder="Ex: 14.5"
                 />
-                {errors.impurities_percent && (
+                {form.formState.errors.impurities_percent && (
                   <span className="text-xs text-red-500">
-                    {errors.impurities_percent.message}
+                    {form.formState.errors.impurities_percent.message}
                   </span>
                 )}
               </div>
               <div>
-                <Label>Porcentage (%)</Label>
+                <Label>Porcentagem (%)</Label>
                 <Input
                   type="number"
                   step="0.1"
-                  {...register("impurities_discount", { valueAsNumber: true })}
+                  {...form.register("impurities_discount", { valueAsNumber: true })}
                   placeholder="Ex: 2.5"
                 />
-                {errors.impurities_discount && (
+                {form.formState.errors.impurities_discount && (
                   <span className="text-xs text-red-500">
-                    {errors.impurities_discount.message}
+                    {form.formState.errors.impurities_discount.message}
                   </span>
                 )}
               </div>
@@ -387,12 +426,13 @@ const UpsertHarvestModal = ({
                 <Label>Desconto (kg)</Label>
                 <Input
                   type="number"
-                  {...register("impurities_kg", { valueAsNumber: true })}
-                  placeholder="Ex: 1200"
+                  {...form.register("impurities_kg", { valueAsNumber: true })}
+                  value={(impuritiesKg.toFixed(2))}
+                  disabled
                 />
-                {errors.impurities_kg && (
+                {form.formState.errors.impurities_kg && (
                   <span className="text-xs text-red-500">
-                    {errors.impurities_kg.message}
+                    {form.formState.errors.impurities_kg.message}
                   </span>
                 )}
               </div>
@@ -404,26 +444,26 @@ const UpsertHarvestModal = ({
                 <Input
                   type="number"
                   step="0.1"
-                  {...register("humidity_percent", { valueAsNumber: true })}
+                  {...form.register("humidity_percent", { valueAsNumber: true })}
                   placeholder="Ex: 15.2"
                 />
-                {errors.humidity_percent && (
+                {form.formState.errors.humidity_percent && (
                   <span className="text-xs text-red-500">
-                    {errors.humidity_percent.message}
+                    {form.formState.errors.humidity_percent.message}
                   </span>
                 )}
               </div>
               <div>
-                <Label>Porcentage (%)</Label>
+                <Label>Porcentagem (%)</Label>
                 <Input
                   type="number"
                   step="0.1"
-                  {...register("humidity_discount", { valueAsNumber: true })}
+                  {...form.register("humidity_discount", { valueAsNumber: true })}
                   placeholder="Ex: 3.8"
                 />
-                {errors.humidity_discount && (
+                {form.formState.errors.humidity_discount && (
                   <span className="text-xs text-red-500">
-                    {errors.humidity_discount.message}
+                    {form.formState.errors.humidity_discount.message}
                   </span>
                 )}
               </div>
@@ -431,12 +471,13 @@ const UpsertHarvestModal = ({
                 <Label>Desconto (kg)</Label>
                 <Input
                   type="number"
-                  {...register("humidity_kg", { valueAsNumber: true })}
-                  placeholder="Ex: 1200"
+                  {...form.register("humidity_kg", { valueAsNumber: true })}
+                  value={(humidityKg.toFixed(2))}
+                  disabled
                 />
-                {errors.humidity_kg && (
+                {form.formState.errors.humidity_kg && (
                   <span className="text-xs text-red-500">
-                    {errors.humidity_kg.message}
+                    {form.formState.errors.humidity_kg.message}
                   </span>
                 )}
               </div>
@@ -448,12 +489,13 @@ const UpsertHarvestModal = ({
                 <Label>Peso Líquido (kg)</Label>
                 <Input
                   type="number"
-                  {...register("weightLiq", { valueAsNumber: true })}
-                  placeholder="Ex: 1200"
+                  {...form.register("weightLiq", { valueAsNumber: true })}
+                  value={(liquid.toFixed(2))}
+                  readOnly
                 />
-                {errors.weightLiq && (
+                {form.formState.errors.weightLiq && (
                   <span className="text-xs text-red-500">
-                    {errors.weightLiq.message}
+                    {form.formState.errors.weightLiq.message}
                   </span>
                 )}
               </div>
@@ -467,6 +509,7 @@ const UpsertHarvestModal = ({
             {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
           </Button>
         </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
