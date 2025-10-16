@@ -56,11 +56,13 @@ export function InsumosStockTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
+      accessorFn: (row) => row.product.name,
       cell: ({ row: { original: insumo } }) => insumo.product.name,
     },
     {
       accessorKey: "class",
       header: "Classe",
+      accessorFn: (row) => row.product.class,
       cell: ({ row: { original: insumo } }) =>
         getProductClassLabel(insumo.product.class),
     },

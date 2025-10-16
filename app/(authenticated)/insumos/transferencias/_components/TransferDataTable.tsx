@@ -72,14 +72,24 @@ export function TransferDataTable<TData, TValue>({
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex items-center justify-between py-4">
-        <Input
-          placeholder="Procure por produto"
-          value={(table.getColumn("produto")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("produto")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm bg-gray-50 text-primary"
-        />
+        <div className="flex gap-4">
+          <Input
+            placeholder="Procure por produto"
+            value={(table.getColumn("product")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("product")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
+            placeholder="Procure por destino"
+            value={(table.getColumn("destino")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("destino")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+        </div>
         <CreateTransferButton  />
       </div>
       <div className="rounded-md border">

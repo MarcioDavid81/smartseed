@@ -67,7 +67,7 @@ export function ListSaleTable() {
     {
       accessorKey: "cultivar",
       header: "Cultivar",
-      accessorFn: (row) => row.cultivarId,
+      accessorFn: (row) => row.cultivar.name,
       cell: ({ row: { original } }) => original.cultivar.name,
     },
     {

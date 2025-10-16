@@ -91,7 +91,7 @@ export function ListApplicationTable() {
     {
       accessorKey: "talhao",
       header: "Destino",
-      accessorFn: (row) => row.talhaoId,
+      accessorFn: (row) => row.talhao.name,
       cell: ({ row: { original } }) => original.talhao.name,
     },
     {

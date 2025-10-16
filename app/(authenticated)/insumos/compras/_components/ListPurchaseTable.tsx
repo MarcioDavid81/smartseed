@@ -64,13 +64,14 @@ export function ListPurchaseTable() {
     {
       accessorKey: "product",
       header: "Produto",
-      accessorFn: (row) => row.productId,
+      accessorFn: (row) => row.product.name,
       cell: ({ row: { original } }) => original.product.name,
     },
     {
       accessorKey: "customer",
       header: "Fornecedor",
-      cell: ({ row: { original: original } }) => original.customer.name,
+      accessorFn: (row) => row.customer.name,
+      cell: ({ row: { original } }) => original.customer.name,
     },
     {
       accessorKey: "invoiceNumber",

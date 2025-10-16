@@ -72,14 +72,24 @@ export function ApplicationDataTable<TData, TValue>({
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex items-center justify-between py-4">
-        <Input
-          placeholder="Procure por talhão"
-          value={(table.getColumn("talhao")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("talhao")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm bg-gray-50 text-primary"
-        />
+        <div className="flex gap-4">
+          <Input
+            placeholder="Procure por talhão"
+            value={(table.getColumn("talhao")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("talhao")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
+            placeholder="Procure por produto"
+            value={(table.getColumn("product")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("product")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+        </div>
         <CreateApplicationButton  />
       </div>
       <div className="rounded-md border">
