@@ -40,6 +40,40 @@ export default function GenerateBeneficiationReportModal() {
     logo.src = "/logo.png";
 
     logo.onload = () => {
+      // Função para adicionar rodapé consistente
+      const addFooter = () => {
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height;
+        const pageWidth = pageSize.width;
+
+        const now = new Date();
+        const formattedDate = now.toLocaleString("pt-BR");
+        const userName = user?.name || "Usuário desconhecido";
+
+        doc.setFontSize(8);
+        doc.text(
+          `Relatório gerado em ${formattedDate} por: ${userName}`,
+          10,
+          pageHeight - 10,
+        );
+
+        const centerText = "Sistema Smart Seed";
+        const centerTextWidth = doc.getTextWidth(centerText);
+        doc.text(
+          centerText,
+          pageWidth / 2 - centerTextWidth / 2,
+          pageHeight - 10,
+        );
+
+        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+        const totalPages = (doc as any).internal.getNumberOfPages();
+        doc.text(
+          `${currentPage}/${totalPages}`,
+          pageWidth - 20,
+          pageHeight - 10,
+        );
+      };
+
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Descartes", 150, 20, { align: "center" });
@@ -48,7 +82,7 @@ export default function GenerateBeneficiationReportModal() {
       doc.text(`Cultivar: ${cultivar || "Todos"}`, 14, 35);
 
       autoTable(doc, {
-        startY: 50,
+        startY: 40,
         head: [["Data", "Cultivar", "Quantidade (kg)"]],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
@@ -124,6 +158,7 @@ export default function GenerateBeneficiationReportModal() {
 
       if (finalY + estimatedHeight > pageHeight) {
         doc.addPage();
+        addFooter(); // Adiciona rodapé na nova página
         finalY = 20; // Recomeça mais acima na nova página
       }
 
