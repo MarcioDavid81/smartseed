@@ -60,7 +60,7 @@ export function ListStockDetailTable({ allMovements, cultivar }: ListStockDetail
     if (!info) return tipo;
 
     const Icon = info.entrada ? ArrowUp : ArrowDown;
-    const color = info.entrada ? "text-green-600" : "text-red-600";
+    const color = info.entrada ? "text-green" : "text-red";
 
     return (
       <div className="flex items-center gap-1">

@@ -88,7 +88,7 @@ export default function DeleteMovementButton({
           <TooltipTrigger asChild>
             <AlertDialogTrigger asChild>
               <button aria-label="Excluir movimentação">
-                <Trash2 size={18} className="text-red-600" />
+                <Trash2 size={18} className="text-red" />
               </button>
             </AlertDialogTrigger>
           </TooltipTrigger>
