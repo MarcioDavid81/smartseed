@@ -44,6 +44,40 @@ export default function GenerateHarvestReportModal() {
     logo.src = "/logo.png";
 
     logo.onload = () => {
+      // Função para adicionar rodapé consistente
+      const addFooter = () => {
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height;
+        const pageWidth = pageSize.width;
+
+        const now = new Date();
+        const formattedDate = now.toLocaleString("pt-BR");
+        const userName = user?.name || "Usuário desconhecido";
+
+        doc.setFontSize(8);
+        doc.text(
+          `Relatório gerado em ${formattedDate} por: ${userName}`,
+          10,
+          pageHeight - 10,
+        );
+
+        const centerText = "Sistema Smart Seed";
+        const centerTextWidth = doc.getTextWidth(centerText);
+        doc.text(
+          centerText,
+          pageWidth / 2 - centerTextWidth / 2,
+          pageHeight - 10,
+        );
+
+        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+        const totalPages = (doc as any).internal.getNumberOfPages();
+        doc.text(
+          `${currentPage}/${totalPages}`,
+          pageWidth - 20,
+          pageHeight - 10,
+        );
+      };
+
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Colheitas", 150, 20, { align: "center" });
@@ -53,7 +87,7 @@ export default function GenerateHarvestReportModal() {
       doc.text(`Talhão: ${talhao || "Todos"}`, 14, 40);
 
       autoTable(doc, {
-        startY: 50,
+        startY: 45,
         head: [["Data", "Cultivar", "Talhão", "Fazenda", "Quantidade (kg)"]],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
@@ -120,12 +154,37 @@ export default function GenerateHarvestReportModal() {
       );
 
       let finalY = (doc as any).lastAutoTable.finalY + 10;
+      const pageHeight = doc.internal.pageSize.height;
+      const footerHeight = 20; // Espaço reservado para o rodapé
+      const availableHeight = pageHeight - footerHeight;
+      
+      // Calcular espaço necessário para os totais
+      const totalLines = Object.keys(totalsByCultivar).length + 2; // +2 para título e total geral
+      const neededHeight = totalLines * 6 + 10; // 6px por linha + margem
+      
+      // Verificar se há espaço suficiente na página atual
+        if (finalY + neededHeight > availableHeight) {
+          doc.addPage();
+          addFooter(); // Adicionar rodapé na nova página
+          finalY = 20; // Começar no topo da nova página
+        }
 
       doc.setFontSize(9);
       doc.text("Total colhido por Cultivar", 14, finalY);
 
       doc.setFontSize(9);
       Object.entries(totalsByCultivar).forEach(([name, total], index) => {
+        const currentY = finalY + 6 + index * 6;
+        
+        // Verificar se ainda há espaço na página para esta linha
+          if (currentY > availableHeight) {
+            doc.addPage();
+            addFooter(); // Adicionar rodapé na nova página
+            finalY = 20;
+            doc.setFontSize(9);
+            doc.text("Total colhido por Cultivar (continuação)", 14, finalY);
+          }
+        
         doc.text(
           `${name}: ${formatNumber(total)} kg`,
           14,
@@ -133,12 +192,26 @@ export default function GenerateHarvestReportModal() {
         );
       });
 
-      doc.setFontSize(9);
-      doc.text(
-        `Total Geral: ${formatNumber(totalGeral)} kg`,
-        14,
-        finalY + 6 + Object.keys(totalsByCultivar).length * 6 + 6,
-      );
+      const totalGeralY = finalY + 6 + Object.keys(totalsByCultivar).length * 6 + 6;
+      
+      // Verificar se há espaço para o total geral
+        if (totalGeralY > availableHeight) {
+          doc.addPage();
+          addFooter(); // Adicionar rodapé na nova página
+          doc.setFontSize(9);
+          doc.text(
+            `Total Geral: ${formatNumber(totalGeral)} kg`,
+            14,
+            30,
+          );
+        } else {
+        doc.setFontSize(9);
+        doc.text(
+          `Total Geral: ${formatNumber(totalGeral)} kg`,
+          14,
+          totalGeralY,
+        );
+      }
 
       const fileNumber = new Date().getTime().toString();
       const fileName = `Relatorio de Colheitas - ${fileNumber}.pdf`;
