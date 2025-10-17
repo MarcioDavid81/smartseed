@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
+import DashboardContent from "./_components/DashboardContent";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -23,7 +24,7 @@ export default async function AgricultureDashboardPage() {
             <h1 className="text-2xl font-medium mb-4">Dashboard</h1> 
             <NavItems />
           </div>
-
+          <DashboardContent />
         </main>
       </div>
     </div>
