@@ -141,6 +141,11 @@ const routes = [
         name: "Estoque",
         icon: <Warehouse size={16} />,
       },
+      {
+        path: "/agricultura/safras",
+        name: "Safras",
+        icon: <ChartNoAxesCombined size={16} />,
+      },
     ],
   },
   {
