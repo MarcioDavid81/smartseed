@@ -1,12 +1,10 @@
+import { ProductType } from "@prisma/client";
+
 export interface IndustryHarvest {
   id: string;
   date: Date;
   document?: string;
-  productId: string;
-  product: {
-    id: string;
-    name: string;
-  };
+  product: ProductType;
   talhaoId: string;
   talhao: {
     id: string;

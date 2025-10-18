@@ -38,7 +38,6 @@ model Company {
   accountsReceivable AccountReceivable[]
   industryDeposits   IndustryDeposit[]
   industryHarvests   IndustryHarvest[]
-  industryProducts   IndustryProduct[]
   transporters       IndustryTransporter[]
   industryStocks     IndustryStock[]
   createdAt          DateTime              @default(now())
@@ -480,15 +479,6 @@ model AccountReceivable {
 }
 
 //MÓDULO DE COLHEITA INDÚSTRIA
-model IndustryProduct {
-  id               String            @id @default(cuid())
-  name             String
-  industryHarvests IndustryHarvest[]
-  industryStocks   IndustryStock[]
-  companyId        String
-  company          Company           @relation(fields: [companyId], references: [id])
-}
-
 model IndustryDeposit {
   id               String            @id @default(cuid())
   name             String
@@ -500,15 +490,14 @@ model IndustryDeposit {
 
 model IndustryStock {
   id                String          @id @default(cuid())
-  industryProductId String
-  industryProduct   IndustryProduct @relation(fields: [industryProductId], references: [id])
+  product           ProductType
   industryDepositId String
   industryDeposit   IndustryDeposit @relation(fields: [industryDepositId], references: [id])
   quantity          Decimal         @db.Decimal(12, 2)
   companyId         String
   company           Company         @relation(fields: [companyId], references: [id])
 
-  @@unique([industryProductId, industryDepositId], name: "industryProductId_industryDepositId")
+  @@unique([product, industryDepositId], name: "product_industryDepositId")
 }
 
 model IndustryTransporter {
@@ -531,8 +520,7 @@ model IndustryHarvest {
   date                  DateTime
   document              String?
   //produto colhido
-  productId             String
-  product               IndustryProduct      @relation(fields: [productId], references: [id])
+  product               ProductType
   //talhão colhido
   talhaoId              String
   talhao                Talhao               @relation(fields: [talhaoId], references: [id])

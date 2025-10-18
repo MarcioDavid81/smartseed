@@ -1,11 +1,8 @@
-import { IndustryHarvest } from "@prisma/client";
+import { IndustryHarvest, ProductType } from "@prisma/client";
 
 export interface IndustryStockWithProduct {
   quantity: number;
-  industryProduct: {
-    id: string;
-    name: string;
-  };
+  product: ProductType;
 }
 
 export interface IndustryDeposit {
