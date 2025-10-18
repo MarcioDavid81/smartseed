@@ -55,7 +55,6 @@ const routes = [
     subRoutes: [
       { path: "/agricultura/dashboard", name: "Dashboard" },
       { path: "/agricultura/colheitas", name: "Colheita" },
-      { path: "/agricultura/produtos", name: "Produtos" },
       { path: "/agricultura/transportadores", name: "Transportadores" },
       { path: "/agricultura/depositos", name: "Depósitos" },
       { path: "/agricultura/estoque", name: "Estoque" },
