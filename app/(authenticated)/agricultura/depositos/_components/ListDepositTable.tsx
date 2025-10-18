@@ -13,8 +13,16 @@ import DeleteIndustryDepositButton from "./DeleteDepositButton";
 import { IndustryDepositDataTable } from "./DepositDataTable";
 import { formatNumber } from "@/app/_helpers/currency";
 
+// 👇 Novo tipo flattenado
+type FlattenedDeposit = {
+  id: string;
+  name: string;
+  product: string;
+  quantity: number;
+};
+
 export function IndustryDepositGetTable() {
-  const [industryDeposit, setIndustryDeposit] = useState<IndustryDeposit[]>([]);
+  const [flattenedDeposits, setFlattenedDeposits] = useState<FlattenedDeposit[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function fetchDeposits() {
@@ -25,11 +33,33 @@ export function IndustryDepositGetTable() {
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await res.json();
-      console.table(data);
-      setIndustryDeposit(data);
+      const deposits: IndustryDeposit[] = await res.json();
+      console.table(deposits);
+
+      // 👇 Flatten dos depósitos e produtos
+      const flattened = deposits.flatMap((deposit) => {
+        if (deposit.industryStocks.length === 0) {
+          return [
+            {
+              id: deposit.id,
+              name: deposit.name,
+              product: "SEM PRODUTO",
+              quantity: 0,
+            },
+          ];
+        }
+
+        return deposit.industryStocks.map((stock) => ({
+          id: deposit.id,
+          name: deposit.name,
+          product: stock.product,
+          quantity: Number(stock.quantity),
+        }));
+      });
+
+      setFlattenedDeposits(flattened);
     } catch (error) {
-      console.error("Erro ao buscar insumos:", error);
+      console.error("Erro ao buscar depósitos:", error);
     } finally {
       setLoading(false);
     }
@@ -39,7 +69,7 @@ export function IndustryDepositGetTable() {
     fetchDeposits();
   }, []);
 
-  const columns: ColumnDef<IndustryDeposit>[] = [
+  const columns: ColumnDef<FlattenedDeposit>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -54,44 +84,40 @@ export function IndustryDepositGetTable() {
       ),
     },
     {
-      accessorKey: "industryStocks",
+      accessorKey: "product",
       header: () => <div className="text-center">Produto</div>,
-      cell: ({ row }) => {
-        const deposit = row.original
-        return (
-          <div className="text-center">
-            {deposit.industryStocks.length > 0 
-              ? deposit.industryStocks.map((stock) => stock.industryProduct.name).join(", ")
-              : <span className="text-xs text-gray-500">SEM PRODUTO</span>
-            }
-          </div>
-        );
-      },
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.product}</div>
+      ),
     },
     {
-      accessorKey: "industryStocks",
+      accessorKey: "quantity",
       header: () => <div className="text-center">Estoque</div>,
-      cell: ({ row }) => {
-        const deposit = row.original
-        return (
-          <div className="text-center">
-            {deposit.industryStocks.length > 0 
-              ? deposit.industryStocks.map((stock) => formatNumber(Number(stock.quantity))).join(", ")
-              : <span className="text-xs text-gray-500">SEM ESTOQUE</span>
-            }
-          </div>
-        );
-      },
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.original.quantity > 0
+            ? formatNumber(row.original.quantity)
+            : <span className="text-xs text-gray-500">SEM ESTOQUE</span>}
+        </div>
+      ),
     },
     {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
-        const deposit = row.original
+        const { id, name } = row.original;
+        // ⚠️ Aqui você precisa passar o depósito original,
+        // então podemos buscar no estado original ou adaptar conforme necessidade.
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditIndustryDepositButton industryDeposit={deposit} onUpdated={fetchDeposits} />
-            <DeleteIndustryDepositButton industryDeposit={deposit} onDeleted={fetchDeposits} />
+            <EditIndustryDepositButton
+              industryDeposit={{ id, name } as IndustryDeposit} // ou mapeie corretamente
+              onUpdated={fetchDeposits}
+            />
+            <DeleteIndustryDepositButton
+              industryDeposit={{ id, name } as IndustryDeposit}
+              onDeleted={fetchDeposits}
+            />
           </div>
         );
       },
@@ -102,7 +128,7 @@ export function IndustryDepositGetTable() {
     <Card className="p-4 font-light dark:bg-primary">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Depósitos</h2>
-        <Button variant={"ghost"} onClick={fetchDeposits} disabled={loading}>
+        <Button variant="ghost" onClick={fetchDeposits} disabled={loading}>
           <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>
@@ -112,7 +138,7 @@ export function IndustryDepositGetTable() {
           <p className="text-lg">Carregando Depósitos...</p>
         </div>
       ) : (
-        <IndustryDepositDataTable columns={columns} data={industryDeposit} />
+        <IndustryDepositDataTable columns={columns} data={flattenedDeposits} />
       )}
     </Card>
   );

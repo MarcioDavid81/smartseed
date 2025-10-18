@@ -15,7 +15,6 @@ import { IndustryHarvestFormData, industryHarvestSchema } from "@/lib/schemas/in
 import {
   IndustryDeposit,
   IndustryHarvest,
-  IndustryProduct,
   IndustryTransporter,
   Talhao
 } from "@/types";
@@ -40,7 +39,6 @@ const UpsertHarvestModal = ({
   onHarvestCreated,
 }: UpsertHarvestModalProps) => {
   const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState<IndustryProduct[]>([]);
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
@@ -54,7 +52,6 @@ const UpsertHarvestModal = ({
     defaultValues: {
       date: colheita ? new Date(colheita.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
       document: colheita?.document || "",
-      productId: colheita?.productId || "",
       talhaoId: colheita?.talhaoId || "",
       industryDepositId: colheita?.industryDepositId || "",
       industryTransporterId: colheita?.industryTransporterId || "",
@@ -104,7 +101,6 @@ const UpsertHarvestModal = ({
       form.reset({
         date: new Date(colheita.date).toISOString().split("T")[0],
         document: colheita.document || "",
-        productId: colheita.productId,
         talhaoId: colheita.talhaoId,
         industryDepositId: colheita.industryDepositId,
         industryTransporterId: colheita.industryTransporterId,
@@ -129,10 +125,7 @@ const UpsertHarvestModal = ({
     const fetchData = async () => {
       const token = getToken();
 
-      const [produtoRes, talhaoRes, depositoRes, transporterRes] = await Promise.all([
-        fetch("/api/industry/product", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const [talhaoRes, depositoRes, transporterRes] = await Promise.all([
         fetch("/api/plots", {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -144,12 +137,12 @@ const UpsertHarvestModal = ({
         }),
       ]);
 
-      const produtoData = await produtoRes.json();
+      
       const talhaoData = await talhaoRes.json();
       const depositoData = await depositoRes.json();
       const transporterData = await transporterRes.json();
 
-      setProducts(produtoData);
+
       setTalhoes(talhaoData);
       setDeposits(depositoData);
       setTransporters(transporterData);
@@ -253,25 +246,6 @@ const UpsertHarvestModal = ({
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Produto</Label>
-                <select
-                  {...form.register("productId")}
-                  className="w-full border rounded px-2 py-1"
-                >
-                  <option value="">Selecione</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-                {form.formState.errors.productId && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.productId.message}
-                  </span>
-                )}
-              </div>
               <div>
                 <Label>Talhão</Label>
                 <select

@@ -28,7 +28,7 @@ export default function GenerateHarvestReportModal() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const produtosUnicos = Array.from(
-    new Set(harvests.map((h) => h.product.name)),
+    new Set(harvests.map((h) => h.product)),
   );
   const depositosUnicos = Array.from(
     new Set(harvests.map((h) => h.industryDeposit.name)),
@@ -39,7 +39,7 @@ export default function GenerateHarvestReportModal() {
   const talhoesUnicos = Array.from(new Set(harvests.map((h) => h.talhao.name)));
 
   const filtered = harvests.filter((h) => {
-    const matchProduto = !produto || h.product.name === produto;
+    const matchProduto = !produto || h.product === produto;
     const matchDeposito = !deposito || h.industryDeposit.name === deposito;
     // const matchTransportador = !transportador || h.industryTransporter.name === transportador;
     const matchTalhao = !talhao || h.talhao.name === talhao;
@@ -71,7 +71,7 @@ export default function GenerateHarvestReportModal() {
         head: [["Data", "Produto", "Talhão", "Depósito", "Quantidade (kg)"]],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
-          h.product.name,
+          h.product,
           h.talhao.name,
           h.industryDeposit.name,
           formatNumber(Number(h.weightLiq)),
