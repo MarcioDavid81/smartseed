@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
   const { companyId } = payload;
 
   try {
-    const { name, productType, startDate, endDate } = await req.json();
+    const { name, productType, startDate, endDate, talhoesIds } = await req.json();
 
     if (!name || !productType || !startDate || !endDate) {
       return NextResponse.json(
@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 1. Cria o ciclo
     const cycle = await db.productionCycle.create({
       data: {
         name,
@@ -70,7 +71,29 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(cycle, { status: 201 });
+    // 2. Se tiver talhões, cria os relacionamentos na tabela intermediária
+    if (talhoesIds && talhoesIds.length > 0) {
+      await db.cycleTalhao.createMany({
+        data: talhoesIds.map((talhaoId: string) => ({
+          cycleId: cycle.id,
+          talhaoId,
+        })),
+      });
+    }
+
+    // 3. Retorna o ciclo com os talhões relacionados
+    const cycleWithTalhoes = await db.productionCycle.findUnique({
+      where: { id: cycle.id },
+      include: {
+        talhoes: {
+          include: {
+            talhao: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(cycleWithTalhoes, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar safra:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
@@ -131,12 +154,28 @@ export async function GET(req: NextRequest) {
   try {
     const cycles = await db.productionCycle.findMany({
       where: { companyId },
+      include: {
+        talhoes: {
+          include: {
+            talhao: true,
+          },
+        },
+        harvests: true,
+        buys: true,
+        beneficiations: true,
+        consumptionsExit: true,
+        salesExit: true,
+        purchases: true,
+        transfers: true,
+        applications: true,
+        industryHarvests: true,
+      },
       orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(cycles, { status: 200 });
   } catch (error) {
-    console.error("Erro ao buscar safras:", error);
+    console.error("Erro ao listar ciclos:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }

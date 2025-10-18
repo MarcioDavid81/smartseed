@@ -13,7 +13,6 @@ import DeleteIndustryDepositButton from "./DeleteDepositButton";
 import { IndustryDepositDataTable } from "./DepositDataTable";
 import { formatNumber } from "@/app/_helpers/currency";
 
-// 👇 Novo tipo flattenado
 type FlattenedDeposit = {
   id: string;
   name: string;
@@ -22,6 +21,7 @@ type FlattenedDeposit = {
 };
 
 export function IndustryDepositGetTable() {
+  const [industryDeposit, setIndustryDeposit] = useState<IndustryDeposit[]>([]);
   const [flattenedDeposits, setFlattenedDeposits] = useState<FlattenedDeposit[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +36,8 @@ export function IndustryDepositGetTable() {
       const deposits: IndustryDeposit[] = await res.json();
       console.table(deposits);
 
-      // 👇 Flatten dos depósitos e produtos
+      setIndustryDeposit(deposits);
+
       const flattened = deposits.flatMap((deposit) => {
         if (deposit.industryStocks.length === 0) {
           return [
@@ -105,17 +106,21 @@ export function IndustryDepositGetTable() {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
-        const { id, name } = row.original;
-        // ⚠️ Aqui você precisa passar o depósito original,
-        // então podemos buscar no estado original ou adaptar conforme necessidade.
+        const { id } = row.original;
+
+        // 👇 Busca o depósito original pelo ID
+        const originalDeposit = industryDeposit.find((d) => d.id === id);
+
+        if (!originalDeposit) return null;
+
         return (
           <div className="flex items-center justify-center gap-4">
             <EditIndustryDepositButton
-              industryDeposit={{ id, name } as IndustryDeposit} // ou mapeie corretamente
+              industryDeposit={originalDeposit}
               onUpdated={fetchDeposits}
             />
             <DeleteIndustryDepositButton
-              industryDeposit={{ id, name } as IndustryDeposit}
+              industryDeposit={originalDeposit}
               onDeleted={fetchDeposits}
             />
           </div>

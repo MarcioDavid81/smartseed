@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PRODUCT_TYPE_OPTIONS } from "../../_constants/products";
 import { ProductType } from "@prisma/client";
+import { MultiSelectTalhao } from "./MultiSelectTalhao";
 
 interface NewCycleModalProps {
   isOpen: boolean;
@@ -29,7 +30,7 @@ const cycleSchema = z.object({
   productType: z.nativeEnum(ProductType),
   startDate: z.string().min(1, "Data de início é obrigatória"),
   endDate: z.string().min(1, "Data de término é obrigatória"),
-});
+  talhoesIds: z.array(z.string()).min(1, "Selecione pelo menos um talhão"),});
 
 type CycleFormData = z.infer<typeof cycleSchema>;
 
@@ -40,10 +41,17 @@ const NewCycleModal = ({ isOpen, onClose }: NewCycleModalProps) => {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
+    watch,
   } = useForm<CycleFormData>({
     resolver: zodResolver(cycleSchema),
+    defaultValues: {
+      talhoesIds: []
+    }
   });
+
+  const talhoesIds = watch("talhoesIds") || []
 
   const onSubmit = async (data: CycleFormData) => {
     setLoading(true);
@@ -122,6 +130,14 @@ const NewCycleModal = ({ isOpen, onClose }: NewCycleModalProps) => {
                 type="date"
               />
               {errors.endDate && <span className="text-red-500">{errors.endDate.message}</span>}
+            </div>
+            <div>
+              <Label htmlFor="talhoesIds">Talhões</Label>
+              <MultiSelectTalhao
+                value={talhoesIds}
+                onChange={(val) => setValue("talhoesIds", val)}
+              />
+              {errors.talhoesIds && <span className="text-red-500">{errors.talhoesIds.message}</span>}
             </div>
           </div>
           <Button

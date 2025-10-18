@@ -136,6 +136,7 @@ model Talhao {
   consumptionsExit ConsumptionExit[]
   applications     Application[]
   industryHarvests IndustryHarvest[]
+  cycles           CycleTalhao[]
   createdAt        DateTime          @default(now())
 }
 
@@ -280,6 +281,19 @@ model ProductionCycle {
   transfers        TransferExit[]
   applications     Application[]
   industryHarvests IndustryHarvest[]
+  talhoes          CycleTalhao[]
+  createdAt        DateTime          @default(now())
+
+  forceMigration Int? @default(1)
+}
+
+//tabela para relacionar muitos talhões para muitos ciclos de produção 
+model CycleTalhao {
+  id               String            @id @default(cuid())
+  cycleId          String
+  cycle            ProductionCycle   @relation(fields: [cycleId], references: [id])
+  talhaoId         String
+  talhao           Talhao            @relation(fields: [talhaoId], references: [id])
   createdAt        DateTime          @default(now())
 }
 
