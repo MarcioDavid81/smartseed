@@ -37,7 +37,7 @@ export async function PUT(
       data.industryDepositId !== existing.industryDepositId;
 
     const productChanged =
-      data.productId && data.productId !== existing.productId;
+      data.product && data.product !== existing.product;
 
     // Se o depósito ou produto mudou, decrementa o estoque anterior
     if (depositChanged || productChanged) {
@@ -46,7 +46,7 @@ export async function PUT(
           where: {
             companyId: payload.companyId,
             industryDepositId: existing.industryDepositId,
-            industryProductId: existing.productId,
+            product: existing.product,
           },
           data: {
             quantity: {
@@ -60,8 +60,8 @@ export async function PUT(
       stockChanges.push(
         db.industryStock.upsert({
           where: {
-            industryProductId_industryDepositId: {
-              industryProductId: data.productId,
+            product_industryDepositId: {
+              product: data.product,
               industryDepositId: data.industryDepositId,
             },
           },
@@ -70,7 +70,7 @@ export async function PUT(
           },
           create: {
             companyId: payload.companyId,
-            industryProductId: data.productId,
+            product: data.product,
             industryDepositId: data.industryDepositId,
             quantity: data.weightLiq,
           },
@@ -84,7 +84,7 @@ export async function PUT(
           where: {
             companyId: payload.companyId,
             industryDepositId: existing.industryDepositId,
-            industryProductId: existing.productId,
+            product: existing.product,
           },
           data: {
             quantity: { increment: diff },
@@ -138,8 +138,8 @@ export async function DELETE(
     // 1️⃣ Buscar estoque atual
     const stock = await db.industryStock.findUnique({
       where: {
-        industryProductId_industryDepositId: {
-          industryProductId: harvest.productId,
+        product_industryDepositId: {
+          product: harvest.product,
           industryDepositId: harvest.industryDepositId,
         },
       },
@@ -154,8 +154,8 @@ export async function DELETE(
 
       await db.industryStock.update({
         where: {
-          industryProductId_industryDepositId: {
-            industryProductId: harvest.productId,
+          product_industryDepositId: {
+            product: harvest.product,
             industryDepositId: harvest.industryDepositId,
           },
         },

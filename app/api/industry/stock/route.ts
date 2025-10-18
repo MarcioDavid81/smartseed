@@ -1,5 +1,6 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { ProductType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
   const depositId = searchParams.get("depositId");
-  const productId = searchParams.get("productId");
+  const product = searchParams.get("product");
 
   try {
     const industryStocks = await db.industryStock.findMany({
@@ -31,15 +32,9 @@ export async function GET(req: NextRequest) {
         companyId,
         quantity: { gt: 0 },
         ...(depositId ? { industryDepositId: depositId } : {}),
-        ...(productId ? { productId } : {}),
+        ...(product ? { product: product as ProductType } : {}),
       },
       include: {
-        industryProduct: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
         industryDeposit: {
           select: {
             id: true,

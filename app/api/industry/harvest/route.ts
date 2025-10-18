@@ -1,7 +1,8 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { industryHarvestSchema } from "@/lib/schemas/industryHarvest";
+import { industryHarvestSchema } from "@/lib/schemas/industryHarvest"; // ⚠️ vamos remover o product daqui
+import { ProductType } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
@@ -25,6 +26,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
+    // ✅ product não vem mais do front
     const parsed = industryHarvestSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -36,19 +38,39 @@ export async function POST(req: NextRequest) {
 
     const data = parsed.data;
 
+    // 🧠 Busca o produto do ciclo
+    const cycle = await db.productionCycle.findFirst({
+      where: {
+        id: data.cycleId,
+        companyId, // segurança extra
+      },
+      select: {
+        productType: true,
+      },
+    });
+
+    if (!cycle) {
+      return NextResponse.json(
+        { error: "Ciclo não encontrado ou não pertence à empresa" },
+        { status: 404 },
+      );
+    }
+
+    // 🚀 Cria a colheita com o produto vindo do ciclo
     const industryHarvest = await db.industryHarvest.create({
       data: {
         ...data,
         date: new Date(data.date),
         companyId,
+        product: cycle.productType as ProductType, // 🔥 injeta aqui
       },
     });
 
-    //se não existir o estoque, criar um novo, se existir, incrementar a quantidade
+    // 📦 Atualiza ou cria estoque
     await db.industryStock.upsert({
       where: {
-        industryProductId_industryDepositId: {
-          industryProductId: data.productId,
+        product_industryDepositId: {
+          product: cycle.productType as ProductType, // usa o produto do ciclo
           industryDepositId: data.industryDepositId,
         },
       },
@@ -59,7 +81,7 @@ export async function POST(req: NextRequest) {
       },
       create: {
         companyId,
-        industryProductId: data.productId,
+        product: cycle.productType as ProductType, // usa o produto do ciclo
         industryDepositId: data.industryDepositId,
         quantity: data.weightLiq,
       },
@@ -71,6 +93,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }
+
+
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
@@ -91,7 +115,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const depositId = searchParams.get("depositId");
-  const productId = searchParams.get("productId");
+  const product = searchParams.get("product");
   const cycleId = searchParams.get("cycleId");
 
   try {
@@ -99,7 +123,7 @@ export async function GET(req: NextRequest) {
       where: {
         companyId: payload.companyId,
         ...(depositId ? { industryDepositId: depositId } : {}),
-        ...(productId ? { productId } : {}),
+        ...(product ? { product: product as ProductType } : {}),
         ...(cycleId ? { cycleId } : {}),
       },
       include: {
@@ -109,7 +133,6 @@ export async function GET(req: NextRequest) {
             name: true,
           }
         },
-        product: true,
         talhao: {
           select: {
             name: true,

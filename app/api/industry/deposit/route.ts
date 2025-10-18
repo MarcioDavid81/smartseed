@@ -61,12 +61,7 @@ export async function GET (req: NextRequest) {
       include: {
         industryStocks: {
           select: {
-            industryProduct: {
-              select: {
-                id: true,
-                name: true,
-              }
-            },
+            product: true,
             quantity: true,
           }
         },

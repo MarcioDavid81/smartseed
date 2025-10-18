@@ -1,5 +1,6 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { ProductType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT (req: NextRequest, { params }: { params: { id: string } }) {
@@ -52,7 +53,6 @@ export async function DELETE (req: NextRequest, { params }: { params: { id: stri
     const hasStock = await db.industryStock.findFirst({
       where: {
         industryDepositId: id,
-        industryProductId: id,
         quantity: { gt: 0 },
       },
     });
@@ -87,11 +87,7 @@ export async function GET (req: NextRequest, { params }: { params: { id: string 
       include: {
         industryStocks: {
           select: {
-            industryProduct: {
-              select: {
-                name: true,
-              },
-            },
+            product: true,
             quantity: true,
           },
         },
