@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
+import { CycleGetTable } from "./_components/ListCycleTable";
 
 export const metadata: Metadata = {
   title: "Safras",
@@ -22,7 +23,7 @@ export default async function AgricultureCropYieldsPage() {
             <h1 className="text-2xl font-medium mb-4">Safras</h1> 
             <NavItems />
           </div>
-
+          <CycleGetTable />
         </main>
       </div>
     </div>

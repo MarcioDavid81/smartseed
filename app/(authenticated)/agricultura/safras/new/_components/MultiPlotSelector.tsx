@@ -137,7 +137,7 @@ export function MultiPlotSelector({ control, name }: MultiPlotSelectorProps) {
               )}
               {filtered.map((farm) => (
                 <div key={farm.farmName} className="space-y-1">
-                  <p className="font-medium text-sm">{farm.farmName}</p>
+                  <p className="font-medium text-sm">{farm.farmName.toUpperCase()}</p>
                   {farm.children.map((t) => (
                     <div
                       key={t.id}
@@ -149,7 +149,7 @@ export function MultiPlotSelector({ control, name }: MultiPlotSelectorProps) {
                         checked={selected.includes(t.id)}
                         onCheckedChange={() => toggleSelection(t.id)}
                       />
-                      <span className="text-sm">{t.name}</span>
+                      <span className="text-sm">{t.name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</span>
                       <span className="text-sm text-muted-foreground">
                         {formatNumber(t.area)} ha
                       </span>

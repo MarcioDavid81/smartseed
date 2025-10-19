@@ -27,6 +27,7 @@ import { PRODUCT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/products"
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 const safraSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -45,6 +46,7 @@ interface Props {
 
 export function NewAgricultureCropYieldsForm({ defaultValues }: Props) {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<SafraFormData>({
     resolver: zodResolver(safraSchema),
@@ -82,6 +84,11 @@ export function NewAgricultureCropYieldsForm({ defaultValues }: Props) {
     setLoading(false);
   }
 };
+
+  const handleClick = () => {
+    router.push("/agricultura/safras");
+  }
+
 
 
   return (
@@ -164,7 +171,10 @@ export function NewAgricultureCropYieldsForm({ defaultValues }: Props) {
                 </FormItem>
               )}
             />
-            <div className="flex justify-end">
+            <div className="flex justify-between">
+              <Button type="button" className="md:w-1/4 w-full bg-green text-white mt-4" onClick={handleClick}>
+                Voltar
+              </Button>
               <Button type="submit" className="md:w-1/4 w-full bg-green text-white mt-4">
                 {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
