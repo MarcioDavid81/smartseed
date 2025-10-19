@@ -28,6 +28,10 @@ import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { CornerDownLeft, Save } from "lucide-react";
+
+
 
 const safraSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -42,9 +46,10 @@ type SafraFormData = z.infer<typeof safraSchema>;
 interface Props {
   defaultValues?: SafraFormData;
   onSubmit: (data: SafraFormData) => void;
+  className?: string;
 }
 
-export function NewAgricultureCropYieldsForm({ defaultValues }: Props) {
+export function NewAgricultureCropYieldsForm({ defaultValues }: Props) { 
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -85,13 +90,12 @@ export function NewAgricultureCropYieldsForm({ defaultValues }: Props) {
   }
 };
 
-  const handleClick = () => {
+  const handleReturn = () => {
     router.push("/agricultura/safras");
   }
 
-
-
   return (
+    <ScrollArea className="md:h-[calc(100vh-200px)]">
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)}> 
         <div className="grid gap-4">
@@ -105,7 +109,7 @@ export function NewAgricultureCropYieldsForm({ defaultValues }: Props) {
                     Nome
                   </FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder={`Ex.: Soja 2025`} />
+                    <Input {...field} placeholder={`Ex.: Soja 2025`} className="font-light"/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -164,23 +168,28 @@ export function NewAgricultureCropYieldsForm({ defaultValues }: Props) {
               control={form.control}
               name="talhoesIds"
               render={({field}) => (
-                <FormItem>
+                <FormItem className="space-y-2">
                   <FormLabel>Talhões</FormLabel>
+                  <div className="w-full">
                     <MultiPlotSelector control={form.control} {...field} />
-                    <FormMessage />
+                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex justify-between">
-              <Button type="button" className="md:w-1/4 w-full bg-green text-white mt-4" onClick={handleClick}>
+            <div className="flex justify-end gap-4">
+              <Button type="button" className=" bg-green text-white mt-4" onClick={handleReturn}>
+                <CornerDownLeft size={20} />
                 Voltar
               </Button>
-              <Button type="submit" className="md:w-1/4 w-full bg-green text-white mt-4">
+              <Button type="submit" className=" bg-green text-white mt-4">
+                <Save size={20} />
                 {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
             </div>
         </div>
       </form>
       </Form>
+      </ScrollArea>
   );
 }

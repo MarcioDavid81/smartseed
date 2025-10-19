@@ -116,64 +116,68 @@ export function MultiPlotSelector({ control, name }: MultiPlotSelectorProps) {
         const totalArea = calculateTotalArea();
 
         return (
-          <div className="space-y-3">
-            <Label>Selecione os talhões</Label>
-            <Input
-              placeholder="Buscar talhão ou fazenda..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <div className="w-full">
+            <div className="flex flex-col gap-3">
+              <Label>Selecione os talhões</Label>
+              <Input
+                placeholder="Buscar talhão ou fazenda..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
 
-            <div className="max-h-64 overflow-y-auto border rounded-md p-2 space-y-3">
-              {loading && (
-                <p className="text-sm text-muted-foreground">
-                  Carregando talhões...
-                </p>
-              )}
-              {!loading && filtered.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Nenhum talhão encontrado
-                </p>
-              )}
-              {filtered.map((farm) => (
-                <div key={farm.farmName} className="space-y-1">
-                  <p className="font-medium text-sm">{farm.farmName.toUpperCase()}</p>
-                  {farm.children.map((t) => (
-                    <div
-                      key={t.id}
-                      className={cn(
-                        "flex items-center gap-2 rounded-md p-1 hover:bg-muted cursor-pointer"
-                      )}
-                    >
-                      <Checkbox
-                        checked={selected.includes(t.id)}
-                        onCheckedChange={() => toggleSelection(t.id)}
-                      />
-                      <span className="text-sm">{t.name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {formatNumber(t.area)} ha
-                      </span>
+              <div className="h-64 overflow-y-auto border rounded-md p-2">
+                <div className="space-y-3">
+                  {loading && (
+                    <p className="text-sm text-muted-foreground">
+                      Carregando talhões...
+                    </p>
+                  )}
+                  {!loading && filtered.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum talhão encontrado
+                    </p>
+                  )}
+                  {!loading && filtered.map((farm) => (
+                    <div key={farm.farmName} className="space-y-1">
+                      <p className="font-medium text-sm">{farm.farmName.toUpperCase()}</p>
+                      {farm.children.map((t) => (
+                        <div
+                          key={t.id}
+                          className={cn(
+                            "flex items-center gap-2 rounded-md p-1 hover:bg-muted cursor-pointer"
+                          )}
+                        >
+                          <Checkbox
+                            checked={selected.includes(t.id)}
+                            onCheckedChange={() => toggleSelection(t.id)}
+                          />
+                          <span className="text-sm">{t.name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</span>
+                          <span className="text-xs font-light text-muted-foreground">
+                            {formatNumber(t.area)} ha
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
-              ))}
-            </div>
+              </div>
 
-            {selected.length > 0 && (
-              <div className="space-y-3 pt-2">
-                {/* 📊 Exibição da soma total das áreas */}
-                <div className="bg-muted/50 rounded-md p-3 border">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      Total de talhões selecionados: {selected.length}
-                    </span>
-                    <span className="text-sm font-bold text-primary">
-                      Área total: {formatNumber(totalArea)} ha
-                    </span>
+              {selected.length > 0 && (
+                <div>
+                  {/* 📊 Exibição da soma total das áreas */}
+                  <div className="bg-muted/50 rounded-md p-3 border">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        Total de talhões selecionados: {selected.length}
+                      </span>
+                      <span className="text-sm font-bold text-primary">
+                        Área total: {formatNumber(totalArea)} ha
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         );
       }}
