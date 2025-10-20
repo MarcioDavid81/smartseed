@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { getToken } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { formatNumber } from "@/app/_helpers/currency";
+import NewPlotButton from "./NewPlotButton";
 
 interface Talhao {
   id: string;
@@ -118,12 +119,14 @@ export function MultiPlotSelector({ control, name }: MultiPlotSelectorProps) {
         return (
           <div className="w-full">
             <div className="flex flex-col gap-3">
-              <Label>Selecione os talhões</Label>
-              <Input
-                placeholder="Buscar talhão ou fazenda..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <div className="flex flex-col items-start md:flex-row md:items-center justify-between gap-4">
+                <Input
+                  placeholder="Buscar talhão ou fazenda..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <NewPlotButton />
+              </div>
 
               <div className="h-64 overflow-y-auto border rounded-md p-2">
                 <div className="space-y-3">
