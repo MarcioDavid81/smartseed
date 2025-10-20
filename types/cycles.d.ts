@@ -21,7 +21,7 @@ export interface Cycle {
   beneficiations: Beneficiation[];
   consumptionExits: ConsumptionExit[];
   salesExits: SaleExit[];
-  talhoes: Talhao[];
+  talhoes: CycleTalhao[];
   createdAt: Date;
 }
 

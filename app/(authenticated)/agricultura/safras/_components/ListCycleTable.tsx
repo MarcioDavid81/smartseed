@@ -10,6 +10,7 @@ import { getToken } from "@/lib/auth-client";
 import { Cycle } from "@/types/cycles";
 import { CycleDataTable } from "./CycleDataTable";
 import { format } from "date-fns";
+import DetailCycleButton from "./DetailCycleButton";
 
 export function CycleGetTable() {
   const [cycle, setCycle] = useState<Cycle[]>([]);
@@ -74,12 +75,23 @@ export function CycleGetTable() {
       },
     },
     {
+      accessorKey: "talhoes",
+      header: "Talhões",
+      cell: ({ row }) => {
+        const cycle = row.original
+        return (
+          <span>{cycle.talhoes.map((talhao) => talhao.talhao.name).join(", ")}</span>
+        )
+      },
+    },
+    {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
         const cycle = row.original
         return (
           <div className="flex items-center justify-center gap-4">
+            <DetailCycleButton safra={cycle} onUpdated={fetchCycles} />
             <Button
               variant="ghost"
               onClick={() => console.log("Editar Safra:", cycle)}

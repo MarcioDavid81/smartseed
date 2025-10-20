@@ -157,7 +157,13 @@ export async function GET(req: NextRequest) {
       include: {
         talhoes: {
           include: {
-            talhao: true,
+            talhao: {
+              select: {
+                id: true,
+                name: true,
+                area: true,
+              }
+            },
           },
         },
         harvests: true,
