@@ -82,7 +82,7 @@ export function CycleGetTable() {
       cell: ({ row }) => {
         const cycle = row.original
         return (
-          <span>{cycle.talhoes.map((talhao) => talhao.talhao.name).join(", ")}</span>
+          <span>{cycle.talhoes.map((talhao) => talhao.talhao.name).slice(0, 2).join(", ")} {cycle.talhoes.length > 2 ? `+ ${cycle.talhoes.length - 2}` : ""}</span>
         )
       },
     },
