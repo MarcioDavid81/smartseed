@@ -2,36 +2,21 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { z } from "zod";
-import { MultiPlotSelector } from "./MultiPlotSelector";
-import { ProductType } from "@prisma/client";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue 
-} from "@/components/ui/select";
-import { useState } from "react";
-import { PRODUCT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/products";
-import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-import { getToken } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useRouter } from "next/navigation";
+import { MultiPlotSelector } from "./MultiPlotSelector";
+import { getToken } from "@/lib/auth-client";
+import { ProductType } from "@prisma/client";
+import { toast } from "sonner";
+import { CornerDownLeft, SaveIcon } from "lucide-react";
+import { FaSpinner } from "react-icons/fa";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PRODUCT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/products";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CornerDownLeft, Save } from "lucide-react";
-
-
+import { useState } from "react";
 
 const safraSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -43,52 +28,54 @@ const safraSchema = z.object({
 
 type SafraFormData = z.infer<typeof safraSchema>;
 
-interface Props {
-  defaultValues?: SafraFormData;
-  onSubmit: (data: SafraFormData) => void;
-  className?: string;
+interface SafraFormProps {
+  initialData?: any;
+  isEditing?: boolean;
 }
 
-export function NewAgricultureCropYieldsForm({ defaultValues }: Props) { 
+export default function SafraForm({ initialData, isEditing }: SafraFormProps) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const form = useForm<SafraFormData>({
     resolver: zodResolver(safraSchema),
-    defaultValues,
+    defaultValues: {
+      name: initialData?.name || "",
+      productType: initialData?.productType || "",
+      startDate: initialData?.startDate
+        ? new Date(initialData.startDate).toISOString().split("T")[0]
+        : "",
+      endDate: initialData?.endDate
+        ? new Date(initialData.endDate).toISOString().split("T")[0]
+        : "",
+      talhoesIds: initialData?.talhoes?.map((t: any) => t.talhaoId) || [],
+    },
   });
 
-  const handleSubmit = async (data: SafraFormData) => {
-  try {
+  async function onSubmit(values: SafraFormData) {
+    const method = isEditing ? "PUT" : "POST";
+    const url = isEditing
+      ? `/api/cycles/${initialData.id}`
+      : "/api/cycles";
+    const token = getToken()
     setLoading(true);
-    const token = getToken();
-    if (!token) {
-      throw new Error("Token não encontrado");
-    }
-    const response = await fetch("/api/cycles", {
-      method: "POST",
-      headers: { 
+    const res = await fetch(url, {
+      method,
+      headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(values),
     });
 
-    if (!response.ok) {
-      throw new Error("Erro ao criar safra");
+    if (res.ok) {
+      toast.success("Safra salva com sucesso!");
+      router.push("/agricultura/safras");
+    } else {
+      toast.error("Erro ao salvar safra");
     }
-
-    const result = await response.json();
-    console.log("Safra criada com sucesso:", result);
-    toast.success("Safra criada com sucesso!");
-    form.reset();
-  } catch (error) {
-    console.error(error);
-    toast.error("Erro ao criar safra");
-  } finally {
     setLoading(false);
   }
-};
 
   const handleReturn = () => {
     router.push("/agricultura/safras");
@@ -97,7 +84,7 @@ export function NewAgricultureCropYieldsForm({ defaultValues }: Props) {
   return (
     <ScrollArea className="md:h-[calc(100vh-200px)]">
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)}> 
+      <form onSubmit={form.handleSubmit(onSubmit)}> 
         <div className="grid gap-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <FormField
@@ -182,8 +169,8 @@ export function NewAgricultureCropYieldsForm({ defaultValues }: Props) {
                 <CornerDownLeft size={20} />
                 Voltar
               </Button>
-              <Button type="submit" className=" bg-green text-white mt-4">
-                <Save size={20} />
+              <Button type="submit" className=" bg-green text-white mt-4" disabled={loading}>
+                <SaveIcon size={20} />
                 {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
             </div>

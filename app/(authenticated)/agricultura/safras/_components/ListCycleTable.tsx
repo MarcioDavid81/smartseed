@@ -11,6 +11,8 @@ import { Cycle } from "@/types/cycles";
 import { CycleDataTable } from "./CycleDataTable";
 import { format } from "date-fns";
 import DetailCycleButton from "./DetailCycleButton";
+import EditCycleButton from "./EditCycleButton";
+import DeleteCycleButton from "./DeleteCycleButton";
 
 export function CycleGetTable() {
   const [cycle, setCycle] = useState<Cycle[]>([]);
@@ -92,18 +94,8 @@ export function CycleGetTable() {
         return (
           <div className="flex items-center justify-center gap-4">
             <DetailCycleButton safra={cycle} onUpdated={fetchCycles} />
-            <Button
-              variant="ghost"
-              onClick={() => console.log("Editar Safra:", cycle)}
-            >
-              Editar
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => console.log("Deletar Safra:", cycle)}
-            >
-              Deletar
-            </Button>
+            <EditCycleButton safraId={cycle.id} />
+            <DeleteCycleButton  />
           </div>
         );
       },
