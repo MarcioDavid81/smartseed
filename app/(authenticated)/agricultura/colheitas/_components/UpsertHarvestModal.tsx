@@ -9,16 +9,17 @@ import {
 import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCycle } from "@/contexts/CycleContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { IndustryHarvestFormData, industryHarvestSchema } from "@/lib/schemas/industryHarvest";
 import {
   IndustryDeposit,
   IndustryHarvest,
-  IndustryTransporter,
-  Talhao
+  IndustryTransporter
 } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
@@ -32,6 +33,12 @@ interface UpsertHarvestModalProps {
   onUpdated?: () => void;
 }
 
+type TalhaoOption = {
+  id: string;
+  name: string;
+  area: number;
+};
+
 const UpsertHarvestModal = ({
   colheita,
   isOpen,
@@ -41,11 +48,12 @@ const UpsertHarvestModal = ({
   const [loading, setLoading] = useState(false);
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
-  const [talhoes, setTalhoes] = useState<Talhao[]>([]);
+  const [talhoes, setTalhoes] = useState<TalhaoOption[]>([]);
   const [subLiquid, setSubLiquid] = useState(0);
   const [impuritiesKg, setImpuritiesKg] = useState(0);
   const [humidityKg, setHumidityKg] = useState(0);
   const [liquid, setLiquid] = useState(0);
+  const { selectedCycle } = useCycle();
 
   const form = useForm<IndustryHarvestFormData>({
     resolver: zodResolver(industryHarvestSchema),
@@ -125,10 +133,7 @@ const UpsertHarvestModal = ({
     const fetchData = async () => {
       const token = getToken();
 
-      const [talhaoRes, depositoRes, transporterRes] = await Promise.all([
-        fetch("/api/plots", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const [depositoRes, transporterRes] = await Promise.all([
         fetch("/api/industry/deposit", {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -136,20 +141,30 @@ const UpsertHarvestModal = ({
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
-
       
-      const talhaoData = await talhaoRes.json();
       const depositoData = await depositoRes.json();
       const transporterData = await transporterRes.json();
-
-
-      setTalhoes(talhaoData);
       setDeposits(depositoData);
       setTransporters(transporterData);
     };
 
     if (isOpen) fetchData();
   }, [isOpen]);
+
+  useEffect(() => {
+    if (selectedCycle?.talhoes?.length) {
+        setTalhoes(
+          selectedCycle.talhoes.map((ct) => ({
+            id: ct.talhaoId,
+            name: ct.talhao.name,
+            area: ct.talhao.area,
+          }))
+        );
+      } else {
+        // fallback — caso não tenha ciclo selecionado ou o ciclo não tenha talhões cadastrados
+        setTalhoes([])
+      }
+    }, [selectedCycle]);
 
   const onSubmit = async (data: IndustryHarvestFormData) => {
     setLoading(true);
@@ -245,23 +260,35 @@ const UpsertHarvestModal = ({
                 <Input type="text" {...form.register("document")} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols gap-4">
               <div>
                 <Label>Talhão</Label>
-                <select
-                  {...form.register("talhaoId")}
-                  className="w-full border rounded px-2 py-1"
-                >
-                  <option value="">Selecione</option>
-                  {talhoes.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-                {form.formState.errors.talhaoId && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.talhaoId.message}
+                {talhoes.length > 0 ? (
+                  <select
+                    {...form.register("talhaoId")}
+                    className="w-full border rounded px-2 py-1"
+                  >
+                    <option value="" className="font-light">Selecione</option>
+                      {talhoes.map((t) => (
+                        <option key={t.id} value={t.id}  className="font-light">
+                          <span>{t.name} </span>
+                          <span>({t.area} ha)</span>
+                        </option>
+                      ))}
+                        </select>
+                      ) : (
+                        <div className="text-xs flex items-center justify-start space-x-4">
+                          <p>Nenhum talhão vinculado ao ciclo.</p>  
+                          <Link href="/agricultura/safras">
+                            <span className="text-green text-xs">
+                              Cadastre um talhão ou vincule um talhão existente ao ciclo.
+                            </span>
+                          </Link>
+                        </div>
+                      )}
+                    {form.formState.errors.talhaoId && (
+                      <span className="text-xs text-red-500">
+                        {form.formState.errors.talhaoId.message}
                   </span>
                 )}
               </div>
@@ -273,9 +300,9 @@ const UpsertHarvestModal = ({
                   {...form.register("industryDepositId")}
                   className="w-full border rounded px-2 py-1"
                 >
-                  <option value="">Selecione</option>
+                  <option value="" className=" text-md font-light">Selecione</option>
                   {deposits.map((d) => (
-                    <option key={d.id} value={d.id}>
+                    <option key={d.id} value={d.id} className="font-light">
                       {d.name}
                     </option>
                   ))}
@@ -292,9 +319,9 @@ const UpsertHarvestModal = ({
                   {...form.register("industryTransporterId")}
                   className="w-full border rounded px-2 py-1"
                 >
-                  <option value="">Selecione</option>
+                  <option value=""  className="font-light">Selecione</option>
                   {transporters.map((t) => (
-                    <option key={t.id} value={t.id}>
+                    <option key={t.id} value={t.id}  className="font-light">
                       {t.name}
                     </option>
                   ))}

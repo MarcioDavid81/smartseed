@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
       { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     if (!name || !area || !farmId) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
       { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
