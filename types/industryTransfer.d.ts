@@ -1,6 +1,6 @@
 import { IndustryDeposit, ProductType } from "@prisma/client";
 
-export interface industryTransfer {
+export interface IndustryTransfer {
   id: string;
   date: Date;
   product: ProductType;

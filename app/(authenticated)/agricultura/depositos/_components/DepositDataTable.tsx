@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import CreateIndustryDepositButton from "./CreateDepositButton";
+import CreateTransferDepositButton from "./CreateTransferDepositButton";
 
 
 interface DataTableProps<TData, TValue> {
@@ -89,7 +90,10 @@ export function IndustryDepositDataTable<TData, TValue>({
             className="max-w-sm bg-gray-50 text-primary"
           />
         </div>
-        <CreateIndustryDepositButton />
+        <div className="flex gap-4">
+          <CreateTransferDepositButton />
+          <CreateIndustryDepositButton />
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
