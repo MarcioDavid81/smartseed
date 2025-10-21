@@ -20,3 +20,4 @@ export * from "./industryProduct";
 export * from "./industryDeposit";
 export * from "./industryTransporter";
 export * from "./industryHarvest";
+export * from "./industryTransfer";

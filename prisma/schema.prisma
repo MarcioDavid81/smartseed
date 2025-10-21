@@ -40,22 +40,23 @@ model Company {
   industryHarvests   IndustryHarvest[]
   transporters       IndustryTransporter[]
   industryStocks     IndustryStock[]
+  industryTransfers  IndustryTransfer[]
   createdAt          DateTime              @default(now())
 }
 
 // fazenda
 model Farm {
-  id               String            @id @default(uuid())
-  name             String
-  talhoes          Talhao[]
-  area             Float
-  productStocks    ProductStock[]
-  purchases        Purchase[]
-  company          Company           @relation(fields: [companyId], references: [id])
-  companyId        String
-  originTransfers  TransferExit[]    @relation("OriginFarm")
-  destTransfers    TransferExit[]    @relation("DestFarm")
-  createdAt        DateTime          @default(now())
+  id              String         @id @default(uuid())
+  name            String
+  talhoes         Talhao[]
+  area            Float
+  productStocks   ProductStock[]
+  purchases       Purchase[]
+  company         Company        @relation(fields: [companyId], references: [id])
+  companyId       String
+  originTransfers TransferExit[] @relation("OriginFarm")
+  destTransfers   TransferExit[] @relation("DestFarm")
+  createdAt       DateTime       @default(now())
 }
 
 // usuário
@@ -264,37 +265,38 @@ model SaleExit {
 
 //safras/ciclos
 model ProductionCycle {
-  id               String            @id @default(cuid())
-  name             String
-  productType      ProductType?
-  startDate        DateTime
-  endDate          DateTime
-  isActive         Boolean           @default(false)
-  companyId        String
-  company          Company           @relation(fields: [companyId], references: [id])
-  harvests         Harvest[]
-  buys             Buy[]
-  beneficiations   Beneficiation[]
-  consumptionsExit ConsumptionExit[]
-  salesExit        SaleExit[]
-  purchases        Purchase[]
-  transfers        TransferExit[]
-  applications     Application[]
-  industryHarvests IndustryHarvest[]
-  talhoes          CycleTalhao[]
-  createdAt        DateTime          @default(now())
+  id                String             @id @default(cuid())
+  name              String
+  productType       ProductType?
+  startDate         DateTime
+  endDate           DateTime
+  isActive          Boolean            @default(false)
+  companyId         String
+  company           Company            @relation(fields: [companyId], references: [id])
+  harvests          Harvest[]
+  buys              Buy[]
+  beneficiations    Beneficiation[]
+  consumptionsExit  ConsumptionExit[]
+  salesExit         SaleExit[]
+  purchases         Purchase[]
+  transfers         TransferExit[]
+  applications      Application[]
+  industryHarvests  IndustryHarvest[]
+  talhoes           CycleTalhao[]
+  industryTransfers IndustryTransfer[]
+  createdAt         DateTime           @default(now())
 
   forceMigration Int? @default(1)
 }
 
 //tabela para relacionar muitos talhões para muitos ciclos de produção 
 model CycleTalhao {
-  id               String            @id @default(cuid())
-  cycleId          String
-  cycle            ProductionCycle   @relation(fields: [cycleId], references: [id])
-  talhaoId         String
-  talhao           Talhao            @relation(fields: [talhaoId], references: [id])
-  createdAt        DateTime          @default(now())
+  id        String          @id @default(cuid())
+  cycleId   String
+  cycle     ProductionCycle @relation(fields: [cycleId], references: [id])
+  talhaoId  String
+  talhao    Talhao          @relation(fields: [talhaoId], references: [id])
+  createdAt DateTime        @default(now())
 }
 
 //classes
@@ -494,12 +496,15 @@ model AccountReceivable {
 
 //MÓDULO DE COLHEITA INDÚSTRIA
 model IndustryDeposit {
-  id               String            @id @default(cuid())
+  id               String             @id @default(cuid())
   name             String
   companyId        String
-  company          Company           @relation(fields: [companyId], references: [id])
+  company          Company            @relation(fields: [companyId], references: [id])
   industryHarvests IndustryHarvest[]
   industryStocks   IndustryStock[]
+  transfersFrom    IndustryTransfer[] @relation("FromDeposit")
+  transfersTo      IndustryTransfer[] @relation("ToDeposit")
+  createdAt        DateTime           @default(now())
 }
 
 model IndustryStock {
@@ -514,11 +519,33 @@ model IndustryStock {
   @@unique([product, industryDepositId], name: "product_industryDepositId")
 }
 
+model IndustryTransfer {
+  id            String           @id @default(cuid())
+  date          DateTime         @default(now())
+  // Produto transferido
+  product       ProductType
+  // Origem
+  fromDepositId String
+  fromDeposit   IndustryDeposit  @relation("FromDeposit", fields: [fromDepositId], references: [id])
+  // Destino
+  toDepositId   String
+  toDeposit     IndustryDeposit  @relation("ToDeposit", fields: [toDepositId], references: [id])
+  quantity      Decimal          @db.Decimal(12, 2)
+  document      String?
+  observation   String?
+  companyId     String
+  company       Company          @relation(fields: [companyId], references: [id])
+  cycleId       String?
+  cycle         ProductionCycle? @relation(fields: [cycleId], references: [id])
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
 model IndustryTransporter {
   id               String            @id @default(cuid())
   name             String
   fantasyName      String?
-  cpf_cnpj         String?             @unique
+  cpf_cnpj         String?           @unique
   adress           String?
   city             String?
   state            String?
@@ -545,7 +572,7 @@ model IndustryHarvest {
   industryTransporterId String?
   industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id])
   truckPlate            String?
-  truckDriver            String?
+  truckDriver           String?
   //classificação no destino
   weightBt              Decimal              @db.Decimal(12, 2) // Peso bruto
   weightTr              Decimal              @db.Decimal(12, 2) // Tara

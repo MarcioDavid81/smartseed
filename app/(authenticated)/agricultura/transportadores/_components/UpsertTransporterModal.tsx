@@ -143,7 +143,7 @@ const UpsertIndustryTransporterModal = ({
                     <FormItem>
                       <FormLabel>Nome</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: Soja" />
+                        <Input {...field} placeholder="Ex: Transportes Agro" />
                       </FormControl>
                     </FormItem>
                   )}
@@ -155,7 +155,7 @@ const UpsertIndustryTransporterModal = ({
                     <FormItem>
                       <FormLabel>Nome Fantasia</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: Soja" />
+                        <Input {...field} placeholder="Ex: Agro" />
                       </FormControl>
                     </FormItem>
                   )}
