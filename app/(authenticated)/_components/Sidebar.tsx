@@ -234,8 +234,8 @@ const Sidebar = () => {
       </div>
 
       {/* Menu */}
-      <div className="p-2">
-        <nav className="mt-4 flex flex-col space-y-4 border-b-2 border-zinc-500 pb-4">
+      <div className="p-2 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <nav className="mt-4 flex flex-col space-y-4 pb-4">
           {routes.map((route, index) => {
             if (route.subRoutes) {
               if (route.adminOnly && user?.role !== "ADMIN") return null; // 🔑 só admin vê
@@ -293,7 +293,7 @@ const Sidebar = () => {
       </div>
 
       {/* Menu do usuário */}
-      <div className="absolute bottom-4 flex flex-col items-center">
+      <div className="border-t-2 border-zinc-500 p-3">
         <UserMenu />
       </div>
     </div>
