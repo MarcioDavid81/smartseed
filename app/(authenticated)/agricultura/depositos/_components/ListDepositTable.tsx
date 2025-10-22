@@ -88,7 +88,11 @@ export function IndustryDepositGetTable() {
       accessorKey: "product",
       header: () => <div className="text-center">Produto</div>,
       cell: ({ row }) => (
-        <div className="text-center">{row.original.product}</div>
+        <div className="text-center">
+          {row.original.product !== "SEM PRODUTO"
+            ? row.original.product
+            : <span className="text-xs text-gray-500">SEM PRODUTO</span>}
+        </div>
       ),
     },
     {
