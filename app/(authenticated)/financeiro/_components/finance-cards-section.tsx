@@ -43,9 +43,9 @@ export function FinanceCardsSection() {
   const totalReceivables = receivables.reduce((acc, curr) => acc + curr.amount, 0)
 
   return (
-    <div className="space-y-6">
-      {/* Cards */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="h-full flex flex-col">
+      {/* Cards - sempre visíveis no topo */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 flex-shrink-0">
         <FinanceCard
           title="Contas a Pagar"
           value={formatCurrency(totalPayables)}
@@ -74,9 +74,12 @@ export function FinanceCardsSection() {
         />
       </section>
 
-      {/* Gráfico */}
-      <FinanceChartSection data={chartData} />
-      <FinanceTabsSection payables={payables} receivables={receivables} />
+      {/* Área com scroll interno - gráfico e tabelas */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide space-y-6 pr-1">
+        {/* Gráfico */}
+        <FinanceChartSection data={chartData} />
+        <FinanceTabsSection payables={payables} receivables={receivables} />
+      </div>
     </div>
   )
 }

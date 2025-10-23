@@ -84,3 +84,18 @@ html::-webkit-scrollbar {
     @apply bg-background text-foreground;
   }
 }
+
+/* Classes para scroll sem barra visível */
+@layer utilities {
+  .scrollbar-hide {
+    /* IE and Edge */
+    -ms-overflow-style: none;
+    /* Firefox */
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    /* Safari and Chrome */
+    display: none;
+  }
+}
