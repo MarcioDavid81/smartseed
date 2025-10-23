@@ -96,12 +96,10 @@ export function SidebarMenu({ isOpen }: SidebarMenuProps) {
         {activeMenu && (
           <motion.div
             key="submenu"
-            initial={{ x: -225, opacity: 0 }}
-            whileInView={{ x: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            animate={{ x: 0, opacity: 1 }}            
-            exit={{ x: -225, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            initial={{ x: -5000 }}
+            animate={{ x: 0 }}            
+            exit={{ x: -5000 }}
+            transition={{ duration: 0.5 }}
             className={`fixed ${isOpen ? "left-[223px]" : "left-[62px]"} top-[76px] h-[calc(100%-76px)] ${isOpen ? "w-[calc(100%-225px)]" : "w-[calc(100%-64px)]"} bg-found z-[99] rounded-r-3xl`}
           >
             {/* Header do submenu */}
@@ -160,9 +158,6 @@ export function SidebarMenu({ isOpen }: SidebarMenuProps) {
       <AnimatePresence>
         {activeMenu && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             onClick={() => setActiveMenu(null)}
           />
         )}
