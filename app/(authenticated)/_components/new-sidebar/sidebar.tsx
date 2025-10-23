@@ -13,7 +13,7 @@ export default function NewSidebar() {
   return (
     <aside className={`hidden relative z-50 md:flex h-screen ${isOpen ? "w-64" : "w-16"} flex-col bg-found text-text transition-all duration-300`}>
       <div
-        className={`absolute -right-4 top-[50px] cursor-pointer rounded-full bg-background p-1 text-primary dark:bg-primary dark:text-secondary transition-transform duration-300 ${
+        className={`absolute -right-4 top-[50px] cursor-pointer rounded-full bg-background p-1 text-primary dark:bg-primary dark:text-secondary transition-transform duration-300 z-[100] ${
           !isOpen && "rotate-180"
         }`}
         onClick={() => setIsOpen(!isOpen)}
@@ -22,7 +22,7 @@ export default function NewSidebar() {
       </div>
       
       {/* Logo */}
-      <div className="flex items-center justify-center border-b-2 border-zinc-500 bg-green pb-4 pt-2 text-2xl font-bold">
+      <div className="flex items-center justify-center h-[78px] bg-green pb-4 pt-2 text-2xl font-bold">
         <Link href="/">
           {isOpen ? (
             <Image

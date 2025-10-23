@@ -38,7 +38,7 @@ export const routes = [
     name: "Sementes",
     icon: <FaSeedling size={20} />,
     subRoutes: [
-      { name: "Colheita", path: "/sementes/colheitas", icon: <FaSeedling size={16} /> },
+      { name: "Colheita", path: "/sementes/colheitas", icon: <Image src={combineIcon} alt="Agricultura" width={24} height={24} /> },
       { name: "Compra", path: "/sementes/compras", icon: <ShoppingCart size={16} /> },
       { name: "Venda", path: "/sementes/vendas", icon: <DollarSign size={16} /> },
       { name: "Plantio", path: "/sementes/consumos", icon: <GiFarmTractor size={16} /> },

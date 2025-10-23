@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
-import { X } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -102,13 +102,16 @@ export function SidebarMenu({ isOpen }: SidebarMenuProps) {
             animate={{ x: 0, opacity: 1 }}            
             exit={{ x: -225, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className={`fixed ${isOpen ? "left-[223px]" : "left-[62px]"} top-[82px] h-[calc(100%-82px)] ${isOpen ? "w-[calc(100%-225px)]" : "w-[calc(100%-64px)]"} bg-found z-[9999] rounded-r-3xl`}
+            className={`fixed ${isOpen ? "left-[223px]" : "left-[62px]"} top-[76px] h-[calc(100%-76px)] ${isOpen ? "w-[calc(100%-225px)]" : "w-[calc(100%-64px)]"} bg-found z-[99] rounded-r-3xl`}
           >
             {/* Header do submenu */}
             <div className="flex items-center justify-between p-6">
-              <h3 className="text-2xl text-green">
-                {activeMenu}
-              </h3>
+              <div className="flex items-center gap-4">
+                <h3 className="text-2xl text-green">
+                  {activeMenu}
+                </h3>
+                <ArrowRight size={24} className="text-green" />
+              </div>
               <Button
                 variant="ghost"
                 onClick={() => setActiveMenu(null)}
