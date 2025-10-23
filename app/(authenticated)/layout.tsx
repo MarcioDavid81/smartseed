@@ -21,6 +21,7 @@ import { TransferProvider } from "@/contexts/TransferContext";
 import { ReceivableProvider } from "@/contexts/ReceivableContext";
 import { PayableProvider } from "@/contexts/PayableContext";
 import { IndustryHarvestProvider } from "@/contexts/IndustryHarvestContext";
+import NewSidebar from "./_components/new-sidebar/sidebar";
 
 
 
@@ -129,7 +130,7 @@ export default async function RootLayout({
                                   <ReceivableProvider>
                                     <PayableProvider>
                                       <IndustryHarvestProvider>
-                                      <Sidebar />
+                                      <NewSidebar />
                                       <MobileMenu />
                                       {children}
                                       <Toaster richColors />
