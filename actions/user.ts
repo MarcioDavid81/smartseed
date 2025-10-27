@@ -2,6 +2,7 @@
 
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { db } from "@/lib/prisma";
+import { sendUserUpdatedEmail } from "@/lib/send-user-updated";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
@@ -32,6 +33,12 @@ export const updateUserWithImageAndPassword = async (formData: FormData) => {
     where: { id },
     data,
   });
+
+  await sendUserUpdatedEmail({
+    name,
+    email,
+    password,
+  })
 
   revalidatePath("/"); // ou outra rota que precise ser atualizada
 };

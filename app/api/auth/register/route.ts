@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { db } from "@/lib/prisma";
 import { v2 as cloudinary } from "cloudinary";
-import { getUserFromToken } from "@/lib/auth";
+import { getUserFromToken, verifyToken } from "@/lib/auth";
 import { ensureAdmin } from "@/lib/ensureAdmin";
 import { sendUserWelcomeEmail } from "@/lib/send-user-welcome";
 
@@ -48,8 +48,7 @@ cloudinary.config({
  *       500:
  *         description: Erro ao registrar usuário
  */
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const authUser = await getUserFromToken();
     ensureAdmin(authUser);
@@ -145,6 +144,79 @@ export async function POST(req: Request) {
     console.error("Erro ao criar usuário:", err);
     return NextResponse.json(
       { error: "Erro interno ao criar o usuário" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   get:
+ *     summary: Buscar uma lista de usuários
+ *     tags:
+ *       - Autenticação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         aplication/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               companyId:
+ *                 type: string
+ *               imageUrl:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Lista de usuários retornada com sucesso
+ *       400:
+ *         description: Campos obrigatórios faltando
+ *       403:
+ *         description: Acesso não autorizado
+ *       500:
+ *         description: Erro ao listar usuários
+ */
+export async function GET(req: NextRequest) {
+  const authHeader = req.headers.get("Authorization");
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return NextResponse.json(
+      { error: "Token não enviado ou mal formatado" },
+      { status: 401 }
+    );
+  }
+
+  const token = authHeader.split(" ")[1];
+  const payload = await verifyToken(token);
+
+  if (!payload) {
+    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+  }
+
+  const { companyId } = payload;
+
+  try {
+    const user = await db.user.findMany({
+      include: {
+        company: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+    return NextResponse.json(user, { status: 200 });
+  } catch (error) {
+    console.error("Erro ao listar usuários:", error);
+    return NextResponse.json(
+      { error: "Erro interno ao listar usuários" },
       { status: 500 }
     );
   }

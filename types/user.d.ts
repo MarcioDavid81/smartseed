@@ -1,9 +1,15 @@
+import { Role } from "@prisma/client";
+
 export interface AppUser {
     id: string;
     name: string;
     email: string;
-    companyId: string;
     imageUrl: string;
-    role: "ADMIN" | "USER";
+    role: Role;
+    companyId: string;
+    company: {
+        id: string;
+        name: string;
+    }
   }
   

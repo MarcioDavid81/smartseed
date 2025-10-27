@@ -94,6 +94,11 @@ export default async function RootLayout({
         name: user.name,
         email: user.email,
         companyId: user.companyId,
+        company: {
+          id: company?.id ?? "",
+          name: company?.name ?? "",
+          plan: company?.plan ?? "",
+        },
         imageUrl: user.imageUrl ?? "",
         role: user?.role ?? "USER",
       }
