@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { SignInForm } from "@/components/signin-form";
 import NavItems from "../../_components/NavItems";
+import { UsersGetTable } from "./_components/ListUserTable";
 
 export const metadata: Metadata = {
   title: "Usuários",
@@ -24,7 +25,7 @@ export default async function DashboardPage() {
             <h1 className="text-2xl font-medium mb-4">Usuários</h1>
             <NavItems />
           </div>
-          <SignInForm />
+          <UsersGetTable />
         </main>
       </div>
     </div>
