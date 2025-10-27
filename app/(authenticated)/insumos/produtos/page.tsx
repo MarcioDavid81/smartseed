@@ -16,7 +16,6 @@ export const metadata: Metadata = {
 };
 
 export default async function InsumosGetPage() {
-
     return (
       <div className="flex flex-col w-full min-h-screen bg-found">
         <div className="min-h-screen w-full flex bg-background">

@@ -19,7 +19,7 @@ export default function UploadAvatar({ onFileSelect }: UploadAvatarProps) {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 flex flex-col items-center justify-center">
       {previewUrl && (
         <Image
           src={previewUrl}

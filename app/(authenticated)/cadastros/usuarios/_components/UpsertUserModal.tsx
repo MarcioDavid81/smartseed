@@ -7,20 +7,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label"
 import { getToken } from "@/lib/auth-client";
-import {
-  PRODUCT_CLASS_OPTIONS,
-  PRODUCT_UNIT_OPTIONS,
-} from "../../../_constants/insumos";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { z } from "zod";
-import { AppUser } from "@/types";
+import { AppUser, Company } from "@/types";
 import UploadAvatar from "@/app/(public)/_components/UploadAvatar";
 
 interface UpsertUserModalProps {
@@ -33,8 +28,9 @@ interface UpsertUserModalProps {
 const userSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido"),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  password: z.string().optional(),
   avatarUrl: z.string().url("URL inválida"),
+  companyId: z.string().min(1, "Empresa é obrigatória"),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -47,6 +43,7 @@ const UpsertUserModal = ({
 }: UpsertUserModalProps) => {
   const [loading, setLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [companies, setCompanies] = useState<Company[]>([]);
 
   const {
     register,
@@ -59,6 +56,7 @@ const UpsertUserModal = ({
       name: user?.name ?? "",
       email: user?.email ?? "",
       avatarUrl: user?.imageUrl ?? "",
+      companyId: user?.companyId ?? "",
     },
   });
 
@@ -68,11 +66,23 @@ const UpsertUserModal = ({
         name: user.name,
         email: user.email,
         avatarUrl: user.imageUrl || "",
+        companyId: user.companyId,
       });
     } else {
       reset();
     }
   }, [user, isOpen, reset]);
+
+   useEffect(() => {
+    async function fetchCompanies() {
+      const res = await fetch("/api/companies", {
+        cache: "no-store",
+      });
+      const data = await res.json();
+      setCompanies(data);
+    }
+    fetchCompanies();
+  }, []);
 
   const onSubmit = async (data: UserFormData) => {
     setLoading(true);
@@ -145,6 +155,10 @@ const UpsertUserModal = ({
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4">
+              <div className="flex flex-col items-center justify-center gap-2">
+                <Label>Avatar</Label>
+                <UploadAvatar onFileSelect={setAvatarFile} />
+              </div>
               <div>
                 <Label>Nome</Label>
                 <Input {...register("name")} placeholder="Ex: João da Silva" />
@@ -172,9 +186,19 @@ const UpsertUserModal = ({
                   </span>
                 )}
               </div>
-              <div className="grid items-center justify-center gap-2">
-                <Label>Avatar</Label>
-                <UploadAvatar onFileSelect={setAvatarFile} />
+              <div className="grid gap-2">
+                <Label htmlFor="company">Empresa</Label>
+                <select
+                  {...register("companyId")}
+                  className="w-full rounded border px-2 py-1"
+                >
+                  <option value="">Selecione uma empresa</option>
+                  {companies.map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
               </div>
           </div>
           <Button

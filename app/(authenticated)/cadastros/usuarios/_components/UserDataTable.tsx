@@ -69,8 +69,8 @@ export function UsersDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
-      <div className="flex items-center justify-between py-4">
-        <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between py-4 gap-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <Input
             placeholder="Procure por nome"
             value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
