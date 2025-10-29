@@ -22,6 +22,7 @@ import { ReceivableProvider } from "@/contexts/ReceivableContext";
 import { PayableProvider } from "@/contexts/PayableContext";
 import { IndustryHarvestProvider } from "@/contexts/IndustryHarvestContext";
 import NewSidebar from "./_components/new-sidebar/sidebar";
+import { IndustryStockProvider } from "@/contexts/IndustryStockContext";
 
 
 
@@ -135,10 +136,12 @@ export default async function RootLayout({
                                   <ReceivableProvider>
                                     <PayableProvider>
                                       <IndustryHarvestProvider>
-                                      <NewSidebar />
-                                      <MobileMenu />
-                                      {children}
-                                      <Toaster richColors />
+                                        <IndustryStockProvider>
+                                          <NewSidebar />
+                                          <MobileMenu />
+                                          {children}
+                                          <Toaster richColors />
+                                        </IndustryStockProvider>
                                       </IndustryHarvestProvider>
                                     </PayableProvider>
                                   </ReceivableProvider>

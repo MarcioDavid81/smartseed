@@ -163,7 +163,7 @@ const UpsertUserModal = ({
                 <Label>Nome</Label>
                 <Input {...register("name")} placeholder="Ex: João da Silva" />
                 {errors.name && (
-                  <span className="text-xs text-red-500">
+                  <span className="text-xs text-red">
                     {errors.name.message}
                   </span>
                 )}
@@ -172,7 +172,7 @@ const UpsertUserModal = ({
                 <Label>Email</Label>
                 <Input {...register("email")} placeholder="Ex: joao.silva@example.com" />
                 {errors.email && (
-                  <span className="text-xs text-red-500">
+                  <span className="text-xs text-red">
                     {errors.email.message}
                   </span>
                 )}
@@ -181,7 +181,7 @@ const UpsertUserModal = ({
                 <Label>Senha</Label>
                 <Input {...register("password")} placeholder="Ex: 123456" />
                 {errors.password && (
-                  <span className="text-xs text-red-500">
+                  <span className="text-xs text-red">
                     {errors.password.message}
                   </span>
                 )}

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
+import { ListStockTable } from "./_components/ListStockTable";
 
 export const metadata: Metadata = {
   title: "Estoque",
@@ -23,7 +24,7 @@ export default async function AgricultureStockPage() {
             <h1 className="text-2xl font-medium mb-4">Estoque</h1> 
             <NavItems />
           </div>
-
+          <ListStockTable />
         </main>
       </div>
     </div>
