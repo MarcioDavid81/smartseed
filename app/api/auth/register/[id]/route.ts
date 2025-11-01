@@ -220,7 +220,7 @@ export async function DELETE(
 
     if (!existing || existing.companyId !== payload.companyId) {
       return NextResponse.json(
-        { error: "Usuário não encontrado" },
+        { error: "Usuário não pertence à empresa atual" },
         { status: 404 }
       );
     }
