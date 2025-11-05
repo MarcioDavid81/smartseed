@@ -33,17 +33,17 @@ export default function GenerateHarvestReportModal() {
   const depositosUnicos = Array.from(
     new Set(harvests.map((h) => h.industryDeposit.name)),
   );
-  // const transportadoresUnicos = Array.from(
-  //   new Set(harvests.map((h) => h.industryTransporter.name)),
-  // );
+  const transportadoresUnicos = Array.from(
+    new Set(harvests.map((h) => h.industryTransporter.name)),
+  );
   const talhoesUnicos = Array.from(new Set(harvests.map((h) => h.talhao.name)));
 
   const filtered = harvests.filter((h) => {
     const matchProduto = !produto || h.product === produto;
     const matchDeposito = !deposito || h.industryDeposit.name === deposito;
-    // const matchTransportador = !transportador || h.industryTransporter.name === transportador;
+    const matchTransportador = !transportador || h.industryTransporter.name === transportador;
     const matchTalhao = !talhao || h.talhao.name === talhao;
-    return matchProduto && matchDeposito && matchTalhao;
+    return matchProduto && matchDeposito && matchTransportador && matchTalhao;
   });
 
   const generatePDF = () => {
@@ -54,6 +54,39 @@ export default function GenerateHarvestReportModal() {
     logo.src = "/logo.png";
 
     logo.onload = () => {
+      // Função para adicionar rodapé consistente
+      const addFooter = () => {
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height;
+        const pageWidth = pageSize.width;
+
+        const now = new Date();
+        const formattedDate = now.toLocaleString("pt-BR");
+        const userName = user?.name || "Usuário desconhecido";
+
+        doc.setFontSize(8);
+        doc.text(
+          `Relatório gerado em ${formattedDate} por: ${userName}`,
+          10,
+          pageHeight - 10,
+        );
+
+        const centerText = "Sistema Smart Seed";
+        const centerTextWidth = doc.getTextWidth(centerText);
+        doc.text(
+          centerText,
+          pageWidth / 2 - centerTextWidth / 2,
+          pageHeight - 10,
+        );
+
+        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+        const totalPages = (doc as any).internal.getNumberOfPages();
+        doc.text(
+          `${currentPage}/${totalPages}`,
+          pageWidth - 20,
+          pageHeight - 10,
+        );
+      };
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Colheitas", 150, 20, { align: "center" });
@@ -68,12 +101,14 @@ export default function GenerateHarvestReportModal() {
 
       autoTable(doc, {
         startY: 55,
-        head: [["Data", "Produto", "Talhão", "Depósito", "Quantidade (kg)"]],
+        head: [["Data", "Talhão", "Depósito", "Peso Bruto (kg)", "Impureza", "Umidade", "Peso Líquido (kg)"]],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
-          h.product,
           h.talhao.name,
           h.industryDeposit.name,
+          formatNumber(Number(h.weightSubLiq)),
+          formatNumber(Number(h.impurities_percent)),
+          formatNumber(Number(h.humidity_percent)),
           formatNumber(Number(h.weightLiq)),
         ]),
         styles: {
@@ -134,6 +169,17 @@ export default function GenerateHarvestReportModal() {
       );
 
       let finalY = (doc as any).lastAutoTable.finalY + 10;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Se o finalY + espaço dos totais ultrapassar o limite da página, quebra a página
+      const numberOfLines = Object.keys(totalsByTalhao).length + 2; // +2 para o título e total geral
+      const estimatedHeight = numberOfLines * 6 + 20;
+
+      if (finalY + estimatedHeight > pageHeight) {
+        doc.addPage();
+        addFooter(); // Adiciona rodapé na nova página
+        finalY = 20; // Recomeça mais acima na nova página
+      }
 
       doc.setFontSize(9);
       doc.text("Total colhido por Talhão", 14, finalY);
@@ -241,7 +287,7 @@ export default function GenerateHarvestReportModal() {
             </SelectContent>
           </Select>
         </div>
-        {/* <div className="space-y-2">
+        <div className="space-y-2">
           <label className="text-sm font-medium">Transportador</label>
           <Select
             value={transportador ?? ""}
@@ -261,7 +307,7 @@ export default function GenerateHarvestReportModal() {
               ))}
             </SelectContent>
           </Select>
-        </div> */}
+        </div>
 
         <Button
           onClick={generatePDF}
