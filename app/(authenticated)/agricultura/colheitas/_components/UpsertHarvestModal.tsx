@@ -429,7 +429,7 @@ const UpsertHarvestModal = ({
                   type="number"
                   {...form.register("impurities_kg", { valueAsNumber: true })}
                   value={(impuritiesKg.toFixed(2))}
-                  disabled
+                  readOnly
                 />
                 {form.formState.errors.impurities_kg && (
                   <span className="text-xs text-red-500">
@@ -474,7 +474,7 @@ const UpsertHarvestModal = ({
                   type="number"
                   {...form.register("humidity_kg", { valueAsNumber: true })}
                   value={(humidityKg.toFixed(2))}
-                  disabled
+                  readOnly
                 />
                 {form.formState.errors.humidity_kg && (
                   <span className="text-xs text-red-500">
