@@ -101,9 +101,10 @@ export default function GenerateHarvestReportModal() {
 
       autoTable(doc, {
         startY: 55,
-        head: [["Data", "Talhão", "Depósito", "Peso Bruto (kg)", "Impureza", "Umidade", "Peso Líquido (kg)"]],
+        head: [["Data", "Documento", "Talhão", "Depósito", "Peso Bruto (kg)", "Impureza", "Umidade", "Peso Líquido (kg)"]],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
+          h.document || "N/A",
           h.talhao.name,
           h.industryDeposit.name,
           formatNumber(Number(h.weightSubLiq)),
