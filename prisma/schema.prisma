@@ -583,6 +583,8 @@ model IndustryHarvest {
   impurities_percent    Decimal              @db.Decimal(5, 2) // Percentual impurezas
   impurities_discount   Decimal              @db.Decimal(12, 2) // Desconto impurezas
   impurities_kg         Decimal              @db.Decimal(12, 2) // KG impurezas
+  tax_kg                Decimal?             @db.Decimal(12, 2) // Taxa KG
+  adjust_kg             Decimal?             @db.Decimal(12, 2) // Ajuste KG
   weightLiq             Decimal              @db.Decimal(12, 2) // Peso líquido final
   cycleId               String?
   cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])

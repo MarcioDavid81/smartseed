@@ -1,5 +1,6 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { ProductType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -15,6 +16,8 @@ export async function PUT(
 
     const { id } = params;
     const data = await req.json();
+    const { companyId } = payload;
+
 
     // 🔎 Verifica se a colheita existe e pertence à empresa
     const existing = await db.industryHarvest.findUnique({
@@ -27,19 +30,43 @@ export async function PUT(
       });
     }
 
-    // 🔄 Caso o depósito ou o produto sejam alterados,
-    // precisamos ajustar o estoque antigo e o novo.
-    const stockChanges = [];
+    // 🔄 Vamos determinar os alvos finais de depósito, produto e peso
+    // com base nos dados enviados e no estado atual.
+    // Em seguida, ajustaremos o estoque de acordo.
+    const stockChanges = [] as Array<ReturnType<typeof db.industryStock.updateMany> | ReturnType<typeof db.industryStock.upsert>>;
 
-    // Se o depósito ou produto forem alterados
-    const depositChanged =
-      data.industryDepositId &&
-      data.industryDepositId !== existing.industryDepositId;
+    // 🧠 Busca o produto do ciclo, se um novo ciclo foi fornecido; caso contrário, usa o produto atual
+    let productToUse: ProductType = existing.product;
+    if (data.cycleId && data.cycleId !== existing.cycleId) {
+      const cycle = await db.productionCycle.findFirst({
+        where: {
+          id: data.cycleId,
+          companyId, // segurança extra
+        },
+        select: {
+          productType: true,
+        },
+      });
 
-    const productChanged =
-      data.product && data.product !== existing.product;
+      if (!cycle) {
+        return NextResponse.json(
+          { error: "Ciclo não encontrado ou não pertence à empresa" },
+          { status: 404 },
+        );
+      }
 
-    // Se o depósito ou produto mudou, decrementa o estoque anterior
+      productToUse = cycle.productType as ProductType;
+    }
+
+    const depositToUse = data.industryDepositId ?? existing.industryDepositId;
+    const weightToUse = (data.weightLiq ?? existing.weightLiq)?.toString
+      ? Number(existing.weightLiq.toString())
+      : (data.weightLiq ?? existing.weightLiq);
+
+    const depositChanged = depositToUse !== existing.industryDepositId;
+    const productChanged = productToUse !== existing.product;
+
+    // Se depósito ou produto mudou, ajusta estoques antigo e novo
     if (depositChanged || productChanged) {
       stockChanges.push(
         db.industryStock.updateMany({
@@ -56,29 +83,30 @@ export async function PUT(
         }),
       );
 
-      // incrementa o novo estoque (ou cria se não existir)
       stockChanges.push(
         db.industryStock.upsert({
           where: {
             product_industryDepositId: {
-              product: data.product,
-              industryDepositId: data.industryDepositId,
+              product: productToUse,
+              industryDepositId: depositToUse,
             },
           },
           update: {
-            quantity: { increment: data.weightLiq },
+            quantity: { increment: weightToUse },
           },
           create: {
             companyId: payload.companyId,
-            product: data.product,
-            industryDepositId: data.industryDepositId,
-            quantity: data.weightLiq,
+            product: productToUse,
+            industryDepositId: depositToUse,
+            quantity: weightToUse,
           },
         }),
       );
-    } else if (data.weightLiq && data.weightLiq !== existing.weightLiq) {
+    } else if (typeof data.weightLiq !== "undefined" && data.weightLiq !== existing.weightLiq) {
       // Se só o peso mudou, ajusta o estoque no mesmo depósito
-      const diff = data.weightLiq - existing.weightLiq.toNumber();
+      const diff = (typeof data.weightLiq === "number"
+        ? data.weightLiq
+        : Number(data.weightLiq)) - existing.weightLiq.toNumber();
       stockChanges.push(
         db.industryStock.updateMany({
           where: {
@@ -94,13 +122,16 @@ export async function PUT(
     }
 
     // 🧩 Atualiza a colheita e o estoque numa transação
+    const updateData: any = {
+      ...data,
+      ...(data.date ? { date: new Date(data.date) } : {}),
+      product: productToUse, // produto sempre definido aqui
+    };
+
     const [updated] = await db.$transaction([
       db.industryHarvest.update({
         where: { id },
-        data: {
-          ...data,
-          date: new Date(data.date),
-        },
+        data: updateData,
       }),
       ...stockChanges,
     ]);
