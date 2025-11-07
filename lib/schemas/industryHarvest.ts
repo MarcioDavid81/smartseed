@@ -19,6 +19,8 @@ export const industryHarvestSchema = z.object({
   impurities_percent: z.number(),
   impurities_discount: z.number(),
   impurities_kg: z.number(),
+  tax_kg: z.number().optional(),
+  adjust_kg: z.number().optional(),
   weightLiq: z.number().min(1, "Peso líquido é obrigatório"),
   cycleId: z.string().optional(),
 });

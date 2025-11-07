@@ -52,6 +52,8 @@ const UpsertHarvestModal = ({
   const [subLiquid, setSubLiquid] = useState(0);
   const [impuritiesKg, setImpuritiesKg] = useState(0);
   const [humidityKg, setHumidityKg] = useState(0);
+  const [taxKg, setTaxKg] = useState(0);
+  const [adjustKg, setAdjustKg] = useState(0);
   const [liquid, setLiquid] = useState(0);
   const { selectedCycle } = useCycle();
 
@@ -74,14 +76,18 @@ const UpsertHarvestModal = ({
       impurities_percent: colheita?.impurities_percent || 0,
       impurities_discount: colheita?.impurities_discount || 0,
       impurities_kg: colheita?.impurities_kg || 0,
+      tax_kg: colheita?.tax_kg || 0,
+      adjust_kg: colheita?.adjust_kg || 0,
       weightLiq: colheita?.weightLiq || 0,
     },
   });
 
-  const weightBt = form.watch("weightBt") || 0;
-  const weightTr = form.watch("weightTr") || 0;
-  const impuritiesPercent = form.watch("impurities_discount") || 0;
-  const humidityPercent = form.watch("humidity_discount") || 0;
+  const weightBt = Number(form.watch("weightBt") ?? 0);
+  const weightTr = Number(form.watch("weightTr") ?? 0);
+  const impuritiesPercent = Number(form.watch("impurities_discount") ?? 0);
+  const humidityPercent = Number(form.watch("humidity_discount") ?? 0);
+  const taxPercent = Number(form.watch("tax_kg") ?? 0);
+  const adjustPercent = Number(form.watch("adjust_kg") ?? 0);
 
   useEffect(() => {
     // 1. Sub-líquido
@@ -95,14 +101,16 @@ const UpsertHarvestModal = ({
     const humidityKg = (baseUmidade * humidityPercent) / 100;
 
     // 4. Peso líquido
-    const weightLiq = subLiq - impuritiesKg - humidityKg;
+    const weightLiq = subLiq - impuritiesKg - humidityKg - taxPercent + adjustPercent;
     
     // Atualiza estados finais
     setSubLiquid(subLiq);
     setImpuritiesKg(impuritiesKg);
     setHumidityKg(humidityKg);
+    setTaxKg(taxPercent);
+    setAdjustKg(adjustPercent);
     setLiquid(weightLiq);
-  }, [weightBt, weightTr, impuritiesPercent, humidityPercent]);
+  }, [weightBt, weightTr, impuritiesPercent, humidityPercent, taxPercent, adjustPercent]);
 
   useEffect(() => {
     if (colheita) {
@@ -123,6 +131,9 @@ const UpsertHarvestModal = ({
         impurities_percent: colheita.impurities_percent,
         impurities_discount: colheita.impurities_discount,
         impurities_kg: colheita.impurities_kg,
+        tax_kg: colheita.tax_kg,
+        adjust_kg: colheita.adjust_kg,
+        weightLiq: colheita.weightLiq,
       });
     } else {
       form.reset();
@@ -356,6 +367,7 @@ const UpsertHarvestModal = ({
                 <Input
                   type="number"
                   {...form.register("weightBt", { valueAsNumber: true })}
+                  step="0.01"
                   placeholder="Ex: 1200"
                 />
                 {form.formState.errors.weightBt && (
@@ -369,6 +381,7 @@ const UpsertHarvestModal = ({
                 <Input
                   type="number"
                   {...form.register("weightTr", { valueAsNumber: true })}
+                  step="0.01"
                   placeholder="Ex: 1200"
                 />
                 {form.formState.errors.weightTr && (
@@ -382,7 +395,7 @@ const UpsertHarvestModal = ({
                 <Input
                   type="number"
                   {...form.register("weightSubLiq", { valueAsNumber: true })}
-                  value={(subLiquid.toFixed(2))}
+                  value={Number(subLiquid).toFixed(2)}
                   readOnly
                 />
                 {form.formState.errors.weightSubLiq && (
@@ -399,7 +412,7 @@ const UpsertHarvestModal = ({
                 <Label>Impureza</Label>
                 <Input
                   type="number"
-                  step="0.1"
+                  step="0.01"
                   {...form.register("impurities_percent", { valueAsNumber: true })}
                   placeholder="Ex: 14.5"
                 />
@@ -413,7 +426,7 @@ const UpsertHarvestModal = ({
                 <Label>Porcentagem (%)</Label>
                 <Input
                   type="number"
-                  step="0.1"
+                  step="0.01"
                   {...form.register("impurities_discount", { valueAsNumber: true })}
                   placeholder="Ex: 2.5"
                 />
@@ -428,7 +441,7 @@ const UpsertHarvestModal = ({
                 <Input
                   type="number"
                   {...form.register("impurities_kg", { valueAsNumber: true })}
-                  value={(impuritiesKg.toFixed(2))}
+                  value={Number(impuritiesKg).toFixed(2)}
                   readOnly
                 />
                 {form.formState.errors.impurities_kg && (
@@ -444,7 +457,7 @@ const UpsertHarvestModal = ({
                 <Label>Umidade</Label>
                 <Input
                   type="number"
-                  step="0.1"
+                  step="0.01"
                   {...form.register("humidity_percent", { valueAsNumber: true })}
                   placeholder="Ex: 15.2"
                 />
@@ -458,7 +471,7 @@ const UpsertHarvestModal = ({
                 <Label>Porcentagem (%)</Label>
                 <Input
                   type="number"
-                  step="0.1"
+                  step="0.01"
                   {...form.register("humidity_discount", { valueAsNumber: true })}
                   placeholder="Ex: 3.8"
                 />
@@ -473,7 +486,7 @@ const UpsertHarvestModal = ({
                 <Input
                   type="number"
                   {...form.register("humidity_kg", { valueAsNumber: true })}
-                  value={(humidityKg.toFixed(2))}
+                  value={Number(humidityKg).toFixed(2)}
                   readOnly
                 />
                 {form.formState.errors.humidity_kg && (
@@ -486,12 +499,40 @@ const UpsertHarvestModal = ({
 
             {/* peso líquido */}
             <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-3">
+              <div>
+                <Label>Taxa</Label>
+                <Input
+                  type="number"
+                  {...form.register("tax_kg", { valueAsNumber: true })}
+                  step="0.01"
+                  placeholder="Ex: 1.5"
+                />
+                {form.formState.errors.tax_kg && (
+                  <span className="text-xs text-red-500">
+                    {form.formState.errors.tax_kg.message}
+                  </span>
+                )}
+              </div>
+              <div>
+                <Label>Ajuste (kg)</Label>
+                <Input
+                  type="number"
+                  {...form.register("adjust_kg", { valueAsNumber: true })}
+                  step="0.01"
+                  placeholder="Ex: 0.5"
+                />
+                {form.formState.errors.adjust_kg && (
+                  <span className="text-xs text-red-500">
+                    {form.formState.errors.adjust_kg.message}
+                  </span>
+                )}
+              </div>
+              <div>
                 <Label>Peso Líquido (kg)</Label>
                 <Input
                   type="number"
                   {...form.register("weightLiq", { valueAsNumber: true })}
-                  value={(liquid.toFixed(2))}
+                  value={Number(liquid).toFixed(2)}
                   readOnly
                 />
                 {form.formState.errors.weightLiq && (

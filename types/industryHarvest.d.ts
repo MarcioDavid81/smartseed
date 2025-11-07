@@ -35,6 +35,8 @@ export interface IndustryHarvest {
   impurities_percent: number;
   impurities_discount: number;
   impurities_kg: number;
+  tax_kg?: number;
+  adjust_kg?: number;
   weightLiq: number;
   companyId: string;
 }
