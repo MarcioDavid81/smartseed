@@ -26,7 +26,7 @@ export default function NewSidebar() {
         <Link href="/">
           {isOpen ? (
             <Image
-              src="/logo3.png"
+              src="/logonovo.png"
               alt="Logo"
               width={200}
               height={50}
