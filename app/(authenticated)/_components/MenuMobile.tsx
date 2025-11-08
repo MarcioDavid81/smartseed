@@ -90,7 +90,7 @@ export function MobileMenu() {
         <div className="flex items-center justify-between">
           <Link href="/">
             <Image
-              src="/logo3.png"
+              src="/logonovo.png"
               alt="Logo"
               width={100}
               height={40}
