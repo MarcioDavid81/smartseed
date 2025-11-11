@@ -150,3 +150,50 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function GET(req: NextRequest) {
+  const authHeader = req.headers.get("Authorization");
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return NextResponse.json(
+      { error: "Token não enviado ou mal formatado" },
+      { status: 401 },
+    );
+  }
+
+  const token = authHeader.split(" ")[1];
+  const payload = await verifyToken(token);
+
+  if (!payload) {
+    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+  }
+
+  const { companyId } = payload;
+  const cycleId = req.nextUrl.searchParams.get("cycleId");
+
+  try {
+    const industrySales = await db.industrySale.findMany({
+      where: { companyId, ...(cycleId && { cycleId }) },
+      include: {
+        customer: {
+          select: { id: true, name: true },
+        },
+        industryTransporter: {
+          select: { id: true, name: true },
+        },
+        accountReceivable: {
+          select: { id: true, status: true, dueDate: true },
+        },
+      },
+      orderBy: { date: "desc" },
+    });
+
+    return NextResponse.json(industrySales, { status: 200 });
+  } catch (error) {
+    console.error("Erro ao buscar venda industrial:", error);
+    return NextResponse.json(
+      { error: "Falha ao buscar venda industrial" },
+      { status: 500 },
+    );
+  }
+}
