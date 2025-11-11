@@ -127,6 +127,11 @@ const routes = [
         icon: <Image src={combineIcon} alt="Agricultura" width={24} height={24} />,
       },
       {
+        path: "/agricultura/vendas",
+        name: "Vendas",
+        icon: <DollarSign size={16} />,
+      },
+      {
         path: "/agricultura/transportadores",
         name: "Transportadores",
         icon: <FaTruck size={16} />,

@@ -54,6 +54,7 @@ export const routes = [
       { name: "Dashboard", path: "/agricultura/dashboard", icon: <AiOutlineDashboard size={16} /> },
       { name: "Colheita", path: "/agricultura/colheitas", icon: <Image src={combineIcon} alt="Agricultura" width={24} height={24} />
       },
+      { name: "Vendas", path: "/agricultura/vendas", icon: <DollarSign size={16} /> },
       { name: "Transportadores", path: "/agricultura/transportadores", icon: <FaTruck size={16} /> },
       { name: "Depósitos", path: "/agricultura/depositos", icon: <Home size={16} /> },
       { name: "Estoque", path: "/agricultura/estoque", icon: <Warehouse size={16} /> },
