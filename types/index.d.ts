@@ -10,6 +10,7 @@ export * from "./harvest";
 export * from "./buy";
 export * from "./consumptionExit";
 export * from "./saleExit";
+export * from "./customers"
 export * from "./company";
 export * from "./talhao";
 export * from "./productStock";

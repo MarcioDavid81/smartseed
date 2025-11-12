@@ -23,8 +23,7 @@ import { PayableProvider } from "@/contexts/PayableContext";
 import { IndustryHarvestProvider } from "@/contexts/IndustryHarvestContext";
 import NewSidebar from "./_components/new-sidebar/sidebar";
 import { IndustryStockProvider } from "@/contexts/IndustryStockContext";
-
-
+import { IndustrySaleProvider } from "@/contexts/IndustrySaleContext";
 
 const robotoFont = roboto({
   src: [
@@ -137,10 +136,12 @@ export default async function RootLayout({
                                     <PayableProvider>
                                       <IndustryHarvestProvider>
                                         <IndustryStockProvider>
-                                          <NewSidebar />
-                                          <MobileMenu />
-                                          {children}
-                                          <Toaster richColors />
+                                          <IndustrySaleProvider>
+                                            <NewSidebar />
+                                            <MobileMenu />
+                                            {children}
+                                            <Toaster richColors />
+                                          </IndustrySaleProvider>
                                         </IndustryStockProvider>
                                       </IndustryHarvestProvider>
                                     </PayableProvider>

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
+import { ListSaleTable } from "./_components/ListSaleTable";
 
 export const metadata: Metadata = {
   title: "Vendas",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   ],
 };
 
-export default async function AgricultureHarvestsPage() {
+export default async function AgricultureSalesPage() {
   return (
     <div className="flex flex-col w-full min-h-screen bg-found">
       <div className="min-h-screen w-full flex bg-background">
@@ -23,9 +24,7 @@ export default async function AgricultureHarvestsPage() {
             <h1 className="text-2xl font-medium mb-4">Vendas</h1> 
             <NavItems />
           </div>
-          <div className="bg-white p-4 rounded-md shadow-md">
-            conteúdo aqui
-          </div>
+          <ListSaleTable />
         </main>
       </div>
     </div>
