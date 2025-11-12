@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
-import { Beneficiation, Cultivar } from "@/types";
+import { Beneficiation, Cultivar, IndustryDeposit } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -41,6 +41,7 @@ const descarteSchema = z.object({
   cultivarId: z.string().min(1, "Selecione uma cultivar"),
   date: z.string().min(1, "Selecione uma data"),
   quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
+  destinationId: z.string().min(1, "Selecione um depósito"),
   notes: z.string(),
 });
 
@@ -55,6 +56,7 @@ const UpsertBeneficiationModal = ({
 }: UpsertBeneficiationModalProps) => {
   const [loading, setLoading] = useState(false);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
+  const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
 
   const form = useForm<BeneficiationFormData>({
     resolver: zodResolver(descarteSchema),
@@ -64,6 +66,7 @@ const UpsertBeneficiationModal = ({
         ? new Date(descarte.date).toISOString().split("T")[0]
         : format(new Date(), "yyyy-MM-dd"),
       quantityKg: descarte?.quantityKg ?? 0,
+      destinationId: descarte?.destinationId ?? "",
       notes: descarte?.notes ?? "",
     },
   });
@@ -79,6 +82,7 @@ const UpsertBeneficiationModal = ({
       cultivarId: descarte?.cultivarId ?? "",
       date: descarte ? new Date(descarte.date).toISOString().split("T")[0] : "",
       quantityKg: descarte?.quantityKg ?? 0,
+      destinationId: descarte?.destinationId ?? "",
       notes: descarte?.notes ?? "",
     },
   });
@@ -89,6 +93,7 @@ const UpsertBeneficiationModal = ({
         cultivarId: descarte.cultivarId,
         date: new Date(descarte.date).toISOString().split("T")[0],
         quantityKg: descarte.quantityKg,
+        destinationId: descarte.destinationId,
         notes: descarte.notes || "",
       });
     } else {
@@ -100,15 +105,20 @@ const UpsertBeneficiationModal = ({
     const fetchData = async () => {
       const token = getToken();
 
-      const [cultivarRes] = await Promise.all([
+      const [cultivarRes, depositRes] = await Promise.all([
         fetch("/api/cultivars/get", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("/api/industry/deposit", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
       const cultivarData = await cultivarRes.json();
+      const depositData = await depositRes.json();
 
       setCultivars(cultivarData);
+      setDeposits(depositData);
     };
 
     if (isOpen) fetchData();
@@ -239,6 +249,30 @@ const UpsertBeneficiationModal = ({
                     <FormLabel>Quantidade (Kg)</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="destinationId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Depósito de Destino</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="w-full border rounded px-2 py-1"
+                      >
+                        <option value="">Selecione</option>
+                        {deposits.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -210,18 +210,20 @@ model Buy {
 
 // beneficiamento
 model Beneficiation {
-  id         String           @id @default(cuid())
-  cultivarId String
-  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
-  date       DateTime
-  quantityKg Float
-  notes      String?
-  companyId  String
-  company    Company          @relation(fields: [companyId], references: [id])
-  type       OperationType    @default(Descarte)
-  cycleId    String?
-  cycle      ProductionCycle? @relation(fields: [cycleId], references: [id])
-  createdAt  DateTime         @default(now())
+  id            String           @id @default(cuid())
+  cultivarId    String
+  cultivar      Cultivar         @relation(fields: [cultivarId], references: [id])
+  date          DateTime
+  quantityKg    Float
+  destinationId String?
+  destination   IndustryDeposit? @relation(fields: [destinationId], references: [id])
+  notes         String?
+  companyId     String
+  company       Company          @relation(fields: [companyId], references: [id])
+  type          OperationType    @default(Descarte)
+  cycleId       String?
+  cycle         ProductionCycle? @relation(fields: [cycleId], references: [id])
+  createdAt     DateTime         @default(now())
 }
 
 //saída para plantio
@@ -509,6 +511,7 @@ model IndustryDeposit {
   industryHarvests IndustryHarvest[]
   industryStocks   IndustryStock[]
   industrySales    IndustrySale[]
+  beneficiations   Beneficiation[]
   transfersFrom    IndustryTransfer[] @relation("FromDeposit")
   transfersTo      IndustryTransfer[] @relation("ToDeposit")
   createdAt        DateTime           @default(now())

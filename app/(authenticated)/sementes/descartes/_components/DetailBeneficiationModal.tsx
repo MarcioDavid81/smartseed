@@ -69,6 +69,17 @@ export function DetailBeneficiationModal({ descarte, onClose }: Props) {
                       {formatNumber(descarte.quantityKg)} kg
                     </p>
                   </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.12 }}
+                    className="space-y-1"
+                  >
+                    <p className="text-xs text-muted-foreground">Destino</p>
+                    <p className="font-medium">
+                      {descarte.destination?.name || "Nenhum"}
+                    </p>
+                  </motion.div>
                 </div>
               </div>
 

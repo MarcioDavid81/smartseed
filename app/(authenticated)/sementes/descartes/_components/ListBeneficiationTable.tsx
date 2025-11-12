@@ -86,6 +86,18 @@ export function ListBeneficiationTable() {
       },
     },
     {
+      accessorKey: "destination",
+      header: () => <div className="text-left">Destino</div>,
+      cell: ({ row }) => {
+        const destination = row.original.destination;
+        return (
+          <div className="text-left">
+            {destination?.name || "Nenhum"}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
