@@ -18,8 +18,10 @@ import { Cultivar } from "@/types";
 import UseByCultivarChart from "./UseByCultivarChart";
 import CreateCycleButton from "./CreateCycleButton";
 import { CultivarStatusBadge } from "../../sementes/estoque/_components/CultivarStatusBadge";
+import { useCycle } from "@/contexts/CycleContext";
 
 const DashboardContent = () => {
+  const { selectedCycle } = useCycle();
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [selectedCultivar, setSelectedCultivar] = useState<Cultivar | null>(
     null
@@ -40,15 +42,20 @@ const DashboardContent = () => {
         },
       });
       const data = await res.json();
-      const filteredData = data.filter(
-        (product: Cultivar) => product.stock > 0
-      );
+      // Filtra por estoque > 0 e por tipo de produto do ciclo selecionado
+      const filteredData = data
+        .filter((c: Cultivar) => c.stock > 0)
+        .filter((c: Cultivar) =>
+          selectedCycle?.productType ? c.product === selectedCycle.productType : true,
+        );
+
       setCultivars(filteredData);
-      setSelectedCultivar(filteredData[0]);
+      // Define cultivar inicial conforme ciclo selecionado
+      setSelectedCultivar(filteredData[0] ?? null);
     };
 
     fetchCultivars();
-  }, []);
+  }, [selectedCycle]);
 
   useEffect(() => {
     if (!selectedCultivar) return;
@@ -76,6 +83,15 @@ const DashboardContent = () => {
 
     fetchDashboardData();
   }, [selectedCultivar]);
+
+  // Quando o ciclo mudar, se o cultivar selecionado não pertencer ao novo tipo, ajuste
+  useEffect(() => {
+    if (!selectedCycle) return;
+    if (selectedCultivar && selectedCultivar.product !== selectedCycle.productType) {
+      const firstMatch = cultivars.find(c => c.product === selectedCycle.productType);
+      setSelectedCultivar(firstMatch ?? null);
+    }
+  }, [selectedCycle, cultivars, selectedCultivar]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

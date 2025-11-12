@@ -11,10 +11,21 @@ import {
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { PRODUCT_TYPE_OPTIONS } from "../../_constants/products";
 import { getToken } from "@/lib/auth-client";
+import { useCycle } from "@/contexts/CycleContext";
 
 export default function StockByProductTypeChart() {
-  const [selectedType, setSelectedType] = useState(PRODUCT_TYPE_OPTIONS[0].value);
+  const { selectedCycle } = useCycle();
+  const [selectedType, setSelectedType] = useState(
+    selectedCycle?.productType ?? PRODUCT_TYPE_OPTIONS[0].value,
+  );
   const [data, setData] = useState<{ name: string; stock: number }[]>([]);
+
+  // Sincroniza o tipo selecionado com o ciclo atual quando ele mudar
+  useEffect(() => {
+    if (selectedCycle?.productType) {
+      setSelectedType(selectedCycle.productType);
+    }
+  }, [selectedCycle]);
 
   useEffect(() => {
     const token = getToken();
