@@ -15,7 +15,7 @@ export function ProductivityByFieldChart({ fieldReports }: { fieldReports: any[]
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="talhaoName" />
             <YAxis />
-            <Tooltip />
+            <Tooltip formatter={(value) => `${(value as number).toFixed(2)} sc/ha`} />
             <Bar dataKey="productivityScHa" fill="#63B926" radius={[8, 8, 0, 0]} name="Produtividade" />
           </BarChart>
         </ResponsiveContainer>
