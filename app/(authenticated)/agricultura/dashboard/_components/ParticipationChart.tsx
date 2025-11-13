@@ -21,7 +21,7 @@ export function ParticipationChart({ fieldReports }: { fieldReports: any[] }) {
     >
       <Card className="rounded-2xl shadow-sm">
         <CardHeader>
-          <CardTitle>Participação por Talhão (%)</CardTitle>
+          <CardTitle className="font-normal tracking-tight">Participação por Talhão (%)</CardTitle>
         </CardHeader>
 
         <CardContent>

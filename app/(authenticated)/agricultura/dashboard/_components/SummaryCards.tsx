@@ -2,6 +2,7 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Wheat, Ruler, LineChart } from "lucide-react"
+import { motion } from "framer-motion"
 
 interface Summary {
   totalKg: number
@@ -17,31 +18,68 @@ export function SummaryCards({ summary }: { summary: Summary }) {
       title: "Produção Total",
       value: `${summary.totalSc.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} sc`,
       icon: Wheat,
+      sub: `${summary.totalKg.toLocaleString("pt-BR")} kg`,
     },
     {
       title: "Área Cultivada",
       value: `${summary.totalAreaHa.toLocaleString("pt-BR")} ha`,
       icon: Ruler,
+      sub: "Área total declarada no ciclo",
     },
     {
       title: "Produtividade Média",
       value: `${summary.avgProductivityScHa.toFixed(2)} sc/ha`,
       icon: LineChart,
+      sub: `${summary.avgProductivityKgHa.toFixed(2)} kg/ha`,
     },
   ]
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-      {cards.map(({ title, value, icon: Icon }) => (
-        <Card key={title} className="rounded-2xl shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <CardTitle className="font-normal">{title}</CardTitle>
-            <Icon className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-medium">{value}</div>
-          </CardContent>
-        </Card>
+      {cards.map(({ title, value, icon: Icon, sub }, index) => (
+        <motion.div
+          key={title}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1, duration: 0.35 }}
+        >
+          <Card
+            className="
+              rounded-2xl shadow-sm border border-border/50 
+              bg-gradient-to-br from-background/80 to-muted/30 
+              backdrop-blur-sm hover:shadow-md transition
+            "
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="font-normal tracking-tight">
+                {title}
+              </CardTitle>
+              <div className="p-2 rounded-xl bg-muted/40">
+                <Icon className="h-5 w-5 text-primary" />
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              <div className="text-2xl font-medium tracking-tight">
+                {value}
+              </div>
+
+              <div className="text-xs text-muted-foreground mt-1">
+                {sub}
+              </div>
+
+              {/* Indicador sutil de progresso */}
+              <div className="mt-4 h-1.5 w-full bg-muted/50 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-primary/70"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${30 + index * 20}%` }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       ))}
     </div>
   )
