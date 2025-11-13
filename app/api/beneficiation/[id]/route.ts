@@ -46,10 +46,7 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Erro interno no servidor
  */
 // Atualizar descarte
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) return new NextResponse("Token ausente", { status: 401 });
@@ -58,58 +55,111 @@ export async function PUT(
     if (!payload) return new NextResponse("Token inválido", { status: 401 });
 
     const { id } = params;
-    const { cultivarId, date, quantityKg, notes } = await req.json();
+    const { cultivarId, date, quantityKg, notes, destinationId } = await req.json();
 
-    // Buscar o descarte para garantir que pertence à empresa do usuário
-    const existing = await db.beneficiation.findUnique({ where: { id } });
+    if (!cultivarId || !date || !quantityKg || !destinationId) {
+      return new NextResponse("Campos obrigatórios faltando", { status: 400 });
+    }
+
+    const existing = await db.beneficiation.findUnique({
+      where: { id },
+      include: {
+        cultivar: true,
+        destination: true,
+      },
+    });
 
     if (!existing || existing.companyId !== payload.companyId) {
-      return new NextResponse("Descarte não encontrado ou acesso negado", {
+      return new NextResponse("Beneficiamento não encontrado ou acesso negado", {
         status: 403,
       });
     }
 
-    // Se quantidade ou cultivar mudarem, ajustar o estoque
-    if (
-      existing.quantityKg !== quantityKg ||
-      existing.cultivarId !== cultivarId
-    ) {
-      // Reverter estoque anterior
-      await db.cultivar.update({
-        where: { id: existing.cultivarId },
-        data: {
-          stock: {
-            increment: existing.quantityKg,
+    const result = await db.$transaction(async (tx) => {
+      // 1️⃣ Reverter estoque anterior da cultivar, se quantidade ou cultivar mudaram
+      if (existing.cultivarId !== cultivarId || existing.quantityKg !== quantityKg) {
+        await tx.cultivar.update({
+          where: { id: existing.cultivarId },
+          data: { stock: { increment: existing.quantityKg } },
+        });
+
+        const newCultivar = await tx.cultivar.findUnique({ where: { id: cultivarId } });
+        if (!newCultivar) throw new Error("Cultivar destino não encontrada");
+
+        if (newCultivar.stock < quantityKg) {
+          throw new Error("Estoque insuficiente na cultivar selecionada");
+        }
+
+        await tx.cultivar.update({
+          where: { id: cultivarId },
+          data: { stock: { decrement: quantityKg } },
+        });
+      }
+
+      // 2️⃣ Ajustar depósito de destino
+      const productType = existing.cultivar.product; // 🔧 defina conforme a categoria do beneficiamento
+
+      // Se o destino mudou
+      if (existing.destinationId !== destinationId) {
+        if (existing.destinationId) {
+          await tx.industryStock.updateMany({
+            where: {
+              industryDepositId: existing.destinationId,
+              companyId: payload.companyId,
+              product: productType,
+            },
+            data: { quantity: { decrement: existing.quantityKg } },
+          });
+        }
+
+        await tx.industryStock.upsert({
+          where: {
+            product_industryDepositId: {
+              product: productType,
+              industryDepositId: destinationId,
+            },
           },
+          update: { quantity: { increment: quantityKg } },
+          create: {
+            product: productType,
+            industryDepositId: destinationId,
+            companyId: payload.companyId,
+            quantity: quantityKg,
+          },
+        });
+      } else if (existing.quantityKg !== quantityKg) {
+        // Mesmo depósito, mas alterou o peso
+        const diff = quantityKg - existing.quantityKg;
+        await tx.industryStock.updateMany({
+          where: {
+            industryDepositId: existing.destinationId!,
+            companyId: payload.companyId,
+            product: productType,
+          },
+          data: { quantity: { increment: diff } },
+        });
+      }
+
+      // 3️⃣ Atualizar o beneficiamento
+      const updated = await tx.beneficiation.update({
+        where: { id },
+        data: {
+          cultivarId,
+          date: new Date(date),
+          quantityKg,
+          notes,
+          destinationId,
         },
       });
 
-      // Subtrair nova quantidade ao novo cultivar
-      await db.cultivar.update({
-        where: { id: cultivarId },
-        data: {
-          stock: {
-            decrement: quantityKg,
-          },
-        },
-      });
-    }
-
-    // Atualizar estoque
-    const updated = await db.beneficiation.update({
-      where: { id },
-      data: {
-        cultivarId,
-        date: new Date(date),
-        quantityKg,
-        notes,
-      },
+      return updated;
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.error("Erro ao atualizar descarte:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+    console.error("Erro ao atualizar beneficiamento:", error);
+    const message = error instanceof Error ? error.message : "Erro interno no servidor";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -154,8 +204,14 @@ export async function DELETE(
 
     const { id } = params;
 
-    // Buscar o cultivar para garantir que pertence à empresa do usuário
-    const existing = await db.beneficiation.findUnique({ where: { id } });
+    // Busca o beneficiamento com informações completas
+    const existing = await db.beneficiation.findUnique({
+      where: { id },
+      include: {
+        cultivar: true,
+        destination: true,
+      },
+    });
 
     if (!existing || existing.companyId !== payload.companyId) {
       return new NextResponse("Descarte não encontrado ou acesso negado", {
@@ -163,18 +219,44 @@ export async function DELETE(
       });
     }
 
-    await adjustStockWhenDeleteMov(
-      "descarte",
-      existing.cultivarId,
-      existing.quantityKg
-    );
+    await db.$transaction(async (tx) => {
+      // 1️⃣ Reverter estoque da cultivar (incrementar)
+      await tx.cultivar.update({
+        where: { id: existing.cultivarId },
+        data: {
+          stock: {
+            increment: existing.quantityKg,
+          },
+        },
+      });
 
-    const deleted = await db.beneficiation.delete({ where: { id } });
+      // 2️⃣ Reverter estoque do depósito industrial, se houver destino
+      if (existing.destinationId) {
+        await tx.industryStock.updateMany({
+          where: {
+            industryDepositId: existing.destinationId,
+            companyId: payload.companyId,
+            product: existing.cultivar.product,
+          },
+          data: {
+            quantity: {
+              decrement: existing.quantityKg,
+            },
+          },
+        });
+      }
 
-    return NextResponse.json(deleted);
+      // 3️⃣ Excluir o beneficiamento
+      await tx.beneficiation.delete({ where: { id } });
+    });
+
+    return new NextResponse("Beneficiamento removido com sucesso", {
+      status: 200,
+    });
   } catch (error) {
-    console.error("Erro ao deletar descarte:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+    console.error("Erro ao deletar beneficiamento:", error);
+    const message = error instanceof Error ? error.message : "Erro interno no servidor";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
