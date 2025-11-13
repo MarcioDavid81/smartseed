@@ -17,11 +17,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { Beneficiation, Cultivar, IndustryDeposit } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ProductType } from "@prisma/client";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -104,9 +106,14 @@ const UpsertBeneficiationModal = ({
   useEffect(() => {
     const fetchData = async () => {
       const token = getToken();
+      const cycle = getCycle();
+            if (!cycle || !cycle.productType) {
+              toast.error("Nenhum ciclo de produção selecionado.");
+              return;
+            }
 
       const [cultivarRes, depositRes] = await Promise.all([
-        fetch("/api/cultivars/get", {
+        fetch(`/api/cultivars/available-for-beneficiation?productType=${cycle.productType as ProductType}`  , {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch("/api/industry/deposit", {
@@ -209,19 +216,25 @@ const UpsertBeneficiationModal = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Cultivar</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full border rounded px-2 py-1"
-                      >
-                        <option value="">Selecione</option>
-                        {cultivars.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma cultivar" />
+                      </SelectTrigger>
                     </FormControl>
+                    <SelectContent>
+                      {cultivars.map((cultivar) => (
+                        <SelectItem key={cultivar.id} value={cultivar.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{cultivar.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {`Estoque: ${cultivar.stock} kg`}
+                            </span>
+                          </div>
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -262,17 +275,20 @@ const UpsertBeneficiationModal = ({
                   <FormItem>
                     <FormLabel>Depósito de Destino</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full border rounded px-2 py-1"
-                      >
-                        <option value="">Selecione</option>
-                        {deposits.map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.name}
-                          </option>
-                        ))}
-                      </select>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um depósito" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {deposits.map((deposit) => (
+                            <SelectItem key={deposit.id} value={deposit.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{deposit.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

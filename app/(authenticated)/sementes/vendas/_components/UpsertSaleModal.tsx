@@ -27,7 +27,7 @@ import { Cultivar } from "@/types";
 import { Customer } from "@/types/customers";
 import { Sale } from "@/types/sale";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PaymentCondition } from "@prisma/client";
+import { PaymentCondition, ProductType } from "@prisma/client";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -131,10 +131,16 @@ const UpsertSaleModal = ({
 
   useEffect(() => {
     const fetchData = async () => {
+      const cycle = getCycle();
+      if (!cycle || !cycle.productType) {
+        toast.error("Nenhum tipo de produto selecionado.");
+        return;
+      }
+
       const token = getToken();
 
       const [cultivarRes, customerRes] = await Promise.all([
-        fetch("/api/cultivars/get", {
+        fetch(`/api/cultivars/available-for-sale?productType=${cycle.productType as ProductType}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch("/api/customers", {
@@ -238,17 +244,23 @@ const UpsertSaleModal = ({
                   <FormItem>
                     <FormLabel>Cultivar</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full border rounded px-2 py-1"
-                      >
-                        <option value="">Selecione</option>
-                        {cultivars.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um cultivar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cultivars.map((cultivar) => (
+                            <SelectItem key={cultivar.id} value={cultivar.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{cultivar.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {`Estoque: ${cultivar.stock} kg`}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -262,17 +274,23 @@ const UpsertSaleModal = ({
                   <FormItem>
                     <FormLabel>Destino</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full border rounded px-2 py-1"
-                      >
-                        <option value="">Selecione</option>
-                        {customers.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um cliente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {customers.map((customer) => (
+                            <SelectItem key={customer.id} value={customer.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{customer.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {`${customer.cpf_cnpj}`}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
