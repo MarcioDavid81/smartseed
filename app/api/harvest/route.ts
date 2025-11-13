@@ -172,7 +172,7 @@ export async function GET(req: NextRequest) {
           },
         },
         cultivar: {
-          select: { id: true, name: true },
+          select: { id: true, name: true, product: true},
         },
       },
       orderBy: { date: "desc" },
