@@ -45,7 +45,7 @@ export default function StockByProductTypeChart() {
 
   return (
     <div className="space-y-4 p-4 border rounded-xl shadow bg-white">
-      <h2 className="text-lg font-normal">Estoque por Tipo de Produto</h2>
+      <h3>Estoque por Tipo de Produto</h3>
 
       <Select value={selectedType} onValueChange={(value) => setSelectedType(value as typeof selectedType)}>
         <SelectTrigger className="w-[200px]">

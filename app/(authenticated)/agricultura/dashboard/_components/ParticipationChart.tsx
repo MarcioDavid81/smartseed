@@ -53,7 +53,7 @@ export function ParticipationChart({ fieldReports }: { fieldReports: any[] }) {
             </div>
 
             {/* Legenda PRO */}
-            <div className="w-full lg:w-1/2 flex flex-col gap-4 justify-center">
+            <div className="w-full lg:w-1/2 flex flex-col gap-4 justify-start overflow-y-auto h-80">
               {sorted.map((item, i) => (
                 <motion.div
                   key={i}
