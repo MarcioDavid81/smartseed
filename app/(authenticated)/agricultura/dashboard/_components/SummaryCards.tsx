@@ -43,19 +43,13 @@ export function SummaryCards({ summary }: { summary: Summary }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.35 }}
         >
-          <Card
-            className="
-              rounded-2xl shadow-sm border border-border/50 
-              bg-gradient-to-br from-background/80 to-muted/30 
-              backdrop-blur-sm hover:shadow-md transition
-            "
-          >
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="font-normal tracking-tight">
                 {title}
               </CardTitle>
               <div className="p-2 rounded-xl bg-muted/40">
-                <Icon className="h-5 w-5 text-primary" />
+                <Icon className="h-5 w-5 text-primary text-[#63B926]" />
               </div>
             </CardHeader>
 

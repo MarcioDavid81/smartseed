@@ -6,6 +6,7 @@ import { ProductivityByFieldChart } from "./ProductivityByFieldChart"
 import { ParticipationChart } from "./ParticipationChart"
 import { getToken } from "@/lib/auth-client"
 import { useCycle } from "@/contexts/CycleContext"
+import { AgroLoader } from "@/components/agro-loader"
 
 interface FieldReport {
   talhaoId: string
@@ -77,16 +78,12 @@ export default function DashboardContent() {
   }, [selectedCycle?.id])
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-80 text-muted-foreground font-light">
-        Carregando dados do ciclo...
-      </div>
-    )
+    return <AgroLoader />
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-80 text-red-500 font-light">
+      <div className="flex justify-center items-center h-80 text-red font-light">
         {error}
       </div>
     )

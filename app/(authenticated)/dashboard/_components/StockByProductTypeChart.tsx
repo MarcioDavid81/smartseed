@@ -65,7 +65,14 @@ export default function StockByProductTypeChart() {
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip />
-          <Bar dataKey="stock" fill="#63B926" name="Estoque" radius={[8, 8, 0, 0]} />
+          <Bar dataKey="stock" fill="url(#premiumGradient)" name="Estoque" radius={[10, 10, 0, 0]} />
+          {/* Gradiente Premium */}
+            <defs>
+              <linearGradient id="premiumGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#79D82F" />
+                <stop offset="100%" stopColor="#4C8A1F" />
+              </linearGradient>
+            </defs>
         </BarChart>
       </ResponsiveContainer>
     </div>
