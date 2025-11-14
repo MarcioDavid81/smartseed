@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { motion } from "framer-motion";
 
 export function ParticipationChart({ fieldReports }: { fieldReports: any[] }) {
@@ -30,7 +30,7 @@ export function ParticipationChart({ fieldReports }: { fieldReports: any[] }) {
             {/* Gráfico */}
             <div className="w-full lg:w-1/2 h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <PieChart className="font-light text-xs">
                   <Pie
                     data={sorted}
                     dataKey="participationPercent"
@@ -48,12 +48,13 @@ export function ParticipationChart({ fieldReports }: { fieldReports: any[] }) {
                       />
                     ))}
                   </Pie>
+                  <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
             {/* Legenda PRO */}
-            <div className="w-full lg:w-1/2 flex flex-col gap-4 justify-start overflow-y-auto h-80">
+            <div className="w-full lg:w-1/2 flex flex-col gap-4 justify-start overflow-y-auto h-80 scrollbar-hide">
               {sorted.map((item, i) => (
                 <motion.div
                   key={i}

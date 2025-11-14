@@ -34,8 +34,7 @@ const DashboardContent = () => {
 
   useEffect(() => {
     const fetchCultivars = async () => {
-      const token = await getToken();
-
+      const token = getToken();
       const res = await fetch("/api/cultivars/get", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -61,7 +60,7 @@ const DashboardContent = () => {
     if (!selectedCultivar) return;
 
     async function fetchDashboardData() {
-      const token = await getToken();
+      const token = getToken();
       const res = await fetch(
         `/api/dashboard/summary?cultivar=${selectedCultivar?.id}`,
         {

@@ -31,10 +31,11 @@ const UseByCultivarChart = ({
             data={data}
             cx="50%"
             cy="50%"
-            outerRadius={80}
-            label={({ name, percent }) =>
-              `${name}: ${(percent * 100).toFixed(2)}%`
-            }
+            outerRadius={110}
+            paddingAngle={2}
+            isAnimationActive={true}
+            labelLine={false}
+            label={false}
           >
             {data.map((_, index) => (
               <Cell
