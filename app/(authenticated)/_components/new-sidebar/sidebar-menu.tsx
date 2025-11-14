@@ -81,7 +81,7 @@ export function SidebarMenu({ isOpen }: SidebarMenuProps) {
                   </div>
                 </TooltipTrigger>
                 {!isOpen && (
-                  <TooltipContent side="right" className="bg-found text-white font-thin">
+                  <TooltipContent side="right">
                     {route.name}
                   </TooltipContent>
                 )}
