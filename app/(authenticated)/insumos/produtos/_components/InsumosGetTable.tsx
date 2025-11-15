@@ -12,6 +12,7 @@ import { InsumosDataTable } from "./InsumosDataTable";
 import EditInsumosButton from "./EditInsumosButton";
 import DeleteInsumosButton from "./DeleteInsumosButton";
 import { getProductClassLabel, getProductUnitLabel } from "@/app/_helpers/getProductLabel";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function InsumosGetTable() {
   const [insumo, setInsumo] = useState<Insumo[]>([]);
@@ -87,10 +88,7 @@ export function InsumosGetTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="py-10 text-center text-gray-500">
-          <FaSpinner className="mx-auto mb-2 animate-spin" size={24} />
-          <p className="text-lg">Carregando Insumos...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <InsumosDataTable columns={columns} data={insumo} />
       )}

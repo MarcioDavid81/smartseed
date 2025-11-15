@@ -12,6 +12,7 @@ import UpsertPurchaseButton from "./UpsertPurchaseButton";
 import DeletePurchaseButton from "./DeletePurchaseButton";
 import { PurchaseDataTable } from "./PurchaseDataTable";
 import DetailPurchaseButton from "./DetailPurchaseButton";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function ListPurchaseTable() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -158,10 +159,7 @@ export function ListPurchaseTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="text-center py-10 text-gray-500">
-          <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando Compras...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <PurchaseDataTable columns={columns} data={purchases} />
       )}

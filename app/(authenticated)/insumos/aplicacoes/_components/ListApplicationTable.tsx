@@ -12,6 +12,7 @@ import { FaSpinner } from "react-icons/fa";
 import { ApplicationDataTable } from "./ApplicationDataTable";
 import DeleteApplicationButton from "./DeleteApplicationButton";
 import UpsertApplicationButton from "./UpsertApplicationButton";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function ListApplicationTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -143,10 +144,7 @@ export function ListApplicationTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="py-10 text-center text-gray-500">
-          <FaSpinner className="mx-auto mb-2 animate-spin" size={24} />
-          <p className="text-lg">Carregando aplicações...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <ApplicationDataTable columns={columns} data={aplicacoes} />
       )}

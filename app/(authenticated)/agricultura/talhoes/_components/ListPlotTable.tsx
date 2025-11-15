@@ -4,100 +4,96 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FaSpinner } from "react-icons/fa";
+import { Talhao } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getToken } from "@/lib/auth-client";
-import { IndustryTransporter } from "@/types";
-import EditIndustryTransporterButton from "./EditTransporterButton";
-import DeleteIndustryTransporterButton from "./DeleteTransporterButton";
-import { IndustryTransporterDataTable } from "./TransporterDataTable";
+import { PlotsDataTable } from "./PlotsDataTable";
+import DeletePlotButton from "./DeletePlotButton";
+import EditPlotButton from "./EditPlotButton";
 import { AgroLoader } from "@/components/agro-loader";
 
-
-
-export function IndustryTransporterGetTable() {
-  const [industryTransporter, setIndustryTransporter] = useState<IndustryTransporter[]>([]);
+export function ListPlotsTable() {
+  const [plots, setPlots] = useState<Talhao[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function fetchTransporters() {
+  async function fetchPlots() {
+
+    setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch("/api/industry/transporter", {
+      const res = await fetch(`/api/plots`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
       const data = await res.json();
-      console.table(data);
-      setIndustryTransporter(data);
+      setPlots(data);
     } catch (error) {
-      console.error("Erro ao buscar transportadores:", error);
+      console.error("Erro ao buscar talhões:", error);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchTransporters();
+    fetchPlots();
   }, []);
 
-  const columns: ColumnDef<IndustryTransporter>[] = [
+  const columns: ColumnDef<Talhao>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => (
         <Button
           variant="ghost"
-          className="px-0 text-left"
+          className="text-left px-0"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Nome
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
+      cell: ({ row: { original } }) => original.name,
     },
     {
-      accessorKey: "cpf_cnpj",
-      header: "CPF/CNPJ",
+      accessorKey: "area",
+      header: "Área (ha)",
+      accessorFn: (row) => row.area,
+      cell: ({ row: { original } }) => original.area,
     },
     {
-      accessorKey: "phone",
-      header: "Telefone",
-    },
-    {
-      accessorKey: "email",
-      header: "E-mail",
-    },
-    {
-      accessorKey: "city",
-      header: "Cidade",
+      accessorKey: "fazenda",
+      header: "Fazenda",
+      cell: ({ row: { original } }) => original.farm.name,
     },
     {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
-        const product = row.original
+        const talhao = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditIndustryTransporterButton industryTransporter={product} onUpdated={fetchTransporters} />
-            <DeleteIndustryTransporterButton industryTransporter={product} onDeleted={fetchTransporters} />
+            <EditPlotButton talhao={talhao} onUpdated={fetchPlots} />
+            <DeletePlotButton talhao={talhao} onDeleted={fetchPlots} />
           </div>
         );
       },
     },
-  ];  
+  ];
 
   return (
-    <Card className="p-4 font-light dark:bg-primary">
+    <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
-        <h2 className="font-light">Lista de Transportadores</h2>
-        <Button variant={"ghost"} onClick={fetchTransporters} disabled={loading}>
+        <h2 className="font-light">Lista de Talhões</h2>
+        <Button variant={"ghost"} onClick={fetchPlots} disabled={loading}>
           <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>
       {loading ? (
         <AgroLoader />
       ) : (
-        <IndustryTransporterDataTable columns={columns} data={industryTransporter} />
+        <PlotsDataTable columns={columns} data={plots} />
       )}
     </Card>
   );

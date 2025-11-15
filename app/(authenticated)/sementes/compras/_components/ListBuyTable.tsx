@@ -13,6 +13,7 @@ import { BuyDataTable } from "./BuyDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DeleteBuyButton from "./DeleteBuyButton";
 import DetailBuyButton from "./DetailBuyButton";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function ListBuyTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -159,10 +160,7 @@ export function ListBuyTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="text-center py-10 text-gray-500">
-          <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando Compras...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <BuyDataTable columns={columns} data={buys} />
       )}

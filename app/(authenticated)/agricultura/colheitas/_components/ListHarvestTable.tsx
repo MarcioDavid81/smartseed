@@ -12,6 +12,7 @@ import { HarvestDataTable } from "./HarvestDataTable";
 import DeleteHarvestButton from "./DeleteHarvestButton";
 import EditHarvestButton from "./EditHarvestButton";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
+import { AgroLoader } from "@/components/agro-loader";
 
 export function ListHarvestTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -126,10 +127,7 @@ export function ListHarvestTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="text-center py-10 text-gray-500">
-          <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando Colheitas...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <HarvestDataTable columns={columns} data={harvests} />
       )}

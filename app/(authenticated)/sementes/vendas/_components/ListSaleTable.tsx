@@ -13,6 +13,7 @@ import UpsertSaleButton from "./UpsertSaleButton";
 import { Sale } from "@/types/sale";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DetailSaleButton from "./DetailSaleButton";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function ListSaleTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -144,10 +145,7 @@ export function ListSaleTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="text-center py-10 text-gray-500">
-          <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando Vendas...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <SaleDataTable columns={columns} data={sales} />
       )}

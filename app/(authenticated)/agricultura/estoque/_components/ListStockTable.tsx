@@ -12,6 +12,7 @@ import { getToken } from "@/lib/auth-client";
 import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import { StockDataTable } from "./StockDataTable";
 import { useIndustryStock } from "@/contexts/IndustryStockContext";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function ListStockTable() {
   const [stock, setStock] = useState<IndustryStock[]>([]);
@@ -100,10 +101,7 @@ export function ListStockTable() {
         <h2 className="font-light">Estoque das Cultivares</h2>
       </div>
       {loading ? (
-        <div className="text-center py-10 text-gray-500">
-          <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando Estoque...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <StockDataTable columns={columns} data={stocks}/>
       )}

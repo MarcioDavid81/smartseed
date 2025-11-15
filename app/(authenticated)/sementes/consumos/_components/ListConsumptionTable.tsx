@@ -13,6 +13,7 @@ import DeleteConsumptionButton from "./DeleteConsumptionButton";
 import { ConsumptionDataTable } from "./ConsumptionDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DetailConsumptionButton from "./DetailConsumptionButton";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function ListConsumptionTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -135,10 +136,7 @@ export function ListConsumptionTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="text-center py-10 text-gray-500">
-          <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando plantios...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <ConsumptionDataTable columns={columns} data={plantios} />
       )}

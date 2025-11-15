@@ -10,6 +10,7 @@ import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import DeleteMovementButton from "./DeleteMovementButton";
 import { StockDetailDataTable } from "./StockDetailDataTable";
+import { AgroLoader } from "@/components/agro-loader";
 
 interface Cultivar {
   name: string;
@@ -141,10 +142,7 @@ export function ListStockDetailTable({ allMovements, cultivar }: ListStockDetail
   return (
     <Card className="p-4 font-light dark:bg-primary">
       {isLoading ? (
-        <div className="py-10 text-center text-gray-500">
-          <FaSpinner className="mx-auto mb-2 animate-spin" size={24} />
-          <p className="text-lg">Carregando extrato...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <div>
           <h1 className="text-2xl font-medium">{cultivar.product}</h1>

@@ -11,6 +11,7 @@ import { AppUser } from "@/types/user";
 import { UsersDataTable } from "./UserDataTable";
 import DeleteUserButton from "./DeleteUserButton";
 import EditUserButton from "./EditUserButton";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function UsersGetTable() {
   const [user, setUser] = useState<AppUser[]>([]);
@@ -102,10 +103,7 @@ export function UsersGetTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="py-10 text-center text-gray-500">
-          <FaSpinner className="mx-auto mb-2 animate-spin" size={24} />
-          <p className="text-lg">Carregando Usuários...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <UsersDataTable columns={columns} data={user} />
       )}

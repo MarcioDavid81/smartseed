@@ -11,7 +11,8 @@ import {
   PiFarm 
 } from "react-icons/pi";
 import { 
-  DollarSign, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch, ChartNoAxesCombined, BanknoteArrowUp, BanknoteArrowDown, Home, Building2, User 
+  DollarSign, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch, ChartNoAxesCombined, BanknoteArrowUp, BanknoteArrowDown, Home, Building2, User, 
+  MapIcon
 } from "lucide-react";
 import { TbTransferIn } from "react-icons/tb";
 import Image from "next/image";
@@ -58,6 +59,7 @@ export const routes = [
       { name: "Transportadores", path: "/agricultura/transportadores", icon: <FaTruck size={16} /> },
       { name: "Depósitos", path: "/agricultura/depositos", icon: <Home size={16} /> },
       { name: "Estoque", path: "/agricultura/estoque", icon: <Warehouse size={16} /> },
+      { name: "Talhões", path: "/agricultura/talhoes", icon: <MapIcon size={16} /> },
       { name: "Safras", path: "/agricultura/safras", icon: <ChartNoAxesCombined size={16} /> },
     ],
   },

@@ -11,6 +11,7 @@ import { ArrowUpDown, SquarePenIcon, Trash2Icon, RefreshCw } from "lucide-react"
 import { useEffect, useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { InsumosDataTable } from "./InsumosDataTable";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function InsumosStockTable() {
   const [products, setProducts] = useState<ProductStock[]>([]);
@@ -128,10 +129,7 @@ export function InsumosStockTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="py-10 text-center text-gray-500">
-          <FaSpinner className="mx-auto mb-2 animate-spin" size={24} />
-          <p className="text-lg">Carregando Estoque...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <InsumosDataTable columns={columns} data={insumos} />
       )}

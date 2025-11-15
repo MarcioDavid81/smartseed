@@ -11,6 +11,7 @@ import { FaSpinner } from "react-icons/fa";
 import DeleteTransferButton from "./DeleteTransferButton";
 import { TransferDataTable } from "./TransferDataTable";
 import UpsertTransferButton from "./UpsertTransferButton";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function ListTransferTable() {
   const [transferencias, setTransferencias] = useState<Transfer[]>([]);
@@ -131,10 +132,7 @@ export function ListTransferTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="py-10 text-center text-gray-500">
-          <FaSpinner className="mx-auto mb-2 animate-spin" size={24} />
-          <p className="text-lg">Carregando transferências...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <TransferDataTable columns={columns} data={transferencias} />
       )}

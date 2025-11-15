@@ -12,6 +12,7 @@ import EditIndustryDepositButton from "./EditDepositButton";
 import DeleteIndustryDepositButton from "./DeleteDepositButton";
 import { IndustryDepositDataTable } from "./DepositDataTable";
 import { formatNumber } from "@/app/_helpers/currency";
+import { AgroLoader } from "@/components/agro-loader";
 
 type FlattenedDeposit = {
   id: string;
@@ -142,10 +143,7 @@ export function IndustryDepositGetTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="py-10 text-center text-gray-500">
-          <FaSpinner className="mx-auto mb-2 animate-spin" size={24} />
-          <p className="text-lg">Carregando Depósitos...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <IndustryDepositDataTable columns={columns} data={flattenedDeposits} />
       )}

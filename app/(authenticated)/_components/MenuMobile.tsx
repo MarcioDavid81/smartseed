@@ -59,6 +59,7 @@ const routes = [
       { path: "/agricultura/transportadores", name: "Transportadores" },
       { path: "/agricultura/depositos", name: "Depósitos" },
       { path: "/agricultura/estoque", name: "Estoque" },
+      { path: "/agricultura/talhoes", name: "Talhões" },
       { path: "/agricultura/safras", name: "Safras" },
     ],
   },

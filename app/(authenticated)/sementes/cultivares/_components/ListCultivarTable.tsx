@@ -12,6 +12,7 @@ import DeleteCultivarButton from "./DeleteCultivarButton";
 import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import { DataTable } from "@/components/ui/data-table";
 import { getToken } from "@/lib/auth-client";
+import { AgroLoader } from "@/components/agro-loader";
 
 
 export function ListCultivarTable() {
@@ -82,10 +83,7 @@ export function ListCultivarTable() {
         <h2 className="font-light">Cultivares Cadastrados</h2>
       </div>
       {loading ? (
-        <div className="text-center py-10 text-gray-500">
-          <FaSpinner className="animate-spin mx-auto mb-2" size={24} />
-          <p className="text-lg">Carregando Cultivares...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <DataTable columns={columns} data={products} />
       )}

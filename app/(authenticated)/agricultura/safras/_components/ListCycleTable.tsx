@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import DetailCycleButton from "./DetailCycleButton";
 import EditCycleButton from "./EditCycleButton";
 import DeleteCycleButton from "./DeleteCycleButton";
+import { AgroLoader } from "@/components/agro-loader";
 
 export function CycleGetTable() {
   const [cycle, setCycle] = useState<Cycle[]>([]);
@@ -111,10 +112,7 @@ export function CycleGetTable() {
         </Button>
       </div>
       {loading ? (
-        <div className="py-10 text-center text-gray-500">
-          <FaSpinner className="mx-auto mb-2 animate-spin" size={24} />
-          <p className="text-lg">Carregando Safras...</p>
-        </div>
+        <AgroLoader />
       ) : (
         <CycleDataTable columns={columns} data={cycle} />
       )}
