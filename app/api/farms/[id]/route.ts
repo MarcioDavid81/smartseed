@@ -1,6 +1,31 @@
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+
+/**
+ * @swagger
+ * /api/farms/{id}:
+ *   put:
+ *     summary: Atualizar fazenda
+ *     tags:
+ *       - Fazenda
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               area:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Fazenda atualizada com sucesso
+ */
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { name, area } = await req.json();
@@ -18,6 +43,32 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
+/**
+ * @swagger
+ * /api/farms/{id}:
+ *   delete:
+ *     summary: Deletar uma fazenda
+ *     tags:
+ *       - Fazenda
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da fazenda
+ *     responses:
+ *       200:
+ *         description: Fazenda deletada com sucesso
+ *       401:
+ *         description: Token ausente ou inválido
+ *       403:
+ *         description: Fazenda não pertence à empresa do usuário
+ *       500:
+ *         description: Erro interno no servidor
+ */
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
