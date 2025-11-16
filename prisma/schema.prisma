@@ -42,6 +42,7 @@ model Company {
   industryStocks     IndustryStock[]
   industryTransfers  IndustryTransfer[]
   industrySales      IndustrySale[]
+  stockAdjustments   SeedStockAdjustment[]
   createdAt          DateTime              @default(now())
 }
 
@@ -126,6 +127,12 @@ enum OperationType {
   Plantio
 }
 
+//enums para ajustes
+enum AdjustmentType {
+  Increase
+  Decrease
+}
+
 //talhões
 model Talhao {
   id               String            @id @default(cuid())
@@ -161,6 +168,7 @@ model Cultivar {
   beneficiations   Beneficiation[]
   consumptionsExit ConsumptionExit[]
   saleExit         SaleExit[]
+  stockAdjustments SeedStockAdjustment[]
   stock            Float             @default(0)
   status           CultivarStatus    @default(BENEFICIANDO)
   createdAt        DateTime          @default(now())
@@ -265,6 +273,20 @@ model SaleExit {
   dueDate           DateTime? // só se for a prazo
   accountReceivable AccountReceivable?
   createdAt         DateTime           @default(now())
+}
+
+//ajuste de estoque
+model SeedStockAdjustment {
+  id         String         @id @default(cuid())
+  date       DateTime
+  type       AdjustmentType
+  quantityKg Float
+  cultivarId String
+  cultivar   Cultivar       @relation(fields: [cultivarId], references: [id])
+  companyId  String
+  company    Company        @relation(fields: [companyId], references: [id])
+  notes      String?
+  createdAt  DateTime       @default(now())
 }
 
 //safras/ciclos

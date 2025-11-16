@@ -132,7 +132,7 @@ export async function GET(req: NextRequest) {
     const plots = await db.talhao.findMany({
       where: { companyId },
       include: { farm: { select: { id: true, name: true } } },
-      orderBy: { name: "desc" },
+      orderBy: { name: "asc" },
     });
 
     return NextResponse.json(plots, { status: 200 });
