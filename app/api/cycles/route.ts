@@ -162,6 +162,12 @@ export async function GET(req: NextRequest) {
                 id: true,
                 name: true,
                 area: true,
+                farm: {
+                  select: {
+                    id: true,
+                    name: true,
+                  }
+                }
               }
             },
           },

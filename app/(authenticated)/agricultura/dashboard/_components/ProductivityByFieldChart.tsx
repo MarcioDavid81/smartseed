@@ -1,5 +1,6 @@
 "use client"
 
+import { formatNumber } from "@/app/_helpers/currency";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import {
   BarChart,
@@ -12,7 +13,40 @@ import {
   LabelList,
 } from "recharts"
 
-export function ProductivityByFieldChart({ fieldReports }: { fieldReports: any[] }) {
+type FieldReport = {
+  talhaoName: string;
+  productivityScHa: number;
+  areaHa: number;
+  totalKg: number;
+  totalSc: number;
+};
+
+function CustomTooltip({ active, payload }: any) {
+  if (!active || !payload?.length) return null;
+
+  const item = payload[0].payload as FieldReport;
+
+  return (
+    <div
+      className="bg-white p-3 rounded-xl shadow-md border border-gray-200 text-xs tracking-tight space-y-1"
+    >
+      <div className="font-semibold text-gray-800">{item.talhaoName}</div>
+
+      <div className="text-gray-700">
+        <strong>Total colhido:</strong> {formatNumber(item.totalSc)} sc
+      </div>
+      <div className="text-gray-700">
+        <strong>Área:</strong> {formatNumber(item.areaHa)} ha
+      </div>
+      <div className="text-gray-700">
+        <strong>Produtividade:</strong> {formatNumber(item.productivityScHa)} sc/ha
+      </div>
+
+    </div>
+  );
+}
+
+export function ProductivityByFieldChart({ fieldReports }: { fieldReports: FieldReport[] }) {
   return (
     <Card className="rounded-2xl shadow-sm border bg-gradient-to-br from-white to-neutral-50">
       <CardHeader>
@@ -23,12 +57,7 @@ export function ProductivityByFieldChart({ fieldReports }: { fieldReports: any[]
 
       <CardContent>
         <ResponsiveContainer width="100%" height={320}>
-          <BarChart
-            data={fieldReports}
-            className="font-light text-xs"
-
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <BarChart data={fieldReports} className="font-light text-xs">
 
             <XAxis
               dataKey="talhaoName"
@@ -44,12 +73,7 @@ export function ProductivityByFieldChart({ fieldReports }: { fieldReports: any[]
             />
 
             <Tooltip
-              formatter={(value) => `${(value as number).toFixed(2)} sc/ha`}
-              contentStyle={{
-                borderRadius: "10px",
-                border: "1px solid #e5e7eb",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-              }}
+              content={<CustomTooltip />}
             />
 
             <Bar
@@ -57,16 +81,15 @@ export function ProductivityByFieldChart({ fieldReports }: { fieldReports: any[]
               name="Produtividade"
               radius={[10, 10, 0, 0]}
               fill="url(#premiumGradient)"
-            >
-            </Bar>
+            />
 
-            {/* Gradiente Premium */}
             <defs>
               <linearGradient id="premiumGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#79D82F" />
                 <stop offset="100%" stopColor="#4C8A1F" />
               </linearGradient>
             </defs>
+
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

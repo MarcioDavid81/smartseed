@@ -24,7 +24,7 @@ export function SummaryCards({ summary }: { summary: Summary }) {
       title: "Área Cultivada",
       value: `${summary.totalAreaHa.toLocaleString("pt-BR")} ha`,
       icon: Ruler,
-      sub: "Área total declarada no ciclo",
+      sub: "Área com colheita iniciada",
     },
     {
       title: "Produtividade Média",
