@@ -60,19 +60,17 @@ export function ListHarvestTable() {
       cell: ({ row: { original } }) => new Date(original.date).toLocaleDateString("pt-BR"),
     },
     {
-      accessorKey: "document",
-      header: "Documento",
-      accessorFn: (row) => row.document,
-      cell: ({ row: { original } }) => original.document,
-    },
-    {
-      accessorKey: "talhao",
+      id: "talhao",
       header: "Talhão",
+      accessorFn: (row) => row.talhao?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row: { original } }) => original.talhao.name,
     },
     {
-      accessorKey: "farm",
+      id: "farm",
       header: () => <div className="text-left">Fazenda</div>,
+      accessorFn: (row) => row.talhao?.farm?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row: { original } }) => <div className="text-left">{original.talhao.farm.name}</div>,
     },
     {
@@ -128,7 +126,7 @@ export function ListHarvestTable() {
       {loading ? (
         <AgroLoader />
       ) : (
-        <HarvestDataTable columns={columns} data={harvests} />
+        <HarvestDataTable columns={columns} data={harvests} sumColumnId="weightLiq" />
       )}
     </Card>
   );
