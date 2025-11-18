@@ -60,11 +60,9 @@ export function ListHarvestTable() {
       cell: ({ row: { original } }) => new Date(original.date).toLocaleDateString("pt-BR"),
     },
     {
-      id: "talhao",
-      header: "Talhão",
-      accessorFn: (row) => row.talhao?.name ?? "",
-      filterFn: "includesString",
-      cell: ({ row: { original } }) => original.talhao.name,
+      accessorKey: "document",
+      header: "Documento",
+      cell: ({ row: { original } }) => original.document,
     },
     {
       id: "farm",
@@ -72,6 +70,13 @@ export function ListHarvestTable() {
       accessorFn: (row) => row.talhao?.farm?.name ?? "",
       filterFn: "includesString",
       cell: ({ row: { original } }) => <div className="text-left">{original.talhao.farm.name}</div>,
+    },
+    {
+      id: "talhao",
+      header: "Talhão",
+      accessorFn: (row) => row.talhao?.name ?? "",
+      filterFn: "includesString",
+      cell: ({ row: { original } }) => original.talhao.name,
     },
     {
       accessorKey: "industryTransporter",
@@ -84,6 +89,13 @@ export function ListHarvestTable() {
           </div>
         );
       },
+    },
+    {
+      id: "industryDeposit",
+      header: () => <div className="text-left">Depósito</div>,
+      accessorFn: (row) => row.industryDeposit?.name ?? "",
+      filterFn: "includesString",
+      cell: ({ row: { original } }) => <div className="text-left">{original.industryDeposit.name}</div>,
     },
     {
       accessorKey: "weightLiq",

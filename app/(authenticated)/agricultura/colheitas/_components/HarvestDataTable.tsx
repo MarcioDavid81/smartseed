@@ -86,14 +86,6 @@ export function HarvestDataTable<TData, TValue>({
       <div className="flex items-center justify-between py-4">
         <div className="flex items-center justify-between gap-4">
           <Input
-            placeholder="Procure por talhão"
-            value={(table.getColumn("talhao")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("talhao")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm bg-gray-50 text-primary"
-          />
-          <Input
             placeholder="Procure por fazenda"
             value={(table.getColumn("farm")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
@@ -101,6 +93,22 @@ export function HarvestDataTable<TData, TValue>({
             }
             className="max-w-sm bg-gray-50 text-primary"
           />
+          <Input
+            placeholder="Procure por talhão"
+            value={(table.getColumn("talhao")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("talhao")?.setFilterValue(event.target.value)
+            }
+              className="max-w-sm bg-gray-50 text-primary"
+            />
+          <Input
+            placeholder="Procure por depósito"
+            value={(table.getColumn("industryDeposit")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("industryDeposit")?.setFilterValue(event.target.value)
+            }
+              className="max-w-sm bg-gray-50 text-primary"
+            />
         </div>
         <CreateHarvestButton />
       </div>
