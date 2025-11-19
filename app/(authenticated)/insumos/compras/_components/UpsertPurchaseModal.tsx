@@ -25,7 +25,7 @@ import { Purchase } from "@/types/purchase";
 import { Customer } from "@/types/customers";
 import { Farm } from "@/types/farm";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { format, setDate } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface UpsertPurchaseModalProps {
   compra?: Purchase;
@@ -50,7 +51,7 @@ interface UpsertPurchaseModalProps {
 }
 
 const purchaseSchema = z.object({
-  date: z.string().min(1, "Selecione uma data"),
+  date: z.date(),
   customerId: z.string().min(1, "Selecione um cliente"),
   productId: z.string().min(1, "Selecione um produto"),
   invoiceNumber: z.string().min(1, "Informe a nota fiscal"),
@@ -59,7 +60,7 @@ const purchaseSchema = z.object({
   farmId: z.string().min(1, "Selecione uma fazenda"),
   notes: z.string(),
   paymentCondition: z.nativeEnum(PaymentCondition),
-  dueDate: z.string().min(1, "Selecione uma data de vencimento"),
+  dueDate: z.date().optional(),
 });
 
 type PurchaseFormData = z.infer<typeof purchaseSchema>;
@@ -79,9 +80,7 @@ const UpsertPurchaseModal = ({
   const form = useForm<PurchaseFormData>({
     resolver: zodResolver(purchaseSchema),
     defaultValues: {
-      date: compra
-        ? new Date(compra.date).toISOString().split("T")[0]
-        : format(new Date(), "yyyy-MM-dd"),
+      date: compra?.date ? new Date(compra.date) : new Date(),
       customerId: compra?.customerId ?? "",
       productId: compra?.productId ?? "",
       invoiceNumber: compra?.invoiceNumber ?? "",
@@ -90,9 +89,7 @@ const UpsertPurchaseModal = ({
       farmId: compra?.farmId ?? "",
       notes: compra?.notes ?? "",
       paymentCondition: compra?.paymentCondition ?? PaymentCondition.AVISTA,
-      dueDate: compra?.dueDate
-        ? new Date(compra.dueDate).toISOString().split("T")[0]
-        : "",
+      dueDate: compra?.dueDate ? new Date(compra.dueDate) : undefined,
     },
   });
 
@@ -111,7 +108,7 @@ const UpsertPurchaseModal = ({
   useEffect(() => {
     if (compra) {
       form.reset({
-        date: new Date(compra.date).toISOString().split("T")[0],
+        date: compra?.date ? new Date(compra.date) : new Date(),
         customerId: compra.customerId,
         productId: compra.productId,
         invoiceNumber: compra.invoiceNumber,
@@ -120,9 +117,7 @@ const UpsertPurchaseModal = ({
         farmId: compra.farmId,
         notes: compra.notes || "",
         paymentCondition: compra.paymentCondition ?? PaymentCondition.AVISTA,
-        dueDate: compra.dueDate
-          ? new Date(compra.dueDate).toISOString().split("T")[0]
-          : "",
+        dueDate: compra?.dueDate ? new Date(compra.dueDate) : undefined,
       });
     } else {
       form.reset();
@@ -210,7 +205,7 @@ const UpsertPurchaseModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Compra</DialogTitle>
           <DialogDescription>
@@ -280,7 +275,7 @@ const UpsertPurchaseModal = ({
                     <FormItem>
                       <FormLabel>Data</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DatePicker value={field.value} onChange={field.onChange} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -377,33 +372,49 @@ const UpsertPurchaseModal = ({
                   </FormItem>
                 )}
               />
-
+              {/* Condição de Pagamento */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="paymentCondition">Condição de Pagamento</Label>
-                  <Select
-                    onValueChange={(value: PaymentCondition) =>
-                      form.setValue("paymentCondition", value)
-                    }
-                    defaultValue={form.getValues("paymentCondition")}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a condição" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={PaymentCondition.AVISTA}>À Vista</SelectItem>
-                      <SelectItem value={PaymentCondition.APRAZO}>À Prazo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <FormField
+                  control={form.control}
+                  name="paymentCondition"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Condição de Pagamento</FormLabel>
+                      <Select
+                        onValueChange={(value: PaymentCondition) =>
+                          field.onChange(value)
+                        }
+                        defaultValue={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a condição" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={PaymentCondition.AVISTA}>À Vista</SelectItem>
+                          <SelectItem value={PaymentCondition.APRAZO}>À Prazo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                {/* Data de Vencimento */}
                 {paymentCondition === PaymentCondition.APRAZO && (
-                  <div>
-                    <Label htmlFor="installments">Data de Vencimento</Label>
-                    <Input
-                      type="date"
-                      {...form.register("dueDate")}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data de Vencimento</FormLabel>
+                        <FormControl>
+                          <DatePicker
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
               </div>
 

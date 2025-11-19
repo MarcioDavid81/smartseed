@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -37,7 +38,7 @@ interface UpsertTransferModalProps {
 }
 
 const transferenciaSchema = z.object({
-  date: z.string().min(1, "Selecione uma data"),
+  date: z.date(),
   productId: z.string().min(1, "Selecione um insumo"),
   quantity: z.coerce.number().min(1, "Quantidade é obrigatória"),
   originFarmId: z.string().min(1, "Selecione uma fazenda de origem"),
@@ -60,9 +61,7 @@ const UpsertTransferModal = ({
   const form = useForm<TransferFormData>({
     resolver: zodResolver(transferenciaSchema),
     defaultValues: {
-      date: transferencia
-        ? new Date(transferencia.date).toISOString().split("T")[0]
-        : format(new Date(), "yyyy-MM-dd"),
+      date: transferencia ? new Date(transferencia.date) : new Date(),
       productId: transferencia?.productId ?? "",
       quantity: transferencia?.quantity ?? 0,
       originFarmId: transferencia?.originFarmId ?? "",
@@ -78,9 +77,7 @@ const UpsertTransferModal = ({
   } = useForm<TransferFormData>({
     resolver: zodResolver(transferenciaSchema),
     defaultValues: {
-      date: transferencia
-        ? new Date(transferencia.date).toISOString().split("T")[0]
-        : "",
+      date: transferencia ? new Date(transferencia.date) : new Date(),
       productId: transferencia?.productId ?? "",
       quantity: transferencia?.quantity ?? 0,
       originFarmId: transferencia?.originFarmId ?? "",
@@ -91,7 +88,7 @@ const UpsertTransferModal = ({
   useEffect(() => {
     if (transferencia) {
       reset({
-        date: new Date(transferencia.date).toISOString().split("T")[0],
+        date: new Date(transferencia.date),
         productId: transferencia.productId,
         quantity: transferencia.quantity,
         originFarmId: transferencia.originFarmId,
@@ -274,7 +271,7 @@ const UpsertTransferModal = ({
                     <FormItem>
                       <FormLabel>Data</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DatePicker value={field.value} onChange={field.onChange} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

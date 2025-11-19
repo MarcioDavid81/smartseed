@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +43,7 @@ const aplicacaoSchema = z.object({
   productStockId: z.string().min(1, "Selecione um insumo"),
   quantity: z.coerce.number().min(1, "Quantidade é obrigatória"),
   talhaoId: z.string().min(1, "Selecione um talhão"),
-  date: z.string().min(1, "Selecione uma data"),
+  date: z.date(),
   notes: z.string(),
 });
 
@@ -65,9 +66,7 @@ const UpsertApplicationModal = ({
     defaultValues: {
       productStockId: aplicacao?.productStockId ?? "",
       talhaoId: aplicacao?.talhaoId ?? "",
-      date: aplicacao
-        ? new Date(aplicacao.date).toISOString().split("T")[0]
-        : format(new Date(), "yyyy-MM-dd"),
+      date: aplicacao ? new Date(aplicacao.date) : new Date(),
       quantity: aplicacao?.quantity ?? 0,
       notes: aplicacao?.notes ?? "",
     },
@@ -83,7 +82,7 @@ const UpsertApplicationModal = ({
     defaultValues: {
       productStockId: aplicacao?.productStockId ?? "",
       talhaoId: aplicacao?.talhaoId ?? "",
-      date: aplicacao ? new Date(aplicacao.date).toISOString().split("T")[0] : "",
+      date: aplicacao ? new Date(aplicacao.date) : new Date(),
       quantity: aplicacao?.quantity ?? 0,
       notes: aplicacao?.notes ?? "",
     },
@@ -94,7 +93,7 @@ const UpsertApplicationModal = ({
       reset({
         productStockId: aplicacao.productStockId,
         talhaoId: aplicacao.talhaoId,
-        date: new Date(aplicacao.date).toISOString().split("T")[0],
+        date: new Date(aplicacao.date),
         quantity: aplicacao.quantity,
         notes: aplicacao?.notes || "",
       });
@@ -263,7 +262,7 @@ const UpsertApplicationModal = ({
                     <FormItem>
                       <FormLabel>Data</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DatePicker value={field.value} onChange={field.onChange} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
