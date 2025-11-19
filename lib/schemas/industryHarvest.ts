@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const industryHarvestSchema = z.object({
-  date: z.string().min(1, "Data da colheita é obrigatória"),
+  date: z.coerce.date(),
   document: z.string().optional(),
   talhaoId: z.string().min(1, "Talhão da colheita é obrigatório"),
   industryDepositId: z

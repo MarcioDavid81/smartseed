@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -6,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCycle } from "@/contexts/CycleContext";
@@ -60,7 +61,7 @@ const UpsertHarvestModal = ({
   const form = useForm<IndustryHarvestFormData>({
     resolver: zodResolver(industryHarvestSchema),
     defaultValues: {
-      date: colheita ? new Date(colheita.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      date: colheita ? new Date(colheita.date) : new Date(),
       document: colheita?.document || "",
       talhaoId: colheita?.talhaoId || "",
       industryDepositId: colheita?.industryDepositId || "",
@@ -115,7 +116,7 @@ const UpsertHarvestModal = ({
   useEffect(() => {
     if (colheita) {
       form.reset({
-        date: new Date(colheita.date).toISOString().split("T")[0],
+        date: colheita.date ? new Date(colheita.date) : new Date(),
         document: colheita.document || "",
         talhaoId: colheita.talhaoId,
         industryDepositId: colheita.industryDepositId,
@@ -263,12 +264,34 @@ const UpsertHarvestModal = ({
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Data</Label>
-                <Input type="date" {...form.register("date")} />
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data</FormLabel>
+                      <FormControl>
+                        <DatePicker value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               <div>
-                <Label>Documento</Label>
-                <Input type="text" {...form.register("document")} />
+                <FormField
+                  control={form.control}
+                  name="document"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Documento</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
             <div className="grid grid-cols gap-4">
