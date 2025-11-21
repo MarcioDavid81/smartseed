@@ -13,13 +13,15 @@ import { SaleDataTable } from "./SaleDataTable";
 // import EditSaleButton from "./EditSaleButton";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { AgroLoader } from "@/components/agro-loader";
+import DeleteSaleButton from "./DeleteSaleButton";
+import EditSaleButton from "./EditSaleButton";
 
 export function ListSaleTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
   const [sales, setSales] = useState<IndustrySale[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function fetchHarvests() {
+  async function fetchSales() {
     if (!selectedCycle?.id) return;
 
     setLoading(true);
@@ -42,7 +44,7 @@ export function ListSaleTable() {
   }
 
   useEffect(() => {
-    fetchHarvests();
+    fetchSales();
   }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
 
   const columns: ColumnDef<IndustrySale>[] = [
@@ -102,10 +104,11 @@ export function ListSaleTable() {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
-        const colheita = row.original;
+        const venda = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            botão
+            <EditSaleButton venda={venda} onUpdated={fetchSales} />
+            <DeleteSaleButton venda={venda} onDeleted={fetchSales} />
           </div>
         );
       },
@@ -116,7 +119,7 @@ export function ListSaleTable() {
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Vendas</h2>
-        <Button variant={"ghost"} onClick={fetchHarvests} disabled={loading}>
+        <Button variant={"ghost"} onClick={fetchSales} disabled={loading}>
           <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>
