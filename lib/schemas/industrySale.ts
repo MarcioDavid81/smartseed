@@ -2,7 +2,7 @@ import { PaymentCondition } from "@prisma/client";
 import z from "zod";
 
 export const industrySaleSchema = z.object({
-  date: z.string().min(1, "Data da venda é obrigatória"),
+  date: z.coerce.date(),
   document: z.string().optional(),
   industryDepositId: z
     .string()
@@ -11,16 +11,16 @@ export const industrySaleSchema = z.object({
   industryTransporterId: z.string().optional(),
   truckPlate: z.string().optional(),
   truckDriver: z.string().optional(),
-  weightBt: z.number().min(1, "Peso bruto é obrigatório"),
-  weightTr: z.number().min(1, "Peso da tara é obrigatório"),
-  weightSubLiq: z.number().min(1, "Peso sub-líquido é obrigatório"),
-  discountsKg: z.number().min(1, "Desconto KG é obrigatório"),
-  weightLiq: z.number().min(1, "Peso líquido é obrigatório"),
-  unitPrice: z.number().min(1, "Preço unitário é obrigatório"),
-  totalPrice: z.number().min(1, "Preço total é obrigatório"),
+  weightBt: z.coerce.number().min(1, "Peso bruto é obrigatório"),
+  weightTr: z.coerce.number().min(1, "Peso da tara é obrigatório"),
+  weightSubLiq: z.coerce.number().min(1, "Peso sub-líquido é obrigatório"),
+  discountsKg: z.coerce.number().optional(),
+  weightLiq: z.coerce.number().min(1, "Peso líquido é obrigatório"),
+  unitPrice: z.coerce.number().min(1, "Preço unitário é obrigatório"),
+  totalPrice: z.coerce.number().min(1, "Preço total é obrigatório"),
   notes: z.string().optional(),
   paymentCondition: z.nativeEnum(PaymentCondition).optional(),
-  dueDate: z.string().optional(),
+  dueDate: z.coerce.date().optional(),
   cycleId: z.string().optional(),
 });
 

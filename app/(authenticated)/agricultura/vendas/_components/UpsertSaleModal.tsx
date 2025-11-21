@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -6,9 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useCycle } from "@/contexts/CycleContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
@@ -20,6 +23,7 @@ import {
   Customer
 } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PaymentCondition } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -45,18 +49,20 @@ const UpsertSaleModal = ({
   const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [subLiquid, setSubLiquid] = useState(0);
-  const [discountsKg, setDiscountsKg] = useState(0);
+  const [discounts, setDiscounts] = useState(0);
   const [liquid, setLiquid] = useState(0);
+  const [price, setPrice] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
   const { selectedCycle } = useCycle();
 
   const form = useForm<IndustrySaleFormData>({
     resolver: zodResolver(industrySaleSchema),
     defaultValues: {
-      date: venda ? new Date(venda.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      date: venda ? new Date(venda.date) : new Date(),
       document: venda?.document || "",
       industryDepositId: venda?.industryDepositId || "",
       customerId: venda?.customerId || "",
-      industryTransporterId: venda?.industryTransporterId || "",
+      industryTransporterId: venda?.industryTransporterId ?? undefined,
       truckPlate: venda?.truckPlate || "",
       truckDriver: venda?.truckDriver || "",
       weightBt: venda?.weightBt || 0,
@@ -67,32 +73,32 @@ const UpsertSaleModal = ({
       unitPrice: venda?.unitPrice || 0,
       totalPrice: venda?.totalPrice || 0,
       notes: venda?.notes || "",
-      paymentCondition: venda?.paymentCondition || "APRAZO",
-      dueDate: venda ? new Date(venda.dueDate || "").toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      paymentCondition: venda?.paymentCondition || PaymentCondition.AVISTA,
+      dueDate: venda?.dueDate ? new Date(venda.dueDate) : undefined,
     },
   });
 
+  // Cálculos automáticos para manter consistência com o schema e envio
   const weightBt = Number(form.watch("weightBt") ?? 0);
   const weightTr = Number(form.watch("weightTr") ?? 0);
-  const discountKg = Number(form.watch("discountsKg") ?? 0);
+  const discountsKg = Number(form.watch("discountsKg") ?? 0);
+  const unitPrice = Number(form.watch("unitPrice") ?? 0);
 
   useEffect(() => {
-    // 1. Sub-líquido
-    const subLiq = weightBt - weightTr;
-
-    // 2. Peso líquido
-    const weightLiq = subLiq - discountKg;
     
-    // Atualiza estados finais
-    setSubLiquid(subLiq);
-    setDiscountsKg(discountsKg);
-    setLiquid(weightLiq);
-  }, [weightBt, weightTr, discountsKg]);
+    const subLiq = weightBt - weightTr;
+    const liq = subLiq - discountsKg;
+    const total = liq * unitPrice;
+
+    form.setValue("weightSubLiq", Number.isFinite(subLiq) ? parseFloat(subLiq.toFixed(2)) : 0);
+    form.setValue("weightLiq", Number.isFinite(liq) ? parseFloat(liq.toFixed(2)) : 0);
+    form.setValue("totalPrice", Number.isFinite(total) ? parseFloat(total.toFixed(2)) : 0);
+  }, [weightBt, weightTr, discountsKg, unitPrice, form]);
 
   useEffect(() => {
     if (venda) {
       form.reset({
-        date: new Date(venda.date).toISOString().split("T")[0],
+        date: new Date(venda.date),
         document: venda.document || "",
         industryDepositId: venda.industryDepositId,
         customerId: venda.customerId,
@@ -107,8 +113,8 @@ const UpsertSaleModal = ({
         unitPrice: venda.unitPrice,
         totalPrice: venda.totalPrice,
         notes: venda.notes || "",
-        paymentCondition: venda.paymentCondition,
-        dueDate: venda.dueDate ? new Date(venda.dueDate).toISOString().split("T")[0] : "",
+        paymentCondition: venda.paymentCondition ?? PaymentCondition.AVISTA,
+        dueDate: venda.dueDate ? new Date(venda.dueDate) : undefined,
       });
     } else {
       form.reset();
@@ -209,9 +215,11 @@ const UpsertSaleModal = ({
     if (!isOpen) form.reset();
   }, [isOpen, form]);
 
+  const paymentCondition = form.watch("paymentCondition");
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[700px] h-[90%] overflow-y-scroll">
         <DialogHeader>
           <DialogTitle>Venda</DialogTitle>
           <DialogDescription>
@@ -220,194 +228,323 @@ const UpsertSaleModal = ({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Data</Label>
-                <Input type="date" {...form.register("date")} />
+            <div className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data</FormLabel>
+                        <FormControl>
+                          <DatePicker value={field.value} onChange={field.onChange} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div>
+                  <FormField
+                    control={form.control}
+                    name="document"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Documento</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-              <div>
-                <Label>Documento</Label>
-                <Input type="text" {...form.register("document")} />
-              </div>
-            </div>
-            <div className="grid grid-cols gap-4">
-              <div>
-                <Label>Cliente</Label>
-                {customers.length > 0 ? (
-                  <select
-                    {...form.register("customerId")}
-                    className="w-full border rounded px-2 py-1"
-                  >
-                    <option value="" className="font-light">Selecione</option>
-                      {customers.map((c) => (
-                        <option key={c.id} value={c.id}  className="font-light">
-                          <span>{c.name} </span>
-                        </option>
-                      ))}
-                        </select>
-                      ) : (
-                        <div className="text-xs flex items-center justify-start space-x-4">
-                          <p>Nenhum talhão vinculado ao ciclo.</p>  
-                          <Link href="/agricultura/safras">
-                            <span className="text-green text-xs">
-                              Cadastre um talhão ou vincule um talhão existente ao ciclo.
-                            </span>
-                          </Link>
-                        </div>
-                      )}
-                    {form.formState.errors.customerId && (
-                      <span className="text-xs text-red-500">
-                        {form.formState.errors.customerId.message}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Depósito</Label>
-                <select
-                  {...form.register("industryDepositId")}
-                  className="w-full border rounded px-2 py-1"
-                >
-                  <option value="" className=" text-md font-light">Selecione</option>
-                  {deposits.map((d) => (
-                    <option key={d.id} value={d.id} className="font-light">
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
-                {form.formState.errors.industryDepositId && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.industryDepositId.message}
-                  </span>
-                )}
-              </div>
-              <div>
-                <Label>Transportador</Label>
-                <select
-                  {...form.register("industryTransporterId")}
-                  className="w-full border rounded px-2 py-1"
-                >
-                  <option value=""  className="font-light">Selecione</option>
-                  {transporters.map((t) => (
-                    <option key={t.id} value={t.id}  className="font-light">
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-                {form.formState.errors.industryTransporterId && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.industryTransporterId.message}
-                  </span>
-                )}
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Placa</Label>
-                <Input type="text" {...form.register("truckPlate")} />
-              </div>
-              <div>
-                <Label>Motorista</Label>
-                <Input type="text" {...form.register("truckDriver")} />
-                {form.formState.errors.truckDriver && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.truckDriver.message}
-                  </span>
+              {/* Cliente */}
+              <FormField
+                control={form.control}
+                name="customerId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cliente</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {customers.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{c.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
-            </div>
-            {/* peso */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Peso Bruto (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("weightBt", { valueAsNumber: true })}
-                  step="0.01"
-                  placeholder="Ex: 1200"
-                />
-                {form.formState.errors.weightBt && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.weightBt.message}
-                  </span>
-                )}
-              </div>
-              <div>
-                <Label>Tara (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("weightTr", { valueAsNumber: true })}
-                  step="0.01"
-                  placeholder="Ex: 1200"
-                />
-                {form.formState.errors.weightTr && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.weightTr.message}
-                  </span>
-                )}
-              </div>
-              <div>
-                <Label>Sub Líquido (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("weightSubLiq", { valueAsNumber: true })}
-                  value={Number(subLiquid).toFixed(2)}
-                  readOnly
-                />
-                {form.formState.errors.weightSubLiq && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.weightSubLiq.message}
-                  </span>
-                )}
-              </div>
-            </div>
-            {/* CLASSIFICAÇÃO */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Desconto (kg)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...form.register("discountsKg", { valueAsNumber: true })}
-                  placeholder="Ex: 14.5"
-                />
-                {form.formState.errors.discountsKg && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.discountsKg.message}
-                  </span>
-                )}
-              </div>
-            </div>
+              />
 
-            {/* peso líquido */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Peso Líquido (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("weightLiq", { valueAsNumber: true })}
-                  value={Number(liquid).toFixed(2)}
-                  readOnly
+              {/* Depósito e Transportador */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="industryDepositId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Depósito</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {deposits.map((d) => (
+                              <SelectItem key={d.id} value={d.id}>
+                                {d.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                {form.formState.errors.weightLiq && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.weightLiq.message}
-                  </span>
+                <FormField
+                  control={form.control}
+                  name="industryTransporterId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Transportador</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={(v) => field.onChange(v === "none" ? undefined : v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum</SelectItem>
+                            {transporters.map((t) => (
+                              <SelectItem key={t.id} value={t.id}>
+                                {t.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Veículo */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="truckPlate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Placa</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="truckDriver"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Motorista</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Pesos */}
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="weightBt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Peso Bruto (kg)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="weightTr"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tara (kg)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="weightSubLiq"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sub Líquido (kg)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" readOnly {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="discountsKg"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Desconto (kg)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="weightLiq"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Peso Líquido (kg)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" readOnly {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Preços (remove value={Number(totalPrice).toFixed(2)}) */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="unitPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço Unitário (R$)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="totalPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço Total (R$)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" readOnly {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Condição de Pagamento (FormField + condicional APRAZO) */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="paymentCondition"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Condição de Pagamento</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value ?? PaymentCondition.AVISTA}
+                          onValueChange={(v) => field.onChange(v as PaymentCondition)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a condição" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={PaymentCondition.AVISTA}>À Vista</SelectItem>
+                            <SelectItem value={PaymentCondition.APRAZO}>À Prazo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {form.watch("paymentCondition") === PaymentCondition.APRAZO && (
+                  <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data de Vencimento</FormLabel>
+                        <FormControl>
+                          <DatePicker value={field.value} onChange={field.onChange} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
               </div>
+
+              {/* Observações */}
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observações</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Opcional" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-green text-white mt-4"
+              >
+                {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+              </Button>
             </div>
-          </div>
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green text-white mt-4"
-          >
-            {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
-          </Button>
-        </form>
+          </form>
         </Form>
       </DialogContent>
     </Dialog>
