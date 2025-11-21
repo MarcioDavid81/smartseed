@@ -105,9 +105,8 @@ export default function DashboardContent() {
     <div className="space-y-8 animate-fade-in">
       <SummaryCards summary={data.summary} />
       {data.fieldReports.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           <ProductivityByFieldChart fieldReports={data.fieldReports} />
-          <ParticipationChart fieldReports={data.fieldReports} />
         </div>
       ) : (
         <div className="text-center text-muted-foreground font-light h-40 flex items-center justify-center">

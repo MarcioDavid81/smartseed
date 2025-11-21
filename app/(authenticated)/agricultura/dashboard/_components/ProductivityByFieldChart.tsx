@@ -48,12 +48,10 @@ export function ProductivityByFieldChart({
 }: {
   fieldReports: FieldReport[];
 }) {
-  // largura mínima por talhão → evita esmagar barras
-  const MIN_WIDTH_PER_FIELD = 80;
-  const chartWidth = Math.max(
-    fieldReports.length * MIN_WIDTH_PER_FIELD,
-    600 // largura mínima para não ficar pequeno demais
-  );
+
+const sortedReports = [...fieldReports].sort((a, b) =>
+  a.talhaoName.localeCompare(b.talhaoName)
+);
 
   return (
     <Card className="rounded-2xl shadow-sm border bg-gradient-to-br from-white to-neutral-50">
@@ -64,14 +62,12 @@ export function ProductivityByFieldChart({
       </CardHeader>
 
       <CardContent>
-        {/* Scroll horizontal inteligente */}
-        <div className="w-full overflow-x-auto">
           
           {/* Wrapper com largura dinâmica */}
-          <div style={{ width: chartWidth }}>
+          <div className="w-full">
             
             <ResponsiveContainer width="100%" height={330}>
-              <ComposedChart data={fieldReports} className="font-light text-xs">
+              <ComposedChart data={sortedReports} className="font-light text-xs">
                 
                 <XAxis
                   dataKey="talhaoName"
@@ -105,8 +101,8 @@ export function ProductivityByFieldChart({
                   yAxisId="left"
                   name="Área (ha)"
                   fill="url(#areaGradient)"
+                  maxBarSize={40}
                   radius={[8, 8, 0, 0]}
-                  maxBarSize={24} // ADAPTA AUTOMATICAMENTE
                 />
 
                 {/* Linha (produtividade média) */}
@@ -136,7 +132,6 @@ export function ProductivityByFieldChart({
               </ComposedChart>
             </ResponsiveContainer>
           </div>
-        </div>
       </CardContent>
     </Card>
   );
