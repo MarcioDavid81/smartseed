@@ -20,7 +20,6 @@ import { formatNumber } from "@/app/_helpers/currency";
 export default function GenerateSaleReportModal() {
   const { sales } = useIndustrySale();
   const [produto, setProduto] = useState<string | null>(null);
-  const [deposito, setDeposito] = useState<string | null>(null);
   const [customer, setCustomer] = useState<string | null>(null);
   const [transportador, setTransportador] = useState<string | null>(null);
   const { user } = useUser();
@@ -30,22 +29,18 @@ export default function GenerateSaleReportModal() {
   const produtosUnicos = Array.from(
     new Set(sales.map((h) => h.product)),
   );
-  const depositosUnicos = Array.from(
-    new Set(sales.map((h) => h.industryDeposit?.name || "")),
-  );
   const transportadoresUnicos = Array.from(
     new Set(sales.map((h) => h.industryTransporter?.name || "")),
   );
   const customersUnicos = Array.from(
-    new Set(sales.map((h) => h.customer?.name || "")),
+    new Set(sales.map((h) => h.customer.name)),
   );
 
   const filtered = sales.filter((h) => {
     const matchProduto = !produto || h.product === produto;
-    const matchDeposito = !deposito || h.industryDeposit.name === deposito;
     const matchTransportador = !transportador || h.industryTransporter?.name === transportador;
-    const matchCustomer = !customer || h.customer?.name === customer;
-    return matchProduto && matchDeposito && matchTransportador && matchCustomer;
+    const matchCustomer = !customer || h.customer.name === customer;
+    return matchProduto && matchTransportador && matchCustomer;
   });
 
   const generatePDF = () => {
@@ -96,19 +91,17 @@ export default function GenerateSaleReportModal() {
       doc.setFontSize(10);
       doc.text(`Produto: ${produto || "Todos"}`, 14, 35);
       doc.text(`Cliente: ${customer || "Todos"}`, 14, 40);
-      doc.text(`Depósito: ${deposito || "Todos"}`, 14, 45);
-      doc.text(`Transportador: ${transportador || "Todos"}`, 14, 50);
+      doc.text(`Transportador: ${transportador || "Todos"}`, 14, 45);
 
 
 
       autoTable(doc, {
         startY: 55,
-        head: [["Data", "Documento", "Cliente", "Depósito", "Peso Bruto (kg)", "Desconto (kg)", "Peso Líquido (kg)"]],
+        head: [["Data", "Documento", "Cliente", "Peso Bruto (kg)", "Desconto (kg)", "Peso Líquido (kg)"]],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
           h.document || "N/A",
           h.customer?.name || "N/A",
-          h.industryDeposit.name,
           formatNumber(Number(h.weightSubLiq)),
           formatNumber(Number(h.discountsKg)),
           formatNumber(Number(h.weightLiq)),
@@ -206,7 +199,6 @@ export default function GenerateSaleReportModal() {
       const fileName = `Relatorio de Vendas - ${fileNumber}.pdf`;
       doc.save(fileName);
       setProduto(null);
-      setDeposito(null);
       setTransportador(null);
       setCustomer(null);
       setLoading(false);
@@ -263,27 +255,6 @@ export default function GenerateSaleReportModal() {
               {customersUnicos.map((c) => (
                 <SelectItem key={c} value={c}>
                   {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Depósito</label>
-          <Select
-            value={deposito ?? ""}
-            onValueChange={(value) =>
-              setDeposito(value === "todos" ? null : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {depositosUnicos.map((d) => (
-                <SelectItem key={d} value={d}>
-                  {d}
                 </SelectItem>
               ))}
             </SelectContent>
