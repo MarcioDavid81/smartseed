@@ -150,15 +150,16 @@ export async function DELETE(
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) {
-      return NextResponse.json({
-        error: {
-          code: "TOKEN_MISSING",
-          title: "Autenticação necessária",
-          message: "Token ausente.",
-        }
-      },
-      { status: 401 },
-    );
+      return NextResponse.json(
+        {
+          error: {
+            code: "TOKEN_MISSING",
+            title: "Autenticação necessária",
+            message: "Token ausente.",
+          },
+        },
+        { status: 401 },
+      );
     }
 
     const payload = await verifyToken(token);
@@ -206,13 +207,25 @@ export async function DELETE(
       },
     });
 
+    const currentQuantity = Number(stock?.quantity ?? 0);
+    const harvestWeight = Number(existing.weightLiq ?? 0);
+
+    // 🚫 2️⃣ Impedir estoque negativo
+    if (harvestWeight > currentQuantity) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "INSUFFICIENT_STOCK",
+            title: "Estoque insuficiente",
+            message: `A colheita possui ${harvestWeight} kg, e o estoque atual é de ${currentQuantity} kg. A exclusão deixaria o estoque negativo.`,
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    // 3️⃣ Recalcular o estoque
     if (stock) {
-      const currentQuantity = stock.quantity.toNumber();
-      const harvestWeight = existing.weightLiq?.toNumber() ?? 0;
-
-      // 2️⃣ Subtrair peso da colheita que será deletada
-      const newQuantity = Math.max(currentQuantity - harvestWeight, 0);
-
       await db.industryStock.update({
         where: {
           product_industryDepositId: {
@@ -220,14 +233,19 @@ export async function DELETE(
             industryDepositId: existing.industryDepositId,
           },
         },
-        data: { quantity: newQuantity },
+        data: {
+          quantity: currentQuantity - harvestWeight,
+        },
       });
     }
 
-    // 3️⃣ Excluir a colheita
+    // 4️⃣ Excluir a colheita
     await db.industryHarvest.delete({ where: { id } });
 
-    return NextResponse.json({ message: "Colheita removida com sucesso" }, { status: 200 });
+    return NextResponse.json(
+      { message: "Colheita removida com sucesso" },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Erro ao deletar colheita:", error);
     return NextResponse.json(
@@ -235,11 +253,12 @@ export async function DELETE(
         error: {
           code: "HARVEST_DELETE_ERROR",
           title: "Erro ao deletar colheita",
-          message: 
-          "Ocorreu um erro inesperado durante a tentativa de remover a colheita.",
-        }
+          message:
+            "Ocorreu um erro inesperado durante a tentativa de remover a colheita.",
+        },
       },
       { status: 500 },
     );
   }
 }
+
