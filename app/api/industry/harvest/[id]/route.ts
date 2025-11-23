@@ -149,36 +149,66 @@ export async function DELETE(
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
+    if (!token) {
+      return NextResponse.json({
+        error: {
+          code: "TOKEN_MISSING",
+          title: "Autenticação necessária",
+          message: "Token ausente.",
+        }
+      },
+      { status: 401 },
+    );
+    }
 
     const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    if (!payload) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "TOKEN_INVALID",
+            title: "Token inválido",
+            message: "Não foi possível validar suas credenciais.",
+          },
+        },
+        { status: 401 },
+      );
+    }
 
     const { id } = params;
+    const { companyId } = payload;
 
-    const harvest = await db.industryHarvest.findUnique({
+    const existing = await db.industryHarvest.findUnique({
       where: { id },
     });
 
-    if (!harvest || harvest.companyId !== payload.companyId) {
-      return new NextResponse("Colheita não encontrada ou acesso negado", {
-        status: 403,
-      });
+    if (!existing || existing.companyId !== companyId) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "HARVEST_NOT_FOUND",
+            title: "Colheita não encontrada",
+            message:
+              "A colheita não foi localizada ou você não tem permissão para acessá-la.",
+          },
+        },
+        { status: 403 },
+      );
     }
 
     // 1️⃣ Buscar estoque atual
     const stock = await db.industryStock.findUnique({
       where: {
         product_industryDepositId: {
-          product: harvest.product,
-          industryDepositId: harvest.industryDepositId,
+          product: existing.product,
+          industryDepositId: existing.industryDepositId,
         },
       },
     });
 
     if (stock) {
       const currentQuantity = stock.quantity.toNumber();
-      const harvestWeight = harvest.weightLiq?.toNumber() ?? 0;
+      const harvestWeight = existing.weightLiq?.toNumber() ?? 0;
 
       // 2️⃣ Subtrair peso da colheita que será deletada
       const newQuantity = Math.max(currentQuantity - harvestWeight, 0);
@@ -186,8 +216,8 @@ export async function DELETE(
       await db.industryStock.update({
         where: {
           product_industryDepositId: {
-            product: harvest.product,
-            industryDepositId: harvest.industryDepositId,
+            product: existing.product,
+            industryDepositId: existing.industryDepositId,
           },
         },
         data: { quantity: newQuantity },
@@ -200,6 +230,16 @@ export async function DELETE(
     return NextResponse.json({ message: "Colheita removida com sucesso" }, { status: 200 });
   } catch (error) {
     console.error("Erro ao deletar colheita:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: {
+          code: "HARVEST_DELETE_ERROR",
+          title: "Erro ao deletar colheita",
+          message: 
+          "Ocorreu um erro inesperado durante a tentativa de remover a colheita.",
+        }
+      },
+      { status: 500 },
+    );
   }
 }

@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useHarvest } from "@/contexts/HarvestContext";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { IndustryTransporter } from "@/types";
 import { Trash2Icon } from "lucide-react";
@@ -35,13 +36,18 @@ const DeleteIndustryTransporterButton = ({ industryTransporter, onDeleted }: Pro
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { fetchHarvests } = useHarvest();
+  const { showToast } = useSmartToast();
 
   const handleDelete = async (industryTransporter: IndustryTransporter) => {
     console.log("🔁 handleDelete chamado");
     console.log("📦 transportador recebido:", industryTransporter);
 
     if (!industryTransporter || !industryTransporter.id) {
-      toast.error("ID do transportador ausente. Não é possível excluir.");
+      showToast({
+        type: "error",
+        title: "ID do transportador ausente",
+        message: "Não é possível excluir um transportador sem um ID válido.",
+      });
       console.warn("❌ industryTransporter.id ausente ou inválido");
       return;
     }
@@ -63,18 +69,46 @@ const DeleteIndustryTransporterButton = ({ industryTransporter, onDeleted }: Pro
 
       console.log("📥 Resposta da API:", res.status);
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar produto:", errorText);
-        throw new Error(errorText);
+          // ❌ SE A API RETORNOU ERRO
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+
+      console.error("Erro da API:", data);
+
+      // Tratamento para erros estruturados
+      if (data?.error) {
+        showToast({
+          type: "error",
+          title: data.error.title,
+          message: data.error.message,
+        });
+      } else {
+        // fallback
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: "Erro ao deletar transportador.",
+        });
       }
 
-      toast.success("Produto deletado com sucesso!");
+      return; // evita continuar
+    }
+
+      // ✔ Sucesso
+      showToast({
+        type: "success",
+        title: "Transportador excluído",
+        message: "O transportador foi excluído com sucesso.",
+      });
       onDeleted();
       setIsOpen(false);
     } catch (error) {
       console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar produto.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Erro ao deletar transportador.",
+      });
     } finally {
       setLoading(false);
     }

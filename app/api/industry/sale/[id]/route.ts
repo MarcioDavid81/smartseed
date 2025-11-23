@@ -270,7 +270,7 @@ export async function DELETE(
       });
     });
 
-    return NextResponse.json({ message: "Venda removida com sucesso" });
+    return NextResponse.json({ message: "Venda removida com sucesso" }, { status: 200 });
   } catch (error) {
     console.error("Erro ao remover venda:", error);
     return NextResponse.json(

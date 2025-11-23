@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useHarvest } from "@/contexts/HarvestContext";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { IndustryHarvest } from "@/types";
 import { Trash2Icon } from "lucide-react";
@@ -35,13 +36,18 @@ const DeleteHarvestButton = ({ colheita, onDeleted }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { fetchHarvests } = useHarvest();
+  const { showToast } = useSmartToast();
 
   const handleDelete = async (colheita: { id: string }) => {
     console.log("🔁 handleDelete chamado");
     console.log("📦 colheita recebida:", colheita);
 
     if (!colheita || !colheita.id) {
-      toast.error("ID da colheita ausente. Não é possível excluir.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "ID da colheita ausente. Não é possível excluir.",
+      });
       console.warn("❌ colheita.id ausente ou inválido");
       return;
     }
@@ -61,20 +67,46 @@ const DeleteHarvestButton = ({ colheita, onDeleted }: Props) => {
         },
       });
 
-      console.log("📥 Resposta da API:", res.status);
+         // ❌ SE A API RETORNOU ERRO
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar colheita:", errorText);
-        throw new Error(errorText);
+      console.error("Erro da API:", data);
+
+      // Tratamento para erros estruturados
+      if (data?.error) {
+        showToast({
+          type: "error",
+          title: data.error.title,
+          message: data.error.message,
+        });
+      } else {
+        // fallback
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: "Erro ao deletar venda.",
+        });
       }
 
-      toast.success("Colheita deletada com sucesso!");
+      return; // evita continuar
+    }
+
+      // ✔ Sucesso
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Colheita deletada com sucesso!",
+      });
       onDeleted();
       setIsOpen(false);
     } catch (error) {
       console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar colheita.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Erro inesperado ao deletar colheita.",
+      });
     } finally {
       setLoading(false);
     }

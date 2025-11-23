@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useIndustrySale } from "@/contexts/IndustrySaleContext";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { IndustrySale } from "@/types";
 import { Trash2Icon } from "lucide-react";
@@ -35,12 +36,17 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { fetchSales } = useIndustrySale();
+  const { showToast } = useSmartToast();
 
   const handleDelete = async (venda: { id: string }) => {
-  if (!venda?.id) {
-    toast.error("ID da venda ausente. Não é possível excluir.");
-    return;
-  }
+    if (!venda?.id) {
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "ID da venda ausente. Não é possível excluir.",
+      });
+      return;
+    }
 
   setLoading(true);
 
@@ -62,25 +68,39 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
 
       // Tratamento para erros estruturados
       if (data?.error) {
-        toast.error(data.error.title || "Erro", {
-          description: data.error.message || "Algo deu errado.",
+        showToast({
+          type: "error",
+          title: data.error.title,
+          message: data.error.message,
         });
       } else {
         // fallback
-        toast.error("Erro ao deletar venda.");
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: "Erro ao deletar venda.",
+        });
       }
 
       return; // evita continuar
     }
 
     // ✔ Sucesso
-    toast.success("Venda deletada com sucesso!");
+    showToast({
+      type: "success",
+      title: "Sucesso",
+      message: "Venda deletada com sucesso!",
+    });
     onDeleted();
     setIsOpen(false);
 
   } catch (error) {
     console.error("Exceção no handleDelete:", error);
-    toast.error("Erro inesperado ao deletar venda.");
+    showToast({
+      type: "error",
+      title: "Erro",
+      message: "Erro inesperado ao deletar venda.",
+    });
   } finally {
     setLoading(false);
   }

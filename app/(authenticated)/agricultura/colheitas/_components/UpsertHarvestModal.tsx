@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCycle } from "@/contexts/CycleContext";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { IndustryHarvestFormData, industryHarvestSchema } from "@/lib/schemas/industryHarvest";
@@ -57,6 +58,7 @@ const UpsertHarvestModal = ({
   const [adjustKg, setAdjustKg] = useState(0);
   const [liquid, setLiquid] = useState(0);
   const { selectedCycle } = useCycle();
+  const { showToast } = useSmartToast();
 
   const form = useForm<IndustryHarvestFormData>({
     resolver: zodResolver(industryHarvestSchema),
@@ -183,7 +185,11 @@ const UpsertHarvestModal = ({
     const token = getToken();
     const cycle = getCycle();
     if (!cycle || !cycle.id) {
-      toast.error("Nenhum ciclo de produção selecionado.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Nenhum ciclo de produção selecionado.",
+      });
       setLoading(false);
       return;
     }
@@ -218,26 +224,21 @@ const UpsertHarvestModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar colheita.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: result.error || "Erro ao salvar colheita.",
       });
+      setLoading(false);
+      return;
     } else {
-      toast.success(
-        colheita
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: colheita 
           ? "Colheita atualizada com sucesso!"
           : "Colheita cadastrada com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        }
-      );
+      });
       onClose();
       form.reset();
       if (onHarvestCreated) onHarvestCreated();

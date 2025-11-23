@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { IndustryTransporter } from "@/types";
 import { industryTransporterSchema, IndustryTransporterFormData } from "@/lib/schemas/industryTransporter";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 interface UpsertIndustryTransporterModalProps {
   industryTransporter?: IndustryTransporter;
@@ -31,6 +32,7 @@ const UpsertIndustryTransporterModal = ({
   onUpdated,
 }: UpsertIndustryTransporterModalProps) => {
   const [loading, setLoading] = useState(false);
+  const { showToast } = useSmartToast();
 
   const form = useForm<IndustryTransporterFormData>({
     resolver: zodResolver(industryTransporterSchema),
@@ -67,7 +69,11 @@ const UpsertIndustryTransporterModal = ({
     setLoading(true);
     const token = getToken();
     if (!token) {
-      toast.error("Usuário não autenticado.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Usuário não autenticado.",
+      });
       setLoading(false);
       return;
     }
@@ -91,26 +97,20 @@ const UpsertIndustryTransporterModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar transportador.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: result.error || "Erro ao salvar transportador.",
       });
+      setLoading(false);
     } else {
-      toast.success(
-        industryTransporter
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: industryTransporter
           ? "Transportador atualizado com sucesso!"
           : "Transportador cadastrado com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        },
-      );
+      });
       onClose();
       form.reset();
       if (onUpdated) onUpdated();

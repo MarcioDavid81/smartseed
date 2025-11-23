@@ -24,6 +24,7 @@ import { IndustryHarvestProvider } from "@/contexts/IndustryHarvestContext";
 import NewSidebar from "./_components/new-sidebar/sidebar";
 import { IndustryStockProvider } from "@/contexts/IndustryStockContext";
 import { IndustrySaleProvider } from "@/contexts/IndustrySaleContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 
 const robotoFont = roboto({
   src: [
@@ -139,7 +140,9 @@ export default async function RootLayout({
                                           <IndustrySaleProvider>
                                             <NewSidebar />
                                             <MobileMenu />
-                                            {children}
+                                            <ToastProvider>
+                                              {children}
+                                            </ToastProvider>
                                             <Toaster richColors />
                                           </IndustrySaleProvider>
                                         </IndustryStockProvider>

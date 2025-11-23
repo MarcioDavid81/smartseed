@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { IndustrySaleFormData, industrySaleSchema } from "@/lib/schemas/industrySale";
@@ -45,6 +46,7 @@ const UpsertSaleModal = ({
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const { showToast } = useSmartToast();
 
   const form = useForm<IndustrySaleFormData>({
     resolver: zodResolver(industrySaleSchema),
@@ -144,7 +146,11 @@ const UpsertSaleModal = ({
     const token = getToken();
     const cycle = getCycle();
     if (!cycle || !cycle.id) {
-      toast.error("Nenhum ciclo de produção selecionado.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Nenhum ciclo de produção selecionado.",
+      });
       setLoading(false);
       return;
     }
@@ -172,26 +178,21 @@ const UpsertSaleModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar venda.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: result.error || "Erro ao salvar venda.",
       });
+      setLoading(false);
+      return;
     } else {
-      toast.success(
-        venda
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: venda
           ? "Venda atualizada com sucesso!"
           : "Venda cadastrada com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        }
-      );
+      });
       onClose();
       form.reset();
       if (onSaleCreated) onSaleCreated();
