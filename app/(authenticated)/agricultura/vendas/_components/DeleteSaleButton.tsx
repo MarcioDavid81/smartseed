@@ -37,50 +37,57 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
   const { fetchSales } = useIndustrySale();
 
   const handleDelete = async (venda: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 venda recebida:", venda);
+  if (!venda?.id) {
+    toast.error("ID da venda ausente. Não é possível excluir.");
+    return;
+  }
 
-    if (!venda || !venda.id) {
-      toast.error("ID da venda ausente. Não é possível excluir.");
-      console.warn("❌ venda.id ausente ou inválido");
-      return;
-    }
+  setLoading(true);
 
-    setLoading(true);
+  try {
+    const token = getToken();
+    const res = await fetch(`/api/industry/sale/${venda.id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-    try {
-      const token = getToken();
-      const url = `/api/industry/sale/${venda.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
+    // ❌ SE A API RETORNOU ERRO
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
 
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      console.error("Erro da API:", data);
 
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar colheita:", errorText);
-        throw new Error(errorText);
+      // Tratamento para erros estruturados
+      if (data?.error) {
+        toast.error(data.error.title || "Erro", {
+          description: data.error.message || "Algo deu errado.",
+        });
+      } else {
+        // fallback
+        toast.error("Erro ao deletar venda.");
       }
 
-      toast.success("Colheita deletada com sucesso!");
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar colheita.");
-    } finally {
-      setLoading(false);
+      return; // evita continuar
     }
 
-    await fetchSales();
-  };
+    // ✔ Sucesso
+    toast.success("Venda deletada com sucesso!");
+    onDeleted();
+    setIsOpen(false);
+
+  } catch (error) {
+    console.error("Exceção no handleDelete:", error);
+    toast.error("Erro inesperado ao deletar venda.");
+  } finally {
+    setLoading(false);
+  }
+
+  await fetchSales();
+};
+
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>

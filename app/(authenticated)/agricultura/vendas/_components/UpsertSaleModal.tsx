@@ -9,10 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useCycle } from "@/contexts/CycleContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { IndustrySaleFormData, industrySaleSchema } from "@/lib/schemas/industrySale";
@@ -24,7 +22,6 @@ import {
 } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PaymentCondition } from "@prisma/client";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
@@ -48,12 +45,6 @@ const UpsertSaleModal = ({
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [subLiquid, setSubLiquid] = useState(0);
-  const [discounts, setDiscounts] = useState(0);
-  const [liquid, setLiquid] = useState(0);
-  const [price, setPrice] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const { selectedCycle } = useCycle();
 
   const form = useForm<IndustrySaleFormData>({
     resolver: zodResolver(industrySaleSchema),
@@ -166,8 +157,6 @@ const UpsertSaleModal = ({
     const url = venda ? `/api/industry/sale/${venda.id}` : "/api/industry/sale";
     const method = venda ? "PUT" : "POST";
 
-    const weightSubLiq = data.weightSubLiq;
-
     const res = await fetch(url, {
       method,
       headers: {
@@ -214,8 +203,6 @@ const UpsertSaleModal = ({
   useEffect(() => {
     if (!isOpen) form.reset();
   }, [isOpen, form]);
-
-  const paymentCondition = form.watch("paymentCondition");
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

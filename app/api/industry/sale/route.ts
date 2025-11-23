@@ -125,10 +125,12 @@ export async function POST(req: NextRequest) {
           .replace("_", " ")
           .toLowerCase()
           .replace(/\b\w/g, (l) => l.toUpperCase());
+        const document = data.document ?? "S/NF";
+        const customerName = customer?.name ?? "cliente";
 
         await tx.accountReceivable.create({
           data: {
-            description: `Venda de ${productLabel}, cfe NF ${data.document ?? "S/NF"}, para ${customer?.name ?? "cliente"}`,
+            description: `Venda de ${productLabel}, cfe NF ${document}, para ${customerName}`,
             amount: data.totalPrice,
             dueDate: new Date(data.dueDate),
             companyId,

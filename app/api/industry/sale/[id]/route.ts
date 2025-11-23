@@ -1,6 +1,7 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
-import { PaymentCondition, ProductType } from "@prisma/client";
+import { AccountStatus, PaymentCondition, ProductType } from "@prisma/client";
+import { error } from "console";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -81,9 +82,17 @@ export async function PUT(
           select: { name: true },
         });
 
-        const description = `Venda de ${data.product}, cfe NF ${
-          data.document ?? "S/NF"
-        }, para ${customer?.name ?? "cliente"}`;
+        const productLabel = data.product ?? existing.product
+          .toString()
+          .replace("_", " ")
+          .toLowerCase()
+          .replace(/\b\w/g, (l) => l
+          .toUpperCase());
+        const document = data.document ?? existing.document ?? "S/NF";
+        const customerName = customer?.name ?? "cliente";
+
+        const description = `Venda de ${productLabel}, cfe NF ${document}, para ${customerName}`;
+
 
         if (existing.accountReceivable) {
           await tx.accountReceivable.update({
@@ -171,10 +180,31 @@ export async function DELETE(
 ) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
+    if (!token) {
+      return NextResponse.json({
+        error: {
+          code: "TOKEN_MISSING",
+          title: "Autenticação necessária",
+          message: "Token ausente.",
+        }
+      },
+      { status: 401 },
+    );
+    }
 
     const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    if (!payload) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "TOKEN_INVALID",
+            title: "Token inválido",
+            message: "Não foi possível validar suas credenciais.",
+          },
+        },
+        { status: 401 },
+      );
+    }
 
     const { id } = params;
     const { companyId } = payload;
@@ -187,15 +217,30 @@ export async function DELETE(
     });
 
     if (!existing || existing.companyId !== companyId) {
-      return new NextResponse("Venda não encontrada ou acesso negado", {
-        status: 403,
-      });
+      return NextResponse.json(
+        {
+          error: {
+            code: "SALE_NOT_FOUND",
+            title: "Venda não encontrada",
+            message:
+              "A venda não foi localizada ou você não tem permissão para acessá-la.",
+          },
+        },
+        { status: 403 },
+      );
     }
 
     // 🚫 Impede exclusão de venda com conta já paga
-    if (existing.accountReceivable?.status === "PAID") {
+    if (existing.accountReceivable?.status === AccountStatus.PAID) {
       return NextResponse.json(
-        { error: "Não é possível excluir uma venda com pagamento já efetuado" },
+        {
+          error: {
+            code: "SALE_ALREADY_PAID",
+            title: "Ação não permitida",
+            message:
+              "Não é possível excluir uma venda que já possui pagamento confirmado.",
+          },
+        },
         { status: 400 },
       );
     }
@@ -229,7 +274,14 @@ export async function DELETE(
   } catch (error) {
     console.error("Erro ao remover venda:", error);
     return NextResponse.json(
-      { error: "Erro interno ao remover venda" },
+      {
+        error: {
+          code: "DELETE_SALE_ERROR",
+          title: "Erro ao remover venda",
+          message:
+            "Ocorreu um erro inesperado durante a tentativa de remover a venda.",
+        },
+      },
       { status: 500 },
     );
   }
