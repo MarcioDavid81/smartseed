@@ -27,6 +27,7 @@ import { useEffect, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
+import { ComboBoxOption } from "@/components/combo-option";
 
 interface UpsertHarvestModalProps {
   colheita?: IndustryHarvest;
@@ -292,21 +293,15 @@ const UpsertHarvestModal = ({
                         <FormLabel>Talhão</FormLabel>
                           <FormControl>
                             {talhoes.length > 0 ? (
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {talhoes.map((t) => (
-                                    <SelectItem key={t.id} value={t.id}>
-                                      <div className="flex items-center gap-2">
-                                        <span>{t.name}</span>
-                                        <span>({t.area} ha)</span>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <ComboBoxOption
+                                options={talhoes.map((t) => ({
+                                  label: t.name,
+                                  value: t.id,
+                                }))}
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder="Selecione um talhão"
+                              />
                               ) : (
                                 <div className="text-xs flex items-center justify-start space-x-4">
                                   <p>Nenhum talhão vinculado ao ciclo.</p>  
@@ -332,20 +327,15 @@ const UpsertHarvestModal = ({
                   <FormItem>
                     <FormLabel>Depósito</FormLabel>
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {deposits.map((d) => (
-                            <SelectItem key={d.id} value={d.id}>
-                              <div className="flex items-center gap-2">
-                                <span>{d.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <ComboBoxOption
+                        options={deposits.map((d) => ({
+                          label: d.name,
+                          value: d.id,
+                        }))}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Selecione um depósito"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -358,20 +348,15 @@ const UpsertHarvestModal = ({
                   <FormItem>
                     <FormLabel>Transportador</FormLabel>
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {transporters.map((t) => (
-                            <SelectItem key={t.id} value={t.id}>
-                              <div className="flex items-center gap-2">
-                                <span>{t.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <ComboBoxOption
+                        options={transporters.map((t) => ({
+                          label: t.name,
+                          value: t.id,
+                        }))}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Selecione um transportador"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

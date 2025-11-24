@@ -1,3 +1,4 @@
+import { ComboBoxOption } from "@/components/combo-option";
 import { MoneyInput, QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -256,20 +257,15 @@ const UpsertSaleModal = ({
                       <FormItem>
                         <FormLabel>Cliente</FormLabel>
                         <FormControl>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {customers.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>
-                                  <div className="flex items-center gap-2">
-                                    <span>{c.name}</span>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <ComboBoxOption
+                            options={customers.map((c) => ({
+                              label: c.name,
+                              value: c.id,
+                            }))}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Selecione um cliente"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -287,18 +283,15 @@ const UpsertSaleModal = ({
                     <FormItem>
                       <FormLabel>Depósito</FormLabel>
                       <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {deposits.map((d) => (
-                              <SelectItem key={d.id} value={d.id}>
-                                {d.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <ComboBoxOption
+                          options={deposits.map((d) => ({
+                            label: d.name,
+                            value: d.id,
+                          }))}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Selecione um depósito"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -311,22 +304,15 @@ const UpsertSaleModal = ({
                     <FormItem>
                       <FormLabel>Transportador</FormLabel>
                       <FormControl>
-                        <Select
+                        <ComboBoxOption
+                          options={transporters.map((t) => ({
+                            label: t.name,
+                            value: t.id,
+                          }))}
                           value={field.value}
-                          onValueChange={(v) => field.onChange(v === "none" ? undefined : v)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Nenhum</SelectItem>
-                            {transporters.map((t) => (
-                              <SelectItem key={t.id} value={t.id}>
-                                {t.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          onChange={field.onChange}
+                          placeholder="Selecione um transportador"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
