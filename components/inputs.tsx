@@ -78,7 +78,7 @@ export function QuantityInput<T extends FieldValues>({
           decimalSeparator="," 
           decimalScale={2}
           fixedDecimalScale
-          allowNegative={false}
+          allowNegative={true}
           suffix=" kg"
           inputMode="numeric"
           valueIsNumericString
