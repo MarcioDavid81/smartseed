@@ -1,3 +1,4 @@
+import { MoneyInput, QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -10,7 +11,6 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
@@ -26,8 +26,6 @@ import { PaymentCondition } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { NumericFormat } from "react-number-format";
-import { toast } from "sonner";
 
 interface UpsertSaleModalProps {
   venda?: IndustrySale;
@@ -372,39 +370,21 @@ const UpsertSaleModal = ({
                   control={form.control}
                   name="weightBt"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Peso Bruto (kg)</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <QuantityInput label="Peso Bruto" field={field} />
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="weightTr"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tara (kg)</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <QuantityInput label="Tara" field={field} />
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="weightSubLiq"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sub Líquido (kg)</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" readOnly {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <QuantityInput label="Sub Líquido" field={field} readonly />
                   )}
                 />
               </div>
@@ -414,49 +394,21 @@ const UpsertSaleModal = ({
                   control={form.control}
                   name="discountsKg"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Desconto (kg)</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <QuantityInput label="Desconto (kg)" field={field} />
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="weightLiq"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Peso Líquido (kg)</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" readOnly {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <QuantityInput label="Peso Líquido" field={field} readonly />
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="unitPrice"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preço Unitário (R$)</FormLabel>
-                      <FormControl>
-                        <NumericFormat
-                          customInput={Input}
-                          thousandSeparator="."
-                          decimalSeparator=","
-                          prefix="R$ "
-                          allowNegative={false}
-                          value={field.value ?? ""}
-                          onValueChange={(values) =>
-                            field.onChange(values.floatValue ?? 0)
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <MoneyInput label="Preço Unitário" field={field} />
                   )}
                 />
               </div>
@@ -467,24 +419,7 @@ const UpsertSaleModal = ({
                   control={form.control}
                   name="totalPrice"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preço Total (R$)</FormLabel>
-                      <FormControl>
-                        <NumericFormat
-                          customInput={Input}
-                          thousandSeparator="."
-                          decimalSeparator=","
-                          prefix="R$ "
-                          allowNegative={false}
-                          value={field.value ?? ""}
-                          onValueChange={(values) =>
-                            field.onChange(values.floatValue ?? 0)
-                          }
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <MoneyInput label="Preço Total" field={field} readonly />
                   )}
                 />
                 <FormField

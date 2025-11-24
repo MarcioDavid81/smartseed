@@ -1,3 +1,4 @@
+import { PercentInput, QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -23,9 +24,9 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 interface UpsertHarvestModalProps {
   colheita?: IndustryHarvest;
@@ -51,12 +52,6 @@ const UpsertHarvestModal = ({
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
   const [talhoes, setTalhoes] = useState<TalhaoOption[]>([]);
-  const [subLiquid, setSubLiquid] = useState(0);
-  const [impuritiesKg, setImpuritiesKg] = useState(0);
-  const [humidityKg, setHumidityKg] = useState(0);
-  const [taxKg, setTaxKg] = useState(0);
-  const [adjustKg, setAdjustKg] = useState(0);
-  const [liquid, setLiquid] = useState(0);
   const { selectedCycle } = useCycle();
   const { showToast } = useSmartToast();
 
@@ -107,12 +102,10 @@ const UpsertHarvestModal = ({
     const weightLiq = subLiq - impuritiesKg - humidityKg - taxPercent + adjustPercent;
     
     // Atualiza estados finais
-    setSubLiquid(subLiq);
-    setImpuritiesKg(impuritiesKg);
-    setHumidityKg(humidityKg);
-    setTaxKg(taxPercent);
-    setAdjustKg(adjustPercent);
-    setLiquid(weightLiq);
+    form.setValue("weightSubLiq", Number.isFinite(subLiq) ? parseFloat(subLiq.toFixed(2)) : 0);
+    form.setValue("impurities_kg", Number.isFinite(impuritiesKg) ? parseFloat(impuritiesKg.toFixed(2)) : 0);
+    form.setValue("humidity_kg", Number.isFinite(humidityKg) ? parseFloat(humidityKg.toFixed(2)) : 0);
+    form.setValue("weightLiq", Number.isFinite(weightLiq) ? parseFloat(weightLiq.toFixed(2)) : 0);
   }, [weightBt, weightTr, impuritiesPercent, humidityPercent, taxPercent, adjustPercent]);
 
   useEffect(() => {
@@ -263,8 +256,7 @@ const UpsertHarvestModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -278,8 +270,6 @@ const UpsertHarvestModal = ({
                     </FormItem>
                   )}
                 />
-              </div>
-              <div>
                 <FormField
                   control={form.control}
                   name="document"
@@ -293,278 +283,227 @@ const UpsertHarvestModal = ({
                     </FormItem>
                   )}
                 />
-              </div>
-            </div>
-            <div className="grid grid-cols gap-4">
-              <div>
-                <Label>Talhão</Label>
-                {talhoes.length > 0 ? (
-                  <select
-                    {...form.register("talhaoId")}
-                    className="w-full border rounded px-2 py-1"
-                  >
-                    <option value="" className="font-light">Selecione</option>
-                      {talhoes.map((t) => (
-                        <option key={t.id} value={t.id}  className="font-light">
-                          <span>{t.name} </span>
-                          <span>({t.area} ha)</span>
-                        </option>
-                      ))}
-                        </select>
-                      ) : (
-                        <div className="text-xs flex items-center justify-start space-x-4">
-                          <p>Nenhum talhão vinculado ao ciclo.</p>  
-                          <Link href="/agricultura/safras">
-                            <span className="text-green text-xs">
-                              Cadastre um talhão ou vincule um talhão existente ao ciclo.
-                            </span>
-                          </Link>
-                        </div>
+                <div className="col-span-2">
+                   <FormField
+                    control={form.control}
+                    name="talhaoId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Talhão</FormLabel>
+                          <FormControl>
+                            {talhoes.length > 0 ? (
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {talhoes.map((t) => (
+                                    <SelectItem key={t.id} value={t.id}>
+                                      <div className="flex items-center gap-2">
+                                        <span>{t.name}</span>
+                                        <span>({t.area} ha)</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              ) : (
+                                <div className="text-xs flex items-center justify-start space-x-4">
+                                  <p>Nenhum talhão vinculado ao ciclo.</p>  
+                                  <Link href="/agricultura/safras">
+                                    <span className="text-green text-xs">
+                                      Cadastre um talhão ou vincule um talhão existente ao ciclo.
+                                    </span>
+                                  </Link>
+                                </div>
+                              )}
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                    {form.formState.errors.talhaoId && (
-                      <span className="text-xs text-red-500">
-                        {form.formState.errors.talhaoId.message}
-                  </span>
-                )}
+                    />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Depósito</Label>
-                <select
-                  {...form.register("industryDepositId")}
-                  className="w-full border rounded px-2 py-1"
-                >
-                  <option value="" className=" text-md font-light">Selecione</option>
-                  {deposits.map((d) => (
-                    <option key={d.id} value={d.id} className="font-light">
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
-                {form.formState.errors.industryDepositId && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.industryDepositId.message}
-                  </span>
+              <FormField
+                control={form.control}
+                name="industryDepositId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Depósito</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {deposits.map((d) => (
+                            <SelectItem key={d.id} value={d.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{d.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
-              <div>
-                <Label>Transportador</Label>
-                <select
-                  {...form.register("industryTransporterId")}
-                  className="w-full border rounded px-2 py-1"
-                >
-                  <option value=""  className="font-light">Selecione</option>
-                  {transporters.map((t) => (
-                    <option key={t.id} value={t.id}  className="font-light">
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-                {form.formState.errors.industryTransporterId && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.industryTransporterId.message}
-                  </span>
+              />
+              <FormField
+                control={form.control}
+                name="industryTransporterId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Transportador</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {transporters.map((t) => (
+                            <SelectItem key={t.id} value={t.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{t.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Placa</Label>
-                <Input type="text" {...form.register("truckPlate")} />
-              </div>
-              <div>
-                <Label>Motorista</Label>
-                <Input type="text" {...form.register("truckDriver")} />
-                {form.formState.errors.truckDriver && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.truckDriver.message}
-                  </span>
+              <FormField
+                control={form.control}
+                name="truckPlate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Placa</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
+              />
+              <FormField
+                control={form.control}
+                name="truckDriver"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Motorista</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             {/* peso */}
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Peso Bruto (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("weightBt", { valueAsNumber: true })}
-                  step="0.01"
-                  placeholder="Ex: 1200"
-                />
-                {form.formState.errors.weightBt && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.weightBt.message}
-                  </span>
+              <FormField
+                control={form.control}
+                name="weightBt"
+                render={({ field }) => (
+                  <QuantityInput label="Peso Bruto" field={field} />
                 )}
-              </div>
-              <div>
-                <Label>Tara (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("weightTr", { valueAsNumber: true })}
-                  step="0.01"
-                  placeholder="Ex: 1200"
-                />
-                {form.formState.errors.weightTr && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.weightTr.message}
-                  </span>
+              />
+              <FormField
+                control={form.control}
+                name="weightTr"
+                render={({ field }) => (
+                  <QuantityInput label="Tara" field={field} />
                 )}
-              </div>
-              <div>
-                <Label>Sub Líquido (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("weightSubLiq", { valueAsNumber: true })}
-                  value={Number(subLiquid).toFixed(2)}
-                  readOnly
-                />
-                {form.formState.errors.weightSubLiq && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.weightSubLiq.message}
-                  </span>
+              />
+              <FormField
+                control={form.control}
+                name="weightSubLiq"
+                render={({ field }) => (
+                  <QuantityInput label="Sub Líquido" field={field} readonly />
                 )}
-              </div>
+              />
             </div>
             {/* CLASSIFICAÇÃO */}
             {/* impureza */}
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Impureza</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...form.register("impurities_percent", { valueAsNumber: true })}
-                  placeholder="Ex: 14.5"
-                />
-                {form.formState.errors.impurities_percent && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.impurities_percent.message}
-                  </span>
+              <FormField
+                control={form.control}
+                name="impurities_percent"
+                render={({ field }) => (
+                  <QuantityInput label="Impureza" field={field} suffix="" />
                 )}
-              </div>
-              <div>
-                <Label>Porcentagem (%)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...form.register("impurities_discount", { valueAsNumber: true })}
-                  placeholder="Ex: 2.5"
-                />
-                {form.formState.errors.impurities_discount && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.impurities_discount.message}
-                  </span>
+              />
+              <FormField
+                control={form.control}
+                name="impurities_discount"
+                render={({ field }) => (
+                  <PercentInput label="Desconto" field={field} />
                 )}
-              </div>
-              <div>
-                <Label>Desconto (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("impurities_kg", { valueAsNumber: true })}
-                  value={Number(impuritiesKg).toFixed(2)}
-                  readOnly
-                />
-                {form.formState.errors.impurities_kg && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.impurities_kg.message}
-                  </span>
+              />
+              <FormField
+                control={form.control}
+                name="impurities_kg"
+                render={({ field }) => (
+                  <QuantityInput label="Impureza (kg)" field={field} readonly />
                 )}
-              </div>
+              />
             </div>
             {/* umidade */}
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Umidade</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...form.register("humidity_percent", { valueAsNumber: true })}
-                  placeholder="Ex: 15.2"
-                />
-                {form.formState.errors.humidity_percent && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.humidity_percent.message}
-                  </span>
+              <FormField
+                control={form.control}
+                name="humidity_percent"
+                render={({ field }) => (
+                  <QuantityInput label="Umidade" field={field} suffix="" />
                 )}
-              </div>
-              <div>
-                <Label>Porcentagem (%)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...form.register("humidity_discount", { valueAsNumber: true })}
-                  placeholder="Ex: 3.8"
-                />
-                {form.formState.errors.humidity_discount && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.humidity_discount.message}
-                  </span>
+              />
+              <FormField
+                control={form.control}
+                name="humidity_discount"
+                render={({ field }) => (
+                  <PercentInput label="Desconto" field={field} />
                 )}
-              </div>
-              <div>
-                <Label>Desconto (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("humidity_kg", { valueAsNumber: true })}
-                  value={Number(humidityKg).toFixed(2)}
-                  readOnly
-                />
-                {form.formState.errors.humidity_kg && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.humidity_kg.message}
-                  </span>
+              />
+              <FormField
+                control={form.control}
+                name="humidity_kg"
+                render={({ field }) => (
+                  <QuantityInput label="Umidade (kg)" field={field} readonly />
                 )}
-              </div>
+              />
             </div>
 
             {/* peso líquido */}
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Taxa</Label>
-                <Input
-                  type="number"
-                  {...form.register("tax_kg", { valueAsNumber: true })}
-                  step="0.01"
-                  placeholder="Ex: 1.5"
-                />
-                {form.formState.errors.tax_kg && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.tax_kg.message}
-                  </span>
+              <FormField
+                control={form.control}
+                name="tax_kg"
+                render={({ field }) => (
+                  <QuantityInput label="Taxa" field={field} suffix="" />
                 )}
-              </div>
-              <div>
-                <Label>Ajuste (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("adjust_kg", { valueAsNumber: true })}
-                  step="0.01"
-                  placeholder="Ex: 0.5"
-                />
-                {form.formState.errors.adjust_kg && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.adjust_kg.message}
-                  </span>
+              />
+              <FormField
+                control={form.control}
+                name="adjust_kg"
+                render={({ field }) => (
+                  <QuantityInput label="Ajuste (kg)" field={field} suffix="" />
                 )}
-              </div>
-              <div>
-                <Label>Peso Líquido (kg)</Label>
-                <Input
-                  type="number"
-                  {...form.register("weightLiq", { valueAsNumber: true })}
-                  value={Number(liquid).toFixed(2)}
-                  readOnly
-                />
-                {form.formState.errors.weightLiq && (
-                  <span className="text-xs text-red-500">
-                    {form.formState.errors.weightLiq.message}
-                  </span>
+              />
+              <FormField
+                control={form.control}
+                name="weightLiq"
+                render={({ field }) => (
+                  <QuantityInput label="Peso Líquido" field={field} readonly />
                 )}
-              </div>
+              />
             </div>
           </div>
           <Button
