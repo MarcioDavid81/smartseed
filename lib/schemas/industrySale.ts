@@ -16,7 +16,7 @@ export const industrySaleSchema = z.object({
   weightSubLiq: z.coerce.number().min(1, "Peso sub-líquido é obrigatório"),
   discountsKg: z.coerce.number().optional(),
   weightLiq: z.coerce.number().min(1, "Peso líquido é obrigatório"),
-  unitPrice: z.coerce.number().min(1, "Preço unitário é obrigatório"),
+  unitPrice: z.coerce.number().min(0.01, "Preço unitário é obrigatório"),
   totalPrice: z.coerce.number().min(1, "Preço total é obrigatório"),
   notes: z.string().optional(),
   paymentCondition: z.nativeEnum(PaymentCondition).optional(),
