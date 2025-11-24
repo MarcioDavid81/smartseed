@@ -394,7 +394,7 @@ const UpsertSaleModal = ({
                   control={form.control}
                   name="discountsKg"
                   render={({ field }) => (
-                    <QuantityInput label="Desconto (kg)" field={field} />
+                    <QuantityInput label="Desconto" field={field} />
                   )}
                 />
                 <FormField

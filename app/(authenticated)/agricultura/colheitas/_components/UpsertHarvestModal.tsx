@@ -487,14 +487,14 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="tax_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Taxa" field={field} suffix="" />
+                  <QuantityInput label="Taxa" field={field} />
                 )}
               />
               <FormField
                 control={form.control}
                 name="adjust_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Ajuste (kg)" field={field} suffix="" />
+                  <QuantityInput label="Ajuste" field={field} />
                 )}
               />
               <FormField
