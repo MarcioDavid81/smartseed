@@ -208,7 +208,7 @@ const UpsertSaleModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] h-[90%] overflow-y-scroll">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Venda</DialogTitle>
           <DialogDescription>
@@ -218,7 +218,7 @@ const UpsertSaleModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div>
                   <FormField
                     control={form.control}
@@ -249,35 +249,36 @@ const UpsertSaleModal = ({
                     )}
                   />
                 </div>
+                <div className="col-span-2">
+                  {/* Cliente */}
+                  <FormField
+                    control={form.control}
+                    name="customerId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cliente</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {customers.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  <div className="flex items-center gap-2">
+                                    <span>{c.name}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-
-              {/* Cliente */}
-              <FormField
-                control={form.control}
-                name="customerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cliente</FormLabel>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {customers.map((c) => (
-                            <SelectItem key={c.id} value={c.id}>
-                              <div className="flex items-center gap-2">
-                                <span>{c.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               {/* Depósito e Transportador */}
               <div className="grid grid-cols-2 gap-4">
@@ -408,7 +409,7 @@ const UpsertSaleModal = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="discountsKg"
@@ -435,10 +436,6 @@ const UpsertSaleModal = ({
                     </FormItem>
                   )}
                 />
-              </div>
-
-              {/* Preços (remove value={Number(totalPrice).toFixed(2)}) */}
-              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="unitPrice"
@@ -462,6 +459,10 @@ const UpsertSaleModal = ({
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Condição de Pagamento (FormField + condicional APRAZO) */}
+              <div className="grid grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="totalPrice"
@@ -486,10 +487,6 @@ const UpsertSaleModal = ({
                     </FormItem>
                   )}
                 />
-              </div>
-
-              {/* Condição de Pagamento (FormField + condicional APRAZO) */}
-              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="paymentCondition"
@@ -539,7 +536,7 @@ const UpsertSaleModal = ({
                   <FormItem>
                     <FormLabel>Observações</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Opcional" />
+                      <Input {...field} placeholder="Opcional" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
