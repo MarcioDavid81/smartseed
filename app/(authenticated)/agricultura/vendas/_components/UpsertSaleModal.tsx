@@ -26,6 +26,7 @@ import { PaymentCondition } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
+import { NumericFormat } from "react-number-format";
 import { toast } from "sonner";
 
 interface UpsertSaleModalProps {
@@ -445,7 +446,17 @@ const UpsertSaleModal = ({
                     <FormItem>
                       <FormLabel>Preço Unitário (R$)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" {...field} />
+                        <NumericFormat
+                          customInput={Input}
+                          thousandSeparator="."
+                          decimalSeparator=","
+                          prefix="R$ "
+                          allowNegative={false}
+                          value={field.value ?? ""}
+                          onValueChange={(values) =>
+                            field.onChange(values.floatValue ?? 0)
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -458,7 +469,18 @@ const UpsertSaleModal = ({
                     <FormItem>
                       <FormLabel>Preço Total (R$)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" readOnly {...field} />
+                        <NumericFormat
+                          customInput={Input}
+                          thousandSeparator="."
+                          decimalSeparator=","
+                          prefix="R$ "
+                          allowNegative={false}
+                          value={field.value ?? ""}
+                          onValueChange={(values) =>
+                            field.onChange(values.floatValue ?? 0)
+                          }
+                          disabled
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
