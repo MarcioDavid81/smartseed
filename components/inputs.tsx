@@ -64,9 +64,7 @@ interface QuantityInputProps<T extends FieldValues> {
 export function QuantityInput<T extends FieldValues>({
   label,
   field,
-  suffix = "kg",
   readonly = false,
-  value = 0,
 }: QuantityInputProps<T>) {
   return (
     <FormItem>
@@ -81,7 +79,7 @@ export function QuantityInput<T extends FieldValues>({
           decimalScale={2}
           fixedDecimalScale
           allowNegative={false}
-          suffix={` ${suffix}`}
+          suffix=" kg"
           inputMode="numeric"
           valueIsNumericString
           className="font-light"
@@ -89,7 +87,6 @@ export function QuantityInput<T extends FieldValues>({
             field.onChange(values.floatValue ?? 0);
           }}
           disabled={readonly}
-          defaultValue={value}
         />
       </FormControl>
 

@@ -17,8 +17,8 @@ interface Option {
 
 interface SmartComboboxProps {
   options: Option[];
-  value?: string;
-  onChange: (value: string) => void;
+  value?: string | null;
+  onChange: (value: string | null) => void;
   placeholder?: string;
   searchPlaceholder?: string;
 }

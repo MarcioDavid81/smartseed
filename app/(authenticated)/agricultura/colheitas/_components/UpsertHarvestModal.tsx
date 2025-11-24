@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useCycle } from "@/contexts/CycleContext";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
@@ -24,10 +23,10 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { ComboBoxOption } from "@/components/combo-option";
+import { normalizeNumber } from "@/app/_helpers/normalize-number";
 
 interface UpsertHarvestModalProps {
   colheita?: IndustryHarvest;
@@ -66,18 +65,18 @@ const UpsertHarvestModal = ({
       industryTransporterId: colheita?.industryTransporterId || "",
       truckPlate: colheita?.truckPlate || "",
       truckDriver: colheita?.truckDriver || "",
-      weightBt: colheita?.weightBt || 0,
-      weightTr: colheita?.weightTr || 0,
-      weightSubLiq: colheita?.weightSubLiq || 0,
-      humidity_percent: colheita?.humidity_percent || 0,
-      humidity_discount: colheita?.humidity_discount || 0,
-      humidity_kg: colheita?.humidity_kg || 0,
-      impurities_percent: colheita?.impurities_percent || 0,
-      impurities_discount: colheita?.impurities_discount || 0,
-      impurities_kg: colheita?.impurities_kg || 0,
-      tax_kg: colheita?.tax_kg || 0,
-      adjust_kg: colheita?.adjust_kg || 0,
-      weightLiq: colheita?.weightLiq || 0,
+      weightBt: normalizeNumber(colheita?.weightBt),
+      weightTr: normalizeNumber(colheita?.weightTr),
+      weightSubLiq: normalizeNumber(colheita?.weightSubLiq),
+      humidity_percent: normalizeNumber(colheita?.humidity_percent),
+      humidity_discount: normalizeNumber(colheita?.humidity_discount),
+      humidity_kg: normalizeNumber(colheita?.humidity_kg),
+      impurities_percent: normalizeNumber(colheita?.impurities_percent),
+      impurities_discount: normalizeNumber(colheita?.impurities_discount),
+      impurities_kg: normalizeNumber(colheita?.impurities_kg),
+      tax_kg: normalizeNumber(colheita?.tax_kg),
+      adjust_kg: normalizeNumber(colheita?.adjust_kg),
+      weightLiq: normalizeNumber(colheita?.weightLiq),
     },
   });
 
@@ -437,7 +436,7 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="impurities_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Impureza (kg)" field={field} readonly />
+                  <QuantityInput label="Impureza" field={field} readonly />
                 )}
               />
             </div>
@@ -461,7 +460,7 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="humidity_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Umidade (kg)" field={field} readonly />
+                  <QuantityInput label="Umidade" field={field} readonly />
                 )}
               />
             </div>
