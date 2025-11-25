@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 export function LoginForm({
   className,
@@ -19,6 +20,7 @@ export function LoginForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { showToast } = useSmartToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,11 +51,19 @@ export function LoginForm({
       }
       localStorage.setItem("token", data.token); // <- SALVA o token
       console.log(data.token);
-      toast.success("Login bem-sucedido");
+      showToast({
+        title: "Successo",
+        message: "Login bem-sucedido!",
+        type: "success",
+      });
       window.location.href = "/dashboard";
     } catch (err) {
       console.error(err);
-      setError("Erro ao conectar com o servidor");
+      showToast({
+        title: "Erro",
+        message: "Erro ao conectar com o servidor",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

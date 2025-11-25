@@ -4,6 +4,7 @@ import "../globals.css";
 import { Toaster } from "sonner";
 import CookieConsent from "@/components/cookie-consent";
 import { BackToTop } from "./_components/BackToTop";
+import { ToastProvider } from "@/contexts/ToastContext";
 
 const inter = Inter({
   weight: ["400", "700"],
@@ -42,10 +43,12 @@ export default function RootLayout({
       <body
         className={`${inter.className} antialiased`}
       >
-        <BackToTop />
-        {children}
-        <Toaster richColors />
-        <CookieConsent />
+        <ToastProvider>
+          <BackToTop />
+          {children}
+          <Toaster richColors />
+          <CookieConsent />
+        </ToastProvider>
       </body>
     </html>
   );
