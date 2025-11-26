@@ -397,21 +397,21 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="weightBt"
                 render={({ field }) => (
-                  <QuantityInput label="Peso Bruto" field={field} />
+                  <QuantityInput label="Peso Bruto" field={field} suffix=" kg" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="weightTr"
                 render={({ field }) => (
-                  <QuantityInput label="Tara" field={field} />
+                  <QuantityInput label="Tara" field={field} suffix=" kg" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="weightSubLiq"
                 render={({ field }) => (
-                  <QuantityInput label="Sub Líquido" field={field} readonly />
+                  <QuantityInput label="Sub Líquido" field={field} suffix=" kg" readonly />
                 )}
               />
             </div>
@@ -422,7 +422,7 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="impurities_percent"
                 render={({ field }) => (
-                  <QuantityInput label="Impureza" field={field} suffix="" />
+                  <QuantityInput label="Impureza" field={field} />
                 )}
               />
               <FormField
@@ -436,7 +436,7 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="impurities_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Impureza" field={field} readonly />
+                  <QuantityInput label="Impureza" field={field} suffix=" kg" readonly />
                 )}
               />
             </div>
@@ -446,7 +446,7 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="humidity_percent"
                 render={({ field }) => (
-                  <QuantityInput label="Umidade" field={field} suffix="" />
+                  <QuantityInput label="Umidade" field={field} />
                 )}
               />
               <FormField
@@ -460,7 +460,7 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="humidity_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Umidade" field={field} readonly />
+                  <QuantityInput label="Umidade" field={field} suffix=" kg" readonly />
                 )}
               />
             </div>
@@ -471,21 +471,21 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="tax_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Taxa" field={field} />
+                  <QuantityInput label="Taxa" field={field} suffix=" kg" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="adjust_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Ajuste" field={field} />
+                  <QuantityInput label="Ajuste" field={field} suffix=" kg" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="weightLiq"
                 render={({ field }) => (
-                  <QuantityInput label="Peso Líquido" field={field} readonly />
+                  <QuantityInput label="Peso Líquido" field={field} suffix=" kg" readonly />
                 )}
               />
             </div>

@@ -65,6 +65,7 @@ export function QuantityInput<T extends FieldValues>({
   label,
   field,
   readonly = false,
+  suffix
 }: QuantityInputProps<T>) {
   return (
     <FormItem>
@@ -79,7 +80,7 @@ export function QuantityInput<T extends FieldValues>({
           decimalScale={2}
           fixedDecimalScale
           allowNegative={true}
-          suffix=" kg"
+          suffix={suffix}
           inputMode="numeric"
           valueIsNumericString
           className="font-light"
