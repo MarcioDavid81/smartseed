@@ -13,17 +13,18 @@ export function getJwtSecretKey() {
   type JWTPayload = {
     userId: string;
     companyId: string;
-    // Você pode adicionar outros campos conforme necessário
+    role: string;
   };
   
   export async function verifyToken(token: string): Promise<JWTPayload | null> {
     try {
       const { payload } = await jwtVerify(token, getJwtSecretKey());
   
-      if (typeof payload.userId === "string" && typeof payload.companyId === "string") {
+      if (typeof payload.userId === "string" && typeof payload.companyId === "string" && typeof payload.role === "string") {
         return {
           userId: payload.userId,
           companyId: payload.companyId,
+          role: payload.role,
         };
       }
   
