@@ -24,15 +24,15 @@ import { IndustryHarvest } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 
 interface Props {
   colheita: IndustryHarvest;
   onDeleted: () => void;
+  disabled?: boolean;
 }
 
-const DeleteHarvestButton = ({ colheita, onDeleted }: Props) => {
+const DeleteHarvestButton = ({ colheita, onDeleted, disabled = false }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { fetchHarvests } = useHarvest();
@@ -41,6 +41,16 @@ const DeleteHarvestButton = ({ colheita, onDeleted }: Props) => {
   const handleDelete = async (colheita: { id: string }) => {
     console.log("🔁 handleDelete chamado");
     console.log("📦 colheita recebida:", colheita);
+
+    if (disabled) {
+      showToast({
+        type: "error",
+        title: "Permissão negada",
+        message: "Você não tem autorização para excluir esta colheita.",
+      });
+      return;
+    }
+
 
     if (!colheita || !colheita.id) {
       showToast({
@@ -120,14 +130,27 @@ const DeleteHarvestButton = ({ colheita, onDeleted }: Props) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => setIsOpen(true)}
-              className="hover:opacity-80 transition"
+              type="button"
+              onClick={() => {
+                if (disabled) {
+                  showToast({
+                    type: "error",
+                    title: "Permissão negada",
+                    message: "Apenas administradores podem excluir colheitas.",
+                  });
+                  return;
+                }
+
+                setIsOpen(true);
+              }}
+              className="transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+
+              <Trash2Icon size={20} className={disabled ? "text-red/50" : "text-red"} />
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Excluir</p>
+            {disabled ? "Ação indisponível" : "Excluir"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

@@ -25,6 +25,7 @@ import NewSidebar from "./_components/new-sidebar/sidebar";
 import { IndustryStockProvider } from "@/contexts/IndustryStockContext";
 import { IndustrySaleProvider } from "@/contexts/IndustrySaleContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { redirect } from "next/navigation";
 
 const robotoFont = roboto({
   src: [
@@ -88,22 +89,23 @@ export default async function RootLayout({
 }>) {
   const user = await getUserFromToken();
   const company = await getCompanyFromToken();
+  if (!user || !company) {
+  redirect("/login");
+}
 
-  const safeUser = user
-    ? {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        companyId: user.companyId,
-        company: {
-          id: company?.id ?? "",
-          name: company?.name ?? "",
-          plan: company?.plan ?? "",
-        },
-        imageUrl: user.imageUrl ?? "",
-        role: user?.role ?? "USER",
-      }
-    : null;
+  const safeUser = {
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  companyId: user.companyId,
+  company: {
+    id: company.id,
+    name: company.name,
+    plan: company.plan ?? "",
+  },
+  imageUrl: user.imageUrl ?? "",
+  role: user.role ?? "USER",
+};
   console.log("Vieram os dados fdp", safeUser);
 
   const safeCompany = company

@@ -4,23 +4,33 @@ import { createContext, useContext } from "react";
 import type { AppUser } from "@/types/user";
 
 type UserContextType = {
-  user: AppUser | null;
+  user: AppUser;
 };
 
-const UserContext = createContext<UserContextType>({
-  user: null,
-});
+const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const useUser = () => useContext(UserContext);
+export const useUser = () => {
+  const context = useContext(UserContext);
+
+  if (!context) {
+    throw new Error("useUser deve ser usado dentro de um <UserProvider>");
+  }
+
+  return context;
+};
+
 
 export const UserProvider = ({
   user,
   children,
 }: {
-  user: AppUser | null;
+  user: AppUser;
   children: React.ReactNode;
 }) => {
   return (
-    <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{ user }}>
+      {children}
+    </UserContext.Provider>
   );
 };
+

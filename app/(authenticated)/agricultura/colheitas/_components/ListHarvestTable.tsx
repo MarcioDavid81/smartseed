@@ -12,11 +12,15 @@ import DeleteHarvestButton from "./DeleteHarvestButton";
 import EditHarvestButton from "./EditHarvestButton";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { AgroLoader } from "@/components/agro-loader";
+import { useUser } from "@/contexts/UserContext";
+import { canUser } from "@/lib/permissions/canUser";
 
 export function ListHarvestTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
   const [harvests, setHarvests] = useState<IndustryHarvest[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useUser();
+  const canDelete = canUser(user.role, "harvest:delete");
 
   async function fetchHarvests() {
     if (!selectedCycle?.id) return;
@@ -120,7 +124,7 @@ export function ListHarvestTable() {
         return (
           <div className="flex items-center justify-center gap-4">
             <EditHarvestButton colheita={colheita} onUpdated={fetchHarvests} />
-            <DeleteHarvestButton colheita={colheita} onDeleted={fetchHarvests} />
+            <DeleteHarvestButton colheita={colheita} onDeleted={fetchHarvests} disabled={!canDelete} />
           </div>
         );
       },
