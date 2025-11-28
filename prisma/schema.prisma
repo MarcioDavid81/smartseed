@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,80 +7,64 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// empresa
 model Company {
   id                 String                @id @default(uuid())
   name               String
+  createdAt          DateTime              @default(now())
   plan               Plan?                 @default(BASIC)
-  farms              Farm[]
-  users              User[]
-  customers          Customer[]
-  cultivars          Cultivar[]
-  talhoes            Talhao[]
-  harvests           Harvest[]
+  accountsPayable    AccountPayable[]
+  accountsReceivable AccountReceivable[]
+  applications       Application[]
   beneficiations     Beneficiation[]
   buys               Buy[]
   consumptionsExit   ConsumptionExit[]
-  salesExit          SaleExit[]
-  products           Product[]
-  purchases          Purchase[]
-  transfers          TransferExit[]
-  applications       Application[]
-  productStocks      ProductStock[]
-  productionCycles   ProductionCycle[]
-  accountsPayable    AccountPayable[]
-  accountsReceivable AccountReceivable[]
+  cultivars          Cultivar[]
+  customers          Customer[]
+  farms              Farm[]
+  harvests           Harvest[]
   industryDeposits   IndustryDeposit[]
   industryHarvests   IndustryHarvest[]
-  transporters       IndustryTransporter[]
+  industrySales      IndustrySale[]
   industryStocks     IndustryStock[]
   industryTransfers  IndustryTransfer[]
-  industrySales      IndustrySale[]
+  transporters       IndustryTransporter[]
+  products           Product[]
+  productStocks      ProductStock[]
+  productionCycles   ProductionCycle[]
+  purchases          Purchase[]
+  salesExit          SaleExit[]
   stockAdjustments   SeedStockAdjustment[]
-  createdAt          DateTime              @default(now())
+  talhoes            Talhao[]
+  transfers          TransferExit[]
+  users              User[]
 }
 
-// fazenda
 model Farm {
   id              String         @id @default(uuid())
   name            String
-  talhoes         Talhao[]
   area            Float
+  companyId       String
+  createdAt       DateTime       @default(now())
+  company         Company        @relation(fields: [companyId], references: [id])
   productStocks   ProductStock[]
   purchases       Purchase[]
-  company         Company        @relation(fields: [companyId], references: [id])
-  companyId       String
-  originTransfers TransferExit[] @relation("OriginFarm")
+  talhoes         Talhao[]
   destTransfers   TransferExit[] @relation("DestFarm")
-  createdAt       DateTime       @default(now())
+  originTransfers TransferExit[] @relation("OriginFarm")
 }
 
-// usuário
 model User {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
   password  String
-  imageUrl  String?
-  company   Company  @relation(fields: [companyId], references: [id])
   companyId String
-  role      Role?    @default(USER)
   createdAt DateTime @default(now())
+  imageUrl  String?
+  role      Role?    @default(USER)
+  company   Company  @relation(fields: [companyId], references: [id])
 }
 
-// plano
-enum Plan {
-  BASIC
-  PREMIUM
-}
-
-//roles
-enum Role {
-  ADMIN
-  USER
-}
-
-// clientes
 model Customer {
   id                 String              @id @default(uuid())
   name               String
@@ -96,384 +74,290 @@ model Customer {
   state              String?
   phone              String?
   cpf_cnpj           String?             @unique
-  company            Company             @relation(fields: [companyId], references: [id])
   companyId          String
-  sales              SaleExit[]
-  buys               Buy[]
-  purchases          Purchase[]
-  accountsReceivable AccountReceivable[]
-  accountsPayable    AccountPayable[]
-  industrySales      IndustrySale[]
   createdAt          DateTime            @default(now())
+  accountsPayable    AccountPayable[]
+  accountsReceivable AccountReceivable[]
+  buys               Buy[]
+  company            Company             @relation(fields: [companyId], references: [id])
+  industrySales      IndustrySale[]
+  purchases          Purchase[]
+  sales              SaleExit[]
 }
 
-// enums para produtos
-enum ProductType {
-  SOJA
-  TRIGO
-  MILHO
-  AVEIA_BRANCA
-  AVEIA_PRETA
-  AVEIA_UCRANIANA
-  AZEVEM
-}
-
-//enums para operações
-enum OperationType {
-  Colheita
-  Compra
-  Descarte
-  Venda
-  Plantio
-}
-
-//enums para ajustes
-enum AdjustmentType {
-  Increase
-  Decrease
-}
-
-//talhões
 model Talhao {
   id               String            @id @default(cuid())
   name             String
   area             Float
-  company          Company           @relation(fields: [companyId], references: [id])
   companyId        String
   farmId           String
-  farm             Farm              @relation(fields: [farmId], references: [id])
-  harvests         Harvest[]
-  consumptionsExit ConsumptionExit[]
-  applications     Application[]
-  industryHarvests IndustryHarvest[]
-  cycles           CycleTalhao[]
   createdAt        DateTime          @default(now())
+  applications     Application[]
+  consumptionsExit ConsumptionExit[]
+  cycles           CycleTalhao[]
+  harvests         Harvest[]
+  industryHarvests IndustryHarvest[]
+  company          Company           @relation(fields: [companyId], references: [id])
+  farm             Farm              @relation(fields: [farmId], references: [id])
 }
 
-// status do cultivar
-enum CultivarStatus {
-  BENEFICIANDO
-  BENEFICIADO
-}
-
-// produto/cultivar (variedade específica)
 model Cultivar {
-  id               String            @id @default(cuid())
+  id               String                @id @default(cuid())
   name             String
   product          ProductType
-  company          Company           @relation(fields: [companyId], references: [id])
+  createdAt        DateTime              @default(now())
   companyId        String
-  harvests         Harvest[]
-  buys             Buy[]
+  stock            Float                 @default(0)
+  status           CultivarStatus        @default(BENEFICIANDO)
   beneficiations   Beneficiation[]
+  buys             Buy[]
   consumptionsExit ConsumptionExit[]
+  company          Company               @relation(fields: [companyId], references: [id])
+  harvests         Harvest[]
   saleExit         SaleExit[]
   stockAdjustments SeedStockAdjustment[]
-  stock            Float             @default(0)
-  status           CultivarStatus    @default(BENEFICIANDO)
-  createdAt        DateTime          @default(now())
 }
 
-// colheita
 model Harvest {
   id         String           @id @default(cuid())
   cultivarId String
-  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
   date       DateTime
   quantityKg Float
   talhaoId   String
-  talhao     Talhao           @relation(fields: [talhaoId], references: [id])
   companyId  String
-  company    Company          @relation(fields: [companyId], references: [id])
   notes      String?
+  createdAt  DateTime         @default(now())
   type       OperationType    @default(Colheita)
   cycleId    String?
+  company    Company          @relation(fields: [companyId], references: [id])
+  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
   cycle      ProductionCycle? @relation(fields: [cycleId], references: [id])
-  createdAt  DateTime         @default(now())
+  talhao     Talhao           @relation(fields: [talhaoId], references: [id])
 }
 
-//compras
 model Buy {
   id               String            @id @default(cuid())
   cultivarId       String
-  cultivar         Cultivar          @relation(fields: [cultivarId], references: [id])
   date             DateTime
-  invoice          String
-  unityPrice       Float
-  totalPrice       Float
-  customerId       String
-  customer         Customer          @relation(fields: [customerId], references: [id])
   quantityKg       Float
   notes            String?
   companyId        String
-  company          Company           @relation(fields: [companyId], references: [id])
+  createdAt        DateTime          @default(now())
+  customerId       String
+  invoice          String
+  fileUrl          String?
+  totalPrice       Float
+  unityPrice       Float
   type             OperationType     @default(Compra)
   cycleId          String?
-  cycle            ProductionCycle?  @relation(fields: [cycleId], references: [id])
+  dueDate          DateTime?
   paymentCondition PaymentCondition?
-  dueDate          DateTime? // só se for a prazo
   accountPayable   AccountPayable?
-  createdAt        DateTime          @default(now())
+  company          Company           @relation(fields: [companyId], references: [id])
+  cultivar         Cultivar          @relation(fields: [cultivarId], references: [id])
+  customer         Customer          @relation(fields: [customerId], references: [id])
+  cycle            ProductionCycle?  @relation(fields: [cycleId], references: [id])
 }
 
-// beneficiamento
 model Beneficiation {
   id            String           @id @default(cuid())
-  cultivarId    String
-  cultivar      Cultivar         @relation(fields: [cultivarId], references: [id])
   date          DateTime
-  quantityKg    Float
-  destinationId String?
-  destination   IndustryDeposit? @relation(fields: [destinationId], references: [id])
   notes         String?
+  createdAt     DateTime         @default(now())
   companyId     String
-  company       Company          @relation(fields: [companyId], references: [id])
+  cultivarId    String
+  quantityKg    Float
   type          OperationType    @default(Descarte)
   cycleId       String?
+  destinationId String?
+  company       Company          @relation(fields: [companyId], references: [id])
+  cultivar      Cultivar         @relation(fields: [cultivarId], references: [id])
   cycle         ProductionCycle? @relation(fields: [cycleId], references: [id])
-  createdAt     DateTime         @default(now())
+  destination   IndustryDeposit? @relation(fields: [destinationId], references: [id])
 }
 
-//saída para plantio
 model ConsumptionExit {
   id         String           @id @default(cuid())
   cultivarId String
-  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
   date       DateTime
   quantityKg Float
-  talhaoId   String
-  talhao     Talhao           @relation(fields: [talhaoId], references: [id])
   notes      String?
   companyId  String
-  company    Company          @relation(fields: [companyId], references: [id])
+  createdAt  DateTime         @default(now())
   type       OperationType    @default(Plantio)
   cycleId    String?
+  talhaoId   String
+  company    Company          @relation(fields: [companyId], references: [id])
+  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
   cycle      ProductionCycle? @relation(fields: [cycleId], references: [id])
-  createdAt  DateTime         @default(now())
+  talhao     Talhao           @relation(fields: [talhaoId], references: [id])
 }
 
-//venda
 model SaleExit {
   id                String             @id @default(cuid())
   cultivarId        String
-  cultivar          Cultivar           @relation(fields: [cultivarId], references: [id])
   date              DateTime
   quantityKg        Float
   customerId        String?
-  customer          Customer?          @relation(fields: [customerId], references: [id])
   invoiceNumber     String?
+  fileUrl           String?
   saleValue         Float?
   notes             String?
   companyId         String
-  company           Company            @relation(fields: [companyId], references: [id])
+  createdAt         DateTime           @default(now())
   type              OperationType      @default(Venda)
   cycleId           String?
-  cycle             ProductionCycle?   @relation(fields: [cycleId], references: [id])
+  dueDate           DateTime?
   paymentCondition  PaymentCondition?
-  dueDate           DateTime? // só se for a prazo
   accountReceivable AccountReceivable?
-  createdAt         DateTime           @default(now())
+  company           Company            @relation(fields: [companyId], references: [id])
+  cultivar          Cultivar           @relation(fields: [cultivarId], references: [id])
+  customer          Customer?          @relation(fields: [customerId], references: [id])
+  cycle             ProductionCycle?   @relation(fields: [cycleId], references: [id])
 }
 
-//ajuste de estoque
 model SeedStockAdjustment {
   id         String         @id @default(cuid())
   date       DateTime
   type       AdjustmentType
   quantityKg Float
   cultivarId String
-  cultivar   Cultivar       @relation(fields: [cultivarId], references: [id])
   companyId  String
-  company    Company        @relation(fields: [companyId], references: [id])
   notes      String?
   createdAt  DateTime       @default(now())
+  company    Company        @relation(fields: [companyId], references: [id])
+  cultivar   Cultivar       @relation(fields: [cultivarId], references: [id])
 }
 
-//safras/ciclos
 model ProductionCycle {
   id                String             @id @default(cuid())
   name              String
-  productType       ProductType?
   startDate         DateTime
   endDate           DateTime
-  isActive          Boolean            @default(false)
   companyId         String
-  company           Company            @relation(fields: [companyId], references: [id])
-  harvests          Harvest[]
-  buys              Buy[]
-  beneficiations    Beneficiation[]
-  consumptionsExit  ConsumptionExit[]
-  salesExit         SaleExit[]
-  purchases         Purchase[]
-  transfers         TransferExit[]
-  applications      Application[]
-  industryHarvests  IndustryHarvest[]
-  talhoes           CycleTalhao[]
-  industryTransfers IndustryTransfer[]
-  industrySales     IndustrySale[]
   createdAt         DateTime           @default(now())
-
-  forceMigration Int? @default(1)
+  isActive          Boolean            @default(false)
+  productType       ProductType?
+  forceMigration    Int?               @default(1)
+  applications      Application[]
+  beneficiations    Beneficiation[]
+  buys              Buy[]
+  consumptionsExit  ConsumptionExit[]
+  talhoes           CycleTalhao[]
+  harvests          Harvest[]
+  industryHarvests  IndustryHarvest[]
+  industrySales     IndustrySale[]
+  industryTransfers IndustryTransfer[]
+  company           Company            @relation(fields: [companyId], references: [id])
+  purchases         Purchase[]
+  salesExit         SaleExit[]
+  transfers         TransferExit[]
 }
 
-//tabela para relacionar muitos talhões para muitos ciclos de produção 
 model CycleTalhao {
   id        String          @id @default(cuid())
   cycleId   String
-  cycle     ProductionCycle @relation(fields: [cycleId], references: [id])
   talhaoId  String
-  talhao    Talhao          @relation(fields: [talhaoId], references: [id])
   createdAt DateTime        @default(now())
+  cycle     ProductionCycle @relation(fields: [cycleId], references: [id])
+  talhao    Talhao          @relation(fields: [talhaoId], references: [id])
 }
 
-//classes
-enum ProductClass {
-  ADUBO_DE_BASE
-  ADUBO_DE_COBERTURA
-  HERBICIDA
-  INSETICIDA
-  FUNGICIDA
-  OLEO_MINERAL
-  ADJUVANTE
-  CORRETIVO
-  OUTROS
-}
-
-//unidade
-enum Unit {
-  TN
-  KG
-  GR
-  L
-  ML
-  SC
-  UN
-  CX
-}
-
-//tipo de operação
-enum InsumoOperationType {
-  COMPRA
-  TRANSFERENCIA
-  APLICACAO
-}
-
-//produtos
 model Product {
   id          String         @id @default(cuid())
   name        String
   description String?
   class       ProductClass
   unit        Unit
-  companyId   String
-  company     Company        @relation(fields: [companyId], references: [id])
-  purchases   Purchase[]
-  transfers   TransferExit[]
-  stocks      ProductStock[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+  companyId   String
+  company     Company        @relation(fields: [companyId], references: [id])
+  stocks      ProductStock[]
+  purchases   Purchase[]
+  transfers   TransferExit[]
 }
 
-// tabela de estoque por produto em cada fazenda
 model ProductStock {
   id           String        @id @default(cuid())
   productId    String
-  product      Product       @relation(fields: [productId], references: [id])
   farmId       String
-  farm         Farm          @relation(fields: [farmId], references: [id])
   stock        Float         @default(0)
   companyId    String
-  company      Company       @relation(fields: [companyId], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   applications Application[]
+  company      Company       @relation(fields: [companyId], references: [id])
+  farm         Farm          @relation(fields: [farmId], references: [id])
+  product      Product       @relation(fields: [productId], references: [id])
 
-  @@unique([productId, farmId]) // garante 1 registro por produto em cada fazenda
+  @@unique([productId, farmId])
 }
 
-//compras
 model Purchase {
   id               String              @id @default(cuid())
   productId        String
-  product          Product             @relation(fields: [productId], references: [id])
   date             DateTime
   quantity         Float
   invoiceNumber    String
+  fileUrl          String?
   unitPrice        Float
   totalPrice       Float
   customerId       String
-  customer         Customer            @relation(fields: [customerId], references: [id])
   notes            String?
-  farmId           String
-  farm             Farm                @relation(fields: [farmId], references: [id])
   companyId        String
-  company          Company             @relation(fields: [companyId], references: [id])
   type             InsumoOperationType @default(COMPRA)
   cycleId          String?
-  cycle            ProductionCycle?    @relation(fields: [cycleId], references: [id])
-  paymentCondition PaymentCondition?
-  dueDate          DateTime?
-  accountPayable   AccountPayable?
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
+  farmId           String
+  dueDate          DateTime?
+  paymentCondition PaymentCondition?
+  accountPayable   AccountPayable?
+  company          Company             @relation(fields: [companyId], references: [id])
+  customer         Customer            @relation(fields: [customerId], references: [id])
+  cycle            ProductionCycle?    @relation(fields: [cycleId], references: [id])
+  farm             Farm                @relation(fields: [farmId], references: [id])
+  product          Product             @relation(fields: [productId], references: [id])
 }
 
-//transferências
 model TransferExit {
   id           String              @id @default(cuid())
   date         DateTime
   productId    String
-  product      Product             @relation(fields: [productId], references: [id])
   quantity     Float
-  originFarmId String
-  originFarm   Farm                @relation("OriginFarm", fields: [originFarmId], references: [id])
-  destFarmId   String
-  destFarm     Farm                @relation("DestFarm", fields: [destFarmId], references: [id])
   companyId    String
-  company      Company             @relation(fields: [companyId], references: [id])
   type         InsumoOperationType @default(TRANSFERENCIA)
   cycleId      String?
-  cycle        ProductionCycle?    @relation(fields: [cycleId], references: [id])
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
+  destFarmId   String
+  originFarmId String
+  company      Company             @relation(fields: [companyId], references: [id])
+  cycle        ProductionCycle?    @relation(fields: [cycleId], references: [id])
+  destFarm     Farm                @relation("DestFarm", fields: [destFarmId], references: [id])
+  originFarm   Farm                @relation("OriginFarm", fields: [originFarmId], references: [id])
+  product      Product             @relation(fields: [productId], references: [id])
 }
 
-//aplicações
 model Application {
   id             String              @id @default(cuid())
   date           DateTime
-  productStockId String
-  productStock   ProductStock        @relation(fields: [productStockId], references: [id])
   quantity       Float
   talhaoId       String
-  talhao         Talhao              @relation(fields: [talhaoId], references: [id])
   notes          String?
   companyId      String
-  company        Company             @relation(fields: [companyId], references: [id])
   type           InsumoOperationType @default(APLICACAO)
   cycleId        String?
-  cycle          ProductionCycle?    @relation(fields: [cycleId], references: [id])
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+  productStockId String
+  company        Company             @relation(fields: [companyId], references: [id])
+  cycle          ProductionCycle?    @relation(fields: [cycleId], references: [id])
+  productStock   ProductStock        @relation(fields: [productStockId], references: [id])
+  talhao         Talhao              @relation(fields: [talhaoId], references: [id])
 }
 
-//MÓDULO FINANCEIRO
-
-//condicao de pagamento
-enum PaymentCondition {
-  AVISTA
-  APRAZO
-}
-
-//status da conta
-enum AccountStatus {
-  PENDING
-  PAID
-  OVERDUE
-  CANCELED
-}
-
-//conta a pagar
 model AccountPayable {
   id          String        @id @default(cuid())
   description String
@@ -483,70 +367,57 @@ model AccountPayable {
   status      AccountStatus @default(PENDING)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id])
-
-  // Relacionamentos opcionais
-  buyId String? @unique
-  buy   Buy?    @relation(fields: [buyId], references: [id])
-
-  purchaseId String?   @unique
-  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
-
-  // relacionamento com cliente
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id])
+  companyId   String
+  buyId       String?       @unique
+  purchaseId  String?       @unique
+  customerId  String
+  buy         Buy?          @relation(fields: [buyId], references: [id])
+  company     Company       @relation(fields: [companyId], references: [id])
+  customer    Customer      @relation(fields: [customerId], references: [id])
+  purchase    Purchase?     @relation(fields: [purchaseId], references: [id])
 }
 
-//conta a receber
 model AccountReceivable {
-  id           String        @id @default(cuid())
-  description  String
-  amount       Float
-  dueDate      DateTime
-  receivedDate DateTime?
-  status       AccountStatus @default(PENDING)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id])
-
-  saleExitId String?   @unique
-  saleExit   SaleExit? @relation(fields: [saleExitId], references: [id])
-
+  id             String        @id @default(cuid())
+  description    String
+  amount         Float
+  dueDate        DateTime
+  receivedDate   DateTime?
+  status         AccountStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  companyId      String
+  saleExitId     String?       @unique
+  customerId     String
   industrySaleId String?       @unique
+  company        Company       @relation(fields: [companyId], references: [id])
+  customer       Customer      @relation(fields: [customerId], references: [id])
   industrySale   IndustrySale? @relation(fields: [industrySaleId], references: [id])
-
-  // relacionamento com cliente
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id])
+  saleExit       SaleExit?     @relation(fields: [saleExitId], references: [id])
 }
 
-//MÓDULO DE COLHEITA INDÚSTRIA
 model IndustryDeposit {
   id               String             @id @default(cuid())
   name             String
   companyId        String
+  createdAt        DateTime           @default(now())
+  beneficiations   Beneficiation[]
   company          Company            @relation(fields: [companyId], references: [id])
   industryHarvests IndustryHarvest[]
-  industryStocks   IndustryStock[]
   industrySales    IndustrySale[]
-  beneficiations   Beneficiation[]
+  industryStocks   IndustryStock[]
   transfersFrom    IndustryTransfer[] @relation("FromDeposit")
   transfersTo      IndustryTransfer[] @relation("ToDeposit")
-  createdAt        DateTime           @default(now())
 }
 
 model IndustryStock {
   id                String          @id @default(cuid())
-  product           ProductType
   industryDepositId String
-  industryDeposit   IndustryDeposit @relation(fields: [industryDepositId], references: [id])
   quantity          Decimal         @db.Decimal(12, 2)
   companyId         String
+  product           ProductType
   company           Company         @relation(fields: [companyId], references: [id])
+  industryDeposit   IndustryDeposit @relation(fields: [industryDepositId], references: [id])
 
   @@unique([product, industryDepositId], name: "product_industryDepositId")
 }
@@ -554,23 +425,20 @@ model IndustryStock {
 model IndustryTransfer {
   id            String           @id @default(cuid())
   date          DateTime         @default(now())
-  // Produto transferido
   product       ProductType
-  // Origem
   fromDepositId String
-  fromDeposit   IndustryDeposit  @relation("FromDeposit", fields: [fromDepositId], references: [id])
-  // Destino
   toDepositId   String
-  toDeposit     IndustryDeposit  @relation("ToDeposit", fields: [toDepositId], references: [id])
   quantity      Decimal          @db.Decimal(12, 2)
   document      String?
   observation   String?
   companyId     String
-  company       Company          @relation(fields: [companyId], references: [id])
   cycleId       String?
-  cycle         ProductionCycle? @relation(fields: [cycleId], references: [id])
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
+  company       Company          @relation(fields: [companyId], references: [id])
+  cycle         ProductionCycle? @relation(fields: [cycleId], references: [id])
+  fromDeposit   IndustryDeposit  @relation("FromDeposit", fields: [fromDepositId], references: [id])
+  toDeposit     IndustryDeposit  @relation("ToDeposit", fields: [toDepositId], references: [id])
 }
 
 model IndustryTransporter {
@@ -583,77 +451,152 @@ model IndustryTransporter {
   state            String?
   phone            String?
   email            String?
+  companyId        String
   industryHarvests IndustryHarvest[]
   industrySales    IndustrySale[]
-  companyId        String
   company          Company           @relation(fields: [companyId], references: [id])
 }
 
 model IndustryHarvest {
   id                    String               @id @default(cuid())
   date                  DateTime
-  document              String?
-  //produto colhido
-  product               ProductType
-  //talhão colhido
   talhaoId              String
-  talhao                Talhao               @relation(fields: [talhaoId], references: [id])
-  //local de armazenamento
   industryDepositId     String
-  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id])
-  //transporte
   industryTransporterId String?
-  industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id])
   truckPlate            String?
-  truckDriver           String?
-  //classificação no destino
-  weightBt              Decimal              @db.Decimal(12, 2) // Peso bruto
-  weightTr              Decimal              @db.Decimal(12, 2) // Tara
-  weightSubLiq          Decimal              @db.Decimal(12, 2) // Sub Líquido
-  humidity_percent      Decimal              @db.Decimal(5, 2) // Percentual umidade
-  humidity_discount     Decimal              @db.Decimal(12, 2) // Desconto umidade
-  humidity_kg           Decimal              @db.Decimal(12, 2) // KG umidade
-  impurities_percent    Decimal              @db.Decimal(5, 2) // Percentual impurezas
-  impurities_discount   Decimal              @db.Decimal(12, 2) // Desconto impurezas
-  impurities_kg         Decimal              @db.Decimal(12, 2) // KG impurezas
-  tax_kg                Decimal?             @db.Decimal(12, 2) // Taxa KG
-  adjust_kg             Decimal?             @db.Decimal(12, 2) // Ajuste KG
-  weightLiq             Decimal              @db.Decimal(12, 2) // Peso líquido final
+  weightBt              Decimal              @db.Decimal(12, 2)
+  weightTr              Decimal              @db.Decimal(12, 2)
+  weightSubLiq          Decimal              @db.Decimal(12, 2)
+  humidity_percent      Decimal              @db.Decimal(5, 2)
+  humidity_discount     Decimal              @db.Decimal(12, 2)
+  humidity_kg           Decimal              @db.Decimal(12, 2)
+  impurities_percent    Decimal              @db.Decimal(5, 2)
+  impurities_discount   Decimal              @db.Decimal(12, 2)
+  impurities_kg         Decimal              @db.Decimal(12, 2)
+  weightLiq             Decimal              @db.Decimal(12, 2)
   cycleId               String?
-  cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
-  companyId             String
-  company               Company              @relation(fields: [companyId], references: [id])
   createdAt             DateTime             @default(now())
   updatedAt             DateTime             @updatedAt
+  companyId             String
+  document              String?
+  truckDriver           String?
+  product               ProductType
+  adjust_kg             Decimal?             @db.Decimal(12, 2)
+  tax_kg                Decimal?             @db.Decimal(12, 2)
+  company               Company              @relation(fields: [companyId], references: [id])
+  cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
+  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id])
+  industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id])
+  talhao                Talhao               @relation(fields: [talhaoId], references: [id])
 }
 
 model IndustrySale {
   id                    String               @id @default(cuid())
   date                  DateTime             @default(now())
   document              String?
+  fileUrl               String?
   product               ProductType
   industryDepositId     String
-  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id])
   customerId            String
-  customer              Customer             @relation(fields: [customerId], references: [id])
   industryTransporterId String?
-  industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id])
   truckPlate            String?
   truckDriver           String?
-  weightBt              Decimal              @db.Decimal(12, 2) // Peso bruto
-  weightTr              Decimal              @db.Decimal(12, 2) // Tara
-  weightSubLiq          Decimal              @db.Decimal(12, 2) // Sub Líquido
-  discountsKg           Decimal?             @db.Decimal(12, 2) // Desconto KG
-  weightLiq             Decimal              @db.Decimal(12, 2) // Peso líquido final
+  weightBt              Decimal              @db.Decimal(12, 2)
+  weightTr              Decimal              @db.Decimal(12, 2)
+  weightSubLiq          Decimal              @db.Decimal(12, 2)
+  discountsKg           Decimal?             @db.Decimal(12, 2)
+  weightLiq             Decimal              @db.Decimal(12, 2)
   unitPrice             Float
   totalPrice            Float
   notes                 String?
   companyId             String
-  company               Company              @relation(fields: [companyId], references: [id])
   cycleId               String?
-  cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
   paymentCondition      PaymentCondition?
-  dueDate               DateTime? // só se for a prazo
-  accountReceivable     AccountReceivable?
+  dueDate               DateTime?
   createdAt             DateTime             @default(now())
+  accountReceivable     AccountReceivable?
+  company               Company              @relation(fields: [companyId], references: [id])
+  customer              Customer             @relation(fields: [customerId], references: [id])
+  cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
+  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id])
+  industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id])
+}
+
+enum Plan {
+  BASIC
+  PREMIUM
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ProductType {
+  SOJA
+  TRIGO
+  MILHO
+  AVEIA_BRANCA
+  AVEIA_PRETA
+  AVEIA_UCRANIANA
+  AZEVEM
+}
+
+enum OperationType {
+  Colheita
+  Compra
+  Descarte
+  Venda
+  Plantio
+}
+
+enum AdjustmentType {
+  Increase
+  Decrease
+}
+
+enum CultivarStatus {
+  BENEFICIANDO
+  BENEFICIADO
+}
+
+enum ProductClass {
+  ADUBO_DE_BASE
+  ADUBO_DE_COBERTURA
+  HERBICIDA
+  INSETICIDA
+  FUNGICIDA
+  OLEO_MINERAL
+  ADJUVANTE
+  CORRETIVO
+  OUTROS
+}
+
+enum Unit {
+  KG
+  GR
+  L
+  ML
+  SC
+  UN
+  CX
+  TN
+}
+
+enum InsumoOperationType {
+  COMPRA
+  TRANSFERENCIA
+  APLICACAO
+}
+
+enum PaymentCondition {
+  AVISTA
+  APRAZO
+}
+
+enum AccountStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELED
 }

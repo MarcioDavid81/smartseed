@@ -14,6 +14,7 @@ const SelectCycle = () => {
   useEffect(() => {
     const fetchCycles = async () => {
       try {
+        setLoading(true);
         const token = getToken();
         const res = await fetch("/api/cycles", {
           headers: {

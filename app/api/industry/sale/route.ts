@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
           date: new Date(data.date),
           companyId,
           product: cycle.productType as ProductType,
+          industryTransporterId: data.industryTransporterId || null,
         },
       });
 
