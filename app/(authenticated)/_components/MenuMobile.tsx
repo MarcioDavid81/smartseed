@@ -109,7 +109,7 @@ export function MobileMenu() {
         <SheetContent side="right" className="w-64 overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="text-left">SmartSeed Menu</SheetTitle>
-            <SheetDescription>
+            <SheetDescription className="sr-only">
               Navegue pelo menu para acessar as funcionalidades do SmartSeed.
             </SheetDescription>
           </SheetHeader>
