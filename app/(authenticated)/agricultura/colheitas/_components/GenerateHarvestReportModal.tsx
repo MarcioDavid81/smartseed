@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -222,7 +222,12 @@ export default function GenerateHarvestReportModal() {
         </HoverButton>
       </DialogTrigger>
       <DialogContent className="space-y-4">
-        <h2 className="text-xl font-semibold">Filtrar Relatório</h2>
+        <DialogHeader>
+          <DialogTitle>Filtrar Relatório</DialogTitle>
+            <DialogDescription>
+              Selecione os filtros para gerar o relatório de colheitas
+            </DialogDescription>
+        </DialogHeader>
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Produto</label>

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -26,19 +26,28 @@ export default function GenerateSaleReportModal() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // Sanitizar listas: remover strings vazias
   const produtosUnicos = Array.from(
     new Set(sales.map((h) => h.product)),
-  );
-  const transportadoresUnicos = Array.from(
-    new Set(sales.map((h) => h.industryTransporter?.name || "")),
-  );
+  ).filter((p) => p && p.trim() !== "");
+
   const customersUnicos = Array.from(
     new Set(sales.map((h) => h.customer.name)),
+  ).filter((c) => c && c.trim() !== "");
+
+  const transportadoresAll = sales.map((h) => h.industryTransporter?.name ?? "");
+  const transportadoresUnicos = Array.from(
+    new Set(transportadoresAll.filter((n) => n && n.trim() !== "")),
   );
 
   const filtered = sales.filter((h) => {
     const matchProduto = !produto || h.product === produto;
-    const matchTransportador = !transportador || h.industryTransporter?.name === transportador;
+    const matchTransportador =
+      !transportador
+        ? true
+        : transportador === "none"
+          ? !h.industryTransporter?.name || h.industryTransporter?.name.trim() === ""
+          : h.industryTransporter?.name === transportador;
     const matchCustomer = !customer || h.customer.name === customer;
     return matchProduto && matchTransportador && matchCustomer;
   });
@@ -86,7 +95,7 @@ export default function GenerateSaleReportModal() {
       };
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
-      doc.text("Relatório de Colheitas", 150, 20, { align: "center" });
+      doc.text("Relatório de Vendas", 150, 20, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Produto: ${produto || "Todos"}`, 14, 35);
@@ -138,9 +147,10 @@ export default function GenerateSaleReportModal() {
             pageHeight - 10,
           );
 
-          const pageNumber = (doc as any).internal.getNumberOfPages();
+          const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+          const totalPages = (doc as any).internal.getNumberOfPages();
           doc.text(
-            `${pageNumber}/${pageNumber}`,
+            `${currentPage}/${totalPages}`,
             pageWidth - 20,
             pageHeight - 10,
           );
@@ -177,7 +187,7 @@ export default function GenerateSaleReportModal() {
       }
 
       doc.setFontSize(9);
-      doc.text("Total colhido por Talhão", 14, finalY);
+      doc.text("Total vendido por Cliente:", 14, finalY);
 
       doc.setFontSize(9);
       Object.entries(totalsByCustomer).forEach(([name, total], index) => {
@@ -214,16 +224,21 @@ export default function GenerateSaleReportModal() {
           Gerar Relatório
         </HoverButton>
       </DialogTrigger>
-      <DialogContent className="space-y-4">
-        <h2 className="text-xl font-semibold">Filtrar Relatório</h2>
 
+      <DialogContent className="space-y-4">
+        <DialogHeader>
+          <DialogTitle>Filtrar Relatório</DialogTitle>
+          <DialogDescription>
+            Selecione os filtros para gerar o relatório de vendas
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* PRODUTO */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Produto</label>
           <Select
-            value={produto ?? ""}
-            onValueChange={(value) =>
-              setProduto(value === "todos" ? null : value)
-            }
+            value={produto ?? "todos"}
+            onValueChange={(value) => setProduto(value === "todos" ? null : value)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Todos" />
@@ -239,13 +254,12 @@ export default function GenerateSaleReportModal() {
           </Select>
         </div>
 
+        {/* CLIENTE */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Cliente</label>
           <Select
-            value={customer ?? ""}
-            onValueChange={(value) =>
-              setCustomer(value === "todos" ? null : value)
-            }
+            value={customer ?? "todos"}
+            onValueChange={(value) => setCustomer(value === "todos" ? null : value)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Todos" />
@@ -260,13 +274,13 @@ export default function GenerateSaleReportModal() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* TRANSPORTADOR */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Transportador</label>
           <Select
-            value={transportador ?? ""}
-            onValueChange={(value) =>
-              setTransportador(value === "todos" ? null : value)
-            }
+            value={transportador ?? "todos"}
+            onValueChange={(value) => setTransportador(value === "todos" ? null : value)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Todos" />
@@ -291,5 +305,6 @@ export default function GenerateSaleReportModal() {
         </Button>
       </DialogContent>
     </Dialog>
+
   );
 }

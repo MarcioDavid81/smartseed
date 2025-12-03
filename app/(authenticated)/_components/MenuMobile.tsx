@@ -5,12 +5,13 @@ import { useState } from "react";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ChartNoAxesCombined, Menu, Scroll, Warehouse } from "lucide-react";
+import { ChartNoAxesCombined, Menu, Scroll } from "lucide-react";
 import { FaSeedling } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { PiFarm } from "react-icons/pi";
@@ -108,6 +109,9 @@ export function MobileMenu() {
         <SheetContent side="right" className="w-64 overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="text-left">SmartSeed Menu</SheetTitle>
+            <SheetDescription>
+              Navegue pelo menu para acessar as funcionalidades do SmartSeed.
+            </SheetDescription>
           </SheetHeader>
           <nav className="mt-4 mb-20 space-y-4">
             {routes.map((route, index) => {
