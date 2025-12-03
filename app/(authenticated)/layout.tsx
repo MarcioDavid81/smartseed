@@ -24,6 +24,7 @@ import { IndustryHarvestProvider } from "@/contexts/IndustryHarvestContext";
 import NewSidebar from "./_components/new-sidebar/sidebar";
 import { IndustryStockProvider } from "@/contexts/IndustryStockContext";
 import { IndustrySaleProvider } from "@/contexts/IndustrySaleContext";
+import { IndustryTransferProvider } from "@/contexts/IndustryTransferContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { redirect } from "next/navigation";
 
@@ -140,12 +141,14 @@ export default async function RootLayout({
                                       <IndustryHarvestProvider>
                                         <IndustryStockProvider>
                                           <IndustrySaleProvider>
-                                            <NewSidebar />
-                                            <MobileMenu />
-                                            <ToastProvider>
-                                              {children}
-                                            </ToastProvider>
-                                            <Toaster richColors />
+                                            <IndustryTransferProvider>
+                                              <NewSidebar />
+                                              <MobileMenu />
+                                              <ToastProvider>
+                                                {children}
+                                              </ToastProvider>
+                                              <Toaster richColors />
+                                            </IndustryTransferProvider>
                                           </IndustrySaleProvider>
                                         </IndustryStockProvider>
                                       </IndustryHarvestProvider>

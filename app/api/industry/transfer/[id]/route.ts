@@ -22,7 +22,10 @@ export async function PUT(
   try {
     const authHeader = req.headers.get("authorization");
     if (!authHeader)
-      return NextResponse.json({ error: "Token não informado" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Token não informado" },
+        { status: 401 },
+      );
 
     const token = authHeader.split(" ")[1];
     const payload = await verifyToken(token);
@@ -163,5 +166,140 @@ export async function PUT(
       { error: "Erro interno no servidor" },
       { status: 500 },
     );
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!token) {
+      return NextResponse.json({
+        error: {
+          code: "TOKEN_MISSING",
+          title: "Autenticação necessária",
+          message: "Token ausente.",
+        }
+      }, { status: 401 });
+    }
+
+    const payload = await verifyToken(token);
+    if (!payload) {
+      return NextResponse.json({
+        error: {
+          code: "TOKEN_INVALID",
+          title: "Token inválido",
+          message: "Não foi possível validar suas credenciais.",
+        },
+      }, { status: 401 });
+    }
+
+    const { id } = params;
+    const { companyId } = payload;
+
+    const existing = await db.industryTransfer.findUnique({
+      where: { id },
+      include: {
+        fromDeposit: true,
+        toDeposit: true,
+      }
+    });
+
+    if (!existing || existing.companyId !== companyId) {
+      return NextResponse.json({
+        error: {
+          code: "TRANSFER_NOT_FOUND",
+          title: "Transferência não encontrada",
+          message: "A transferência não foi localizada ou você não tem permissão para acessá-la.",
+        },
+      }, { status: 403 });
+    }
+
+    const transferWeight = Number(existing.quantity);
+
+    // ✅ Estoque do DEPÓSITO DE DESTINO (onde precisa ter saldo)
+    const toStock = await db.industryStock.findUnique({
+      where: {
+        product_industryDepositId: {
+          product: existing.product,
+          industryDepositId: existing.toDepositId,
+        },
+      },
+    });
+
+    const toCurrentQuantity = Number(toStock?.quantity ?? 0);
+
+    if (transferWeight > toCurrentQuantity) {
+      return NextResponse.json({
+        error: {
+          code: "INSUFFICIENT_STOCK",
+          title: "Estoque insuficiente",
+          message: `O depósito de destino possui ${toCurrentQuantity} kg, e a transferência é de ${transferWeight} kg. A exclusão deixaria o estoque negativo.`,
+        },
+      }, { status: 400 });
+    }
+
+    // ✅ Estoque do DEPÓSITO DE ORIGEM (onde será devolvido)
+    const fromStock = await db.industryStock.findUnique({
+      where: {
+        product_industryDepositId: {
+          product: existing.product,
+          industryDepositId: existing.fromDepositId,
+        },
+      },
+    });
+
+    const fromCurrentQuantity = Number(fromStock?.quantity ?? 0);
+
+    // ✅ TRANSAÇÃO ATÔMICA
+    await db.$transaction(async (tx) => {
+      // ✅ Devolve para a origem
+      await tx.industryStock.update({
+        where: {
+          product_industryDepositId: {
+            product: existing.product,
+            industryDepositId: existing.fromDepositId,
+          },
+        },
+        data: {
+          quantity: fromCurrentQuantity + transferWeight,
+        }
+      });
+
+      // ✅ Remove do destino
+      await tx.industryStock.update({
+        where: {
+          product_industryDepositId: {
+            product: existing.product,
+            industryDepositId: existing.toDepositId,
+          },
+        },
+        data: {
+          quantity: toCurrentQuantity - transferWeight,
+        }
+      });
+
+      // ✅ Remove transferência
+      await tx.industryTransfer.delete({
+        where: { id }
+      });
+    });
+
+    return NextResponse.json(
+      { message: "Transferência removida e estoque revertido com sucesso" },
+      { status: 200 },
+    );
+
+  } catch (error) {
+    console.error("Erro ao remover transferência:", error);
+    return NextResponse.json({
+      error: {
+        code: "DELETE_TRANSFER_ERROR",
+        title: "Erro ao remover transferência",
+        message: "Ocorreu um erro inesperado durante a tentativa de remover a transferência.",
+      },
+    }, { status: 500 });
   }
 }

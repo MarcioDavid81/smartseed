@@ -53,9 +53,10 @@ export const routes = [
     icon: <GiFarmTractor size={20} />,
     subRoutes: [
       { name: "Dashboard", path: "/agricultura/dashboard", icon: <AiOutlineDashboard size={16} /> },
-      { name: "Colheita", path: "/agricultura/colheitas", icon: <Image src={combineIcon} alt="Agricultura" width={24} height={24} />
+      { name: "Colheitas", path: "/agricultura/colheitas", icon: <Image src={combineIcon} alt="Agricultura" width={24} height={24} />
       },
       { name: "Vendas", path: "/agricultura/vendas", icon: <DollarSign size={16} /> },
+      { name: "Transferências", path: "/agricultura/transferencias", icon: <TbTransferIn size={16} /> },
       { name: "Transportadores", path: "/agricultura/transportadores", icon: <FaTruck size={16} /> },
       { name: "Depósitos", path: "/agricultura/depositos", icon: <Home size={16} /> },
       { name: "Estoque", path: "/agricultura/estoque", icon: <Warehouse size={16} /> },

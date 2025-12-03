@@ -17,24 +17,24 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useIndustrySale } from "@/contexts/IndustrySaleContext";
+import { useIndustryTransfer } from "@/contexts/IndustryTransferContext";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
-import { IndustrySale } from "@/types";
+import { IndustryTransfer } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 
 
 interface Props {
-  venda: IndustrySale;
+  transferencia: IndustryTransfer;
   onDeleted: () => void;
 }
 
-const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
+const DeleteTransferButton = ({ transferencia, onDeleted }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { fetchSales } = useIndustrySale();
+  const { fetchTransfers } = useIndustryTransfer();
   const { showToast } = useSmartToast();
 
   const handleDelete = async (venda: { id: string }) => {
@@ -88,7 +88,7 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
     showToast({
       type: "success",
       title: "Sucesso",
-      message: "Venda deletada com sucesso!",
+      message: "Transferência deletada com sucesso!",
     });
     onDeleted();
     setIsOpen(false);
@@ -98,13 +98,13 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
     showToast({
       type: "error",
       title: "Erro",
-      message: "Erro inesperado ao deletar venda.",
+      message: "Erro inesperado ao deletar transferência.",
     });
   } finally {
     setLoading(false);
   }
 
-  await fetchSales();
+  await fetchTransfers();
 };
 
 
@@ -130,7 +130,7 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
         <AlertDialogHeader>
           <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta ação é irreversível e excluirá o registro de venda permanentemente.
+            Esta ação é irreversível e excluirá o registro de transferência permanentemente.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -139,7 +139,7 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(venda)}
+              onClick={() => handleDelete(transferencia)}
               disabled={loading}
               variant="ghost"
               className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
@@ -155,4 +155,4 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
   );
 };
 
-export default DeleteSaleButton;
+export default DeleteTransferButton;
