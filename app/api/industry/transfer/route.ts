@@ -258,7 +258,10 @@ export async function GET(req: NextRequest) {
         toDeposit: { select: { id: true, name: true } },
         company: { select: { id: true, name: true } },
       },
-      orderBy: { date: "desc" },
+      orderBy: [
+        { date: "desc" },
+        { document: "desc" },
+      ]
     });
 
     return NextResponse.json(transfers, { status: 200 });

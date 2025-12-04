@@ -144,7 +144,10 @@ export async function GET(req: NextRequest) {
           }
         }
       },
-      orderBy: { date: "desc" },
+      orderBy: [
+        { date: "desc" },
+        { document: "desc" },
+      ]
     });
 
     return NextResponse.json(industryHarvests);

@@ -188,7 +188,10 @@ export async function GET(req: NextRequest) {
           select: { id: true, status: true, dueDate: true },
         },
       },
-      orderBy: { date: "desc" },
+      orderBy: [
+        { date: "desc" },
+        { document: "desc" },
+      ]
     });
 
     return NextResponse.json(industrySales, { status: 200 });
