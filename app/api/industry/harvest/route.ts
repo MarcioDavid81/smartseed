@@ -4,6 +4,67 @@ import { NextRequest, NextResponse } from "next/server";
 import { industryHarvestSchema } from "@/lib/schemas/industryHarvest"; // ⚠️ vamos remover o product daqui
 import { ProductType } from "@prisma/client";
 
+/**
+ * @swagger
+ * /api/industry/harvest:
+ *   post:
+ *     summary: Registrar nova colheita de produto para indústria
+ *     tags:
+ *       - Colheita Indústria
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               document:
+ *                 type: string
+ *               talhaoId:
+ *                 type: string
+ *               industryDepositId:
+ *                 type: string
+ *               industryTransporterId:
+ *                 type: string
+ *               truckPlate:
+ *                 type: string
+ *               truckDriver:
+ *                 type: string
+ *               weightBt:
+ *                 type: number
+ *               weightTr:
+ *                 type: number
+ *               weightSubLiq:
+ *                 type: number
+ *               humidity_percent:
+ *                 type: number
+ *               humidity_discount:
+ *                 type: number
+ *               humidity_kg:
+ *                 type: number
+ *               impurities_percent:
+ *                 type: number
+ *               impurities_discount:
+ *                 type: number
+ *               impurities_kg:
+ *                 type: number
+ *               tax_kg:
+ *                 type: number
+ *               adjust_kg:
+ *                 type: number
+ *               weightLiq:
+ *                 type: number
+ *               cycleId:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Colheita indústria criada com sucesso
+ */
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
@@ -94,7 +155,104 @@ export async function POST(req: NextRequest) {
   }
 }
 
-
+/**
+ * @swagger
+ * /api/industry/harvest:
+ *   get:
+ *     summary: Listar todas as colheitas industriais da empresa do usuário logado
+ *     tags:
+ *       - Colheita Indústria
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: depositId
+ *         schema:
+ *           type: string
+ *         description: Filtrar por depósito de destino
+ *       - in: query
+ *         name: product
+ *         schema:
+ *           type: string
+ *           enum: [SOJA, TRIGO, MILHO, AVEIA_PRETA, AVEIA_BRANCA]
+ *         description: Filtrar por produto
+ *       - in: query
+ *         name: cycleId
+ *         schema:
+ *           type: string
+ *         description: Filtrar por safra/ciclo
+ *     responses:
+ *       200:
+ *         description: Lista de colheitas industriais retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 required:
+ *                   - id
+ *                   - date
+ *                   - talhaoId
+ *                   - industryDepositId
+ *                   - weightBt
+ *                   - weightTr
+ *                   - weightSubLiq
+ *                   - humidity_percent
+ *                   - humidity_discount
+ *                   - humidity_kg
+ *                   - impurities_percent
+ *                   - impurities_discount
+ *                   - impurities_kg
+ *                   - weightLiq
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   document:
+ *                     type: string
+ *                   talhaoId:
+ *                     type: string
+ *                   industryDepositId:
+ *                     type: string
+ *                   industryTransporterId:
+ *                     type: string
+ *                   truckPlate:
+ *                     type: string
+ *                   truckDriver:
+ *                     type: string
+ *                   weightBt:
+ *                     type: number
+ *                   weightTr:
+ *                     type: number
+ *                   weightSubLiq:
+ *                     type: number
+ *                   humidity_percent:
+ *                     type: number
+ *                   humidity_discount:
+ *                     type: number
+ *                   humidity_kg:
+ *                     type: number
+ *                   impurities_percent:
+ *                     type: number
+ *                   impurities_discount:
+ *                     type: number
+ *                   impurities_kg:
+ *                     type: number
+ *                   tax_kg:
+ *                     type: number
+ *                   adjust_kg:
+ *                     type: number
+ *                   weightLiq:
+ *                     type: number
+ *                   product:
+ *                     type: string
+ *                     description: Produto inferido do ciclo (SOJA/TRIGO/MILHO/AVEIA_PRETA/AVEIA_BRANCA)
+ *       401:
+ *         description: Token ausente ou inválido
+ */
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
@@ -128,10 +286,10 @@ export async function GET(req: NextRequest) {
       },
       include: {
         industryDeposit: true,
-        industryTransporter:{
+        industryTransporter: {
           select: {
             name: true,
-          }
+          },
         },
         talhao: {
           select: {
@@ -139,15 +297,12 @@ export async function GET(req: NextRequest) {
             farm: {
               select: {
                 name: true,
-              }
-            }
-          }
-        }
+              },
+            },
+          },
+        },
       },
-      orderBy: [
-        { date: "desc" },
-        { document: "desc" },
-      ]
+      orderBy: [{ date: "desc" }, { document: "desc" }],
     });
 
     return NextResponse.json(industryHarvests);
