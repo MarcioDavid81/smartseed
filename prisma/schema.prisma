@@ -155,7 +155,7 @@ model Buy {
   accountPayable   AccountPayable?
   company          Company           @relation(fields: [companyId], references: [id])
   cultivar         Cultivar          @relation(fields: [cultivarId], references: [id])
-  customer         Customer          @relation(fields: [customerId], references: [id])
+  customer         Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
   cycle            ProductionCycle?  @relation(fields: [cycleId], references: [id])
 }
 
@@ -212,7 +212,7 @@ model SaleExit {
   accountReceivable AccountReceivable?
   company           Company            @relation(fields: [companyId], references: [id])
   cultivar          Cultivar           @relation(fields: [cultivarId], references: [id])
-  customer          Customer?          @relation(fields: [customerId], references: [id])
+  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: Restrict)
   cycle             ProductionCycle?   @relation(fields: [cycleId], references: [id])
 }
 
@@ -315,7 +315,7 @@ model Purchase {
   paymentCondition PaymentCondition?
   accountPayable   AccountPayable?
   company          Company             @relation(fields: [companyId], references: [id])
-  customer         Customer            @relation(fields: [customerId], references: [id])
+  customer         Customer            @relation(fields: [customerId], references: [id], onDelete: Restrict)
   cycle            ProductionCycle?    @relation(fields: [cycleId], references: [id])
   farm             Farm                @relation(fields: [farmId], references: [id])
   product          Product             @relation(fields: [productId], references: [id])
@@ -373,7 +373,7 @@ model AccountPayable {
   customerId  String
   buy         Buy?          @relation(fields: [buyId], references: [id])
   company     Company       @relation(fields: [companyId], references: [id])
-  customer    Customer      @relation(fields: [customerId], references: [id])
+  customer    Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
   purchase    Purchase?     @relation(fields: [purchaseId], references: [id])
 }
 
@@ -391,7 +391,7 @@ model AccountReceivable {
   customerId     String
   industrySaleId String?       @unique
   company        Company       @relation(fields: [companyId], references: [id])
-  customer       Customer      @relation(fields: [customerId], references: [id])
+  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
   industrySale   IndustrySale? @relation(fields: [industrySaleId], references: [id])
   saleExit       SaleExit?     @relation(fields: [saleExitId], references: [id])
 }
@@ -485,9 +485,9 @@ model IndustryHarvest {
   tax_kg                Decimal?             @db.Decimal(12, 2)
   company               Company              @relation(fields: [companyId], references: [id])
   cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
-  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id])
-  industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id])
-  talhao                Talhao               @relation(fields: [talhaoId], references: [id])
+  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id], onDelete: Restrict)
+  industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id], onDelete: Restrict)
+  talhao                Talhao               @relation(fields: [talhaoId], references: [id], onDelete: Restrict)
 }
 
 model IndustrySale {
@@ -516,10 +516,10 @@ model IndustrySale {
   createdAt             DateTime             @default(now())
   accountReceivable     AccountReceivable?
   company               Company              @relation(fields: [companyId], references: [id])
-  customer              Customer             @relation(fields: [customerId], references: [id])
+  customer              Customer             @relation(fields: [customerId], references: [id], onDelete: Restrict)
   cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
-  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id])
-  industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id])
+  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id], onDelete: Restrict)
+  industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id], onDelete: Restrict)
 }
 
 enum Plan {
