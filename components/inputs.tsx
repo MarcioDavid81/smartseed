@@ -30,7 +30,7 @@ export function MoneyInput<T extends FieldValues>({
           value={field.value}
           thousandSeparator="."
           decimalSeparator=","
-          decimalScale={2}
+          decimalScale={4}
           fixedDecimalScale
           prefix="R$ "
           allowNegative={false}
