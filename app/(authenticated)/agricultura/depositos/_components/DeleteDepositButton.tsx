@@ -24,6 +24,7 @@ import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 
 interface Props {
@@ -35,13 +36,18 @@ const DeleteIndustryDepositButton = ({ industryDeposit, onDeleted }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { fetchHarvests } = useHarvest();
+  const { showToast } = useSmartToast();
 
   const handleDelete = async (industryDeposit: IndustryDeposit) => {
     console.log("🔁 handleDelete chamado");
     console.log("📦 depósito recebido:", industryDeposit);
 
     if (!industryDeposit || !industryDeposit.id) {
-      toast.error("ID do depósito ausente. Não é possível excluir.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "ID do depósito ausente. Não é possível excluir.",
+      });
       console.warn("❌ industryDeposit.id ausente ou inválido");
       return;
     }
@@ -64,17 +70,43 @@ const DeleteIndustryDepositButton = ({ industryDeposit, onDeleted }: Props) => {
       console.log("📥 Resposta da API:", res.status);
 
       if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar depósito:", errorText);
-        throw new Error(errorText);
+      const data = await res.json().catch(() => null);
+
+      console.error("Erro da API:", data);
+
+      // Tratamento para erros estruturados
+      if (data?.error) {
+        showToast({
+          type: "error",
+          title: data.error.title,
+          message: data.error.message,
+        });
+      } else {
+        // fallback
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: "Erro ao deletar depósito.",
+        });
       }
 
-      toast.success("Depósito deletado com sucesso!");
+      return; // evita continuar
+    }
+
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Depósito excluído com sucesso!",
+      });
       onDeleted();
       setIsOpen(false);
     } catch (error) {
       console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar depósito.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Erro inesperado ao deletar depósito.",
+      });
     } finally {
       setLoading(false);
     }

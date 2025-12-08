@@ -95,7 +95,7 @@ const DeleteHarvestButton = ({ colheita, onDeleted, disabled = false }: Props) =
         showToast({
           type: "error",
           title: "Erro",
-          message: "Erro ao deletar venda.",
+          message: "Erro ao deletar colheita.",
         });
       }
 

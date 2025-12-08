@@ -47,7 +47,16 @@ export async function DELETE (req: NextRequest, { params }: { params: { id: stri
     const existing = await db.industryDeposit.findUnique({ where: { id } });
 
     if (!existing || existing.companyId !== payload.companyId) {
-      return new NextResponse("Depósito não encontrado ou acesso negado", { status: 403 });
+      return NextResponse.json(
+        {
+          error: {
+            code: "DEPOSIT_NOT_FOUND",
+            title: "Depósito não encontrado",
+            message: "O depósito com o ID fornecido não foi encontrado ou você não tem permissão para excluí-lo.",
+          },
+        },
+        { status: 403 },
+      );
     }
 
     const hasStock = await db.industryStock.findFirst({
@@ -58,7 +67,16 @@ export async function DELETE (req: NextRequest, { params }: { params: { id: stri
     });
 
     if (hasStock) {
-      return new NextResponse("Depósito possui estoque e não pode ser excluído", { status: 400 });
+      return NextResponse.json(
+        {
+          error: {
+            code: "STOCK_PRESENT",
+            title: "Estoque presente",
+            message: "O depósito possui estoque e não pode ser excluído. Remova o estoque antes de excluir o depósito.",
+          },
+        },
+        { status: 400 },
+      );
     }
 
     const deleted = await db.industryDeposit.delete({
@@ -68,7 +86,16 @@ export async function DELETE (req: NextRequest, { params }: { params: { id: stri
     return NextResponse.json(deleted, { status: 200 });
   } catch (error) {
     console.error("Erro ao excluir depósito:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_ERROR",
+          title: "Erro interno",
+          message: "Ocorreu um erro ao excluir o depósito. Por favor, tente novamente.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 
