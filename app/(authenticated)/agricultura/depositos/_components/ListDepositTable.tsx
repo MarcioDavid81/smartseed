@@ -3,7 +3,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getToken } from "@/lib/auth-client";
@@ -13,6 +12,8 @@ import DeleteIndustryDepositButton from "./DeleteDepositButton";
 import { IndustryDepositDataTable } from "./DepositDataTable";
 import { formatNumber } from "@/app/_helpers/currency";
 import { AgroLoader } from "@/components/agro-loader";
+import { ProductType } from "@prisma/client";
+import { getProductLabel } from "@/app/_helpers/getProductLabel";
 
 type FlattenedDeposit = {
   id: string;
@@ -91,8 +92,8 @@ export function IndustryDepositGetTable() {
       cell: ({ row }) => (
         <div className="text-center">
           {row.original.product !== "SEM PRODUTO"
-            ? row.original.product
-            : <span className="text-xs text-gray-500">SEM PRODUTO</span>}
+            ? getProductLabel(row.original.product as ProductType)
+            : <span className="text-gray-500">Sem Produto</span>}
         </div>
       ),
     },
@@ -103,7 +104,7 @@ export function IndustryDepositGetTable() {
         <div className="text-center">
           {row.original.quantity > 0
             ? formatNumber(row.original.quantity)
-            : <span className="text-xs text-gray-500">SEM ESTOQUE</span>}
+            : <span className="text-gray-500">Sem Estoque</span>}
         </div>
       ),
     },

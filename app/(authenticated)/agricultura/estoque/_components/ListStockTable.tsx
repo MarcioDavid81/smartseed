@@ -12,7 +12,6 @@ import { StockDataTable } from "./StockDataTable";
 import { useIndustryStock } from "@/contexts/IndustryStockContext";
 import { AgroLoader } from "@/components/agro-loader";
 import { useRouter } from "next/navigation";
-import { FileText } from "lucide-react";
 import { ProductExtractButton } from "./ProductExtractButton";
 import { ProductType } from "@prisma/client";
 
@@ -62,6 +61,8 @@ export function ListStockTable() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
+      cell: ({ row: { original: stock } }) =>
+        getProductLabel(stock.product as ProductType),
     },
     {
       accessorKey: "industryDeposit",
