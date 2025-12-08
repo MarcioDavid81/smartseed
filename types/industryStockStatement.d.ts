@@ -1,9 +1,13 @@
+export type IndustryMovementType = "ENTRY" | "EXIT"
+
+export type IndustryOrigin = "HARVEST" | "SALE" | "TRANSFER"
+
 export type IndustryStockStatementItem = {
   id: string
   date: Date
   quantity: number
-  type: "ENTRY" | "EXIT"
-  origin: "HARVEST" | "SALE" | "TRANSFER"
+  type: IndustryMovementType
+  origin: IndustryOrigin
   description: string
   relatedDeposit?: string
   balance?: number

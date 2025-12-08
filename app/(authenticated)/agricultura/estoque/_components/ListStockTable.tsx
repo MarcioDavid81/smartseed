@@ -3,21 +3,24 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
-import { Cultivar, IndustryStock, ProductStock } from "@/types";
+import { IndustryStock } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { useStock } from "@/contexts/StockContext";
 import { getToken } from "@/lib/auth-client";
 import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import { StockDataTable } from "./StockDataTable";
 import { useIndustryStock } from "@/contexts/IndustryStockContext";
 import { AgroLoader } from "@/components/agro-loader";
+import { useRouter } from "next/navigation";
+import { FileText } from "lucide-react";
+import { ProductExtractButton } from "./ProductExtractButton";
+import { ProductType } from "@prisma/client";
 
 export function ListStockTable() {
   const [stock, setStock] = useState<IndustryStock[]>([]);
   const [loading, setLoading] = useState(true);
   const { stocks } = useIndustryStock();
+  const router = useRouter();
 
 
   async function fetchStock() {
@@ -87,8 +90,8 @@ export function ListStockTable() {
       cell: ({ row }) => {
         const stock = row.original;
         return (
-          <div className="flex items-center justify-center gap-4">
-            botão
+          <div className="flex items-center justify-center">
+            <ProductExtractButton product={stock.product as ProductType} deposit={stock.industryDeposit} />
           </div>
         );
       },
@@ -98,7 +101,7 @@ export function ListStockTable() {
   return (
     <Card className="p-4 dark:bg-primary font-light">
       <div className="mb-4">
-        <h2 className="font-light">Estoque das Cultivares</h2>
+        <h2 className="font-light">Estoque de Produtos</h2>
       </div>
       {loading ? (
         <AgroLoader />

@@ -1,7 +1,6 @@
 "use client";
 
 import { slugify } from "@/app/_helpers/slug";
-import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Search } from "lucide-react";
 import Link from "next/link";
