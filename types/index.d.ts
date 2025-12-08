@@ -26,3 +26,4 @@ export * from "./industryStock";
 export * from "./industrySale";
 export * from "./seedAdjustStock";
 export * from "./userRole";
+export * from "./industryStockStatement";
