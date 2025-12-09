@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { ListIndustryStockStatementTable } from "./_components/ListIndustryStockStatementTable";
 import HoverButton from "@/components/HoverButton";
 import Link from "next/link";
+import GenerateIndustryExtractReportModal from "./_components/GenerateIndustryExtractReportModal";
 
 export const metadata: Metadata = {
   title: "Extrato de Estoque",

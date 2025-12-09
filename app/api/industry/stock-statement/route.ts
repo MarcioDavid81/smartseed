@@ -26,7 +26,18 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // ✅ 2. VENDAS (SAÍDA)
+    // ✅ 2. DESCARTES (ENTRADA)
+    const discards = await db.beneficiation.findMany({
+      where: {
+        cultivar: {
+          product: product as ProductType,
+        },
+        destinationId: depositId,
+        ...(cycleId && { cycleId }),
+    },
+  });
+
+    // ✅ 3. VENDAS (SAÍDA)
     const sales = await db.industrySale.findMany({
       where: {
         product: product as ProductType,
@@ -38,7 +49,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // ✅ 3. TRANSFERÊNCIAS (SAÍDA)
+    // ✅ 4. TRANSFERÊNCIAS (SAÍDA)
     const transfersOut = await db.industryTransfer.findMany({
       where: {
         product: product as ProductType,
@@ -50,7 +61,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // ✅ 4. TRANSFERÊNCIAS (ENTRADA)
+    // ✅ 5. TRANSFERÊNCIAS (ENTRADA)
     const transfersIn = await db.industryTransfer.findMany({
       where: {
         product: product as ProductType,
@@ -62,7 +73,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // ✅ 5. NORMALIZAÇÃO
+    // ✅ 6. NORMALIZAÇÃO
     const statement = [
       ...harvests.map((item) => ({
         id: item.id,
@@ -71,6 +82,15 @@ export async function GET(req: NextRequest) {
         type: "ENTRY" as const,
         origin: "HARVEST" as const,
         description: "Colheita",
+      })),
+
+      ...discards.map((item) => ({
+        id: item.id,
+        date: item.date,
+        quantity: Number(item.quantityKg),
+        type: "ENTRY" as const,
+        origin: "DISCARD" as const,
+        description: "Descarte",
       })),
 
       ...sales.map((item) => ({
@@ -104,12 +124,12 @@ export async function GET(req: NextRequest) {
       })),
     ];
 
-    // ✅ 6. ORDENAÇÃO CRESCENTE PARA CÁLCULO
+    // ✅ 7. ORDENAÇÃO CRESCENTE PARA CÁLCULO
     statement.sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
 
-    // ✅ 7. SALDO ACUMULADO CORRETO
+    // ✅ 8. SALDO ACUMULADO CORRETO
     let balance = 0;
     const statementWithBalance = statement.map((item) => {
       balance += item.type === "ENTRY" ? item.quantity : -item.quantity;
@@ -119,7 +139,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // ✅ 8. INVERTE PARA MOSTRAR DO ÚLTIMO PARA O PRIMEIRO
+    // ✅ 9. INVERTE PARA MOSTRAR DO ÚLTIMO PARA O PRIMEIRO
     const statementOrderedForUI = statementWithBalance.reverse();
 
     return NextResponse.json(statementOrderedForUI);

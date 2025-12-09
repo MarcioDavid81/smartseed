@@ -3,9 +3,9 @@ export function slugify(name: string, id: string) {
     name
       .normalize("NFD") // separa letras dos acentos
       .replace(/[\u0300-\u036f]/g, "") // remove os acentos
-      .toLowerCase()
+      .toLowerCase() // deixa tudo minúsculo
       .replace(/[^a-z0-9\s-]/g, "") // remove caracteres especiais
-      .trim()
+      .trim() // remove espaços em branco no início e no fim
       .replace(/\s+/g, "-") + // troca espaços por "-"
     `-${id}`
   );

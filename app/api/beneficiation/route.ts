@@ -218,7 +218,7 @@ export async function GET(req: NextRequest) {
       where: { companyId, ...(cycleId && { cycleId }) },
       include: {
         cultivar: {
-          select: { id: true, name: true },
+          select: { id: true, name: true, product: true},
         },
         destination: {
           select: { id: true, name: true },
