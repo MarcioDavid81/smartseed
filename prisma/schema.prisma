@@ -37,6 +37,11 @@ model Company {
   talhoes            Talhao[]
   transfers          TransferExit[]
   users              User[]
+  machines           Machine[]
+  fuelTanks          FuelTank[]
+  fuelPurchases      FuelPurchase[]
+  refuels            Refuel[]
+  maintenances       Maintenance[]
 }
 
 model Farm {
@@ -83,6 +88,8 @@ model Customer {
   industrySales      IndustrySale[]
   purchases          Purchase[]
   sales              SaleExit[]
+  fuelPurchases      FuelPurchase[]
+  maintenances       Maintenance[]
 }
 
 model Talhao {
@@ -359,22 +366,26 @@ model Application {
 }
 
 model AccountPayable {
-  id          String        @id @default(cuid())
-  description String
-  amount      Float
-  dueDate     DateTime
-  paymentDate DateTime?
-  status      AccountStatus @default(PENDING)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  companyId   String
-  buyId       String?       @unique
-  purchaseId  String?       @unique
-  customerId  String
-  buy         Buy?          @relation(fields: [buyId], references: [id])
-  company     Company       @relation(fields: [companyId], references: [id])
-  customer    Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  purchase    Purchase?     @relation(fields: [purchaseId], references: [id])
+  id             String        @id @default(cuid())
+  description    String
+  amount         Float
+  dueDate        DateTime
+  paymentDate    DateTime?
+  status         AccountStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  companyId      String
+  buyId          String?       @unique
+  purchaseId     String?       @unique
+  customerId     String
+  maintenanceId  String?       @unique
+  fuelPurchaseId String?       @unique
+  buy            Buy?          @relation(fields: [buyId], references: [id])
+  company        Company       @relation(fields: [companyId], references: [id])
+  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  purchase       Purchase?     @relation(fields: [purchaseId], references: [id])
+  maintenance    Maintenance?  @relation(fields: [maintenanceId], references: [id])
+  fuelPurchase   FuelPurchase? @relation(fields: [fuelPurchaseId], references: [id])
 }
 
 model AccountReceivable {
@@ -522,6 +533,110 @@ model IndustrySale {
   industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id], onDelete: Restrict)
 }
 
+model Machine {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  name         String
+  type         MachineType
+  brand        String?
+  model        String?
+  plate        String?
+  serialNumber String?
+
+  hourmeter Float @default(0) // Para máquinas agrícolas
+  odometer  Float @default(0) // Para veículos rodoviários
+
+  maintenances Maintenance[]
+  refuels      Refuel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FuelTank {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  name     String
+  capacity Float
+  stock    Float  @default(0) // 🔥 Estoque atual de combustível
+
+  purchases FuelPurchase[]
+  refuels   Refuel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FuelPurchase {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  tankId String
+  tank   FuelTank @relation(fields: [tankId], references: [id])
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  paymentCondition PaymentCondition?
+  accountPayable   AccountPayable?
+
+  dueDate    DateTime
+  date       DateTime @default(now())
+  quantity   Float // 🔥 Entra no estoque do tanque
+  totalValue Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Refuel {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  tankId String
+  tank   FuelTank @relation(fields: [tankId], references: [id])
+
+  machineId String
+  machine   Machine @relation(fields: [machineId], references: [id])
+
+  date      DateTime @default(now())
+  quantity  Float // 🔥 Sai do estoque
+  hourmeter Float? // Se máquina
+  odometer  Float? // Se veículo
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Maintenance {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  machineId String
+  machine   Machine @relation(fields: [machineId], references: [id])
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  paymentCondition PaymentCondition
+  accountPayable   AccountPayable?
+
+  dueDate     DateTime
+  date        DateTime @default(now())
+  description String
+  totalValue  Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum Plan {
   BASIC
   PREMIUM
@@ -599,4 +714,14 @@ enum AccountStatus {
   PAID
   OVERDUE
   CANCELED
+}
+
+enum MachineType {
+  TRACTOR
+  COMBINE
+  SPRAYER
+  TRUCK
+  PICKUP
+  IMPLEMENT
+  OTHER
 }
