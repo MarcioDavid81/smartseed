@@ -66,6 +66,18 @@ const routes = [
     ],
   },
   {
+    name: "Máquinas",
+    icon: <GiFarmTractor size={20} />,
+    subRoutes: [
+      { path: "/maquinas/dashboard", name: "Dashboard" },
+      { path: "/maquinas/maquinas", name: "Máquinas" },
+      { path: "/maquinas/tanques", name: "Tanques" },
+      { path: "/maquinas/compras", name: "Compras" },
+      { path: "/maquinas/manutencoes", name: "Manutenções" },
+      { path: "/maquinas/abastecimentos", name: "Abastecimentos" },
+    ],
+  },
+  {
     name: "Financeiro",
     icon: <ChartNoAxesCombined size={20} />,
     subRoutes: [

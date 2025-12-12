@@ -87,5 +87,6 @@ export const config = {
     "/insumos/:path*",
     "/financeiro/:path*",
     "/agricultura/:path*",
+    "/maquinas/:path*",
   ],
 };

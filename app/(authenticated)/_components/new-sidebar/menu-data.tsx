@@ -12,11 +12,14 @@ import {
 } from "react-icons/pi";
 import { 
   DollarSign, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch, ChartNoAxesCombined, BanknoteArrowUp, BanknoteArrowDown, Home, Building2, User, 
-  MapIcon
+  MapIcon,
+  FuelIcon
 } from "lucide-react";
 import { TbTransferIn } from "react-icons/tb";
 import Image from "next/image";
 import combineIcon from "../../../../public/combine.ico";
+import { GrHostMaintenance } from "react-icons/gr";
+import { GiFuelTank } from "react-icons/gi";
 
 export const routes = [
   {
@@ -50,7 +53,7 @@ export const routes = [
   },
   {
     name: "Agricultura",
-    icon: <GiFarmTractor size={20} />,
+    icon: <Image src={combineIcon} alt="Agricultura" width={24} height={24} />,
     subRoutes: [
       { name: "Dashboard", path: "/agricultura/dashboard", icon: <AiOutlineDashboard size={16} /> },
       { name: "Colheitas", path: "/agricultura/colheitas", icon: <Image src={combineIcon} alt="Agricultura" width={24} height={24} />
@@ -62,6 +65,18 @@ export const routes = [
       { name: "Estoque", path: "/agricultura/estoque", icon: <Warehouse size={16} /> },
       { name: "Talhões", path: "/agricultura/talhoes", icon: <MapIcon size={16} /> },
       { name: "Safras", path: "/agricultura/safras", icon: <ChartNoAxesCombined size={16} /> },
+    ],
+  },
+  {
+    name: "Máquinas",
+    icon: <GiFarmTractor size={20} />,
+    subRoutes: [
+      { name: "Dashboard", path: "/maquinas/dashboard", icon: <AiOutlineDashboard size={16} /> },
+      { name: "Máquinas", path: "/maquinas/maquinas", icon: <GiFarmTractor size={16} /> },
+      { name: "Tanques", path: "/maquinas/tanques", icon: <GiFuelTank size={16} /> },
+      { name: "Compras", path: "/maquinas/compras", icon: <ShoppingCart size={16} /> },
+      { name: "Manutenções", path: "/maquinas/manutencoes", icon: <GrHostMaintenance size={16} /> },
+      { name: "Abastecimentos", path: "/maquinas/abastecimentos", icon: <FuelIcon size={16} /> },
     ],
   },
   {
