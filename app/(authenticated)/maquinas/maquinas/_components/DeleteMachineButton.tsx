@@ -18,12 +18,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useHarvest } from "@/contexts/HarvestContext";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { Machine } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 
 interface Props {
@@ -35,14 +35,27 @@ interface Props {
 const DeleteMachineButton = ({ machine, onDeleted, disabled = false }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { fetchHarvests } = useHarvest();
+  const { showToast } = useSmartToast();
 
   const handleDelete = async (machine: { id: string }) => {
     console.log("🔁 handleDelete chamado");
     console.log("📦 máquina recebida:", machine);
 
+    if (disabled) {
+      showToast({
+        type: "error",
+        title: "Permissão negada",
+        message: "Você não tem autorização para excluir esta máquina.",
+      });
+      return;
+    }
+
     if (!machine || !machine.id) {
-      toast.error("ID da máquina ausente. Não é possível excluir.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "ID da máquina ausente. Não é possível excluir.",
+      });
       console.warn("❌ machine.id ausente ou inválido");
       return;
     }
@@ -70,17 +83,23 @@ const DeleteMachineButton = ({ machine, onDeleted, disabled = false }: Props) =>
         throw new Error(errorText);
       }
 
-      toast.success("Produto deletado com sucesso!");
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Máquina deletada com sucesso!",
+      });
       onDeleted();
       setIsOpen(false);
     } catch (error) {
       console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar produto.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Erro ao deletar máquina.",
+      });
     } finally {
       setLoading(false);
     }
-
-    await fetchHarvests();
   };
 
   return (
@@ -89,14 +108,26 @@ const DeleteMachineButton = ({ machine, onDeleted, disabled = false }: Props) =>
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => setIsOpen(true)}
-              className="hover:opacity-80 transition"
+              type="button"
+              onClick={() => {
+                if (disabled) {
+                  showToast({
+                    type: "error",
+                    title: "Permissão negada",
+                    message: "Apenas administradores podem excluir máquinas.",
+                  });
+                  return;
+                }
+
+                setIsOpen(true);
+              }}
+              className="transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+              <Trash2Icon size={20} className={disabled ? "text-red/50" : "text-red"} />
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Excluir</p>
+            {disabled ? "Ação indisponível" : "Excluir"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

@@ -1,14 +1,13 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogFooter,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 import { Input } from "@/components/ui/input";
@@ -20,7 +19,9 @@ import { MachineFormData, machineSchema } from "@/lib/schemas/machineSchema";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { Machine } from "@/types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { FaSpinner } from "react-icons/fa";
+import { NumericFormat } from "react-number-format";
 
 
 interface UpsertMachineModalProps {
@@ -36,6 +37,7 @@ export function UpsertMachineModal({
   onClose,
   onUpdated,
 }: UpsertMachineModalProps) {
+  const [loading, setLoading] = useState(false);
   const { showToast } = useSmartToast();
 
   const form = useForm<MachineFormData>({
@@ -47,7 +49,7 @@ export function UpsertMachineModal({
       model: machine?.model || "",
       plate: machine?.plate || "",
       serialNumber: machine?.serialNumber || "",
-      houmeter: machine?.houmeter || 0,
+      hourmeter: machine?.hourmeter || 0,
       odometer: machine?.odometer || 0,
     }
   });
@@ -61,13 +63,16 @@ export function UpsertMachineModal({
         model: machine.model,
         plate: machine.plate,
         serialNumber: machine.serialNumber,
-        houmeter: machine.houmeter,
+        hourmeter: machine.hourmeter,
         odometer: machine.odometer,
       });
+    } else {
+      form.reset();
     }
   }, [machine, isOpen, form])
 
   const onSubmit = async (data: MachineFormData) => {
+    setLoading(true);
   try {
     const token = getToken();
     if (!token) {
@@ -101,16 +106,18 @@ export function UpsertMachineModal({
     if (!res.ok) {
       showToast({
         type: "error",
-        title: "Erro ao salvar máquina",
-        message: result.error || "Erro inesperado."
+        title: "Erro",
+        message: result.error || "Erro ao salvar máquina."
       })
       return;
     }
 
     showToast({
       type: "success",
-      title: machine ? "Máquina atualizada com sucesso!" : "Máquina cadastrada com sucesso!",
-      message: result.message || "",
+      title: "Sucesso",
+      message: machine
+        ? "Máquina atualizada com sucesso!"
+        : "Máquina cadastrada com sucesso!",
     });
 
     onClose();
@@ -122,9 +129,11 @@ export function UpsertMachineModal({
     console.error(e);
     showToast({
       type: "error",
-      title: "Erro inesperado ao salvar máquina.",
-      message: "Tente novamente mais tarde.",
+      title: "Erro",
+      message: "Erro ao salvar máquina.",
     });
+  } finally {
+    setLoading(false);
   }
 };
 
@@ -134,8 +143,11 @@ export function UpsertMachineModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {machine ? "Editar Máquina" : "Cadastrar Máquina"}
+            Máquinas
           </DialogTitle>
+          <DialogDescription>
+            {machine ? "Editar máquina" : "Cadastrar máquina"}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -143,119 +155,141 @@ export function UpsertMachineModal({
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4"
           >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Trator John Deere 7R" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Tipo */}
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tipo *</FormLabel>
-                  <Select
-                    defaultValue={field.value}
-                    onValueChange={field.onChange}
-                  >
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome *</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
+                      <Input placeholder="Ex: Trator John Deere 7R" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {MACHINE_TYPE_OPTIONS.map(({ value, label }) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Tipo */}
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo *</FormLabel>
+                    <Select
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {MACHINE_TYPE_OPTIONS.map(({ value, label }) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            {/* Marca */}
-            <FormField
-              control={form.control}
-              name="brand"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Marca</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: John Deere" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              {/* Marca */}
+              <FormField
+                control={form.control}
+                name="brand"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Marca</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: John Deere" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Modelo */}
+              <FormField
+                control={form.control}
+                name="model"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Modelo</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: 7R 330" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            {/* Modelo */}
-            <FormField
-              control={form.control}
-              name="model"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Modelo</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: 7R 330" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              {/* Placa */}
+              <FormField
+                control={form.control}
+                name="plate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Placa</FormLabel>
+                    <FormControl>
+                      <Input placeholder="AAA-1234" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Número de série */}
+              <FormField
+                control={form.control}
+                name="serialNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nº de Série</FormLabel>
+                    <FormControl>
+                      <Input placeholder="123456789XYZ" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            {/* Placa */}
-            <FormField
-              control={form.control}
-              name="plate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Placa</FormLabel>
-                  <FormControl>
-                    <Input placeholder="AAA-1234" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Número de série */}
-            <FormField
-              control={form.control}
-              name="serialNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nº de Série</FormLabel>
-                  <FormControl>
-                    <Input placeholder="123456789XYZ" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {/* Horímetro */}
               <FormField
                 control={form.control}
-                name="houmeter"
+                name="hourmeter"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Horímetro (h)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <NumericFormat
+                        customInput={Input}
+                        value={field.value}
+                        thousandSeparator="."
+                        decimalSeparator="," 
+                        decimalScale={2}
+                        fixedDecimalScale
+                        allowNegative={false}
+                        suffix=" h"
+                        inputMode="numeric"
+                        valueIsNumericString
+                        isAllowed={(values) => {
+                          const { floatValue } = values;
+                          return floatValue === undefined || floatValue >= 0;
+                        }}
+                        className="font-light"
+                        onValueChange={(values) => {
+                          field.onChange(values.floatValue ?? 0);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -270,7 +304,26 @@ export function UpsertMachineModal({
                   <FormItem>
                     <FormLabel>Quilometragem (km)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <NumericFormat
+                        customInput={Input}
+                        value={field.value}
+                        thousandSeparator="."
+                        decimalSeparator="," 
+                        decimalScale={2}
+                        fixedDecimalScale
+                        allowNegative={false}
+                        suffix=" km"
+                        inputMode="numeric"
+                        valueIsNumericString
+                        isAllowed={(values) => {
+                          const { floatValue } = values;
+                          return floatValue === undefined || floatValue >= 0;
+                        }}
+                        className="font-light"
+                        onValueChange={(values) => {
+                          field.onChange(values.floatValue ?? 0);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -278,14 +331,13 @@ export function UpsertMachineModal({
               />
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                {machine ? "Salvar Alterações" : "Cadastrar"}
-              </Button>
-            </DialogFooter>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-green text-white mt-4"
+            >
+              {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+            </Button>
           </form>
         </Form>
       </DialogContent>

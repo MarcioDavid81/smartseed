@@ -8,7 +8,7 @@ export interface Machine {
   model?: string;
   plate?: string;
   serialNumber?: string;
-  houmeter?: number;
+  hourmeter?: number;
   odometer?: number;
   maintenance?: Maintenance[];
   refuel?: Refuel[];

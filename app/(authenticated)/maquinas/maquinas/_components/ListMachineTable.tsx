@@ -84,7 +84,7 @@ export function ListMachineDataTable() {
       accessorKey: "hourmeter",
       header: () => <div className="text-left">Horímetro (h)</div>,
       cell: ({ row }) => {
-        const hourmeter = row.original.houmeter;
+        const hourmeter = row.original.hourmeter;
         return (
           <div className="text-left">
             {hourmeter ? new Intl.NumberFormat("pt-BR", {
@@ -100,7 +100,17 @@ export function ListMachineDataTable() {
       header: () => <div className="text-left">Quilometragem (km)</div>,
       accessorFn: (row) => row.odometer ?? "",
       filterFn: "includesString",
-      cell: ({ row: { original } }) => <div className="text-left">{original.odometer}</div>,
+      cell: ({ row: { original } }) => {
+        const odometer = original.odometer;
+        return (
+          <div className="text-left">
+            {odometer ? new Intl.NumberFormat("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(odometer) : 0}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "actions",
