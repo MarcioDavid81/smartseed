@@ -3,14 +3,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { IndustrySale } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getToken } from "@/lib/auth-client";
 import { SaleDataTable } from "./SaleDataTable";
-// import DeleteSaleButton from "./DeleteSaleButton";
-// import EditSaleButton from "./EditSaleButton";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { AgroLoader } from "@/components/agro-loader";
 import DeleteSaleButton from "./DeleteSaleButton";

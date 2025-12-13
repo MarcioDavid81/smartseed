@@ -26,6 +26,7 @@ import { IndustryStockProvider } from "@/contexts/IndustryStockContext";
 import { IndustrySaleProvider } from "@/contexts/IndustrySaleContext";
 import { IndustryTransferProvider } from "@/contexts/IndustryTransferContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import TanstackProvider from "@/providers/tanstack"
 import { redirect } from "next/navigation";
 
 const robotoFont = roboto({
@@ -123,7 +124,8 @@ export default async function RootLayout({
       <body
         className={`${robotoFont.className} min-h-screen w-full antialiased md:flex`}
       >
-        <CompanyProvider name={safeCompany}>
+        <TanstackProvider>
+          <CompanyProvider name={safeCompany}>
           <InsumoStockProvider>
             <StockProvider>
               <UserProvider user={safeUser}>
@@ -167,6 +169,7 @@ export default async function RootLayout({
             </StockProvider>
           </InsumoStockProvider>
         </CompanyProvider>
+        </TanstackProvider>
       </body>
     </html>
   );

@@ -1,12 +1,10 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { IndustryHarvest } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import { HarvestDataTable } from "./HarvestDataTable";
 import DeleteHarvestButton from "./DeleteHarvestButton";
 import EditHarvestButton from "./EditHarvestButton";
@@ -14,39 +12,19 @@ import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { AgroLoader } from "@/components/agro-loader";
 import { useUser } from "@/contexts/UserContext";
 import { canUser } from "@/lib/permissions/canUser";
+import { useIndustryHarvests } from "@/queries/industry/use-harvests.query";
 
 export function ListHarvestTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
-  const [harvests, setHarvests] = useState<IndustryHarvest[]>([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useUser();
   const canDelete = canUser(user.role, "harvest:delete");
 
-  async function fetchHarvests() {
-    if (!selectedCycle?.id) return;
-
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/industry/harvest?cycleId=${selectedCycle.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      const filteredData = data.filter((product: IndustryHarvest) => product.weightLiq > 0);
-      setHarvests(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar colheitas:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchHarvests();
-  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
+  const {
+    data: industryHarvests = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useIndustryHarvests(selectedCycle?.id);
 
   const columns: ColumnDef<IndustryHarvest>[] = [
     {
@@ -123,8 +101,8 @@ export function ListHarvestTable() {
         const colheita = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditHarvestButton colheita={colheita} onUpdated={fetchHarvests} />
-            <DeleteHarvestButton colheita={colheita} onDeleted={fetchHarvests} disabled={!canDelete} />
+            <EditHarvestButton colheita={colheita} onUpdated={refetch} />
+            <DeleteHarvestButton colheita={colheita} onDeleted={refetch} disabled={!canDelete} />
           </div>
         );
       },
@@ -135,14 +113,14 @@ export function ListHarvestTable() {
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Colheitas</h2>
-        <Button variant={"ghost"} onClick={fetchHarvests} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant="ghost" onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <HarvestDataTable columns={columns} data={harvests} sumColumnId="weightLiq" />
+        <HarvestDataTable columns={columns} data={industryHarvests} sumColumnId="weightLiq" />
       )}
     </Card>
   );
