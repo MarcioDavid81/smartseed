@@ -2,6 +2,7 @@ import { MachineType } from "@prisma/client";
 import { z } from "zod";
 
 export const machineSchema = z.object({
+  id: z.string().optional(),
   name: z.string().min(1, "Nome da máquina é obrigatório"),
   type: z.nativeEnum(MachineType),
   brand: z.string().optional(),
@@ -13,6 +14,3 @@ export const machineSchema = z.object({
 });
 
 export type MachineFormData = z.infer<typeof machineSchema>;
-
-export const machineUpdateSchema = machineSchema.partial();
-export type MachineUpdateFormData = z.infer<typeof machineUpdateSchema>;

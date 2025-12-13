@@ -1,9 +1,9 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
-import { machineUpdateSchema } from "@/lib/schemas/machineSchema";
+import { machineSchema } from "@/lib/schemas/machineSchema";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PATCH(
+export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
@@ -11,7 +11,12 @@ export async function PATCH(
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
+      { error: {
+        code: "UNAUTHORIZED",
+        title: "Autenticação necessária",
+        message: "Token ausente.",
+        } 
+      },
       { status: 401 },
     );
   }
@@ -20,7 +25,13 @@ export async function PATCH(
   const payload = await verifyToken(token);
 
   if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+    return NextResponse.json({ error: {
+      code: "TOKEN_INVALID",
+      title: "Token inválido",
+      message: "O token fornecido é inválido ou expirado.",
+    } 
+  },
+  { status: 401 });
   }
 
   const { companyId } = payload;
@@ -35,15 +46,26 @@ export async function PATCH(
 
     if (!machine) {
       return NextResponse.json(
-        { error: "Máquina não encontrada" },
+        { error: {
+          code: "MACHINE_NOT_FOUND",
+          title: "Máquina não encontrada",
+          message: "A máquina com o ID fornecido não foi encontrada.",
+        } 
+      },
         { status: 404 },
       );
     }
 
     const data = await req.json();
-    const parsed = machineUpdateSchema.safeParse(data);
+    const parsed = machineSchema.safeParse(data);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error }, { status: 400 });
+      return NextResponse.json({ error: {
+        code: "INVALID_DATA",
+        title: "Dados inválidos",
+        message: `${parsed.error.flatten().fieldErrors}`,
+      } 
+    },
+    { status: 400 });
     }
     const updated = await db.machine.update({
       where: {
@@ -80,7 +102,7 @@ export async function DELETE(
       return NextResponse.json(
         {
           error: {
-            code: "TOKEN_MISSING",
+            code: "UNAUTHORIZED",
             title: "Autenticação necessária",
             message: "Token ausente.",
           },
@@ -193,7 +215,7 @@ export async function GET(
       return NextResponse.json(
         {
           error: {
-            code: "TOKEN_MISSING",
+            code: "UNAUTHORIZED",
             title: "Autenticação necessária",
             message: "Token ausente.",
           },
