@@ -3,12 +3,24 @@ import { jwtVerify } from "jose";
 import { getJwtSecretKey } from "./lib/auth";
 import { Role } from "@prisma/client";
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const token = request.cookies.get("token")?.value;
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const token = req.cookies.get("token")?.value;
 
-  console.log("[middleware] Path:", pathname);
-  console.log("[middleware] Token presente?", !!token);
+  // ===============================
+  // 🔓 SE USUÁRIO LOGADO REDIRECIONA PRO DASHBOARD
+  // ===============================
+  if (pathname === "/"  && token) {
+    try {
+      await jwtVerify(token, getJwtSecretKey());
+      console.log("[middleware] Token válido, redirecionando para /dashboard");
+      return NextResponse.redirect(
+        new URL("/dashboard", req.url),
+      );
+    } catch {
+      return NextResponse.next();
+    }
+  }
 
   const publicPaths = ["/", "/login"];
 
@@ -21,7 +33,7 @@ export async function middleware(request: NextRequest) {
         await jwtVerify(token, getJwtSecretKey());
         console.log("[middleware] Token válido, redirecionando para /dashboard");
         return NextResponse.redirect(
-          new URL("/dashboard", request.url),
+          new URL("/dashboard", req.url),
         );
       } catch {
         return NextResponse.next();
@@ -36,7 +48,7 @@ export async function middleware(request: NextRequest) {
   // ===============================
   if (!token) {
     console.log("[middleware] Sem token, redirecionando para login");
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   try {
@@ -62,14 +74,14 @@ export async function middleware(request: NextRequest) {
       console.log("[middleware] Acesso negado por role");
 
       return NextResponse.redirect(
-        new URL("/unauthorized", request.url),
+        new URL("/unauthorized", req.url),
       );
     }
 
     return NextResponse.next();
   } catch (err) {
     console.log("[middleware] Token inválido, redirecionando para login");
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 }
 
