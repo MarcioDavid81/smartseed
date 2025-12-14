@@ -12,37 +12,21 @@ import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { AgroLoader } from "@/components/agro-loader";
 import DeleteSaleButton from "./DeleteSaleButton";
 import EditSaleButton from "./EditSaleButton";
+import { useUser } from "@/contexts/UserContext";
+import { canUser } from "@/lib/permissions/canUser";
+import { useIndustrySales } from "@/queries/industry/use-sale-query";
 
 export function ListSaleTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
-  const [sales, setSales] = useState<IndustrySale[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useUser();
+  const canDelete = canUser(user.role, "sale:delete");
 
-  async function fetchSales() {
-    if (!selectedCycle?.id) return;
-
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/industry/sale?cycleId=${selectedCycle.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      const filteredData = data.filter((product: IndustrySale) => product.weightLiq > 0);
-      setSales(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar vendas:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchSales();
-  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
+  const {
+      data: industrySales = [],
+      isLoading,
+      isFetching,
+      refetch,
+    } = useIndustrySales(selectedCycle?.id);
 
   const columns: ColumnDef<IndustrySale>[] = [
     {
@@ -104,8 +88,8 @@ export function ListSaleTable() {
         const venda = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditSaleButton venda={venda} onUpdated={fetchSales} />
-            <DeleteSaleButton venda={venda} onDeleted={fetchSales} />
+            <EditSaleButton venda={venda} onUpdated={refetch} />
+            <DeleteSaleButton venda={venda} onDeleted={refetch} />
           </div>
         );
       },
@@ -116,14 +100,14 @@ export function ListSaleTable() {
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Vendas</h2>
-        <Button variant={"ghost"} onClick={fetchSales} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <SaleDataTable columns={columns} data={sales} />
+        <SaleDataTable columns={columns} data={industrySales} />
       )}
     </Card>
   );
