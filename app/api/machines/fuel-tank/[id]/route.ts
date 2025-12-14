@@ -181,6 +181,20 @@ export async function DELETE(
       );
     }
 
+    if (existing.stock > 0) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "FUEL_TANK_HAS_STOCK",
+            title: "Tanque de combustível possui estoque",
+            message:
+              "O tanque de combustível não pode ser deletado enquanto houver estoque associado.",
+          },
+        },
+        { status: 400 },
+      );
+    }
+
     const deleted = await db.fuelTank.delete({
       where: {
         id,
