@@ -101,8 +101,8 @@ export function ListHarvestTable() {
         const colheita = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditHarvestButton colheita={colheita} onUpdated={refetch} />
-            <DeleteHarvestButton colheita={colheita} onDeleted={refetch} disabled={!canDelete} />
+            <EditHarvestButton colheita={colheita} />
+            <DeleteHarvestButton colheita={colheita} disabled={!canDelete} />
           </div>
         );
       },

@@ -9,14 +9,21 @@ export async function apiFetch<T>(
   const res = await fetch(input, {
     ...init,
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
       ...init?.headers,
     },
   });
 
   if (!res.ok) {
-    throw new Error("Erro na requisição");
+    let message = "Erro na requisição";
+
+    try {
+      const body = await res.json();
+      message = body?.error ?? message;
+    } catch {}
+
+    throw new Error(message);
   }
 
   return res.json();

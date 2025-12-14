@@ -42,7 +42,6 @@ export function HarvestDataTable<TData, TValue>({
   searchFields = [],
   sumColumnId,
 }: DataTableProps<TData, TValue>) {
-  const [modalOpen, setModalOpen] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
   const table = useReactTable({

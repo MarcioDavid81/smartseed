@@ -27,13 +27,12 @@ import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { ComboBoxOption } from "@/components/combo-option";
 import { normalizeNumber } from "@/app/_helpers/normalize-number";
+import { useUpsertIndustryHarvest } from "@/queries/industry/use-upsert-industry-harvest";
 
 interface UpsertHarvestModalProps {
   colheita?: IndustryHarvest;
   isOpen: boolean;
   onClose: () => void;
-  onHarvestCreated?: () => void;
-  onUpdated?: () => void;
 }
 
 type TalhaoOption = {
@@ -46,9 +45,7 @@ const UpsertHarvestModal = ({
   colheita,
   isOpen,
   onClose,
-  onHarvestCreated,
 }: UpsertHarvestModalProps) => {
-  const [loading, setLoading] = useState(false);
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
   const [talhoes, setTalhoes] = useState<TalhaoOption[]>([]);
@@ -173,72 +170,46 @@ const UpsertHarvestModal = ({
       }
     }, [selectedCycle]);
 
-  const onSubmit = async (data: IndustryHarvestFormData) => {
-    setLoading(true);
-    const token = getToken();
-    const cycle = getCycle();
-    if (!cycle || !cycle.id) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "Nenhum ciclo de produção selecionado.",
-      });
-      setLoading(false);
-      return;
-    }
-    const cycleId = cycle.id;
-    console.log("Dados enviados para API:", {
-      ...data,
-      cycleId,
+const cycle = getCycle();
+
+const { mutate, isPending } = useUpsertIndustryHarvest({
+  cycleId: cycle?.id!,
+  harvestId: colheita?.id,
+});
+
+const onSubmit = (data: IndustryHarvestFormData) => {
+  if (!cycle?.id) {
+    showToast({
+      type: "error",
+      title: "Erro",
+      message: "Nenhum ciclo de produção selecionado.",
     });
+    return;
+  }
 
-    const url = colheita ? `/api/industry/harvest/${colheita.id}` : "/api/industry/harvest";
-    const method = colheita ? "PUT" : "POST";
-
-    const weightSubLiq = data.weightSubLiq;
-    const impuritiePercent = data.impurities_percent;
-    const impuritieKg = weightSubLiq * (impuritiePercent / 100);
-    console.log("Quilos de impurezas:", impuritieKg);
-
-
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        ...data,
-        cycleId,
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: result.error || "Erro ao salvar colheita.",
-      });
-      setLoading(false);
-      return;
-    } else {
+  mutate(data, {
+    onSuccess: () => {
       showToast({
         type: "success",
         title: "Sucesso",
-        message: colheita 
+        message: colheita
           ? "Colheita atualizada com sucesso!"
           : "Colheita cadastrada com sucesso!",
       });
+
       onClose();
       form.reset();
-      if (onHarvestCreated) onHarvestCreated();
-    }
+    },
+    onError: (error: Error) => {
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: error.message,
+      });
+    },
+  });
+};
 
-    setLoading(false);
-  };
 
   useEffect(() => {
     if (!isOpen) form.reset();
@@ -492,10 +463,10 @@ const UpsertHarvestModal = ({
           </div>
           <Button
             type="submit"
-            disabled={loading}
+            disabled={isPending}
             className="w-full bg-green text-white mt-4"
           >
-            {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+            {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
           </Button>
         </form>
         </Form>

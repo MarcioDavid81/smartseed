@@ -17,111 +17,41 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useHarvest } from "@/contexts/HarvestContext";
-import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
 import { IndustryHarvest } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-
+import { useCycle } from "@/contexts/CycleContext";
+import { useSmartToast } from "@/contexts/ToastContext";
+import { useDeleteIndustryHarvest } from "@/queries/industry/use-delete-industry-harvest";
 
 interface Props {
   colheita: IndustryHarvest;
-  onDeleted: () => void;
   disabled?: boolean;
 }
 
-const DeleteHarvestButton = ({ colheita, onDeleted, disabled = false }: Props) => {
+const DeleteHarvestButton = ({ colheita, disabled = false }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchHarvests } = useHarvest();
+  const { selectedCycle } = useCycle();
   const { showToast } = useSmartToast();
 
-  const handleDelete = async (colheita: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 colheita recebida:", colheita);
+  const { mutate, isPending } = useDeleteIndustryHarvest({
+    cycleId: selectedCycle!.id,
+  });
 
+  const handleConfirmDelete = () => {
     if (disabled) {
       showToast({
         type: "error",
         title: "Permissão negada",
-        message: "Você não tem autorização para excluir esta colheita.",
+        message: "Apenas administradores podem excluir colheitas.",
       });
       return;
     }
 
-
-    if (!colheita || !colheita.id) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "ID da colheita ausente. Não é possível excluir.",
-      });
-      console.warn("❌ colheita.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/industry/harvest/${colheita.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-         // ❌ SE A API RETORNOU ERRO
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-
-      console.error("Erro da API:", data);
-
-      // Tratamento para erros estruturados
-      if (data?.error) {
-        showToast({
-          type: "error",
-          title: data.error.title,
-          message: data.error.message,
-        });
-      } else {
-        // fallback
-        showToast({
-          type: "error",
-          title: "Erro",
-          message: "Erro ao deletar colheita.",
-        });
-      }
-
-      return; // evita continuar
-    }
-
-      // ✔ Sucesso
-      showToast({
-        type: "success",
-        title: "Sucesso",
-        message: "Colheita deletada com sucesso!",
-      });
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "Erro inesperado ao deletar colheita.",
-      });
-    } finally {
-      setLoading(false);
-    }
-
-    await fetchHarvests();
+    mutate(colheita.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -140,12 +70,10 @@ const DeleteHarvestButton = ({ colheita, onDeleted, disabled = false }: Props) =
                   });
                   return;
                 }
-
                 setIsOpen(true);
               }}
               className="transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
             >
-
               <Trash2Icon size={20} className={disabled ? "text-red/50" : "text-red"} />
             </button>
           </TooltipTrigger>
@@ -168,13 +96,13 @@ const DeleteHarvestButton = ({ colheita, onDeleted, disabled = false }: Props) =
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(colheita)}
-              disabled={loading}
+              onClick={handleConfirmDelete}
+              disabled={isPending}
               variant="ghost"
-              className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
+              className="bg-transparent border border-red text-red hover:text-red"
             >
-              <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+              <span className="flex items-center gap-2">
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>
