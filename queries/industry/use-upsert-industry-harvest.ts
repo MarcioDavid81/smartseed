@@ -19,7 +19,6 @@ export function useUpsertIndustryHarvest({ cycleId, harvestId }: Params) {
       }),
 
     onSuccess: () => {
-      // 🔄 invalida a listagem de colheitas
       queryClient.invalidateQueries({
         queryKey: ["industryHarvests", cycleId],
       });

@@ -204,7 +204,9 @@ const onSubmit = (data: IndustryHarvestFormData) => {
       showToast({
         type: "error",
         title: "Erro",
-        message: error.message,
+        message: error.message || `Erro ao ${
+          colheita ? "atualizar" : "criar"
+        } colheita.`,
       });
     },
   });
