@@ -22,22 +22,20 @@ import { Machine } from "@/types";
 import { useEffect, useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { NumericFormat } from "react-number-format";
+import { useUpsertMachine } from "@/queries/machines/use-upsert-machine";
 
 
 interface UpsertMachineModalProps {
   machine?: Machine;
   isOpen: boolean;
   onClose: () => void;
-  onUpdated?: () => void;
 }
 
 export function UpsertMachineModal({
   machine,
   isOpen,
   onClose,
-  onUpdated,
 }: UpsertMachineModalProps) {
-  const [loading, setLoading] = useState(false);
   const { showToast } = useSmartToast();
 
   const form = useForm<MachineFormData>({
@@ -71,72 +69,37 @@ export function UpsertMachineModal({
     }
   }, [machine, isOpen, form])
 
-  const onSubmit = async (data: MachineFormData) => {
-    setLoading(true);
-  try {
-    const token = getToken();
-    if (!token) {
-      showToast({
-        type: "error",
-        title: "Erro de autenticação",
-        message: "Usuário não autenticado.",
-      });
-      return;
-    }
+  const { mutate, isPending } = useUpsertMachine({
+    machineId: machine?.id,
+  });
 
-    const url = machine
-      ? `/api/machines/machine/${machine.id}`
-      : `/api/machines/machine`;
+  const onSubmit = (data: MachineFormData) => {
+    mutate(data, {
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: machine
+            ? "Máquina atualizada com sucesso!"
+            : "Máquina cadastrada com sucesso!",
+        });
 
-    const method = machine ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        onClose();
+        form.reset();
       },
-      body: JSON.stringify({
-        ...data,
-      }),
+      onError: (error: Error) => {
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: error.message || "Erro ao cadastrar/atualizar máquina.",
+        });
+      },
     });
+  };
 
-    const result = await res.json();
-
-    if (!res.ok) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: result.error || "Erro ao salvar máquina."
-      })
-      return;
-    }
-
-    showToast({
-      type: "success",
-      title: "Sucesso",
-      message: machine
-        ? "Máquina atualizada com sucesso!"
-        : "Máquina cadastrada com sucesso!",
-    });
-
-    onClose();
-    form.reset();
-    if (onUpdated) onUpdated(); // callback externo opcional
-    onClose();
-
-  } catch (e) {
-    console.error(e);
-    showToast({
-      type: "error",
-      title: "Erro",
-      message: "Erro ao salvar máquina.",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
+    useEffect(() => {
+      if (!isOpen) form.reset();
+    }, [isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -333,10 +296,10 @@ export function UpsertMachineModal({
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="w-full bg-green text-white mt-4"
             >
-              {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+              {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
             </Button>
           </form>
         </Form>

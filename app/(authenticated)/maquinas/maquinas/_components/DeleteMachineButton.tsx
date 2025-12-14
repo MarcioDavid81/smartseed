@@ -20,6 +20,7 @@ import {
 import { useHarvest } from "@/contexts/HarvestContext";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
+import { useDeleteMachine } from "@/queries/machines/use-delete-machine";
 import { Machine } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
@@ -28,78 +29,28 @@ import { FaSpinner } from "react-icons/fa";
 
 interface Props {
   machine: Machine;
-  onDeleted: () => void;
   disabled?: boolean;
 }
 
-const DeleteMachineButton = ({ machine, onDeleted, disabled = false }: Props) => {
+const DeleteMachineButton = ({ machine, disabled = false }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const { showToast } = useSmartToast();
 
-  const handleDelete = async (machine: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 máquina recebida:", machine);
+  const { mutate, isPending } = useDeleteMachine();
 
-    if (disabled) {
+  const handleConfirmDelete = () => {
+    if(disabled) {
       showToast({
         type: "error",
         title: "Permissão negada",
-        message: "Você não tem autorização para excluir esta máquina.",
+        message: "Apenas administradores podem excluir máquinas.",
       });
       return;
     }
 
-    if (!machine || !machine.id) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "ID da máquina ausente. Não é possível excluir.",
-      });
-      console.warn("❌ machine.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/machines/machine/${machine.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar produto:", errorText);
-        throw new Error(errorText);
-      }
-
-      showToast({
-        type: "success",
-        title: "Sucesso",
-        message: "Máquina deletada com sucesso!",
-      });
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "Erro ao deletar máquina.",
-      });
-    } finally {
-      setLoading(false);
-    }
+    mutate(machine.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -145,13 +96,13 @@ const DeleteMachineButton = ({ machine, onDeleted, disabled = false }: Props) =>
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(machine)}
-              disabled={loading}
+              onClick={handleConfirmDelete}
+              disabled={isPending}
               variant="ghost"
-              className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
+              className="bg-transparent border border-red text-red hover:text-red"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>

@@ -13,10 +13,9 @@ import { Machine } from "@/types";
 
 interface Props {
   machine: Machine;
-  onUpdated: () => void;
 }
 
-const EditMachineButton = ({ machine, onUpdated }: Props) => {
+const EditMachineButton = ({ machine }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -39,7 +38,6 @@ const EditMachineButton = ({ machine, onUpdated }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         machine={machine}
-        onUpdated={onUpdated}
       />
     </>
   );

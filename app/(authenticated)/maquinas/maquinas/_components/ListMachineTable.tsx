@@ -14,36 +14,18 @@ import EditMachineButton from "./EditMachineButton";
 import DeleteMachineButton from "./DeleteMachineButton";
 import { MachineDataTable } from "./MachineDataTable";
 import { getMachineTypeLabel } from "@/app/_helpers/getMachineLabel";
+import { useMachines } from "@/queries/machines/use-machine-query";
 
 export function ListMachineDataTable() {
-  const [machines, setMachines] = useState<Machine[]>([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useUser();
   const canDelete = canUser(user.role, "machine:delete");
 
-  async function fetchMachines() {
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch("/api/machines/machine", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      setMachines(data);
-    } catch (error) {
-      console.error("Erro ao buscar máquinas:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchMachines();
-  }, []);
+  const {
+    data: machines = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useMachines();
 
   const columns: ColumnDef<Machine>[] = [
     {
@@ -119,8 +101,8 @@ export function ListMachineDataTable() {
         const machine = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditMachineButton machine={machine} onUpdated={fetchMachines} />
-            <DeleteMachineButton machine={machine} onDeleted={fetchMachines} disabled={!canDelete} />
+            <EditMachineButton machine={machine} />
+            <DeleteMachineButton machine={machine} disabled={!canDelete} />
           </div>
         );
       },
@@ -131,11 +113,11 @@ export function ListMachineDataTable() {
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Máquinas</h2>
-        <Button variant={"ghost"} onClick={fetchMachines} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
         <MachineDataTable columns={columns} data={machines} />

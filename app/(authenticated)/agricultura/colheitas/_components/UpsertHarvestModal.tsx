@@ -212,7 +212,6 @@ const onSubmit = (data: IndustryHarvestFormData) => {
   });
 };
 
-
   useEffect(() => {
     if (!isOpen) form.reset();
   }, [isOpen, form]);

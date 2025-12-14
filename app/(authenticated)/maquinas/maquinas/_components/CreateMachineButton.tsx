@@ -4,12 +4,13 @@ import HoverButton from "@/components/HoverButton";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { UpsertMachineModal } from "./UpsertMachineModal";
+import { Machine } from "@/types";
 
 interface Props {
-  onUpdated?: () => void;
+  machine?: Machine;
 }
 
-const CreateMachineButton = ({ onUpdated }: Props) => {
+const CreateMachineButton = ({ machine }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
@@ -20,8 +21,7 @@ const CreateMachineButton = ({ onUpdated }: Props) => {
       <UpsertMachineModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onUpdated={onUpdated}
-      />
+        machine={machine}/>
     </div>
   );
 };
