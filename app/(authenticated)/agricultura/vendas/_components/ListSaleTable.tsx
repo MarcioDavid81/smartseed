@@ -88,8 +88,8 @@ export function ListSaleTable() {
         const venda = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditSaleButton venda={venda} onUpdated={refetch} />
-            <DeleteSaleButton venda={venda} onDeleted={refetch} />
+            <EditSaleButton venda={venda} />
+            <DeleteSaleButton venda={venda} disabled={!canDelete} />
           </div>
         );
       },

@@ -9,12 +9,10 @@ import { IndustrySale } from "@/types";
 
 interface Props {
   venda?: IndustrySale;
-  onUpdated?: () => void;
 }
 
-const CreateSaleButton = ({ venda, onUpdated }: Props) => {
+const CreateSaleButton = ({ venda }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { fetchCultivars } = useStock();
   return (
     <div>
       <HoverButton onClick={() => setIsOpen(true)}>
@@ -24,9 +22,7 @@ const CreateSaleButton = ({ venda, onUpdated }: Props) => {
       <UpsertSaleModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onSaleCreated={fetchCultivars}
         venda={venda}
-        onUpdated={onUpdated}
       />
     </div>
   );

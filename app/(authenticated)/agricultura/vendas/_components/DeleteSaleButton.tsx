@@ -17,9 +17,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useIndustrySale } from "@/contexts/IndustrySaleContext";
+import { useCycle } from "@/contexts/CycleContext";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
+import { useDeleteIndustrySale } from "@/queries/industry/use-delete-industry-sale";
 import { IndustrySale } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
@@ -28,84 +28,32 @@ import { FaSpinner } from "react-icons/fa";
 
 interface Props {
   venda: IndustrySale;
-  onDeleted: () => void;
+  disabled?: boolean;
 }
 
-const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
+const DeleteSaleButton = ({ venda, disabled = false }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchSales } = useIndustrySale();
+  const { selectedCycle } = useCycle();
   const { showToast } = useSmartToast();
 
-  const handleDelete = async (venda: { id: string }) => {
-    if (!venda?.id) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "ID da venda ausente. Não é possível excluir.",
-      });
-      return;
-    }
-
-  setLoading(true);
-
-  try {
-    const token = getToken();
-    const res = await fetch(`/api/industry/sale/${venda.id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+  const { mutate, isPending } = useDeleteIndustrySale({
+      cycleId: selectedCycle!.id,
     });
-
-    // ❌ SE A API RETORNOU ERRO
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-
-      console.error("Erro da API:", data);
-
-      // Tratamento para erros estruturados
-      if (data?.error) {
+  
+    const handleConfirmDelete = () => {
+      if (disabled) {
         showToast({
           type: "error",
-          title: data.error.title,
-          message: data.error.message,
+          title: "Permissão negada",
+          message: "Apenas administradores podem excluir vendas.",
         });
-      } else {
-        // fallback
-        showToast({
-          type: "error",
-          title: "Erro",
-          message: "Erro ao deletar venda.",
-        });
+        return;
       }
-
-      return; // evita continuar
-    }
-
-    // ✔ Sucesso
-    showToast({
-      type: "success",
-      title: "Sucesso",
-      message: "Venda deletada com sucesso!",
-    });
-    onDeleted();
-    setIsOpen(false);
-
-  } catch (error) {
-    console.error("Exceção no handleDelete:", error);
-    showToast({
-      type: "error",
-      title: "Erro",
-      message: "Erro inesperado ao deletar venda.",
-    });
-  } finally {
-    setLoading(false);
-  }
-
-  await fetchSales();
-};
+  
+      mutate(venda.id, {
+        onSuccess: () => setIsOpen(false),
+      });
+    };
 
 
   return (
@@ -114,14 +62,25 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => setIsOpen(true)}
-              className="hover:opacity-80 transition"
+              type="button"
+              onClick={() => {
+                if (disabled) {
+                  showToast({
+                    type: "error",
+                    title: "Permissão negada",
+                    message: "Apenas administradores podem excluir vendas.",
+                  });
+                  return;
+                }
+                setIsOpen(true);
+              }}
+                className="transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+              <Trash2Icon size={20} className={disabled ? "text-red/50" : "text-red"} />
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Excluir</p>
+            {disabled ? "Ação indisponível" : "Excluir"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -139,13 +98,13 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(venda)}
-              disabled={loading}
+              onClick={handleConfirmDelete}
+              disabled={isPending}
               variant="ghost"
-              className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
+              className="bg-transparent border border-red text-red hover:text-red"
             >
-              <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+              <span className="flex items-center gap-2">
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>

@@ -12,10 +12,12 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCycle } from "@/contexts/CycleContext";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { IndustrySaleFormData, industrySaleSchema } from "@/lib/schemas/industrySale";
+import { useUpsertIndustrySale } from "@/queries/industry/use-upsert-industry-sale";
 import {
   IndustryDeposit,
   IndustrySale,
@@ -32,20 +34,17 @@ interface UpsertSaleModalProps {
   venda?: IndustrySale;
   isOpen: boolean;
   onClose: () => void;
-  onSaleCreated?: () => void;
-  onUpdated?: () => void;
 }
 
 const UpsertSaleModal = ({
   venda,
   isOpen,
   onClose,
-  onSaleCreated,
 }: UpsertSaleModalProps) => {
-  const [loading, setLoading] = useState(false);
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const { selectedCycle } = useCycle();
   const { showToast } = useSmartToast();
 
   const form = useForm<IndustrySaleFormData>({
@@ -141,64 +140,44 @@ const UpsertSaleModal = ({
     if (isOpen) fetchData();
   }, [isOpen]);
 
-  const onSubmit = async (data: IndustrySaleFormData) => {
-    setLoading(true);
-    const token = getToken();
-    const cycle = getCycle();
-    if (!cycle || !cycle.id) {
+  const cycle = getCycle();
+  
+  const { mutate, isPending } = useUpsertIndustrySale({
+    cycleId: cycle?.id!,
+    saleId: venda?.id,
+  });
+  
+  const onSubmit = (data: IndustrySaleFormData) => {
+    if (!cycle?.id) {
       showToast({
         type: "error",
         title: "Erro",
         message: "Nenhum ciclo de produção selecionado.",
       });
-      setLoading(false);
       return;
     }
-    const cycleId = cycle.id;
-    console.log("Dados enviados para API:", {
-      ...data,
-      cycleId,
-    });
-
-    const url = venda ? `/api/industry/sale/${venda.id}` : "/api/industry/sale";
-    const method = venda ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+  
+    mutate(data, {
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: venda
+            ? "Venda atualizada com sucesso!"
+            : "Venda cadastrada com sucesso!",
+        });
+  
+        onClose();
+        form.reset();
       },
-      body: JSON.stringify({
-        ...data,
-        cycleId,
-      }),
+      onError: (error: Error) => {
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: error.message,
+        });
+      },
     });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: result.error || "Erro ao salvar venda.",
-      });
-      setLoading(false);
-      return;
-    } else {
-      showToast({
-        type: "success",
-        title: "Sucesso",
-        message: venda
-          ? "Venda atualizada com sucesso!"
-          : "Venda cadastrada com sucesso!",
-      });
-      onClose();
-      form.reset();
-      if (onSaleCreated) onSaleCreated();
-    }
-
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -466,10 +445,10 @@ const UpsertSaleModal = ({
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isPending}
                 className="w-full bg-green text-white mt-4"
               >
-                {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
             </div>
           </form>

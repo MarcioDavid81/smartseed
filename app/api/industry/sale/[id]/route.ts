@@ -16,7 +16,12 @@ export async function PUT(
     if (!payload) return new NextResponse("Token inválido", { status: 401 });
 
     const { id } = params;
-    const data = await req.json();
+    const rawData = await req.json();
+
+    const data = {
+      ...rawData,
+      industryTransporterId: rawData.industryTransporterId?.trim() || null,
+    };
     const { companyId } = payload;
 
     const existing = await db.industrySale.findUnique({
@@ -82,17 +87,17 @@ export async function PUT(
           select: { name: true },
         });
 
-        const productLabel = data.product ?? existing.product
-          .toString()
-          .replace("_", " ")
-          .toLowerCase()
-          .replace(/\b\w/g, (l) => l
-          .toUpperCase());
+        const productLabel =
+          data.product ??
+          existing.product
+            .toString()
+            .replace("_", " ")
+            .toLowerCase()
+            .replace(/\b\w/g, (l) => l.toUpperCase());
         const document = data.document ?? existing.document ?? "S/NF";
         const customerName = customer?.name ?? "cliente";
 
         const description = `Venda de ${productLabel}, cfe NF ${document}, para ${customerName}`;
-
 
         if (existing.accountReceivable) {
           await tx.accountReceivable.update({
@@ -181,15 +186,16 @@ export async function DELETE(
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) {
-      return NextResponse.json({
-        error: {
-          code: "TOKEN_MISSING",
-          title: "Autenticação necessária",
-          message: "Token ausente.",
-        }
-      },
-      { status: 401 },
-    );
+      return NextResponse.json(
+        {
+          error: {
+            code: "TOKEN_MISSING",
+            title: "Autenticação necessária",
+            message: "Token ausente.",
+          },
+        },
+        { status: 401 },
+      );
     }
 
     const payload = await verifyToken(token);
@@ -270,7 +276,10 @@ export async function DELETE(
       });
     });
 
-    return NextResponse.json({ message: "Venda removida com sucesso" }, { status: 200 });
+    return NextResponse.json(
+      { message: "Venda removida com sucesso" },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Erro ao remover venda:", error);
     return NextResponse.json(

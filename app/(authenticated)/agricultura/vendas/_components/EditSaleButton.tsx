@@ -2,7 +2,6 @@
 
 import { SquarePenIcon } from "lucide-react";
 import { useState } from "react";
-import { useStock } from "@/contexts/StockContext";
 import UpsertSaleModal from "./UpsertSaleModal";
 import {
   Tooltip,
@@ -14,12 +13,10 @@ import { IndustrySale } from "@/types";
 
 interface Props {
   venda: IndustrySale;
-  onUpdated: () => void;
 }
 
-const EditSaleButton = ({ venda, onUpdated }: Props) => {
+const EditSaleButton = ({ venda }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { fetchCultivars } = useStock();
   return (
     <>
       <TooltipProvider>
@@ -40,9 +37,7 @@ const EditSaleButton = ({ venda, onUpdated }: Props) => {
       <UpsertSaleModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onSaleCreated={fetchCultivars}
         venda={venda}
-        onUpdated={onUpdated}
       />
     </>
   );
