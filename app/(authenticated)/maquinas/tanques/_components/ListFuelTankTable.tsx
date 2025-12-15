@@ -59,7 +59,7 @@ export function ListFuelTankDataTable() {
     },
     {
       accessorKey: "stock",
-      header: () => <div className="text-center">Estoque</div>,
+      header: () => <div className="text-center">Estoque (L)</div>,
       cell: ({ row: { original } }) => {
         const stock = original.stock;
         return (
