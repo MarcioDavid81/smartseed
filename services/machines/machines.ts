@@ -26,7 +26,7 @@ export function upsertMachine({
 
   const method = machineId ? "PUT" : "POST";
 
-  return apiFetch<void>(url, {
+  return apiFetch<Machine>(url, {
     method,
     body: JSON.stringify({
       ...data,
@@ -35,7 +35,7 @@ export function upsertMachine({
 }
 
 export function deleteMachine(machineId: string) {
-  return apiFetch<void>(`/api/machines/machine/${machineId}`, {
+  return apiFetch<Machine>(`/api/machines/machine/${machineId}`, {
     method: "DELETE",
   });
 }

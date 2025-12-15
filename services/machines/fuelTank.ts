@@ -25,7 +25,7 @@ export function upsertFuelTank({
 
   const method = fuelTankId ? "PUT" : "POST";
 
-  return apiFetch<void>(url, {
+  return apiFetch<FuelTank>(url, {
     method,
     body: JSON.stringify({
       ...data,
@@ -34,7 +34,7 @@ export function upsertFuelTank({
 }
 
 export function deleteFuelTank(fuelTankId: string) {
-  return apiFetch<void>(`/api/machines/fuel-tank/${fuelTankId}`, {
+  return apiFetch<FuelTank>(`/api/machines/fuel-tank/${fuelTankId}`, {
     method: "DELETE",
   });
 }
