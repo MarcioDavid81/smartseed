@@ -18,35 +18,35 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { useDeleteMachine } from "@/queries/machines/use-delete-machine";
-import { Machine } from "@/types";
+import { useDeleteFuelTank } from "@/queries/machines/use-delete-fuelTank";
+import { FuelTank } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 
 
 interface Props {
-  machine: Machine;
+  fuelTank: FuelTank;
   disabled?: boolean;
 }
 
-const DeleteMachineButton = ({ machine, disabled = false }: Props) => {
+const DeleteFuelTankButton = ({ fuelTank, disabled = false }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const { showToast } = useSmartToast();
 
-  const { mutate, isPending } = useDeleteMachine();
+  const { mutate, isPending } = useDeleteFuelTank();
 
   const handleConfirmDelete = () => {
     if(disabled) {
       showToast({
         type: "error",
         title: "Permissão negada",
-        message: "Apenas administradores podem excluir máquinas.",
+        message: "Apenas administradores podem excluir tanques de combustível.",
       });
       return;
     }
 
-    mutate(machine.id, {
+    mutate(fuelTank.id, {
       onSuccess: () => setIsOpen(false),
     });
   };
@@ -63,7 +63,7 @@ const DeleteMachineButton = ({ machine, disabled = false }: Props) => {
                   showToast({
                     type: "error",
                     title: "Permissão negada",
-                    message: "Apenas administradores podem excluir máquinas.",
+                    message: "Apenas administradores podem excluir tanques de combustível.",
                   });
                   return;
                 }
@@ -85,7 +85,7 @@ const DeleteMachineButton = ({ machine, disabled = false }: Props) => {
         <AlertDialogHeader>
           <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
           <AlertDialogDescription>
-            {`Esta ação é irreversível e excluirá o registro de ${machine.name} permanentemente.`}
+            {`Esta ação é irreversível e excluirá o registro de ${fuelTank.name} permanentemente.`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -110,4 +110,4 @@ const DeleteMachineButton = ({ machine, disabled = false }: Props) => {
   );
 };
 
-export default DeleteMachineButton;
+export default DeleteFuelTankButton;

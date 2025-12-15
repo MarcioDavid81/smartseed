@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
+import { ListFuelTankDataTable } from "./_components/ListFuelTankTable";
 
 export const metadata: Metadata = {
   title: "Tanques",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   ],
 };
 
-export default async function HarvestsPage() {
+export default async function FuelTanksPage() {
   return (
     <div className="flex flex-col w-full min-h-screen bg-found">
       <div className="min-h-screen w-full flex bg-background">
@@ -23,7 +24,7 @@ export default async function HarvestsPage() {
             <h1 className="text-2xl font-medium mb-4">Tanques</h1>
             <NavItems />
           </div>
-          <h1>Módulo em Desenvolvimento</h1>
+          <ListFuelTankDataTable />
         </main>
       </div>
     </div>
