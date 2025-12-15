@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import CreateHarvestButton from "./CreateHarvestButton";
 import GenerateHarvestReportModal from "./GenerateHarvestReportModal";
+import { FunnelX } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -83,7 +84,7 @@ export function HarvestDataTable<TData, TValue>({
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between py-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
           <Input
             placeholder="Procure por fazenda"
             value={(table.getColumn("farm")?.getFilterValue() as string) ?? ""}
@@ -108,6 +109,17 @@ export function HarvestDataTable<TData, TValue>({
             }
               className="max-w-sm bg-gray-50 text-primary"
             />
+            {table.getState().columnFilters.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => table.resetColumnFilters()}
+                className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+              >
+                <FunnelX size={14} />
+                Limpar filtros
+              </Button>
+            )}
         </div>
         <CreateHarvestButton />
       </div>

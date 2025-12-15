@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import CreatePlotButton from "./CreatePlotButton";
+import { FunnelX, FunnelXIcon } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -71,14 +72,27 @@ export function PlotsDataTable<TData, TValue>({
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex items-center justify-between py-4">
-        <Input
-          placeholder="Procure por talhão"
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm bg-gray-50 text-primary"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Procure por talhão"
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("name")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          {table.getState().columnFilters.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => table.resetColumnFilters()}
+                  className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+                >
+                  <FunnelX size={14} />
+                  Limpar filtros
+                </Button>
+              )}
+        </div>
         <CreatePlotButton />
       </div>
       <div className="rounded-md border">

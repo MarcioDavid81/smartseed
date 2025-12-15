@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { FunnelX } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -73,7 +74,7 @@ export function IndustryStockStatementDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
-      <div className="flex items-center justify-between py-4">
+      <div className="flex items-center justify-center gap-2">
         <Input
           placeholder="Buscar no extrato..."
           value={(table.getState().globalFilter as string) ?? ""}
@@ -82,6 +83,17 @@ export function IndustryStockStatementDataTable<TData, TValue>({
           }
           className="max-w-sm bg-gray-50 text-primary"
         />
+        {table.getState().columnFilters.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => table.resetColumnFilters()}
+                className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+              >
+                <FunnelX size={14} />
+                Limpar filtros
+              </Button>
+            )}
       </div>
 
       <div className="rounded-md border">
