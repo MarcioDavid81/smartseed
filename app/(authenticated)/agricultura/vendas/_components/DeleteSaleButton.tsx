@@ -76,7 +76,7 @@ const DeleteSaleButton = ({ venda, disabled = false }: Props) => {
               }}
                 className="transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <Trash2Icon size={20} className={disabled ? "text-red/50" : "text-red"} />
+              {isPending ? <FaSpinner className="animate-spin" /> : <Trash2Icon size={20} className={disabled ? "text-red/50" : "text-red"} />}
             </button>
           </TooltipTrigger>
           <TooltipContent>

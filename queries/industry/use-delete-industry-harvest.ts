@@ -12,7 +12,7 @@ export function useDeleteIndustryHarvest({ cycleId }: Params) {
 
   return useMutation({
     mutationFn: (harvestId: string) => deleteIndustryHarvest(harvestId),
-
+    mutationKey: ["industryHarvests", cycleId],
     onSuccess: () => {
       showToast({
         type: "success",

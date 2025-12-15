@@ -12,7 +12,7 @@ export function useDeleteIndustrySale({ cycleId }: Params) {
 
   return useMutation({
     mutationFn: (saleId: string) => deleteIndustrySale(saleId),
-
+    mutationKey: ["industrySales", cycleId],
     onSuccess: () => {
       showToast({
         type: "success",

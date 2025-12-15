@@ -9,7 +9,7 @@ export function useDeleteMachine() {
 
   return useMutation({
     mutationFn: (machineId: string) => deleteMachine(machineId),
-
+    mutationKey: ["machines"],
     onSuccess: () => {
       showToast({
         type: "success",

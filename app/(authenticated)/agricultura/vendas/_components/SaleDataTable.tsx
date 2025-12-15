@@ -71,14 +71,14 @@ export function SaleDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
-      <div className="flex items-center justify-between py-4">
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between py-4">
         <Input
           placeholder="Procure por cliente"
           value={(table.getColumn("customer")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("customer")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm bg-gray-50 text-primary"
+          className="w-full md:max-w-sm bg-gray-50 text-primary"
         />
         <CreateSaleButton />
       </div>

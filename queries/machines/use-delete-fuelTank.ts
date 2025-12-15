@@ -9,7 +9,7 @@ export function useDeleteFuelTank() {
 
   return useMutation({
     mutationFn: (fuelTankId: string) => deleteFuelTank(fuelTankId),
-
+    mutationKey: ["fuelTanks"],
     onSuccess: () => {
       showToast({
         type: "success",

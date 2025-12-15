@@ -82,7 +82,7 @@ export function HarvestDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
-      <div className="flex items-center justify-between py-4">
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between py-4">
         <div className="flex items-center justify-between gap-4">
           <Input
             placeholder="Procure por fazenda"
