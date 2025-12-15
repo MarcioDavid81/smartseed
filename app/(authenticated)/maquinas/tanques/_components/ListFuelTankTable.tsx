@@ -12,6 +12,7 @@ import { useFuelTank } from "@/queries/machines/use-fuelTank-query";
 import EditFuelTankButton from "./EditFuelTankButton";
 import DeleteFuelTankButton from "./DeleteFuelTankButton";
 import { FuelTankDataTable } from "./FuelTankDataTable";
+import { TankLevelBar } from "./TankLevelBar";
 
 export function ListFuelTankDataTable() {
   const { user } = useUser();
@@ -71,6 +72,16 @@ export function ListFuelTankDataTable() {
           </div>
         );
       },
+    },
+    {
+      id: "nivel",
+      header: "Nível",
+      cell: ({ row }) => (
+        <TankLevelBar
+          capacity={row.original.capacity}
+          stock={row.original.stock}
+        />
+      ),
     },
     {
       accessorKey: "actions",

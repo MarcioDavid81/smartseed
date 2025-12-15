@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
           product: cycle.productType as ProductType,
           industryTransporterId: data.industryTransporterId || null,
         },
-      });
+      });   
 
       // 🔹 Atualiza o estoque
       await tx.industryStock.update({

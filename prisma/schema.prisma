@@ -572,69 +572,58 @@ model FuelTank {
 }
 
 model FuelPurchase {
-  id        String  @id @default(cuid())
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id])
-
-  tankId String
-  tank   FuelTank @relation(fields: [tankId], references: [id])
-
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id])
-
+  id               String            @id @default(cuid())
+  date             DateTime          @default(now())
+  invoiceNumber    String?
+  fileUrl          String?
+  quantity         Float // 🔥 Entra no estoque do tanque
+  unitPrice        Float
+  totalValue       Float
+  customerId       String
+  customer         Customer          @relation(fields: [customerId], references: [id])
+  tankId           String
+  tank             FuelTank          @relation(fields: [tankId], references: [id])
   paymentCondition PaymentCondition?
+  dueDate          DateTime?
   accountPayable   AccountPayable?
-
-  dueDate    DateTime
-  date       DateTime @default(now())
-  quantity   Float // 🔥 Entra no estoque do tanque
-  totalValue Float
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  companyId        String
+  company          Company           @relation(fields: [companyId], references: [id])
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model Refuel {
-  id        String  @id @default(cuid())
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id])
-
-  tankId String
-  tank   FuelTank @relation(fields: [tankId], references: [id])
-
-  machineId String
-  machine   Machine @relation(fields: [machineId], references: [id])
-
+  id        String   @id @default(cuid())
   date      DateTime @default(now())
   quantity  Float // 🔥 Sai do estoque
+  tankId    String
+  tank      FuelTank @relation(fields: [tankId], references: [id])
+  machineId String
+  machine   Machine  @relation(fields: [machineId], references: [id])
   hourmeter Float? // Se máquina
   odometer  Float? // Se veículo
-
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Maintenance {
-  id        String  @id @default(cuid())
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id])
-
-  machineId String
-  machine   Machine @relation(fields: [machineId], references: [id])
-
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id])
-
+  id               String           @id @default(cuid())
+  date             DateTime         @default(now())
+  machineId        String
+  machine          Machine          @relation(fields: [machineId], references: [id])
+  customerId       String
+  customer         Customer         @relation(fields: [customerId], references: [id])
+  description      String
+  totalValue       Float
   paymentCondition PaymentCondition
+  dueDate          DateTime?
   accountPayable   AccountPayable?
-
-  dueDate     DateTime
-  date        DateTime @default(now())
-  description String
-  totalValue  Float
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  companyId        String
+  company          Company          @relation(fields: [companyId], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 }
 
 enum Plan {
