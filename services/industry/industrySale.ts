@@ -29,7 +29,7 @@ export function upsertIndustrySale({
 
   const method = saleId ? "PUT" : "POST";
 
-  return apiFetch<void>(url, {
+  return apiFetch<IndustrySale>(url, {
     method,
     body: JSON.stringify({
       ...data,
@@ -39,7 +39,7 @@ export function upsertIndustrySale({
 }
 
 export function deleteIndustrySale(saleId: string) {
-  return apiFetch<void>(`/api/industry/sale/${saleId}`, {
+  return apiFetch<IndustrySale>(`/api/industry/sale/${saleId}`, {
     method: "DELETE",
   });
 }

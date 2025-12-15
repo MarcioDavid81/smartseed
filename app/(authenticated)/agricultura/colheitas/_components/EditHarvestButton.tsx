@@ -2,7 +2,6 @@
 
 import { SquarePenIcon } from "lucide-react";
 import { useState } from "react";
-import { useStock } from "@/contexts/StockContext";
 import UpsertHarvestModal from "./UpsertHarvestModal";
 import {
   Tooltip,

@@ -1,12 +1,10 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { IndustrySale } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import { SaleDataTable } from "./SaleDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { AgroLoader } from "@/components/agro-loader";
@@ -15,6 +13,7 @@ import EditSaleButton from "./EditSaleButton";
 import { useUser } from "@/contexts/UserContext";
 import { canUser } from "@/lib/permissions/canUser";
 import { useIndustrySales } from "@/queries/industry/use-sale-query";
+import { LoadingData } from "@/components/loading-data";
 
 export function ListSaleTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -52,18 +51,27 @@ export function ListSaleTable() {
     {
       accessorKey: "customer",
       header: "Cliente",
-      cell: ({ row: { original } }) => original.customer.name,
+      cell: ({ row: { original } }) => <div className="text-left">{original.customer?.name ? (original.customer.name) : <LoadingData />}</div>,
     },
     {
       accessorKey: "industryTransporter",
       header: () => <div className="text-left">Transportador</div>,
       cell: ({ row }) => {
-        const transportador = row.original.industryTransporter?.name;
-        return (
-          <div className="text-left">
-            {transportador}
-          </div>
-        );
+        const transporter = row.original.industryTransporter;
+
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+
+        if (!transporter) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem transportador
+            </span>
+          );
+        }
+
+        return <span>{transporter.name}</span>;
       },
     },
     {
