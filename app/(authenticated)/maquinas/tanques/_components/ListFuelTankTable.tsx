@@ -58,6 +58,21 @@ export function ListFuelTankDataTable() {
       },
     },
     {
+      accessorKey: "stock",
+      header: () => <div className="text-center">Estoque</div>,
+      cell: ({ row: { original } }) => {
+        const stock = original.stock;
+        return (
+          <div className="text-center">
+            {stock ? new Intl.NumberFormat("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(stock) : 0}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
