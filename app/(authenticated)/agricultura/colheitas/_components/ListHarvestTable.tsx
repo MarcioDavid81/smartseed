@@ -13,6 +13,7 @@ import { AgroLoader } from "@/components/agro-loader";
 import { useUser } from "@/contexts/UserContext";
 import { canUser } from "@/lib/permissions/canUser";
 import { useIndustryHarvests } from "@/queries/industry/use-harvests.query";
+import { LoadingData } from "@/components/loading-data";
 
 export function ListHarvestTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -51,33 +52,26 @@ export function ListHarvestTable() {
       header: () => <div className="text-left">Fazenda</div>,
       accessorFn: (row) => row.talhao?.farm?.name ?? "",
       filterFn: "includesString",
-      cell: ({ row: { original } }) => <div className="text-left">{original.talhao.farm.name}</div>,
+      cell: ({ row: { original } }) => <div className="text-left">{original.talhao?.farm?.name ? (original.talhao.farm.name) : <LoadingData />}</div>,
     },
     {
       id: "talhao",
       header: "Talhão",
       accessorFn: (row) => row.talhao?.name ?? "",
       filterFn: "includesString",
-      cell: ({ row: { original } }) => original.talhao.name,
+      cell: ({ row: { original } }) => <div className="text-left">{original.talhao?.name ? (original.talhao.name) : <LoadingData />}</div>,
     },
     {
       accessorKey: "industryTransporter",
       header: () => <div className="text-left">Transportador</div>,
-      cell: ({ row }) => {
-        const transportador = row.original.industryTransporter.name;
-        return (
-          <div className="text-left">
-            {transportador}
-          </div>
-        );
-      },
+      cell: ({ row: { original } }) => <div className="text-left">{original.industryTransporter?.name ? (original.industryTransporter.name) : <LoadingData />}</div>,
     },
     {
       id: "industryDeposit",
       header: () => <div className="text-left">Depósito</div>,
       accessorFn: (row) => row.industryDeposit?.name ?? "",
       filterFn: "includesString",
-      cell: ({ row: { original } }) => <div className="text-left">{original.industryDeposit.name}</div>,
+      cell: ({ row: { original } }) => <div className="text-left">{original.industryDeposit?.name ? (original.industryDeposit.name) : <LoadingData />}</div>,
     },
     {
       accessorKey: "weightLiq",

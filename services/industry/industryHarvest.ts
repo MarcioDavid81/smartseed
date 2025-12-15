@@ -30,7 +30,7 @@ export function upsertIndustryHarvest({
 
   const method = harvestId ? "PUT" : "POST";
 
-  return apiFetch<void>(url, {
+  return apiFetch<IndustryHarvest>(url, {
     method,
     body: JSON.stringify({
       ...data,
@@ -40,7 +40,7 @@ export function upsertIndustryHarvest({
 }
 
 export function deleteIndustryHarvest(harvestId: string) {
-  return apiFetch<void>(`/api/industry/harvest/${harvestId}`, {
+  return apiFetch<IndustryHarvest>(`/api/industry/harvest/${harvestId}`, {
     method: "DELETE",
   });
 }
