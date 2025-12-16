@@ -12,16 +12,12 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "@/components/ui/form";
-import { MACHINE_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/machines";
-import { MachineFormData, machineSchema } from "@/lib/schemas/machineSchema";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { FuelTank } from "@/types";
 import { useEffect } from "react";
 import { FaSpinner } from "react-icons/fa";
 import { NumericFormat } from "react-number-format";
-import { useUpsertMachine } from "@/queries/machines/use-upsert-machine";
 import { FuelTankFormData, fuelTankSchema } from "@/lib/schemas/fuelTankSchema";
 import { useUpsertFuelTank } from "@/queries/machines/use-upsert-fuelTank";
 

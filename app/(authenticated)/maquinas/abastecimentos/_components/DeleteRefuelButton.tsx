@@ -18,35 +18,35 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { useDeleteFuelPurchase } from "@/queries/machines/use-delete-fuelPurchase";
-import { FuelPurchase } from "@/types";
+import { useDeleteRefuel } from "@/queries/machines/use-delete-refuel";
+import { Refuel } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 
 
 interface Props {
-  compra: FuelPurchase;
+  abastecimento: Refuel;
   disabled?: boolean;
 }
 
-const DeleteFuelPurchaseButton = ({ compra, disabled = false }: Props) => {
+const DeleteRefuelButton = ({ abastecimento, disabled = false }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const { showToast } = useSmartToast();
 
-  const { mutate, isPending } = useDeleteFuelPurchase();
+  const { mutate, isPending } = useDeleteRefuel();
   
     const handleConfirmDelete = () => {
       if (disabled) {
         showToast({
           type: "error",
           title: "Permissão negada",
-          message: "Apenas administradores podem excluir compras.",
+          message: "Apenas administradores podem excluir abastecimentos.",
         });
         return;
       }
   
-      mutate(compra.id, {
+      mutate(abastecimento.id, {
         onSuccess: () => setIsOpen(false),
       });
     };
@@ -64,7 +64,7 @@ const DeleteFuelPurchaseButton = ({ compra, disabled = false }: Props) => {
                   showToast({
                     type: "error",
                     title: "Permissão negada",
-                    message: "Apenas administradores podem excluir compras.",
+                    message: "Apenas administradores podem excluir abastecimentos.",
                   });
                   return;
                 }
@@ -85,7 +85,7 @@ const DeleteFuelPurchaseButton = ({ compra, disabled = false }: Props) => {
         <AlertDialogHeader>
           <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta ação é irreversível e excluirá o registro de compra permanentemente.
+            Esta ação é irreversível e excluirá o registro de abastecimento permanentemente.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -110,4 +110,4 @@ const DeleteFuelPurchaseButton = ({ compra, disabled = false }: Props) => {
   );
 };
 
-export default DeleteFuelPurchaseButton;
+export default DeleteRefuelButton;
