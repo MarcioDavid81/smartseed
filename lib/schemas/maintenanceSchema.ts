@@ -6,8 +6,8 @@ export const maintenanceSchema = z.object({
   machineId: z.string().min(1, "Máquina é obrigatória"),
   customerId: z.string().min(1, "Cliente é obrigatório"),
   description: z.string().min(1, "Descrição é obrigatória"),
-  totalValue: z.coerce.number().positive(),
-  paymentCondition: z.nativeEnum(PaymentCondition).optional(),
+  totalValue: z.coerce.number().min(1, "Preço total é obrigatório"),
+  paymentCondition: z.nativeEnum(PaymentCondition),
   dueDate: z.coerce.date().optional(),
 })
 
