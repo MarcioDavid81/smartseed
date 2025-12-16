@@ -1,4 +1,4 @@
-import { FuelPurchase, FuelTank } from "@/types";
+import { FuelPurchase } from "@/types";
 import { apiFetch } from "../api";
 import { FuelPurchaseFormData } from "@/lib/schemas/fuelPurchaseSchema";
 
