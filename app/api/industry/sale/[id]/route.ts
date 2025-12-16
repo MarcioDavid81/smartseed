@@ -1,7 +1,6 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
-import { AccountStatus, PaymentCondition, ProductType } from "@prisma/client";
-import { error } from "console";
+import { AccountStatus, PaymentCondition } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
