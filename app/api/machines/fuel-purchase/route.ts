@@ -75,7 +75,7 @@ export async function POST(req: Request) {
         },
       });
 
-      await db.fuelTank.update({
+      await tx.fuelTank.update({
         where: {
           id: data.tankId,
         },
