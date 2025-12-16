@@ -7,6 +7,7 @@ export type Permission =
   | "company:manage"
   | "machine:delete"
   | "fuelTank:delete"
+  | "fuelPurchase:delete"
   | "harvest:delete"
   | "sale:delete"
   | "transport:delete";
@@ -18,6 +19,7 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "company:manage",
     "machine:delete",
     "fuelTank:delete",
+    "fuelPurchase:delete",
     "harvest:delete",
     "sale:delete",
     "transport:delete",

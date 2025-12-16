@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
+import { ListFuelPurchaseTable } from "./_components/ListFuelPurchaseTable";
 
 export const metadata: Metadata = {
   title: "Compras",
@@ -23,7 +24,7 @@ export default async function HarvestsPage() {
             <h1 className="text-2xl font-medium mb-4">Compras</h1>
             <NavItems />
           </div>
-          <h1>Módulo em Desenvolvimento</h1>
+          <ListFuelPurchaseTable />
         </main>
       </div>
     </div>

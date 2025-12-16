@@ -3,28 +3,28 @@
 import HoverButton from "@/components/HoverButton";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
-import UpsertSaleModal from "./UpsertSaleModal";
-import { IndustrySale } from "@/types";
+import { FuelPurchase } from "@/types";
+import UpsertFuelPurchaseModal from "./UpsertFuelPurchaseModal";
 
 interface Props {
-  venda?: IndustrySale;
+  compra?: FuelPurchase;
 }
 
-const CreateSaleButton = ({ venda }: Props) => {
+const CreateFuelPurchaseButton = ({ compra }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
       <HoverButton onClick={() => setIsOpen(true)}>
         <PlusIcon size={20} />
-        Venda
+        Compra
       </HoverButton>
-      <UpsertSaleModal
+      <UpsertFuelPurchaseModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        venda={venda}
+        compra={compra}
       />
     </div>
   );
 };
 
-export default CreateSaleButton;
+export default CreateFuelPurchaseButton;
