@@ -1,6 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { upsertMachine } from "@/services/machines/machines";
-import { MachineFormData } from "@/lib/schemas/machineSchema";
 import { FuelTankFormData } from "@/lib/schemas/fuelTankSchema";
 import { upsertFuelTank } from "@/services/machines/fuelTank";
 import { FuelTank } from "@/types";

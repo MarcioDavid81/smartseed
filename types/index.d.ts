@@ -29,3 +29,4 @@ export * from "./userRole";
 export * from "./industryStockStatement";
 export * from "./machine";
 export * from "./fuelTank";
+export * from "./fuelPurchase";
