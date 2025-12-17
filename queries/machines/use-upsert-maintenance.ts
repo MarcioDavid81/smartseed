@@ -37,6 +37,7 @@ export function useUpsertMaintenance({ maintenanceId }: Params) {
       });
       queryClient.invalidateQueries({
         queryKey: ["machines-dashboard"],
+        refetchType: "active",
       });
     },
   });

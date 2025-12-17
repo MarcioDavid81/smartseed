@@ -37,6 +37,7 @@ export function useUpsertRefuel({ refuelId }: Params) {
       });
       queryClient.invalidateQueries({
         queryKey: ["machines-dashboard"],
+        refetchType: "active",
       });
     },
   });
