@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
+import { ListMaintenanceTable } from "./_components/ListMaintenanceTable";
 
 export const metadata: Metadata = {
   title: "Manutenções",
@@ -23,7 +24,7 @@ export default async function HarvestsPage() {
             <h1 className="text-2xl font-medium mb-4">Manutenções</h1>
             <NavItems />
           </div>
-          <h1>Módulo em Desenvolvimento</h1>
+          <ListMaintenanceTable />
         </main>
       </div>
     </div>
