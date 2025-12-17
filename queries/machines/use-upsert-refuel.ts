@@ -35,6 +35,9 @@ export function useUpsertRefuel({ refuelId }: Params) {
       queryClient.invalidateQueries({
         queryKey: ["refuels"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["machines-dashboard"],
+      });
     },
   });
 }

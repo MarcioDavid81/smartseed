@@ -35,6 +35,9 @@ export function useUpsertMaintenance({ maintenanceId }: Params) {
       queryClient.invalidateQueries({
         queryKey: ["maintenances"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["machines-dashboard"],
+      });
     },
   });
 }
