@@ -171,7 +171,7 @@ const UpsertMaintenanceModal = ({
                             }))}
                             value={field.value}
                             onChange={field.onChange}
-                            placeholder="Selecione um tanque"
+                            placeholder="Selecione uma máquina"
                           />
                         </FormControl>
                         <FormMessage />
