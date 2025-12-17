@@ -110,7 +110,7 @@ const DashboardContent = () => {
             <SelectContent>
               {cultivars.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
-                  {c.name}
+                  <span className="text-sm font-light">{c.name}</span>
                 </SelectItem>
               ))}
             </SelectContent>

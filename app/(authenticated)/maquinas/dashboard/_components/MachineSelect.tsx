@@ -27,7 +27,7 @@ export function MachineSelect({ machines, value, onChange }: Props) {
       <SelectContent>
         {machines.map(machine => (
           <SelectItem key={machine.id} value={machine.id}>
-            {machine.name}
+            <span className="text-sm font-light">{machine.name}</span>
           </SelectItem>
         ))}
       </SelectContent>

@@ -54,7 +54,7 @@ export default function StockByProductTypeChart() {
         <SelectContent>
           {PRODUCT_TYPE_OPTIONS.map((option) => (
             <SelectItem key={option.value} value={option.value}>
-              {option.label}
+              <span className="text-sm font-light">{option.label}</span>
             </SelectItem>
           ))}
         </SelectContent>
