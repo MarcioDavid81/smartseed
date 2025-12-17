@@ -1,51 +1,76 @@
-"use client";
+"use client"
 
-
-import { useMachinesDashboard } from "@/queries/machines/use-machines-dashboard";
-import { Fuel, Tractor, Wrench, DollarSign } from "lucide-react";
-import { DashboardCard } from "./DashboardCard";
-import { AgroLoader } from "@/components/agro-loader";
+import { useEffect, useState } from "react"
+import { useMachines } from "@/queries/machines/use-machine-query"
+import { useMachineCosts } from "@/queries/machines/use-machine-costs"
+import { MachineSelect } from "./MachineSelect"
+import { MachineCostsChart } from "./MachineCostsChart"
+import { DashboardCard } from "./DashboardCard"
+import { DollarSign, Fuel, Tractor, Wrench } from "lucide-react"
+import { AgroLoader } from "@/components/agro-loader"
 
 export function MachinesDashboard() {
-  const { data, isLoading } = useMachinesDashboard();
+  const { data: machines = [] } = useMachines()
 
-  if (isLoading) {
-    return <AgroLoader />
-  }
+  const [selectedMachineId, setSelectedMachineId] = useState<string>("")
 
-  if (!data) return null;
+  // seleciona a primeira máquina automaticamente
+  useEffect(() => {
+    if (machines.length && !selectedMachineId) {
+      setSelectedMachineId(machines[0].id)
+    }
+  }, [machines, selectedMachineId])
+
+  const { data, isLoading, isPending } = useMachineCosts(
+    selectedMachineId,
+  )
+
+  if (isPending || !data) return <AgroLoader />
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <DashboardCard
-        title="Máquinas"
-        value={data.totalMachines.toString()}
-        icon={<Tractor size={22} />}
-      />
-
-      <DashboardCard
-        title="Combustível em estoque"
-        value={`${data.totalFuelStock.toLocaleString("pt-BR")} L`}
-        icon={<Fuel size={22} />}
-      />
-
-      <DashboardCard
-        title="Gasto com combustível"
-        value={data.totalFuelCost.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        })}
-        icon={<DollarSign size={22} />}
-      />
-
-      <DashboardCard
-        title="Gasto com manutenções"
-        value={data.totalMaintenanceCost.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        })}
-        icon={<Wrench size={22} />}
-      />
+    <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <MachineSelect
+              machines={machines}
+              value={selectedMachineId}
+              onChange={setSelectedMachineId}
+            />
+          </div>
+          {/* Cards */}
+          <div className="grid grid-cols-4 gap-4">
+            <DashboardCard
+              title="Total de Combustível Consumido"
+              value={data?.totals?.liters?.toFixed(2)}
+              icon={<Tractor />}
+            />
+            <DashboardCard
+              title="Custo Total de Combustível"
+              value={data?.totals?.fuel?.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
+              icon={<Fuel />}
+            />
+            <DashboardCard
+              title="Total de Manutenção Gasta"
+              value={data?.totals?.maintenance?.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
+              icon={<Wrench />}
+            />
+            <DashboardCard
+              title="Total Gasto"
+              value={data?.totals?.total?.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
+              icon={<DollarSign />}
+            />
+          </div>
+          {/* Gráfico */}
+          <MachineCostsChart data={data.monthly} />
     </div>
-  );
+  )
 }
