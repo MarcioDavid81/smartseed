@@ -1,12 +1,17 @@
+type MovimentacaoDirectionType = "entrada" | "saida" | "dinamica";
+
 export const tipoMovimentacaoInfo: Record<
   string,
-  { label: string; entrada: boolean }
+  { label: string; direction: MovimentacaoDirectionType }
 > = {
-  COLHEITA: { label: "Colheita", entrada: true },
-  COMPRA: { label: "Compra", entrada: true },
-  TRANSFERENCIA_POSITIVA: { label: "Transferência +", entrada: true },
-  DESCARTE: { label: "Descarte", entrada: false },
-  PLANTIO: { label: "Plantio", entrada: false },
-  VENDA: { label: "Venda", entrada: false },
-  TRANSFERENCIA_NEGATIVA: { label: "Transferência -", entrada: false },
+  COLHEITA: { label: "Colheita", direction: "entrada" },
+  COMPRA: { label: "Compra", direction: "entrada" },
+  TRANSFERENCIA_POSITIVA: { label: "Transferência +", direction: "entrada" },
+
+  DESCARTE: { label: "Descarte", direction: "saida" },
+  PLANTIO: { label: "Plantio", direction: "saida" },
+  VENDA: { label: "Venda", direction: "saida" },
+  TRANSFERENCIA_NEGATIVA: { label: "Transferência -", direction: "saida" },
+
+  AJUSTE: { label: "Ajuste", direction: "dinamica" },
 };

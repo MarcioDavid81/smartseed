@@ -12,22 +12,25 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { getMovimentacaoDirection } from "@/app/_helpers/getMovimentacaoDirection";
 
 export default function EstoqueTableBody({ movements }: { movements: any[] }) {
-  function renderTipoMovimentacao(tipo: string) {
-    const info = tipoMovimentacaoInfo[tipo.toUpperCase()];
-    if (!info) return tipo;
+  function renderTipoMovimentacao(tipo: string, quantidade: number) {
+  const info = tipoMovimentacaoInfo[tipo.toUpperCase()];
+  if (!info) return tipo;
 
-    const Icon = info.entrada ? ArrowUp : ArrowDown;
-    const color = info.entrada ? "text-green-600" : "text-red-600";
+  const direction = getMovimentacaoDirection(tipo, quantidade);
+  const Icon = direction === "entrada" ? ArrowUp : ArrowDown;
+  const color = direction === "entrada" ? "text-green" : "text-red";
 
-    return (
-      <div className="flex items-center gap-1">
-        <span>{info.label}</span>
-        <Icon size={16} className={color} />
-      </div>
-    );
-  }
+  return (
+    <div className="flex items-center gap-1">
+      <span>{info.label}</span>
+      <Icon size={16} className={color} />
+    </div>
+  );
+}
+
 
   const [movementsState, setMovementsState] = useState(movements);
 
@@ -53,7 +56,7 @@ export default function EstoqueTableBody({ movements }: { movements: any[] }) {
               }).format(mov.quantity)}
             </TableCell>
             <TableCell className="whitespace-nowrap px-6 py-2">
-              {renderTipoMovimentacao(mov.type)}
+              {renderTipoMovimentacao(mov.type, mov.quantity)}
             </TableCell>
             <TableCell className="flex items-center justify-center gap-4 px-6 py-2">
               <TooltipProvider>

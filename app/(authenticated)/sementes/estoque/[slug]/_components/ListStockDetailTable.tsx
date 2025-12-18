@@ -3,81 +3,58 @@
 import { tipoMovimentacaoInfo } from "@/app/_helpers/movimentacao";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useStock } from "@/contexts/StockContext";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown, RefreshCw } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
-import { FaSpinner } from "react-icons/fa";
 import DeleteMovementButton from "./DeleteMovementButton";
 import { StockDetailDataTable } from "./StockDetailDataTable";
-import { AgroLoader } from "@/components/agro-loader";
+import { getMovimentacaoDirection } from "@/app/_helpers/getMovimentacaoDirection";
 
-interface Cultivar {
-  name: string;
-  product: string;
-  stock: number;
+interface Cultivar { 
+  name: string; 
+  product: string; 
+  stock: number; 
+} 
+
+interface Movement { 
+  id: string; 
+  date: string; 
+  quantity: number; 
+  type: string; 
+} 
+
+interface ListStockDetailTableProps { 
+  allMovements: Movement[]; 
+  cultivar: Cultivar; 
 }
 
-interface Movement {
-  id: string;
-  date: string;
-  quantity: number;
-  type: string;
-}
 
-interface ListStockDetailTableProps {
-  allMovements: Movement[];
-  cultivar: Cultivar;
-}
 
-export function ListStockDetailTable({ allMovements, cultivar }: ListStockDetailTableProps) {
+export function ListStockDetailTable({
+  allMovements,
+  cultivar,
+}: ListStockDetailTableProps) {
   const [movements, setMovements] = useState(allMovements);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const calcularEstoque = (movs: Movement[]) => {
-    return movs.reduce((total, mov) => {
-        const isEntrada = ["colheita", "compra"].includes(
-          mov.type?.toLowerCase()
-        );
-        return isEntrada ? total + mov.quantity : total - mov.quantity;
-      }, 0);
-    };
-  
-    const estoqueAtual = calcularEstoque(movements);
-  
-    const atualizarEstoque = () => {
-      setIsLoading(true);
-      try {
-        window.location.reload();
-      } catch (error) {
-        console.error("Erro ao atualizar o estoque:", error);
-      } finally {
-        setIsLoading(false);
-      }    
-    };
+  function renderTipoMovimentacao(tipo: string, quantidade: number) {
+  const info = tipoMovimentacaoInfo[tipo.toUpperCase()];
+  if (!info) return tipo;
 
-  function renderTipoMovimentacao(tipo: string) {
-    const info = tipoMovimentacaoInfo[tipo.toUpperCase()];
-    if (!info) return tipo;
+  const direction = getMovimentacaoDirection(tipo, quantidade);
+  const Icon = direction === "entrada" ? ArrowUp : ArrowDown;
+  const color = direction === "entrada" ? "text-green" : "text-red";
 
-    const Icon = info.entrada ? ArrowUp : ArrowDown;
-    const color = info.entrada ? "text-green" : "text-red";
+  return (
+    <div className="flex items-center gap-1">
+      <span>{info.label}</span>
+      <Icon size={16} className={color} />
+    </div>
+  );
+}
 
-    return (
-      <div className="flex items-center gap-1">
-        <span>{info.label}</span>
-        <Icon size={16} className={color} />
-      </div>
-    );
-  }
 
-  const [movementsState, setMovementsState] = useState(movements);
-
-  const { fetchCultivars } = useStock();
-
-  const handleDelete = async (id: string) => {
-    setMovementsState((prev) => prev.filter((mov) => mov.id !== id));
-    await fetchCultivars();
+  const handleDelete = (id: string) => {
+    setMovements((prev) => prev.filter((mov) => mov.id !== id));
   };
 
   const columns: ColumnDef<Movement>[] = [
@@ -87,89 +64,63 @@ export function ListStockDetailTable({ allMovements, cultivar }: ListStockDetail
         <Button
           variant="ghost"
           className="px-0 text-left"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          onClick={() =>
+            column.toggleSorting(column.getIsSorted() === "asc")
+          }
         >
           Data
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row: { original } }) => {
-        return new Date(original.date).toLocaleDateString("pt-BR");
-      },
+      cell: ({ row }) =>
+        new Date(row.original.date).toLocaleDateString("pt-BR"),
     },
     {
       accessorKey: "quantity",
-      header: () => <div className="text-left">Quantidade</div>,
-      cell: ({ row }) => {
-        const peso = row.original.quantity;
-        return (
-          <div className="text-left">
-            {new Intl.NumberFormat("pt-BR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(peso)}
-          </div>
-        );
-      },
+      header: "Quantidade",
+      cell: ({ row }) =>
+        new Intl.NumberFormat("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(row.original.quantity),
     },
     {
       accessorKey: "type",
-      header: "Tipo de Movimentação",
-      accessorFn: (row) => row.type,
-      cell: ({ row }) => {
-        return <div className="whitespace-nowrap">{renderTipoMovimentacao(row.original.type)}</div>;
-      },
+      header: "Tipo",
+      cell: ({ row }) =>
+        renderTipoMovimentacao(row.original.type, row.original.quantity),
     },
     {
       accessorKey: "action",
-      header: () => <div className="text-center">Ação</div>,
-      cell: ({ row }) => {
-        const mov = row.original;
-        return (
-          <div className="flex items-center justify-center gap-4">
-            <DeleteMovementButton
-              id={mov.id}
-              tipo={mov.type}
-              quantidade={mov.quantity}
-              onDeleted={() => handleDelete(mov.id)}
-            />
-          </div>
-        );
-      },
+      header: "Ação",
+      cell: ({ row }) => (
+        <DeleteMovementButton
+          id={row.original.id}
+          tipo={row.original.type}
+          quantidade={row.original.quantity}
+          onDeleted={() => handleDelete(row.original.id)}
+        />
+      ),
     },
   ];
 
   return (
-    <Card className="p-4 font-light dark:bg-primary">
-      {isLoading ? (
-        <AgroLoader />
-      ) : (
-        <div>
-          <h1 className="text-2xl font-medium">{cultivar.product}</h1>
-      <div className="flex items-center gap-2">
+    <Card className="p-4 font-light dark:bg-primary space-y-4">
+      <div>
+        <h1 className="text-2xl font-medium">{cultivar.product}</h1>
         <p>
           Cultivar: {cultivar.name} | Estoque Atual:{" "}
-          {new Intl.NumberFormat("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }).format(estoqueAtual)}{" "}
-          kg
+          <strong>
+            {new Intl.NumberFormat("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(cultivar.stock)}{" "}
+            kg
+          </strong>
         </p>
-        <Button variant={"ghost"} onClick={atualizarEstoque} disabled={isLoading}>
-          <RefreshCw size={16} className={`${isLoading ? "animate-spin" : ""}`} />
-        </Button>
       </div>
 
-      <h2 className="text-xl font-medium mt-4">Movimentações</h2>
-      {movements.length === 0 ? (
-        <p className="text-muted-foreground">
-          Nenhuma movimentação encontrada.
-        </p>
-      ) : (
-          <StockDetailDataTable columns={columns} data={movementsState} />
-      )}
-        </div>
-      )}
+      <StockDetailDataTable columns={columns} data={movements} />
     </Card>
   );
 }

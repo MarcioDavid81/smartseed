@@ -61,6 +61,7 @@ export default async function StockDetailPage({ params }: StockDetailProps) {
     "/api/sales",
     "/api/consumption",
     "/api/beneficiation",
+    "/api/seed-adjust"
   ];
 
   const baseUrl = getBaseUrl();

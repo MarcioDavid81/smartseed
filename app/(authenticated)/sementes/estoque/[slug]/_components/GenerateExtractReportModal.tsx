@@ -9,6 +9,7 @@ import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
 import { tipoMovimentacaoInfo } from "@/app/_helpers/movimentacao";
 import { useState } from "react";
+import { getMovimentacaoDirection } from "@/app/_helpers/getMovimentacaoDirection";
 
 interface Movement {
   id: string;
@@ -51,6 +52,7 @@ export default function GenerateExtractReportModal({
     );
 
     let saldo = 0;
+
     const body = sorted.map((m) => {
       const tipoKey = m.type?.toUpperCase() ?? "DESCONHECIDO";
       const info = tipoMovimentacaoInfo[tipoKey] ?? {
@@ -58,15 +60,22 @@ export default function GenerateExtractReportModal({
         entrada: false,
       };
 
-      saldo += info.entrada ? m.quantity : -m.quantity;
+      if (tipoKey === "AJUSTE") {
+        // ajuste já vem com sinal correto
+        saldo += m.quantity;
+      } else {
+        const direction = getMovimentacaoDirection(tipoKey, m.quantity);
+        saldo += direction === "entrada" ? m.quantity : -m.quantity;
+      }
 
-      return [
-        new Date(m.date).toLocaleDateString("pt-BR"),
-        m.quantity.toLocaleString("pt-BR", { minimumFractionDigits: 2 }),
-        info.label,
-        saldo.toLocaleString("pt-BR", { minimumFractionDigits: 2 }),
-      ];
-    });
+  return [
+    new Date(m.date).toLocaleDateString("pt-BR"),
+    m.quantity.toLocaleString("pt-BR", { minimumFractionDigits: 2 }),
+    info.label,
+    saldo.toLocaleString("pt-BR", { minimumFractionDigits: 2 }),
+  ];
+});
+
 
     // Tabela
     autoTable(doc, {
