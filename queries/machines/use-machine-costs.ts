@@ -6,6 +6,6 @@ export function useMachineCosts(machineId?: string) {
     queryKey: ["machine-costs", machineId],
     queryFn: () => getMachineCostsDashboard(machineId!),
     enabled: !!machineId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   });
 }
