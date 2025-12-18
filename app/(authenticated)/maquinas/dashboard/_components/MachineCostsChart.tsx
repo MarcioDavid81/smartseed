@@ -38,7 +38,6 @@ export function MachineCostsChart({ data }: Props) {
       <CardContent className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} className="font-light text-xs">
-            <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip
@@ -49,8 +48,8 @@ export function MachineCostsChart({ data }: Props) {
                 })
               }
             />
-            <Bar dataKey="fuel" name="Combustível" fill="#71D42B" radius={[10, 10, 0, 0]} />
-            <Bar dataKey="maintenance" name="Manutenção" fill="#63B926" radius={[10, 10, 0, 0]} />
+            <Bar dataKey="fuel" name="Combustível" fill="url(#premiumGradient)" radius={[10, 10, 0, 0]} />
+            <Bar dataKey="maintenance" name="Manutenção" fill="url(#premiumGradient)" radius={[10, 10, 0, 0]} />
             {/* Gradiente Premium */}
             <defs>
               <linearGradient id="premiumGradient" x1="0" y1="0" x2="0" y2="1">
