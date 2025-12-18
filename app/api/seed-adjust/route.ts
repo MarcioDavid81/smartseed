@@ -1,18 +1,7 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
-import { AdjustmentType } from "@prisma/client";
+import { seedAdjustmentSchema } from "@/lib/schemas/seedAdjustStockSchema";
 import { NextRequest, NextResponse } from "next/server";
-import z from "zod";
-
-const adjustamentSchema = z.object({
-  date: z.coerce.date(),
-  type: z.nativeEnum(AdjustmentType),
-  quantityKg: z.number().positive(),
-  cultivarId: z.string(),
-  notes: z.string().optional(),
-});
-
-export type SeedAdjustStock = z.infer<typeof adjustamentSchema>;
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,10 +11,10 @@ export async function POST(req: NextRequest) {
     const payload = await verifyToken(token);
     if (!payload) return new NextResponse("Token inválido", { status: 401 });
 
-    const { companyId } = payload
+    const { companyId } = payload;
 
     const body = await req.json();
-    const parsed = adjustamentSchema.safeParse(body);
+    const parsed = seedAdjustmentSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -36,34 +25,40 @@ export async function POST(req: NextRequest) {
 
     const data = parsed.data;
 
-
-    const existing = await db.cultivar.findUnique({ where: { id: data.cultivarId } });
-
-    if (!existing || existing.companyId !== companyId) {
-      return new NextResponse("Cultivar não encontrado ou acesso negado", { status: 403 });
-    }
-
-    const adjusted = await db.seedStockAdjustment.create({
-      data: {
-        date: new Date(data.date),
-        type: data.type,
-        quantityKg: data.quantityKg,
-        cultivarId: data.cultivarId,
-        companyId,
-        notes: data.notes,
-      },
+    const existing = await db.cultivar.findUnique({
+      where: { id: data.cultivarId },
     });
 
-    await db.cultivar.update({
-      where: { id: data.cultivarId },
-      data: {
-          stock: {
-            increment: data.type === AdjustmentType.Increase ? data.quantityKg : -data.quantityKg,
-          }
-      },
-    })
+    if (!existing || existing.companyId !== companyId) {
+      return new NextResponse("Cultivar não encontrado ou acesso negado", {
+        status: 403,
+      });
+    }
 
-    return NextResponse.json(adjusted);
+    const adjusted = await db.$transaction(async (tx) => {
+      const adjustment = await tx.seedStockAdjustment.create({
+        data: {
+          date: new Date(data.date),
+          quantityKg: data.quantityKg,
+          cultivarId: data.cultivarId,
+          companyId,
+          notes: data.notes,
+        },
+      });
+
+      await tx.cultivar.update({
+        where: { id: data.cultivarId },
+        data: {
+          stock: {
+            increment: data.quantityKg,
+          },
+        },
+      });
+
+      return adjustment;
+    });
+
+    return NextResponse.json(adjusted, { status: 201 });
   } catch (error) {
     console.error("Erro ao ajustar estoque de sementes:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });
@@ -78,7 +73,7 @@ export async function GET(req: NextRequest) {
     const payload = await verifyToken(token);
     if (!payload) return new NextResponse("Token inválido", { status: 401 });
 
-    const { companyId } = payload
+    const { companyId } = payload;
 
     const adjustments = await db.seedStockAdjustment.findMany({
       where: { companyId },
@@ -90,7 +85,7 @@ export async function GET(req: NextRequest) {
     console.error("Erro ao buscar ajustes de estoque de sementes:", error);
     return NextResponse.json(
       { error: "Erro interno no servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

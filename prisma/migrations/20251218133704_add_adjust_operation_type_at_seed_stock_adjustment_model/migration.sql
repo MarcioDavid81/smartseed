@@ -1,0 +1,1 @@
+-- Migration already applied manually (enum OperationType updated)

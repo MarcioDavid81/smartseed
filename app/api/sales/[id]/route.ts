@@ -240,22 +240,26 @@ export async function DELETE(
       });
     }
 
-    await adjustStockWhenDeleteMov(
-      "venda",
-      existingSale.cultivarId,
-      existingSale.quantityKg,
-    );
+    await db.$transaction(async (tx) => {
+      // Deletar a venda
+      await tx.saleExit.delete({ where: { id } });
 
-    const deleted = await db.saleExit.delete({ where: { id } });
+      // Ajustar o estoque
+      await adjustStockWhenDeleteMov(
+        tx,
+        "Venda",
+        existingSale.cultivarId,
+        existingSale.quantityKg,
+      );
+      // Apagar conta vinculada
+      if (existingSale.accountReceivable) {
+        await tx.accountReceivable.delete({
+          where: { id: existingSale.accountReceivable.id },
+        });
+      }
+    });
 
-    //sincronizar accountReceivable
-    if (existingSale.accountReceivable) {
-      await db.accountReceivable.delete({
-        where: { id: existingSale.accountReceivable.id },
-      });
-    }
-
-    return NextResponse.json(deleted);
+    return NextResponse.json({ message: "Venda excluída com sucesso" });
   } catch (error) {
     console.error("Erro ao deletar venda:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });

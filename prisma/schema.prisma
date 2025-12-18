@@ -224,16 +224,16 @@ model SaleExit {
 }
 
 model SeedStockAdjustment {
-  id         String         @id @default(cuid())
+  id         String        @id @default(cuid())
   date       DateTime
-  type       AdjustmentType
+  type       OperationType @default(Ajuste)
   quantityKg Float
   cultivarId String
   companyId  String
   notes      String?
-  createdAt  DateTime       @default(now())
-  company    Company        @relation(fields: [companyId], references: [id])
-  cultivar   Cultivar       @relation(fields: [cultivarId], references: [id])
+  createdAt  DateTime      @default(now())
+  company    Company       @relation(fields: [companyId], references: [id])
+  cultivar   Cultivar      @relation(fields: [cultivarId], references: [id])
 }
 
 model ProductionCycle {
@@ -652,11 +652,7 @@ enum OperationType {
   Descarte
   Venda
   Plantio
-}
-
-enum AdjustmentType {
-  Increase
-  Decrease
+  Ajuste
 }
 
 enum CultivarStatus {

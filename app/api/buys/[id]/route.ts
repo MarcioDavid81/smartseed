@@ -230,33 +230,37 @@ export async function DELETE(
     const { id } = params;
 
     // Buscar o compra para garantir que pertence à empresa do usuário
-    const existing = await db.buy.findUnique({
+    const existingBuy = await db.buy.findUnique({
       where: { id },
       include: { accountPayable: true },
     });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existingBuy || existingBuy.companyId !== payload.companyId) {
       return new NextResponse("Compra não encontrada ou acesso negado", {
         status: 403,
       });
     }
 
-    await adjustStockWhenDeleteMov(
-      "compra",
-      existing.cultivarId,
-      existing.quantityKg,
-    );
+    await db.$transaction(async (tx) => {
+      // Deletar a compra
+      await tx.buy.delete({ where: { id } });
 
-    const deleted = await db.buy.delete({ where: { id } });
+      // Ajustar o estoque da cultivar
+      await adjustStockWhenDeleteMov(
+        tx,
+        "Compra",
+        existingBuy.cultivarId,
+        existingBuy.quantityKg,
+      );
+      // Apagar conta vinculada
+      if (existingBuy.accountPayable) {
+        await tx.accountPayable.delete({
+          where: { id: existingBuy.accountPayable.id },
+        });
+      }
+    });
 
-    //sincronizar accountPayable
-    if (existing.accountPayable) {
-      await db.accountPayable.delete({
-        where: { id: existing.accountPayable.id },
-      });
-    }
-
-    return NextResponse.json(deleted);
+    return NextResponse.json({ message: "Compra excluída com sucesso" });
   } catch (error) {
     console.error("Erro ao deletar compra:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });

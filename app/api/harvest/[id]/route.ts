@@ -64,9 +64,9 @@ export async function PUT(
     const { cultivarId, talhaoId, date, quantityKg, notes } = await req.json();
 
     // Buscar o colheita para garantir que pertence à empresa do usuário
-    const existing = await db.harvest.findUnique({ where: { id } });
+    const existingHarvest = await db.harvest.findUnique({ where: { id } });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existingHarvest || existingHarvest.companyId !== payload.companyId) {
       return new NextResponse("Colheita não encontrada ou acesso negado", {
         status: 403,
       });
@@ -74,15 +74,15 @@ export async function PUT(
 
     // Se quantidade ou cultivar mudarem, ajustar o estoque
     if (
-      existing.quantityKg !== quantityKg ||
-      existing.cultivarId !== cultivarId
+      existingHarvest.quantityKg !== quantityKg ||
+      existingHarvest.cultivarId !== cultivarId
     ) {
       // Reverter estoque anterior
       await db.cultivar.update({
-        where: { id: existing.cultivarId },
+        where: { id: existingHarvest.cultivarId },
         data: {
           stock: {
-            decrement: existing.quantityKg,
+            decrement: existingHarvest.quantityKg,
           },
         },
       });
@@ -99,7 +99,7 @@ export async function PUT(
     }
 
     // Atualizar estoque
-    const updated = await db.harvest.update({
+    const updatedHarvest = await db.harvest.update({
       where: { id },
       data: {
         cultivarId,
@@ -109,7 +109,7 @@ export async function PUT(
         notes,
       },
     });
-    return NextResponse.json(updated);
+    return NextResponse.json(updatedHarvest);
   } catch (error) {
     console.error("Erro ao atualizar colheita:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });
@@ -157,23 +157,28 @@ export async function DELETE(
     const { id } = params;
 
     // Buscar o colheita para garantir que pertence à empresa do usuário
-    const existing = await db.harvest.findUnique({ where: { id } });
+    const existingHarvest = await db.harvest.findUnique({ where: { id } });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existingHarvest || existingHarvest.companyId !== payload.companyId) {
       return new NextResponse("Colheita não encontrada ou acesso negado", {
         status: 403,
       });
     }
 
-    await adjustStockWhenDeleteMov(
-      "colheita",
-      existing.cultivarId,
-      existing.quantityKg
-    );
+    await db.$transaction(async (tx) => {
+      // Deletar a colheita
+      await tx.harvest.delete({ where: { id } });
 
-    const deleted = await db.harvest.delete({ where: { id } });
+      // Ajustar o estoque
+      await adjustStockWhenDeleteMov(
+        tx,
+        "Colheita",
+        existingHarvest.cultivarId,
+        existingHarvest.quantityKg
+      );
+    });
 
-    return NextResponse.json(deleted);
+    return NextResponse.json({ message: "Colheita excluída com sucesso" });
   } catch (error) {
     console.error("Erro ao deletar colheita:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });

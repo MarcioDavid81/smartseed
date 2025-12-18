@@ -63,25 +63,25 @@ export async function PUT(
     const { cultivarId, date, quantityKg, talhaoId, notes } = await req.json();
 
     // Buscar o plantio para garantir que pertence à empresa do usuário
-    const existing = await db.consumptionExit.findUnique({ where: { id } });
+    const existingConsumption = await db.consumptionExit.findUnique({ where: { id } });
 
-    if (!existing || existing.companyId !== payload.companyId) {
-      return new NextResponse("Plantio não encontrado ou acesso negado", {
+    if (!existingConsumption || existingConsumption.companyId !== payload.companyId) {
+      return new NextResponse("Consumo não encontrado ou acesso negado", {
         status: 403,
       });
     }
 
     // Se quantidade ou cultivar mudarem, ajustar o estoque
     if (
-      existing.quantityKg !== quantityKg ||
-      existing.cultivarId !== cultivarId
+      existingConsumption.quantityKg !== quantityKg ||
+      existingConsumption.cultivarId !== cultivarId
     ) {
       // Reverter estoque anterior
       await db.cultivar.update({
-        where: { id: existing.cultivarId },
+        where: { id: existingConsumption.cultivarId },
         data: {
           stock: {
-            increment: existing.quantityKg,
+            increment: existingConsumption.quantityKg,
           },
         },
       });
@@ -158,25 +158,30 @@ export async function DELETE(
     const { id } = params;
 
     // Buscar o plantio para garantir que pertence à empresa do usuário
-    const existing = await db.consumptionExit.findUnique({ where: { id } });
+    const existingConsumption = await db.consumptionExit.findUnique({ where: { id } });
 
-    if (!existing || existing.companyId !== payload.companyId) {
-      return new NextResponse("Plantio não encontrado ou acesso negado", {
+    if (!existingConsumption || existingConsumption.companyId !== payload.companyId) {
+      return new NextResponse("Consumo não encontrado ou acesso negado", {
         status: 403,
       });
     }
 
-    await adjustStockWhenDeleteMov(
-      "plantio",
-      existing.cultivarId,
-      existing.quantityKg
-    );
+    await db.$transaction(async (tx) => {
+      // Deletar o consumo
+      await tx.consumptionExit.delete({ where: { id } });
 
-    const deleted = await db.consumptionExit.delete({ where: { id } });
+      // Ajustar o estoque da cultivar
+      await adjustStockWhenDeleteMov(
+        tx,
+        "Plantio",
+        existingConsumption.cultivarId,
+        existingConsumption.quantityKg
+      );
+    });
 
-    return NextResponse.json(deleted);
+    return NextResponse.json({ message: "Consumo excluído com sucesso" });
   } catch (error) {
-    console.error("Erro ao deletar plantio:", error);
+    console.error("Erro ao deletar consumo:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });
   }
 }
