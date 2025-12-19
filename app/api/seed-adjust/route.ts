@@ -1,3 +1,4 @@
+import { validateStockForOutput } from "@/app/_helpers/validateStockForOutputAdjust";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { seedAdjustmentSchema } from "@/lib/schemas/seedAdjustStockSchema";
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest) {
     }
 
     const adjusted = await db.$transaction(async (tx) => {
+      await validateStockForOutput(data.cultivarId, data.quantityKg);
+
       const adjustment = await tx.seedStockAdjustment.create({
         data: {
           date: new Date(data.date),
