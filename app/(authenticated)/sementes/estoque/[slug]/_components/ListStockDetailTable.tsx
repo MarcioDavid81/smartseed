@@ -9,6 +9,7 @@ import { useState } from "react";
 import DeleteMovementButton from "./DeleteMovementButton";
 import { StockDetailDataTable } from "./StockDetailDataTable";
 import { getMovimentacaoDirection } from "@/app/_helpers/getMovimentacaoDirection";
+import SeedStockAdjustmentButton from "./SeedStockAdjustmentButton";
 
 interface Cultivar { 
   name: string; 
@@ -106,18 +107,21 @@ export function ListStockDetailTable({
 
   return (
     <Card className="p-4 font-light dark:bg-primary space-y-4">
-      <div>
-        <h1 className="text-2xl font-medium">{cultivar.product}</h1>
-        <p>
-          Cultivar: {cultivar.name} | Estoque Atual:{" "}
-          <strong>
-            {new Intl.NumberFormat("pt-BR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(cultivar.stock)}{" "}
-            kg
-          </strong>
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-medium">{cultivar.product}</h1>
+          <p>
+            Cultivar: {cultivar.name} | Estoque Atual:{" "}
+            <strong>
+              {new Intl.NumberFormat("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(cultivar.stock)}{" "}
+              kg
+            </strong>
+          </p>
+        </div>
+        <SeedStockAdjustmentButton />
       </div>
 
       <StockDetailDataTable columns={columns} data={movements} />

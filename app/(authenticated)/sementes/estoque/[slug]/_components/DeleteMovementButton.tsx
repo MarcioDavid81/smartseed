@@ -18,6 +18,7 @@ import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
 import { getApiRouteFromTipo } from "@/app/_helpers/typeForRoute";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 
 interface DeleteMovementButtonProps {
@@ -36,6 +37,7 @@ export default function DeleteMovementButton({
   const rota = getApiRouteFromTipo(tipo);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { showToast } = useSmartToast();
 
   const handleDelete = async () => {
 
@@ -43,7 +45,11 @@ export default function DeleteMovementButton({
     console.log("📦 operação recebida:", tipo);
 
     if (!id || !rota) {
-      toast.error(`Erro ao excluir ${tipo}. Tipo ou ID inválido.`);
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: `Erro ao excluir ${tipo}. Tipo ou ID inválido.`,
+      });
       console.warn(`❌ ${tipo}.id ausente ou inválido`);
       return;
     }
@@ -65,17 +71,28 @@ export default function DeleteMovementButton({
       if (!res.ok) {
         const errorText = await res.text();
         console.error("❌ Erro ao deletar operação:", errorText);
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: errorText || `Erro ao excluir ${tipo}`,
+        });
         throw new Error(errorText);
       }
 
-      toast.success(
-        `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} excluído com sucesso`
-      );
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} excluído com sucesso`,
+      });
       onDeleted();
       setIsOpen(false);
     } catch (error) {
       console.error("❌ Exceção no handleDelete:", error);
-      toast.error(`Erro ao excluir ${tipo}`);
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: error instanceof Error ? error.message : `Erro ao excluir ${tipo}`,
+      });
     } finally {
       setLoading(false);
     }
