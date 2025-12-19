@@ -2,8 +2,9 @@ import z from "zod";
 
 export const seedAdjustmentSchema = z.object({
   date: z.coerce.date(),
-  quantityKg: z.coerce.number(),
   cultivarId: z.string(),
+  quantityKg: z.coerce.number(),
+  direction: z.enum(["entrada", "saida"]),
   notes: z.string().optional(),
 });
 

@@ -3,7 +3,6 @@ import { AdjustmentType } from "@prisma/client";
 export interface SeedAdjustStock {
   id: string;
   date: Date;
-  type: AdjustmentType;
   quantityKg: number;
   cultivarId: string;
   cultivar: {

@@ -1,13 +1,21 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json({ error: "Token ausente" }, { status: 401 });
+    const authHeader = req.headers.get("Authorization");
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Token não enviado ou mal formatado" },
+        { status: 401 },
+      );
     }
+
+    const token = authHeader.split(" ")[1];
 
     const payload = await verifyToken(token);
     if (!payload) {
@@ -17,31 +25,27 @@ export async function GET(req: NextRequest) {
     const { companyId } = payload;
 
     // 🔁 Executa tudo em paralelo (mais rápido)
-    const [
-      totalMachines,
-      fuelStockAgg,
-      fuelPurchaseAgg,
-      maintenanceAgg,
-    ] = await Promise.all([
-      db.machine.count({
-        where: { companyId },
-      }),
+    const [totalMachines, fuelStockAgg, fuelPurchaseAgg, maintenanceAgg] =
+      await Promise.all([
+        db.machine.count({
+          where: { companyId },
+        }),
 
-      db.fuelTank.aggregate({
-        where: { companyId },
-        _sum: { stock: true },
-      }),
+        db.fuelTank.aggregate({
+          where: { companyId },
+          _sum: { stock: true },
+        }),
 
-      db.fuelPurchase.aggregate({
-        where: { companyId },
-        _sum: { totalValue: true },
-      }),
+        db.fuelPurchase.aggregate({
+          where: { companyId },
+          _sum: { totalValue: true },
+        }),
 
-      db.maintenance.aggregate({
-        where: { companyId },
-        _sum: { totalValue: true },
-      }),
-    ]);
+        db.maintenance.aggregate({
+          where: { companyId },
+          _sum: { totalValue: true },
+        }),
+      ]);
 
     return NextResponse.json({
       totalMachines,
