@@ -1,4 +1,5 @@
 import { adjustStockWhenDeleteMov } from "@/app/_helpers/adjustStockWhenDeleteMov";
+import { validateStockForDeleteAdjust } from "@/app/_helpers/validateStockForDeleteAdjust";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -27,6 +28,15 @@ export async function DELETE(
       return new NextResponse("Ajuste não encontrado ou acesso negado", {
         status: 403,
       });
+    }
+
+    try {
+      await validateStockForDeleteAdjust(
+        existingAdjust.cultivarId,
+        existingAdjust.quantityKg,
+      );
+    } catch (err: any) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
     }
 
     await db.$transaction(async (tx) => {
