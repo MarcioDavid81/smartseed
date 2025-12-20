@@ -8,41 +8,41 @@ datasource db {
 }
 
 model Company {
-  id                 String                @id @default(uuid())
-  name               String
-  createdAt          DateTime              @default(now())
-  plan               Plan?                 @default(BASIC)
-  accountsPayable    AccountPayable[]
-  accountsReceivable AccountReceivable[]
-  applications       Application[]
-  beneficiations     Beneficiation[]
-  buys               Buy[]
-  consumptionsExit   ConsumptionExit[]
-  cultivars          Cultivar[]
-  customers          Customer[]
-  farms              Farm[]
-  fuelPurchases      FuelPurchase[]
-  fuelTanks          FuelTank[]
-  harvests           Harvest[]
-  industryDeposits   IndustryDeposit[]
-  industryHarvests   IndustryHarvest[]
-  industrySales      IndustrySale[]
+  id                       String                    @id @default(uuid())
+  name                     String
+  createdAt                DateTime                  @default(now())
+  plan                     Plan?                     @default(BASIC)
+  accountsPayable          AccountPayable[]
+  accountsReceivable       AccountReceivable[]
+  applications             Application[]
+  beneficiations           Beneficiation[]
+  buys                     Buy[]
+  consumptionsExit         ConsumptionExit[]
+  cultivars                Cultivar[]
+  customers                Customer[]
+  farms                    Farm[]
+  fuelPurchases            FuelPurchase[]
+  fuelTanks                FuelTank[]
+  harvests                 Harvest[]
+  industryDeposits         IndustryDeposit[]
+  industryHarvests         IndustryHarvest[]
+  industrySales            IndustrySale[]
+  industryStocks           IndustryStock[]
   industryStockAdjustments IndustryStockAdjustment[]
-  industryStocks     IndustryStock[]
-  industryTransfers  IndustryTransfer[]
-  transporters       IndustryTransporter[]
-  machines           Machine[]
-  maintenances       Maintenance[]
-  products           Product[]
-  productStocks      ProductStock[]
-  productionCycles   ProductionCycle[]
-  purchases          Purchase[]
-  refuels            Refuel[]
-  salesExit          SaleExit[]
-  stockAdjustments   SeedStockAdjustment[]
-  talhoes            Talhao[]
-  transfers          TransferExit[]
-  users              User[]
+  industryTransfers        IndustryTransfer[]
+  transporters             IndustryTransporter[]
+  machines                 Machine[]
+  maintenances             Maintenance[]
+  products                 Product[]
+  productStocks            ProductStock[]
+  productionCycles         ProductionCycle[]
+  purchases                Purchase[]
+  refuels                  Refuel[]
+  salesExit                SaleExit[]
+  stockAdjustments         SeedStockAdjustment[]
+  talhoes                  Talhao[]
+  transfers                TransferExit[]
+  users                    User[]
 }
 
 model Farm {
@@ -163,7 +163,7 @@ model Buy {
   accountPayable   AccountPayable?
   company          Company           @relation(fields: [companyId], references: [id])
   cultivar         Cultivar          @relation(fields: [cultivarId], references: [id])
-  customer         Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customer         Customer          @relation(fields: [customerId], references: [id])
   cycle            ProductionCycle?  @relation(fields: [cycleId], references: [id])
 }
 
@@ -323,7 +323,7 @@ model Purchase {
   fileUrl          String?
   accountPayable   AccountPayable?
   company          Company             @relation(fields: [companyId], references: [id])
-  customer         Customer            @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customer         Customer            @relation(fields: [customerId], references: [id])
   cycle            ProductionCycle?    @relation(fields: [cycleId], references: [id])
   farm             Farm                @relation(fields: [farmId], references: [id])
   product          Product             @relation(fields: [productId], references: [id])
@@ -383,7 +383,7 @@ model AccountPayable {
   maintenanceId  String?       @unique
   buy            Buy?          @relation(fields: [buyId], references: [id])
   company        Company       @relation(fields: [companyId], references: [id])
-  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customer       Customer      @relation(fields: [customerId], references: [id])
   fuelPurchase   FuelPurchase? @relation(fields: [fuelPurchaseId], references: [id])
   maintenance    Maintenance?  @relation(fields: [maintenanceId], references: [id])
   purchase       Purchase?     @relation(fields: [purchaseId], references: [id])
@@ -403,24 +403,24 @@ model AccountReceivable {
   customerId     String
   industrySaleId String?       @unique
   company        Company       @relation(fields: [companyId], references: [id])
-  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customer       Customer      @relation(fields: [customerId], references: [id])
   industrySale   IndustrySale? @relation(fields: [industrySaleId], references: [id])
   saleExit       SaleExit?     @relation(fields: [saleExitId], references: [id])
 }
 
 model IndustryDeposit {
-  id               String             @id @default(cuid())
-  name             String
-  companyId        String
-  createdAt        DateTime           @default(now())
-  beneficiations   Beneficiation[]
-  company          Company            @relation(fields: [companyId], references: [id])
-  industryHarvests IndustryHarvest[]
-  industrySales    IndustrySale[]
+  id                       String                    @id @default(cuid())
+  name                     String
+  companyId                String
+  createdAt                DateTime                  @default(now())
+  beneficiations           Beneficiation[]
+  company                  Company                   @relation(fields: [companyId], references: [id])
+  industryHarvests         IndustryHarvest[]
+  industrySales            IndustrySale[]
+  industryStocks           IndustryStock[]
   industryStockAdjustments IndustryStockAdjustment[]
-  industryStocks   IndustryStock[]
-  transfersFrom    IndustryTransfer[] @relation("FromDeposit")
-  transfersTo      IndustryTransfer[] @relation("ToDeposit")
+  transfersFrom            IndustryTransfer[]        @relation("FromDeposit")
+  transfersTo              IndustryTransfer[]        @relation("ToDeposit")
 }
 
 model IndustryStock {
@@ -498,9 +498,9 @@ model IndustryHarvest {
   tax_kg                Decimal?             @db.Decimal(12, 2)
   company               Company              @relation(fields: [companyId], references: [id])
   cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
-  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id], onDelete: Restrict)
+  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id])
   industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id], onDelete: Restrict)
-  talhao                Talhao               @relation(fields: [talhaoId], references: [id], onDelete: Restrict)
+  talhao                Talhao               @relation(fields: [talhaoId], references: [id])
 }
 
 model IndustrySale {
@@ -529,16 +529,16 @@ model IndustrySale {
   fileUrl               String?
   accountReceivable     AccountReceivable?
   company               Company              @relation(fields: [companyId], references: [id])
-  customer              Customer             @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customer              Customer             @relation(fields: [customerId], references: [id])
   cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
-  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id], onDelete: Restrict)
+  industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id])
   industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id], onDelete: Restrict)
 }
 
 model IndustryStockAdjustment {
   id                String          @id @default(cuid())
   date              DateTime
-  quantityKg        Decimal         @db.Decimal(12, 2)
+  quantityKg        Float
   product           ProductType
   industryDepositId String
   companyId         String
@@ -546,7 +546,6 @@ model IndustryStockAdjustment {
   company           Company         @relation(fields: [companyId], references: [id])
   industryDeposit   IndustryDeposit @relation(fields: [industryDepositId], references: [id])
 }
-
 
 model Machine {
   id           String        @id @default(cuid())
