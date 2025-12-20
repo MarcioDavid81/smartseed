@@ -11,6 +11,7 @@ export * from "./finalStock";
 export * from "./fuelPurchase";
 export * from "./fuelTank";
 export * from "./harvest";
+export * from "./industryAdjustStock";
 export * from "./industryDeposit";
 export * from "./industryHarvest";
 export * from "./industryProduct";

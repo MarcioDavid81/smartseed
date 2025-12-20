@@ -1,6 +1,6 @@
 import { db } from "@/lib/prisma";
 
-export async function validateStockForOutput(
+export async function validateSeedStockForOutput(
   cultivarId: string,
   quantityKg: number
 ) {

@@ -1,7 +1,8 @@
-import { validateSeedStockForOutput } from "@/app/_helpers/validateSeedStockForOutputAdjust";
+import { getOrCreateIndustryStock } from "@/app/_helpers/getOrCreateIndustryStock";
+import { validateIndustryStockForOutput } from "@/app/_helpers/validateIndustryStockForOutput";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
-import { seedAdjustmentSchema } from "@/lib/schemas/seedAdjustStockSchema";
+import { industryAdjustmentSchema } from "@/lib/schemas/industryAdjustStockSchema";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
     const { companyId } = payload;
 
     const body = await req.json();
-    const parsed = seedAdjustmentSchema.safeParse(body);
+    const parsed = industryAdjustmentSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -24,41 +25,44 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const data = parsed.data;
-
-    const existing = await db.cultivar.findUnique({
-      where: { id: data.cultivarId },
-    });
-
-    if (!existing || existing.companyId !== companyId) {
-      return new NextResponse("Cultivar não encontrado ou acesso negado", {
-        status: 403,
-      });
-    }
+    const data = parsed.data
 
     const adjusted = await db.$transaction(async (tx) => {
-      await validateSeedStockForOutput(data.cultivarId, data.quantityKg);
-
-      const adjustment = await tx.seedStockAdjustment.create({
-        data: {
-          date: new Date(data.date),
-          quantityKg: data.quantityKg,
-          cultivarId: data.cultivarId,
+      if (data.quantityKg < 0) {
+        await validateIndustryStockForOutput({
           companyId,
+          industryDepositId: data.industryDepositId,
+          product: data.product,
+          quantityKg: data.quantityKg,
+        });
+      }
+
+      const stock = await getOrCreateIndustryStock({
+        tx,
+        companyId,
+        industryDepositId: data.industryDepositId,
+        product: data.product,
+      });
+
+      await tx.industryStockAdjustment.create({
+        data: {
+          companyId,
+          industryDepositId: data.industryDepositId,
+          product: data.product,
+          date: data.date,
+          quantityKg: data.quantityKg,
           notes: data.notes,
         },
       });
 
-      await tx.cultivar.update({
-        where: { id: data.cultivarId },
+      await tx.industryStock.update({
+        where: { id: stock.id },
         data: {
-          stock: {
+          quantity: {
             increment: data.quantityKg,
           },
         },
       });
-
-      return adjustment;
     });
 
     return NextResponse.json(adjusted, { status: 201 });
@@ -78,9 +82,9 @@ export async function GET(req: NextRequest) {
 
     const { companyId } = payload;
 
-    const adjustments = await db.seedStockAdjustment.findMany({
+    const adjustments = await db.industryStockAdjustment.findMany({
       where: { companyId },
-      include: { cultivar: true },
+      include: { industryDeposit: true },
     });
 
     return NextResponse.json(adjustments);
