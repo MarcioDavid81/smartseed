@@ -30,6 +30,7 @@ export async function DELETE(
       });
     }
 
+    // 🔐 VALIDAÇÃO CRÍTICA
     try {
       await validateStockForDeleteAdjust(
         existingAdjust.cultivarId,

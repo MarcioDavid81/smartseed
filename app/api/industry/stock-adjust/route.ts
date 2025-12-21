@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         product: data.product,
       });
 
-      await tx.industryStockAdjustment.create({
+      const adjustment = await tx.industryStockAdjustment.create({
         data: {
           companyId,
           industryDepositId: data.industryDepositId,
@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
           },
         },
       });
+      return adjustment;
     });
 
     return NextResponse.json(adjusted, { status: 201 });
