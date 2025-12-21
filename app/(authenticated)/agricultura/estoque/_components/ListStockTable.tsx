@@ -11,15 +11,14 @@ import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import { StockDataTable } from "./StockDataTable";
 import { useIndustryStock } from "@/contexts/IndustryStockContext";
 import { AgroLoader } from "@/components/agro-loader";
-import { useRouter } from "next/navigation";
 import { ProductExtractButton } from "./ProductExtractButton";
 import { ProductType } from "@prisma/client";
+import IndustryStockAdjustmentButton from "./IndustryStockAdjustmentBotton";
 
 export function ListStockTable() {
   const [stock, setStock] = useState<IndustryStock[]>([]);
   const [loading, setLoading] = useState(true);
   const { stocks } = useIndustryStock();
-  const router = useRouter();
 
 
   async function fetchStock() {
@@ -100,9 +99,10 @@ export function ListStockTable() {
   ];
 
   return (
-    <Card className="p-4 dark:bg-primary font-light">
-      <div className="mb-4">
+    <Card className="p-4 dark:bg-primary font-light space-y-4">
+      <div className="flex items-center justify-between">
         <h2 className="font-light">Estoque de Produtos</h2>
+        <IndustryStockAdjustmentButton />
       </div>
       {loading ? (
         <AgroLoader />

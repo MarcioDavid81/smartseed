@@ -12,10 +12,8 @@ import {
 import { FaFilePdf, FaSpinner } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useHarvest } from "@/contexts/HarvestContext";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
-import { useStock } from "@/contexts/StockContext";
 import { useIndustryStock } from "@/contexts/IndustryStockContext";
 import { useIndustryHarvest } from "@/contexts/IndustryHarvestContext";
 import { ProductType } from "@prisma/client";

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import SeedStockAdjustmentModal from "./SeedStockAdjustmentModal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { GrDocumentConfig } from "react-icons/gr";
 import { Button } from "@/components/ui/button";
+import IndustryStockAdjustmentModal from "./IndustryStockAdjustmentModal";
 
 
-const SeedStockAdjustmentButton = () => {
+const IndustryStockAdjustmentButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -23,7 +23,7 @@ const SeedStockAdjustmentButton = () => {
           </TooltipContent>  
         </Tooltip>
       </TooltipProvider>
-      <SeedStockAdjustmentModal
+      <IndustryStockAdjustmentModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
       />
@@ -31,4 +31,4 @@ const SeedStockAdjustmentButton = () => {
   );
 };
 
-export default SeedStockAdjustmentButton;
+export default IndustryStockAdjustmentButton;

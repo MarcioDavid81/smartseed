@@ -1,3 +1,4 @@
+import { PRODUCT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/products";
 import { QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -14,50 +15,50 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
-import { seedAdjustmentSchema, SeedAdjustStock as SeedAdjustStockFormData } from "@/lib/schemas/seedAdjustStockSchema";
-import { useCreateSeedAdjust } from "@/queries/seed/use-create-seed-adjust";
+import { industryAdjustmentSchema, IndustryAdjustStockFormData } from "@/lib/schemas/industryAdjustStockSchema";
+import { useCreateStockAdjust } from "@/queries/industry/use-create-stock-adjust";
 import {
-  Cultivar
+  IndustryDeposit
 } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 
-interface SeedStockAdjustmentModalProps {
+interface IndustryStockAdjustmentModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const SeedStockAdjustmentModal = ({
+const IndustryStockAdjustmentModal = ({
   isOpen,
   onClose,
-}: SeedStockAdjustmentModalProps) => {
-  const [cultivars, setCultivars] = useState<Cultivar[]>([]);
+}: IndustryStockAdjustmentModalProps) => {
+  const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const { showToast } = useSmartToast();
 
-  const form = useForm<SeedAdjustStockFormData>({
-    resolver: zodResolver(seedAdjustmentSchema)
+  const form = useForm<IndustryAdjustStockFormData>({
+    resolver: zodResolver(industryAdjustmentSchema)
   });
 
   useEffect(() => {
     const fetchData = async () => {
       const token = getToken();
 
-      const res = await fetch("/api/cultivars/get", {
+      const res = await fetch("/api/industry/deposit", {
         headers: { Authorization: `Bearer ${token}` },
       })
       
-      const cultivarData = await res.json();
-      setCultivars(cultivarData);
+      const depositData = await res.json();
+      setDeposits(depositData);
     };
 
     if (isOpen) fetchData();
   }, [isOpen]);
   
-  const { mutate, isPending } = useCreateSeedAdjust();
+  const { mutate, isPending } = useCreateStockAdjust();
   
-  const onSubmit = (data: SeedAdjustStockFormData) => {
+  const onSubmit = (data: IndustryAdjustStockFormData) => {
     const signedQuantity = data.direction === "entrada" ? data.quantityKg : -data.quantityKg;
  
     mutate(
@@ -138,7 +139,7 @@ const SeedStockAdjustmentModal = ({
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <FormField
                     control={form.control}
@@ -155,25 +156,25 @@ const SeedStockAdjustmentModal = ({
                   />
                 </div>
                 <div>
-                  {/* Cultivar */}
+                  {/* Depósito */}
                   <FormField
                     control={form.control}
-                    name="cultivarId"
+                    name="industryDepositId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cultivar</FormLabel>
+                        <FormLabel>Depósito</FormLabel>
                         <FormControl>
                           <Select
                             value={field.value}
                             onValueChange={field.onChange}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione um cultivar" />
+                              <SelectValue placeholder="Selecione um depósito" />
                             </SelectTrigger>
                             <SelectContent>
-                              {cultivars.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>
-                                  {c.name}
+                              {deposits.map((d) => (
+                                <SelectItem key={d.id} value={d.id}>
+                                  {d.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -184,13 +185,49 @@ const SeedStockAdjustmentModal = ({
                     )}
                   />
                 </div>
-                <FormField
-                  control={form.control}
-                  name="quantityKg"
-                  render={({ field }) => (
-                    <QuantityInput label="Quantidade (kg)" field={field} />
-                  )}
-                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  {/* Produto */}
+                  <FormField
+                    control={form.control}
+                    name="product"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Produto</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um produto" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PRODUCT_TYPE_OPTIONS.map(({ label, value }) => (
+                                <SelectItem key={value} value={value}>
+                                  <div className="flex items-center gap-2">
+                                    <span>{label}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div>
+                  <FormField
+                    control={form.control}
+                    name="quantityKg"
+                    render={({ field }) => (
+                      <QuantityInput label="Quantidade (kg)" field={field} />
+                    )}
+                  />
+                </div>
               </div>
 
               {/* Observações */}
@@ -223,4 +260,4 @@ const SeedStockAdjustmentModal = ({
   );
 };
 
-export default SeedStockAdjustmentModal;
+export default IndustryStockAdjustmentModal;
