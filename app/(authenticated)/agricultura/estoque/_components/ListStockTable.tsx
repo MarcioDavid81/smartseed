@@ -11,7 +11,6 @@ import { useIndustryStock } from "@/queries/industry/use-stock-query";
 import { AgroLoader } from "@/components/agro-loader";
 import { ProductExtractButton } from "./ProductExtractButton";
 import { ProductType } from "@prisma/client";
-import IndustryStockAdjustmentButton from "./IndustryStockAdjustmentBotton";
 
 export function ListStockTable() {
 
@@ -82,7 +81,6 @@ export function ListStockTable() {
             <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
           </Button>
         </div>
-        <IndustryStockAdjustmentButton />
       </div>
       {isLoading ? (
         <AgroLoader />

@@ -10,7 +10,6 @@ export async function GET(req: NextRequest) {
 
     const product = searchParams.get("product");
     const depositId = searchParams.get("depositId");
-    const cycleId = searchParams.get("cycleId");
 
     if (!product || !depositId) {
       return NextResponse.json(
@@ -24,7 +23,6 @@ export async function GET(req: NextRequest) {
       where: {
         product: product as ProductType,
         industryDepositId: depositId,
-        ...(cycleId && { cycleId }),
       },
     });
 
@@ -35,16 +33,14 @@ export async function GET(req: NextRequest) {
           product: product as ProductType,
         },
         destinationId: depositId,
-        ...(cycleId && { cycleId }),
-    },
-  });
+      },
+    });
 
     // ✅ 3. VENDAS (SAÍDA)
     const sales = await db.industrySale.findMany({
       where: {
         product: product as ProductType,
         industryDepositId: depositId,
-        ...(cycleId && { cycleId }),
       },
       include: {
         customer: true,
@@ -56,7 +52,6 @@ export async function GET(req: NextRequest) {
       where: {
         product: product as ProductType,
         fromDepositId: depositId,
-        ...(cycleId && { cycleId }),
       },
       include: {
         toDeposit: true,
@@ -68,14 +63,21 @@ export async function GET(req: NextRequest) {
       where: {
         product: product as ProductType,
         toDepositId: depositId,
-        ...(cycleId && { cycleId }),
       },
       include: {
         fromDeposit: true,
       },
     });
 
-    // ✅ 6. NORMALIZAÇÃO
+    // ✅ 6. AJUSTES DE ESTOQUE (ENTRADA E SAÍDA)
+    const adjustments = await db.industryStockAdjustment.findMany({
+      where: {
+        product: product as ProductType,
+        industryDepositId: depositId,
+      },
+    });
+
+    // ✅ 7. NORMALIZAÇÃO
     const statement = [
       ...harvests.map((item) => ({
         id: item.id,
@@ -124,14 +126,26 @@ export async function GET(req: NextRequest) {
         description: `Transferência vinda de ${item.fromDeposit.name}`,
         relatedDeposit: item.fromDeposit.name,
       })),
+
+      ...adjustments.map((item) => ({
+        id: item.id,
+        date: item.date,
+        quantity: Math.abs(Number(item.quantityKg)),
+        type: item.quantityKg > 0 ? ("ENTRY" as const) : ("EXIT" as const),
+        origin: "ADJUSTMENT" as const,
+        description:
+          item.quantityKg > 0
+            ? "Ajuste de estoque (entrada)"
+            : "Ajuste de estoque (saída)",
+      })),
     ];
 
-    // ✅ 7. ORDENAÇÃO CRESCENTE PARA CÁLCULO
+    // ✅ 8. ORDENAÇÃO CRESCENTE PARA CÁLCULO
     statement.sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
 
-    // ✅ 8. SALDO ACUMULADO CORRETO
+    // ✅ 9. SALDO ACUMULADO CORRETO
     let balance = 0;
     const statementWithBalance = statement.map((item) => {
       balance += item.type === "ENTRY" ? item.quantity : -item.quantity;
@@ -141,7 +155,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // ✅ 9. INVERTE PARA MOSTRAR DO ÚLTIMO PARA O PRIMEIRO
+    // ✅ 10. INVERTE PARA MOSTRAR DO ÚLTIMO PARA O PRIMEIRO
     const statementOrderedForUI = statementWithBalance.reverse();
 
     return NextResponse.json(statementOrderedForUI);

@@ -1,18 +1,20 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import { AgroLoader } from "@/components/agro-loader";
 import { IndustryStockStatementDataTable } from "./IndustryStockStatementDataTable";
 import { IndustryStockStatementItem } from "@/types";
 import { IndustryMovementBadge } from "./IndustryMovementBadge";
+import { useIndustryStockStatement } from "@/queries/industry/use-stock-statement-query";
+import { ProductType } from "@prisma/client";
+import { useIndustryDeposit } from "@/queries/industry/use-deposit-query";
+import IndustryStockAdjustmentButton from "../../_components/IndustryStockAdjustmentBotton";
 
 type Props = {
-  product: string;
+  product: ProductType;
   depositId: string;
 };
 
@@ -20,38 +22,22 @@ export function ListIndustryStockStatementTable({
   product,
   depositId,
 }: Props) {
-  const [data, setData] = useState<IndustryStockStatementItem[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  async function fetchStatement() {
-    try {
-      const token = getToken();
-      const params = new URLSearchParams({
-        product,
-        depositId,
-      });
+  const {
+    data: industryStockStatement = [],
+    isLoading,
+  } = useIndustryStockStatement(product, depositId);
 
-      const res = await fetch(
-        `/api/industry/stock-statement?${params.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  const { 
+    data: deposit, 
+    isLoading: isDepositLoading 
+  } = useIndustryDeposit(depositId);
 
-      const result = await res.json();
-      setData(result);
-    } catch (error) {
-      console.error("Erro ao buscar extrato:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const currentStock =
+  industryStockStatement.length > 0
+    ? industryStockStatement[0].balance
+    : 0;
 
-  useEffect(() => {
-    fetchStatement();
-  }, [product, depositId]);
 
   const columns: ColumnDef<IndustryStockStatementItem>[] = [
     {
@@ -82,12 +68,10 @@ export function ListIndustryStockStatementTable({
       cell: ({ row }) => {
         if (row.original.origin === "HARVEST") return "Colheita";
         if (row.original.origin === "SALE") return "Venda";
-        return "Transferência";
+        if (row.original.origin === "TRANSFER") return "Transferência";
+        if (row.original.origin === "DISCARD") return "Descarte"
+        return "Ajuste";
       },
-    },
-    {
-      accessorKey: "description",
-      header: "Descrição",
     },
     {
       accessorKey: "quantity",
@@ -116,17 +100,29 @@ export function ListIndustryStockStatementTable({
 
   return (
     <Card className="p-4 dark:bg-primary font-light">
-      <div className="mb-4">
-        <h2 className="font-light">Extrato de Movimentações</h2>
+      <div className="flex items-center justify-between">
+        <div className="mb-4">
+          <h1 className="text-2xl font-medium">{product}</h1>
+          {deposit && (
+            <p>
+              Depósito: <strong>{deposit.name.toUpperCase()}</strong> | Estoque Atual:{" "}
+              <strong>
+                {currentStock?.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                })}{" "}
+                kg
+              </strong>
+            </p>
+          )}
+        </div>
+        <IndustryStockAdjustmentButton />
       </div>
-
-      {loading ? (
+      {isLoading || isDepositLoading ? (
         <AgroLoader />
       ) : (
         <IndustryStockStatementDataTable
           columns={columns}
-          data={data}
-          searchFields={["description", "origin"]}
+          data={industryStockStatement}
         />
       )}
     </Card>

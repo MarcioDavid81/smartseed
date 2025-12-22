@@ -38,20 +38,20 @@ export function ListStockDetailTable({
   const [movements, setMovements] = useState(allMovements);
 
   function renderTipoMovimentacao(tipo: string, quantidade: number) {
-  const info = tipoMovimentacaoInfo[tipo.toUpperCase()];
-  if (!info) return tipo;
+    const info = tipoMovimentacaoInfo[tipo.toUpperCase()];
+    if (!info) return tipo;
 
-  const direction = getMovimentacaoDirection(tipo, quantidade);
-  const Icon = direction === "entrada" ? ArrowUp : ArrowDown;
-  const color = direction === "entrada" ? "text-green" : "text-red";
+    const direction = getMovimentacaoDirection(tipo, quantidade);
+    const Icon = direction === "entrada" ? ArrowUp : ArrowDown;
+    const color = direction === "entrada" ? "text-green" : "text-red";
 
-  return (
-    <div className="flex items-center gap-1">
-      <span>{info.label}</span>
-      <Icon size={16} className={color} />
-    </div>
-  );
-}
+    return (
+      <div className="flex items-center gap-1">
+        <span>{info.label}</span>
+        <Icon size={16} className={color} />
+      </div>
+    );
+  }
 
 
   const handleDelete = (id: string) => {
@@ -111,7 +111,7 @@ export function ListStockDetailTable({
         <div>
           <h1 className="text-2xl font-medium">{cultivar.product}</h1>
           <p>
-            Cultivar: {cultivar.name} | Estoque Atual:{" "}
+            Cultivar: <strong>{cultivar.name}</strong> | Estoque Atual:{" "}
             <strong>
               {new Intl.NumberFormat("pt-BR", {
                 minimumFractionDigits: 2,

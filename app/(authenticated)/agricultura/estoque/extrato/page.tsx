@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { ListIndustryStockStatementTable } from "./_components/ListIndustryStockStatementTable";
 import HoverButton from "@/components/HoverButton";
 import Link from "next/link";
-import GenerateIndustryExtractReportModal from "./_components/GenerateIndustryExtractReportModal";
+import { ProductType } from "@prisma/client";
 
 export const metadata: Metadata = {
   title: "Extrato de Estoque",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 type Props = {
   searchParams: {
-    product: string;
+    product: ProductType;
     depositId: string;
   };
 };
@@ -43,6 +43,7 @@ export default async function AgricultureStockStatementPage({
             />
           </div>
           <div className="flex items-center justify-between mt-6">
+            
             <Link href="/agricultura/estoque">
               <HoverButton className="mt-4">Voltar</HoverButton>
             </Link>
