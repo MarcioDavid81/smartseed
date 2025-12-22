@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
+import { BeneficiationFormData, beneficiationSchema } from "@/lib/schemas/seedBeneficiationSchema";
 import { Beneficiation, Cultivar, IndustryDeposit } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProductType } from "@prisma/client";
@@ -29,7 +30,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
-import { z } from "zod";
 
 interface UpsertBeneficiationModalProps {
   descarte?: Beneficiation;
@@ -38,16 +38,6 @@ interface UpsertBeneficiationModalProps {
   onBeneficiotionCreated?: () => void;
   onUpdated?: () => void;
 }
-
-const descarteSchema = z.object({
-  cultivarId: z.string().min(1, "Selecione uma cultivar"),
-  date: z.string().min(1, "Selecione uma data"),
-  quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
-  destinationId: z.string().min(1, "Selecione um depósito"),
-  notes: z.string(),
-});
-
-type BeneficiationFormData = z.infer<typeof descarteSchema>;
 
 const UpsertBeneficiationModal = ({
   descarte,
@@ -61,7 +51,7 @@ const UpsertBeneficiationModal = ({
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
 
   const form = useForm<BeneficiationFormData>({
-    resolver: zodResolver(descarteSchema),
+    resolver: zodResolver(beneficiationSchema),
     defaultValues: {
       cultivarId: descarte?.cultivarId ?? "",
       date: descarte
@@ -79,7 +69,7 @@ const UpsertBeneficiationModal = ({
     reset,
     formState: { errors },
   } = useForm<BeneficiationFormData>({
-    resolver: zodResolver(descarteSchema),
+    resolver: zodResolver(beneficiationSchema),
     defaultValues: {
       cultivarId: descarte?.cultivarId ?? "",
       date: descarte ? new Date(descarte.date).toISOString().split("T")[0] : "",
