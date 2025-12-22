@@ -1,12 +1,9 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import { Beneficiation } from "@/types";
 import UpsertBeneficiationButton from "./UpsertBeneficiationButton";
 import DeleteBeneficiationButton from "./DeleteBeneficiationButton";
@@ -15,6 +12,7 @@ import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DetailBeneficiationButton from "./DetailBeneficiationButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { useSeedBeneficiationsByCycle } from "@/queries/seed/use-seed-beneficiation-query";
+import { LoadingData } from "@/components/loading-data";
 
 export function ListBeneficiationTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -46,8 +44,15 @@ export function ListBeneficiationTable() {
     {
       accessorKey: "cultivar",
       header: "Cultivar",
-      accessorFn: (row) => row.cultivar.name,
-      cell: ({ row: { original } }) => original.cultivar.name || "Nenhum",
+      accessorFn: (row) => row.cultivar?.name ?? "",
+      cell: ({ row: { original } }) => {
+        const cultivar = original.cultivar;
+        return (
+          <div className="text-left">
+            {cultivar?.name ? (cultivar.name) : <LoadingData />}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "quantityKg",
@@ -67,11 +72,12 @@ export function ListBeneficiationTable() {
     {
       accessorKey: "destination",
       header: () => <div className="text-left">Destino</div>,
+      accessorFn: (row) => row.destination?.name ?? "",
       cell: ({ row }) => {
         const destination = row.original.destination;
         return (
           <div className="text-left">
-            {destination?.name || "Nenhum"}
+            {destination?.name ? (destination.name) : <LoadingData />}
           </div>
         );
       },
