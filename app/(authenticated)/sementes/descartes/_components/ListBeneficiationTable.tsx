@@ -14,39 +14,17 @@ import { BeneficiationDataTable } from "./BeneficiationDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DetailBeneficiationButton from "./DetailBeneficiationButton";
 import { AgroLoader } from "@/components/agro-loader";
+import { useSeedBeneficiationsByCycle } from "@/queries/seed/use-seed-beneficiation-query";
 
 export function ListBeneficiationTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
-  const [descartes, setDescartes] = useState<Beneficiation[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  async function fetchBeneficiations() {
-    if (!selectedCycle?.id) return;
-
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/beneficiation?cycleId=${selectedCycle.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      const filteredData = data.filter(
-        (product: Beneficiation) => product.quantityKg > 0
-      );
-      setDescartes(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar descartes:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchBeneficiations();
-  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
+  const {
+    data: descartes = [],
+    isLoading,
+    isFetching,
+    refetch, 
+  } = useSeedBeneficiationsByCycle(selectedCycle?.id || "");
 
   const columns: ColumnDef<Beneficiation>[] = [
     {
@@ -69,7 +47,7 @@ export function ListBeneficiationTable() {
       accessorKey: "cultivar",
       header: "Cultivar",
       accessorFn: (row) => row.cultivar.name,
-      cell: ({ row: { original } }) => original.cultivar.name,
+      cell: ({ row: { original } }) => original.cultivar.name || "Nenhum",
     },
     {
       accessorKey: "quantityKg",
@@ -107,15 +85,15 @@ export function ListBeneficiationTable() {
           <div className="flex items-center justify-center gap-4">
             <DetailBeneficiationButton
               descarte={descarte}
-              onUpdated={fetchBeneficiations}
+              onUpdated={refetch}
             />
             <UpsertBeneficiationButton
               descarte={descarte}
-              onUpdated={fetchBeneficiations}
+              onUpdated={refetch}
             />
             <DeleteBeneficiationButton
               descarte={descarte}
-              onDeleted={fetchBeneficiations}
+              onDeleted={refetch}
             />
           </div>
         );
@@ -127,11 +105,11 @@ export function ListBeneficiationTable() {
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Descartes</h2>
-        <Button variant={"ghost"} onClick={fetchBeneficiations} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
         <BeneficiationDataTable columns={columns} data={descartes} />

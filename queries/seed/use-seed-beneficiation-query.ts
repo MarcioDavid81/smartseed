@@ -5,7 +5,7 @@ export function useSeedBeneficiationsByCycle(cycleId: string) {
   return useQuery({
     queryKey: ["seed-beneficiation", cycleId],
     queryFn: () => getBeneficiationsByCycle(cycleId),
-    enabled: true,
+    enabled: !!cycleId,
     refetchOnWindowFocus: true,
     staleTime: 1000 * 30, // 30 segundos
   });
