@@ -22,7 +22,7 @@ export function useCreateStockAdjust() {
         },
       );
       queryClient.invalidateQueries({
-        queryKey: ["industry-adjust"],
+        queryKey: ["industry-stock"],
       });
     },
   });

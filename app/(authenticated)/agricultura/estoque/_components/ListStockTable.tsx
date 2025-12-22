@@ -1,51 +1,26 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { IndustryStock } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
+import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import { StockDataTable } from "./StockDataTable";
-import { useIndustryStock } from "@/contexts/IndustryStockContext";
+import { useIndustryStock } from "@/queries/industry/use-stock-query";
 import { AgroLoader } from "@/components/agro-loader";
 import { ProductExtractButton } from "./ProductExtractButton";
 import { ProductType } from "@prisma/client";
 import IndustryStockAdjustmentButton from "./IndustryStockAdjustmentBotton";
 
 export function ListStockTable() {
-  const [stock, setStock] = useState<IndustryStock[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { stocks } = useIndustryStock();
 
-
-  async function fetchStock() {
-    try {
-      const token = getToken();
-      const res = await fetch("/api/industry/stock", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      console.table(data);
-      const filteredData = data.filter(
-        (product: IndustryStock) => product.quantity > 0
-      );
-      setStock(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar cultivares:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchStock();
-  }, []);
+    const {
+        data: stocks = [],
+        isLoading,
+        isFetching,
+        refetch,
+      } = useIndustryStock();
 
   const columns: ColumnDef<IndustryStock>[] = [
     {
@@ -101,10 +76,15 @@ export function ListStockTable() {
   return (
     <Card className="p-4 dark:bg-primary font-light space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-light">Estoque de Produtos</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="font-light">Estoque de Produtos</h2>
+          <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
         <IndustryStockAdjustmentButton />
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
         <StockDataTable columns={columns} data={stocks}/>
