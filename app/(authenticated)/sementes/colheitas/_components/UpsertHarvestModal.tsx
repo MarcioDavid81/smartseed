@@ -1,4 +1,6 @@
+import { QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { Cultivar, Harvest, Talhao } from "@/types";
@@ -39,7 +42,7 @@ interface UpsertHarvestModalProps {
 const harvestSchema = z.object({
   cultivarId: z.string().min(1, "Selecione uma cultivar"),
   talhaoId: z.string().min(1, "Selecione um talhão"),
-  date: z.string().min(1, "Selecione uma data"),
+  date: z.coerce.date(),
   quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
   notes: z.string(),
 });
@@ -56,29 +59,14 @@ const UpsertHarvestModal = ({
   const [loading, setLoading] = useState(false);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
+  const { showToast } = useSmartToast();
 
   const form = useForm<HarvestFormData>({
     resolver: zodResolver(harvestSchema),
     defaultValues: {
       cultivarId: colheita?.cultivarId ?? "",
       talhaoId: colheita?.talhaoId ?? "",
-      date: colheita ? new Date(colheita.date).toISOString().split("T")[0] : "",
-      quantityKg: colheita?.quantityKg ?? 0,
-      notes: colheita?.notes ?? "",
-    },
-  });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<HarvestFormData>({
-    resolver: zodResolver(harvestSchema),
-    defaultValues: {
-      cultivarId: colheita?.cultivarId ?? "",
-      talhaoId: colheita?.talhaoId ?? "",
-      date: colheita ? new Date(colheita.date).toISOString().split("T")[0] : "",
+      date: colheita ? new Date(colheita.date) : new Date(),
       quantityKg: colheita?.quantityKg ?? 0,
       notes: colheita?.notes ?? "",
     },
@@ -86,24 +74,28 @@ const UpsertHarvestModal = ({
 
   useEffect(() => {
     if (colheita) {
-      reset({
+      form.reset({
         cultivarId: colheita.cultivarId,
         talhaoId: colheita.talhaoId,
-        date: new Date(colheita.date).toISOString().split("T")[0],
+        date: new Date(colheita.date),
         quantityKg: colheita.quantityKg,
         notes: colheita.notes || "",
       });
     } else {
-      reset();
+      form.reset();
     }
-  }, [colheita, isOpen, reset]);
+  }, [colheita, isOpen, form.reset]);
 
   useEffect(() => {
     const fetchData = async () => {
       const token = getToken();
       const cycle = getCycle();
       if (!cycle || !cycle.productType) {
-        toast.error("Nenhum ciclo de produção selecionado.");
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: "Nenhum ciclo de produção selecionado.",
+        });
         return;
       }
 
@@ -131,7 +123,11 @@ const UpsertHarvestModal = ({
     const token = getToken();
     const cycle = getCycle();
     if (!cycle || !cycle.id) {
-      toast.error("Nenhum ciclo de produção selecionado.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Nenhum ciclo de produção selecionado.",
+      });
       setLoading(false);
       return;
     }
@@ -159,28 +155,21 @@ const UpsertHarvestModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar colheita.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: result.error || "Erro ao salvar colheita.",
       });
     } else {
-      toast.success(
-        colheita
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: colheita
           ? "Colheita atualizada com sucesso!"
           : "Colheita cadastrada com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        }
-      );
+    });
       onClose();
-      reset();
+      form.reset();
       if (onHarvestCreated) onHarvestCreated();
     }
 
@@ -188,8 +177,8 @@ const UpsertHarvestModal = ({
   };
 
   useEffect(() => {
-    if (!isOpen) reset();
-  }, [isOpen, reset]);
+    if (!isOpen) form.reset();
+  }, [isOpen, form.reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -267,7 +256,7 @@ const UpsertHarvestModal = ({
               render={({field}) => (
                 <FormItem>
                   <FormLabel>Data</FormLabel>
-                  <Input type="date" {...field} />
+                  <DatePicker value={field.value} onChange={field.onChange} />
                   <FormMessage />
                 </FormItem>
               )}
@@ -276,11 +265,7 @@ const UpsertHarvestModal = ({
               control={form.control}
               name="quantityKg"
               render={({field}) => (
-                <FormItem>
-                  <FormLabel>Quantidade (kg)</FormLabel>
-                  <Input type="number" {...field} />
-                  <FormMessage />
-                </FormItem>
+                <QuantityInput label="Quantidade" field={field} suffix="kg" />
               )}
             />
             <FormField

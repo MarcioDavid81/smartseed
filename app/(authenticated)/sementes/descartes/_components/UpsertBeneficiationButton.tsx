@@ -38,11 +38,9 @@ const UpsertBeneficiationButton = ({ descarte, onUpdated }: Props) => {
         </Tooltip>
       </TooltipProvider>
       <UpsertBeneficiationModal
+        descarte={descarte}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onBeneficiotionCreated={fetchCultivars}
-        descarte={descarte}
-        onUpdated={onUpdated}
       />
     </>
   );
