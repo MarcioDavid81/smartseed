@@ -47,23 +47,25 @@ export async function POST(req: Request) {
 
     if (!machine) {
       return NextResponse.json(
-        { error: "Máquina não encontrada" },
+        {
+          error: {
+            code: "MACHINE_NOT_FOUND",
+            title: "Máquina não encontrada",
+            message: "Máquina não encontrada",
+          },
+        },
         { status: 404 },
       );
     }
 
     const refuel = await db.$transaction(async (tx) => {
-      const createdRefuel = await tx.refuel.create({
-        data: {
-          ...data,
-          date: new Date(data.date),
-          companyId,
-        },
-      });
-
-      await tx.fuelTank.update({
+      // 1️⃣ tenta descontar o estoque de forma atômica
+      const updated = await tx.fuelTank.updateMany({
         where: {
           id: data.tankId,
+          stock: {
+            gte: data.quantity,
+          },
         },
         data: {
           stock: {
@@ -72,13 +74,35 @@ export async function POST(req: Request) {
         },
       });
 
+      // 2️⃣ se não atualizou nada, estoque insuficiente
+      if (updated.count === 0) {
+        throw new Error("INSUFFICIENT_STOCK");
+      }
+
+      // 3️⃣ cria o abastecimento
+      const createdRefuel = await tx.refuel.create({
+        data: {
+          ...data,
+          date: new Date(data.date),
+          companyId,
+        },
+      });
+
       return createdRefuel;
     });
+
     return NextResponse.json(refuel, { status: 201 });
   } catch (error) {
+    console.log("Erro ao abastecer a máquina:", error);
     return NextResponse.json(
-      { error: "Erro ao abastecer a máquina" },
-      { status: 500 },
+      {
+        error: {
+          code: "INSUFFICIENT_STOCK",
+          title: "Estoque insuficiente",
+          message: "O tanque não possui combustível suficiente.",
+        },
+      },
+      { status: 400 },
     );
   }
 }

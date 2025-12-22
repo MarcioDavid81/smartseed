@@ -111,13 +111,13 @@ const UpsertRefuelModal = ({
         onClose();
         form.reset();
       },
-      onError: (error: Error) => {
+      onError: (error) => {
         showToast({
           type: "error",
           title: "Erro",
-          message: error.message,
+          message: error.message || `Erro ao ${abastecimento ? "atualizar" : "cadastrar"} abastecimento`,
         });
-      },
+      }
     });
   };
 

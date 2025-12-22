@@ -1,5 +1,13 @@
 import { getToken } from "@/lib/auth-client";
 
+type ApiErrorBody = {
+  error?: {
+    code?: string;
+    title?: string;
+    message?: string;
+  };
+};
+
 export async function apiFetch<T>(
   input: RequestInfo,
   init?: RequestInit
@@ -19,8 +27,8 @@ export async function apiFetch<T>(
     let message = "Erro na requisição";
 
     try {
-      const body = await res.json();
-      message = body?.error ?? message;
+      const body = (await res.json()) as ApiErrorBody;
+      message = body?.error?.message ?? message;
     } catch {}
 
     throw new Error(message);
