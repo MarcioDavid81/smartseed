@@ -28,6 +28,7 @@ const DashboardContent = () => {
   );
   const [totalCultivar, setTotalCultivar] = useState(0);
   const [totalDescarte, setTotalDescarte] = useState(0);
+  const [totalAjuste, setTotalAjuste] = useState(0)
   const [totalSemente, setTotalSemente] = useState(0);
   const [porcentagemAproveitamento, setPorcentagemAproveitamento] = useState(0);
   const [chartData, setChartData] = useState([]);
@@ -73,10 +74,11 @@ const DashboardContent = () => {
 
       setTotalCultivar(json.totalCultivar);
       setTotalDescarte(json.totalDescarte);
+      setTotalAjuste(json.totalAjuste)
       setPorcentagemAproveitamento(
-        ((json.colheitaKg - json.totalDescarte) / json.colheitaKg) * 100 || 0
+        ((json.colheitaKg - json.totalDescarte + json.totalAjuste) / json.colheitaKg) * 100 || 0
       );
-      setTotalSemente(json.colheitaKg - json.totalDescarte);
+      setTotalSemente(json.colheitaKg - json.totalDescarte + json.totalAjuste);
       setChartData(json.chartData);
     }
 
@@ -150,7 +152,7 @@ const DashboardContent = () => {
                 {porcentagemAproveitamento.toFixed(2)}%
               </p>
               <p className="text-sm font-light">
-                {(totalCultivar - totalDescarte).toLocaleString("pt-BR")} kg de
+                {(totalCultivar - totalDescarte + totalAjuste).toLocaleString("pt-BR")} kg de
                 semente
               </p>
               {selectedCultivar && (
