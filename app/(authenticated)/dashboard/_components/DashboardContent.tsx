@@ -19,6 +19,7 @@ import UseByCultivarChart from "./UseByCultivarChart";
 import CreateCycleButton from "./CreateCycleButton";
 import { CultivarStatusBadge } from "../../sementes/estoque/_components/CultivarStatusBadge";
 import { useCycle } from "@/contexts/CycleContext";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 const DashboardContent = () => {
   const { selectedCycle } = useCycle();
@@ -94,6 +95,10 @@ const DashboardContent = () => {
     }
   }, [selectedCycle, cultivars, selectedCultivar]);
 
+  const ajusteValorAbsoluto = Math.abs(totalAjuste);
+  const ajusteTipo = totalAjuste >= 0 ? "entrada" : "saída";
+
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       {/* Coluna principal */}
@@ -134,12 +139,25 @@ const DashboardContent = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle className="font-normal">Total Descartado</CardTitle>
+              <CardTitle className="font-normal">Total Descartado e Ajustado</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-medium">
-                {totalDescarte.toLocaleString("pt-BR")} kg
-              </p>
+            <CardContent className="flex items-center space-x-6">
+              <div>
+                <p className="text-2xl font-medium">
+                  {totalDescarte.toLocaleString("pt-BR")} kg
+                </p>
+              </div>
+
+              <div>
+                <p className="text-2xl font-medium flex items-center">
+                  {ajusteValorAbsoluto.toLocaleString("pt-BR")} kg
+                  {ajusteTipo === "entrada" ? (
+                    <ArrowUp size={20} className="text-green" />
+                    ) : (
+                    <ArrowDown size={20} className="text-red" />
+                    )}
+                </p>
+              </div>
             </CardContent>
           </Card>
 
