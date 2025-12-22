@@ -1,6 +1,8 @@
 "use client";
 
+import { QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -19,13 +21,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { BeneficiationFormData, beneficiationSchema } from "@/lib/schemas/seedBeneficiationSchema";
+import { useUpsertSeedBeneficiation } from "@/queries/seed/use-upsert-seed-beneficiation";
 import { Beneficiation, Cultivar, IndustryDeposit } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProductType } from "@prisma/client";
-import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
@@ -35,44 +38,22 @@ interface UpsertBeneficiationModalProps {
   descarte?: Beneficiation;
   isOpen: boolean;
   onClose: () => void;
-  onBeneficiotionCreated?: () => void;
-  onUpdated?: () => void;
 }
 
 const UpsertBeneficiationModal = ({
   descarte,
   isOpen,
   onClose,
-  onBeneficiotionCreated,
-  onUpdated,
 }: UpsertBeneficiationModalProps) => {
-  const [loading, setLoading] = useState(false);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
+  const { showToast } = useSmartToast();
 
   const form = useForm<BeneficiationFormData>({
     resolver: zodResolver(beneficiationSchema),
     defaultValues: {
       cultivarId: descarte?.cultivarId ?? "",
-      date: descarte
-        ? new Date(descarte.date).toISOString().split("T")[0]
-        : format(new Date(), "yyyy-MM-dd"),
-      quantityKg: descarte?.quantityKg ?? 0,
-      destinationId: descarte?.destinationId ?? "",
-      notes: descarte?.notes ?? "",
-    },
-  });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<BeneficiationFormData>({
-    resolver: zodResolver(beneficiationSchema),
-    defaultValues: {
-      cultivarId: descarte?.cultivarId ?? "",
-      date: descarte ? new Date(descarte.date).toISOString().split("T")[0] : "",
+      date: descarte ? new Date(descarte.date) : new Date(),
       quantityKg: descarte?.quantityKg ?? 0,
       destinationId: descarte?.destinationId ?? "",
       notes: descarte?.notes ?? "",
@@ -81,17 +62,17 @@ const UpsertBeneficiationModal = ({
 
   useEffect(() => {
     if (descarte) {
-      reset({
+      form.reset({
         cultivarId: descarte.cultivarId,
-        date: new Date(descarte.date).toISOString().split("T")[0],
+        date: new Date(descarte.date),
         quantityKg: descarte.quantityKg,
         destinationId: descarte.destinationId,
         notes: descarte.notes || "",
       });
     } else {
-      reset();
+      form.reset();
     }
-  }, [descarte, isOpen, reset]);
+  }, [descarte, isOpen, form.reset]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,72 +102,45 @@ const UpsertBeneficiationModal = ({
     if (isOpen) fetchData();
   }, [isOpen]);
 
-  const onSubmit = async (data: BeneficiationFormData) => {
-    setLoading(true);
-    const token = getToken();
-    const cycle = getCycle();
-    if (!cycle || !cycle.id) {
-      toast.error("Nenhum ciclo de produção selecionado.");
-      setLoading(false);
-      return;
-    }
-    const cycleId = cycle.id;
-    console.log("Dados enviados para API:", {
-      ...data,
-      cycleId,
+  const cycle = getCycle();
+
+  const { mutate, isPending } = useUpsertSeedBeneficiation({ 
+    cycleId: cycle?.id!, 
+    beneficiationId: descarte?.id
+  });
+
+  const onSubmit = (data: BeneficiationFormData) => {
+    if (!cycle?.id) {
+    showToast({
+      type: "error",
+      title: "Erro",
+      message: "Nenhum ciclo de produção selecionado.",
     });
-
-    const url = descarte
-      ? `/api/beneficiation/${descarte.id}`
-      : "/api/beneficiation";
-    const method = descarte ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    return;
+  }
+    mutate(data, {
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: descarte ? 
+          "Descarte atualizado com sucesso" : 
+          "Descarte cadastrado com sucesso",
+        });
+        onClose();
+        form.reset();
       },
-      body: JSON.stringify({
-        ...data,
-        cycleId,
-      }),
+      onError: (error: Error) => {
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: error.message || `Erro ao ${
+            descarte ? "atualizar" : "criar"
+          } descarte.`,
+        });
+      },
     });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar descarte.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
-      });
-    } else {
-      toast.success(
-        descarte
-          ? "Descarte atualizada com sucesso!"
-          : "Descarte cadastrada com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        }
-      );
-      onClose();
-      reset();
-      if (onBeneficiotionCreated) onBeneficiotionCreated();
-    }
-
-    setLoading(false);
   };
-
-  useEffect(() => {
-    if (!isOpen) reset();
-  }, [isOpen, reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -237,7 +191,7 @@ const UpsertBeneficiationModal = ({
                   <FormItem>
                     <FormLabel>Data</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <DatePicker value={field.value} onChange={field.onChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -248,13 +202,7 @@ const UpsertBeneficiationModal = ({
                 control={form.control}
                 name="quantityKg"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quantidade (Kg)</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <QuantityInput label="Quantidade" field={field} suffix="kg" />
                 )}
               />
 
@@ -301,10 +249,10 @@ const UpsertBeneficiationModal = ({
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isPending}
                 className="w-full bg-green text-white mt-4"
               >
-                {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
             </div>
           </form>
