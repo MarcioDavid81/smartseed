@@ -30,8 +30,13 @@ export async function POST(req: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Dados inválidos", details: parsed.error.flatten() },
-        { status: 400 },
+        {
+          error: {
+            error: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: parsed.error.issues[0].message,
+          }
+        }
       );
     }
 
@@ -49,8 +54,13 @@ export async function POST(req: NextRequest) {
 
     if (!cycle) {
       return NextResponse.json(
-        { error: "Ciclo não encontrado ou não pertence à empresa" },
-        { status: 404 },
+        {
+          error: {
+            error: "NOT_FOUND",
+            title: "Ciclo não encontrado",
+            message: "O ciclo de produção não foi encontrado ou não pertence à empresa.",
+          }
+        }
       );
     }
 
@@ -65,8 +75,13 @@ export async function POST(req: NextRequest) {
 
     if (!industryStock) {
       return NextResponse.json(
-        { error: "Estoque industrial não encontrado" },
-        { status: 404 },
+        {
+          error: {
+            error: "NOT_FOUND",
+            title: "Estoque industrial não encontrado",
+            message: "O estoque industrial não foi encontrado ou não pertence à empresa.",
+          }
+        }
       );
     }
 
@@ -148,7 +163,13 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Erro ao criar venda industrial:", error);
     return NextResponse.json(
-      { error: "Falha ao registrar venda industrial" },
+      {
+        error: {
+          error: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message: "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        }
+      },
       { status: 500 },
     );
   }

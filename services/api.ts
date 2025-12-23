@@ -27,9 +27,14 @@ export async function apiFetch<T>(
     let message = "Erro na requisição";
 
     try {
-      const body = (await res.json()) as ApiErrorBody;
-      message = body?.error?.message ?? message;
-    } catch {}
+    const body = await res.json();
+
+    if (body?.error?.message) {
+      message = body.error.message;
+    } else if (typeof body?.error === "string") {
+      message = body.error;
+    }
+  } catch {}
 
     throw new Error(message);
   }
