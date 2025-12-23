@@ -143,7 +143,7 @@ export async function GET (req: NextRequest) {
           select: { id: true, name: true },
         },
       },
-      orderBy: { date: "desc" },
+      orderBy: { date: "asc" },
     });
 
     return NextResponse.json(transformations, { status: 200 });

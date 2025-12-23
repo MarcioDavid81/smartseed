@@ -5,6 +5,7 @@ const tipoParaRota: Record<string, string> = {
     venda: "sales",
     descarte: "beneficiation",
     ajuste: "seed-adjust",
+    transformacao: "transformation",
   };
   
   export function getApiRouteFromTipo(tipo: string): string | undefined {

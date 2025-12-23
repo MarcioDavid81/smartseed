@@ -77,6 +77,16 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // ✅ 6. TRANSFORMAÇÕES (ENTRADA)
+    const transformations = await db.transformation.findMany({
+      where: {
+        cultivar: {
+          product: product as ProductType,
+        },
+        destinationId: depositId,
+      },
+    });
+
     // ✅ 7. NORMALIZAÇÃO
     const statement = [
       ...harvests.map((item) => ({
@@ -137,6 +147,15 @@ export async function GET(req: NextRequest) {
           item.quantityKg > 0
             ? "Ajuste de estoque (entrada)"
             : "Ajuste de estoque (saída)",
+      })),
+
+      ...transformations.map((item) => ({
+        id: item.id,
+        date: item.date,
+        quantity: Number(item.quantityKg),
+        type: "ENTRY" as const,
+        origin: "TRANSFORMATION" as const,
+        description: "Transformação",
       })),
     ];
 

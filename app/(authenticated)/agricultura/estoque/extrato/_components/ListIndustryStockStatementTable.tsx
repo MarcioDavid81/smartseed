@@ -12,6 +12,7 @@ import { useIndustryStockStatement } from "@/queries/industry/use-stock-statemen
 import { ProductType } from "@prisma/client";
 import { useIndustryDeposit } from "@/queries/industry/use-deposit-query";
 import IndustryStockAdjustmentButton from "../../_components/IndustryStockAdjustmentBotton";
+import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
 
 type Props = {
   product: ProductType;
@@ -103,7 +104,7 @@ export function ListIndustryStockStatementTable({
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center justify-between">
         <div className="mb-4">
-          <h1 className="text-2xl font-medium">{product}</h1>
+          <h1 className="text-2xl font-medium">{PRODUCT_TYPE_LABELS[product].toUpperCase()}</h1>
           {deposit && (
             <p>
               Depósito: <strong>{deposit.name.toUpperCase()}</strong> | Estoque Atual:{" "}
