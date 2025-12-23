@@ -2,9 +2,9 @@ import { validateStock } from "@/app/_helpers/validateStock";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { seedTransformationSchema } from "@/lib/schemas/transformation";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextResponse) {
+export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -113,7 +113,7 @@ export async function POST(req: NextResponse) {
   }
 }
 
-export async function GET (req: NextResponse) {
+export async function GET (req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
