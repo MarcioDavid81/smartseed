@@ -69,7 +69,8 @@ export function ListIndustryStockStatementTable({
         if (row.original.origin === "HARVEST") return "Colheita";
         if (row.original.origin === "SALE") return "Venda";
         if (row.original.origin === "TRANSFER") return "Transferência";
-        if (row.original.origin === "DISCARD") return "Descarte"
+        if (row.original.origin === "DISCARD") return "Descarte";
+        if (row.original.origin === "TRANSFORMATION") return "Transformação";
         return "Ajuste";
       },
     },

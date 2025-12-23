@@ -14,6 +14,7 @@ import { CultivarExtractButton } from "./CultivarExtractButton";
 import { CultivarStatusButton } from "./CultivarStatusButton";
 import { CultivarStatusBadge } from "./CultivarStatusBadge";
 import { AgroLoader } from "@/components/agro-loader";
+import SeedTransformationButton from "./SeedTransformationButton";
 
 export function ListStockTable() {
   const [products, setProducts] = useState<Cultivar[]>([]);
@@ -106,9 +107,10 @@ export function ListStockTable() {
   ];
 
   return (
-    <Card className="p-4 dark:bg-primary font-light">
-      <div className="mb-4">
+    <Card className="p-4 dark:bg-primary font-light space-y-4">
+      <div className="flex items-center justify-between">
         <h2 className="font-light">Estoque das Cultivares</h2>
+        <SeedTransformationButton />
       </div>
       {loading ? (
         <AgroLoader />

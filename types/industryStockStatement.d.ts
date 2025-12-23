@@ -1,6 +1,6 @@
 export type IndustryMovementType = "ENTRY" | "EXIT"
 
-export type IndustryOrigin = "HARVEST" | "DISCARD" | "SALE" | "TRANSFER" | "ADJUSTMENT"
+export type IndustryOrigin = "HARVEST" | "DISCARD" | "SALE" | "TRANSFER" | "ADJUSTMENT" | "TRANSFORMATION"
 
 export type IndustryStockStatementItem = {
   id: string

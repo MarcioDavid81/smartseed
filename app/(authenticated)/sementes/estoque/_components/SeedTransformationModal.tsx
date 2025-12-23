@@ -10,67 +10,74 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
-import { seedAdjustmentSchema, SeedAdjustStock as SeedAdjustStockFormData } from "@/lib/schemas/seedAdjustStockSchema";
-import { useCreateSeedAdjust } from "@/queries/seed/use-create-seed-adjust";
+import { SeedTransformationFormData } from "@/lib/schemas/transformation";
+import { seedTransformationSchema } from "@/lib/schemas/transformation";
+import { useCreateSeedTransformation } from "@/queries/seed/use-create-seed-transformation";
 import {
-  Cultivar
+  Cultivar,
+  IndustryDeposit
 } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 
-interface SeedStockAdjustmentModalProps {
+interface SeedTransformationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const SeedStockAdjustmentModal = ({
+const SeedTransformationModal = ({
   isOpen,
   onClose,
-}: SeedStockAdjustmentModalProps) => {
+}: SeedTransformationModalProps) => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
+  const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const { showToast } = useSmartToast();
 
-  const form = useForm<SeedAdjustStockFormData>({
-    resolver: zodResolver(seedAdjustmentSchema)
+  const form = useForm<SeedTransformationFormData>({
+    resolver: zodResolver(seedTransformationSchema)
   });
 
   useEffect(() => {
     const fetchData = async () => {
       const token = getToken();
 
-      const res = await fetch("/api/cultivars/get", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const [cultivarRes, depositRes] = await Promise.all([
+        fetch("/api/cultivars/get", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("/api/industry/deposit", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
       
-      const cultivarData = await res.json();
+      const cultivarData = await cultivarRes.json();
+      const depositData = await depositRes.json();
+      
+      setDeposits(depositData);
       setCultivars(cultivarData);
     };
 
     if (isOpen) fetchData();
   }, [isOpen]);
   
-  const { mutate, isPending } = useCreateSeedAdjust();
+  const { mutate, isPending } = useCreateSeedTransformation();
   
-  const onSubmit = (data: SeedAdjustStockFormData) => {
-    const signedQuantity = data.direction === "entrada" ? data.quantityKg : -data.quantityKg;
- 
+  const onSubmit = (data: SeedTransformationFormData) => { 
     mutate(
       {
         ...data,
-        quantityKg: signedQuantity,
       },
       {
       onSuccess: () => {
         showToast({
           type: "success",
           title: "Sucesso",
-          message: "Ajuste de estoque cadastrada com sucesso!",
+          message: "Transformação de sementes cadastrada com sucesso!",
         });
   
         onClose();
@@ -94,51 +101,15 @@ const SeedStockAdjustmentModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Ajuste de estoque</DialogTitle>
+          <DialogTitle>Transformação de sementes</DialogTitle>
           <DialogDescription>
-            Cadastrar um novo ajuste de estoque
+            Cadastrar uma nova transformação de sementes
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
-              {/* Tipo de ajuste */}
-              <FormField
-                control={form.control}
-                name="direction"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de ajuste</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        className="flex gap-6"
-                      >
-                        <FormItem className="flex items-center gap-2">
-                          <FormControl>
-                            <RadioGroupItem value="entrada" />
-                          </FormControl>
-                          <FormLabel className="font-normal">
-                            Entrada de estoque
-                          </FormLabel>
-                        </FormItem>
-
-                        <FormItem className="flex items-center gap-2">
-                          <FormControl>
-                            <RadioGroupItem value="saida" />
-                          </FormControl>
-                          <FormLabel className="font-normal">
-                            Saída de estoque
-                          </FormLabel>
-                        </FormItem>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <FormField
                     control={form.control}
@@ -154,6 +125,16 @@ const SeedStockAdjustmentModal = ({
                     )}
                   />
                 </div>
+                <FormField
+                  control={form.control}
+                  name="quantityKg"
+                  render={({ field }) => (
+                    <QuantityInput label="Quantidade" field={field} suffix=" kg" />
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   {/* Cultivar */}
                   <FormField
@@ -184,13 +165,36 @@ const SeedStockAdjustmentModal = ({
                     )}
                   />
                 </div>
-                <FormField
-                  control={form.control}
-                  name="quantityKg"
-                  render={({ field }) => (
-                    <QuantityInput label="Quantidade" field={field} suffix=" kg" />
-                  )}
-                />
+                <div>
+                  {/* Depósito */}
+                  <FormField
+                    control={form.control}
+                    name="destinationId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Depósito</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um depósito" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {deposits.map((d) => (
+                                <SelectItem key={d.id} value={d.id}>
+                                  {d.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
 
               {/* Observações */}
@@ -223,4 +227,4 @@ const SeedStockAdjustmentModal = ({
   );
 };
 
-export default SeedStockAdjustmentModal;
+export default SeedTransformationModal;

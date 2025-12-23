@@ -12,6 +12,7 @@ export const tipoMovimentacaoInfo: Record<
   PLANTIO: { label: "Plantio", direction: "saida" },
   VENDA: { label: "Venda", direction: "saida" },
   TRANSFERENCIA_NEGATIVA: { label: "Transferência -", direction: "saida" },
+  TRANSFORMACAO: { label: "Transformação", direction: "saida" },
 
   AJUSTE: { label: "Ajuste", direction: "dinamica" },
 };
