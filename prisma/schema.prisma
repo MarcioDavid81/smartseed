@@ -43,6 +43,7 @@ model Company {
   talhoes                  Talhao[]
   transfers                TransferExit[]
   users                    User[]
+  Transformation           Transformation[]
 }
 
 model Farm {
@@ -124,6 +125,7 @@ model Cultivar {
   harvests         Harvest[]
   saleExit         SaleExit[]
   stockAdjustments SeedStockAdjustment[]
+  Transformation   Transformation[]
 }
 
 model Harvest {
@@ -235,6 +237,21 @@ model SeedStockAdjustment {
   type       OperationType @default(Ajuste)
   company    Company       @relation(fields: [companyId], references: [id])
   cultivar   Cultivar      @relation(fields: [cultivarId], references: [id])
+}
+
+model Transformation {
+  id            String          @id @default(cuid())
+  companyId     String
+  date          DateTime
+  cultivarId    String
+  quantityKg    Float
+  destinationId String
+  notes         String?
+  createdAt     DateTime        @default(now())
+  type          OperationType   @default(Transformacao)
+  company       Company         @relation(fields: [companyId], references: [id])
+  cultivar      Cultivar        @relation(fields: [cultivarId], references: [id])
+  destination   IndustryDeposit @relation(fields: [destinationId], references: [id])
 }
 
 model ProductionCycle {
@@ -421,6 +438,7 @@ model IndustryDeposit {
   industryStockAdjustments IndustryStockAdjustment[]
   transfersFrom            IndustryTransfer[]        @relation("FromDeposit")
   transfersTo              IndustryTransfer[]        @relation("ToDeposit")
+  Transformation           Transformation[]
 }
 
 model IndustryStock {
@@ -660,6 +678,7 @@ enum OperationType {
   Venda
   Plantio
   Ajuste
+  Transformacao
 }
 
 enum CultivarStatus {
