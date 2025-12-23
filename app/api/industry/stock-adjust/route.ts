@@ -8,10 +8,24 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
+    if (!token) return NextResponse.json(      
+       { 
+        code: "UNAUTHORIZED",
+        title: "Token ausente",
+        message: "O token de autorização é necessário para acessar este recurso. Por favor, forneça um token válido e tente novamente.",
+       },
+     { status: 401 }
+    );
 
     const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    if (!payload) return NextResponse.json(
+      { 
+        code: "UNAUTHORIZED",
+        title: "Token inválido",
+        message: "O token fornecido é inválido. Por favor, obtenha um novo token e tente novamente.",
+      },
+      { status: 401 }
+    );
 
     const { companyId } = payload;
 
@@ -20,7 +34,11 @@ export async function POST(req: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Dados inválidos", details: parsed.error.flatten() },
+        { 
+          code: "INVALID_INPUT",
+          title: "Dados inválidos",
+          message: "Os dados fornecidos são inválidos. Por favor, verifique e tente novamente.",
+        },
         { status: 400 },
       );
     }
@@ -69,17 +87,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(adjusted, { status: 201 });
   } catch (error) {
     console.error("Erro ao ajustar estoque de sementes:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+    return NextResponse.json(
+      {
+        code: "INTERNAL_SERVER_ERROR",
+        title: "Erro interno do servidor",
+        message: "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+      },
+      { status: 500 },
+    );
   }
 }
 
 export async function GET(req: NextRequest) {
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
+    if (!token) return NextResponse.json(
+       { 
+        code: "UNAUTHORIZED",
+        title: "Token ausente",
+        message: "O token de autorização é necessário para acessar este recurso. Por favor, forneça um token válido e tente novamente.",
+       },
+      { status: 401 }
+    );
 
     const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    if (!payload) return NextResponse.json(
+      { 
+        code: "UNAUTHORIZED",
+        title: "Token inválido",
+        message: "O token fornecido é inválido. Por favor, obtenha um novo token e tente novamente.",
+      },
+      { status: 401 }
+    );
 
     const { companyId } = payload;
 
@@ -92,7 +131,11 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Erro ao buscar ajustes de estoque de sementes:", error);
     return NextResponse.json(
-      { error: "Erro interno no servidor" },
+      { 
+        code: "INTERNAL_SERVER_ERROR",
+        title: "Erro interno do servidor",
+        message: "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+       },
       { status: 500 },
     );
   }

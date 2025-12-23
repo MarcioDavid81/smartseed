@@ -9,10 +9,24 @@ export async function DELETE(
 ) {
   try {
     const token = req.headers.get("Authorization")?.split(" ")[1];
-    if (!token) return new NextResponse("Token inválido", { status: 401 });
+    if (!token) return NextResponse.json(      
+       { 
+        code: "UNAUTHORIZED",
+        title: "Token ausente",
+        message: "O token de autorização é necessário para acessar este recurso. Por favor, forneça um token válido e tente novamente.",
+       },
+      { status: 401 }
+    );
 
     const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    if (!payload) return NextResponse.json(
+      { 
+        code: "UNAUTHORIZED",
+        title: "Token inválido",
+        message: "O token fornecido é inválido. Por favor, obtenha um novo token e tente novamente.",
+      },
+      { status: 401 }
+    );
 
     const { companyId } = payload;
     const { id } = params;
@@ -22,7 +36,14 @@ export async function DELETE(
     });
 
     if (!existingAdjust || existingAdjust.companyId !== companyId) {
-      return new NextResponse("Ajuste não encontrado", { status: 404 });
+      return NextResponse.json(
+        { 
+          code: "NOT_FOUND",
+          title: "Ajuste não encontrado",
+          message: "O ajuste de estoque não foi encontrado. Por favor, verifique o ID e tente novamente.",
+        },
+        { status: 404 }
+      );
     }
 
     // 🔐 VALIDAÇÃO CRÍTICA
@@ -56,7 +77,11 @@ export async function DELETE(
     return NextResponse.json({ message: "Ajuste excluído com sucesso" });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message },
+      { 
+        code: "INVALID_INPUT",
+        title: "Dados inválidos",
+        message: error.message,
+      },
       { status: 400 }
     );
   }

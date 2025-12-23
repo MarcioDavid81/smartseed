@@ -92,8 +92,14 @@ export async function POST(req: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Dados inválidos", details: parsed.error.flatten() },
-        { status: 400 },
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: parsed.error.issues[0].message,
+          }
+        },
+        { status: 400 }
       );
     }
 
@@ -112,8 +118,14 @@ export async function POST(req: NextRequest) {
 
     if (!cycle) {
       return NextResponse.json(
-        { error: "Ciclo não encontrado ou não pertence à empresa" },
-        { status: 404 },
+        {
+          error: {
+            code: "NOT_FOUND",
+            title: "Ciclo não encontrado",
+            message: "O ciclo de produção não foi encontrado ou não pertence à empresa.",
+          }
+        },
+        { status: 404 }
       );
     }
 
@@ -151,7 +163,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(industryHarvest, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar colheita:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message: "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        }
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -308,6 +329,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(industryHarvests);
   } catch (error) {
     console.error("Erro ao buscar colheitas:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message: "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        }
+      },
+      { status: 500 },
+    );
   }
 }

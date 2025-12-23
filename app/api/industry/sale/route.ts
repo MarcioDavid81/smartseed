@@ -4,42 +4,25 @@ import { PaymentCondition, ProductType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { industrySaleSchema } from "@/lib/schemas/industrySale";
 import { validateIndustryStock } from "@/app/_helpers/validateIndustryStock";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
-
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+
     const body = await req.json();
     const parsed = industrySaleSchema.safeParse(body);
-
     if (!parsed.success) {
-      return NextResponse.json(
-        {
-          error: {
-            error: "INVALID_DATA",
-            title: "Dados inválidos",
-            message: parsed.error.issues[0].message,
-          }
-        }
-      );
+      return NextResponse.json({
+        error: {
+          code: "INVALID_DATA",
+          title: "Dados inválidos",
+          message: parsed.error.issues[0].message,
+        },
+      });
     }
-
     const data = parsed.data;
 
     const cycle = await db.productionCycle.findFirst({
@@ -53,15 +36,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (!cycle) {
-      return NextResponse.json(
-        {
-          error: {
-            error: "NOT_FOUND",
-            title: "Ciclo não encontrado",
-            message: "O ciclo de produção não foi encontrado ou não pertence à empresa.",
-          }
-        }
-      );
+      return NextResponse.json({
+        error: {
+          code: "NOT_FOUND",
+          title: "Ciclo não encontrado",
+          message:
+            "O ciclo de produção não foi encontrado ou não pertence à empresa.",
+        },
+      });
     }
 
     // 🔎 Busca o estoque industrial correspondente
@@ -74,15 +56,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (!industryStock) {
-      return NextResponse.json(
-        {
-          error: {
-            error: "NOT_FOUND",
-            title: "Estoque industrial não encontrado",
-            message: "O estoque industrial não foi encontrado ou não pertence à empresa.",
-          }
-        }
-      );
+      return NextResponse.json({
+        error: {
+          code: "NOT_FOUND",
+          title: "Estoque industrial não encontrado",
+          message:
+            "O estoque industrial não foi encontrado ou não pertence à empresa.",
+        },
+      });
     }
 
     // ✅ Validação de estoque usando tua função atual
@@ -112,7 +93,7 @@ export async function POST(req: NextRequest) {
           product: cycle.productType as ProductType,
           industryTransporterId: data.industryTransporterId || null,
         },
-      });   
+      });
 
       // 🔹 Atualiza o estoque
       await tx.industryStock.update({
@@ -165,10 +146,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: {
-          error: "INTERNAL_SERVER_ERROR",
+          code: "INTERNAL_SERVER_ERROR",
           title: "Erro interno do servidor",
-          message: "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
-        }
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
       },
       { status: 500 },
     );
@@ -209,17 +191,21 @@ export async function GET(req: NextRequest) {
           select: { id: true, status: true, dueDate: true },
         },
       },
-      orderBy: [
-        { date: "desc" },
-        { document: "desc" },
-      ]
+      orderBy: [{ date: "desc" }, { document: "desc" }],
     });
 
     return NextResponse.json(industrySales, { status: 200 });
   } catch (error) {
     console.error("Erro ao buscar venda industrial:", error);
     return NextResponse.json(
-      { error: "Falha ao buscar venda industrial" },
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
       { status: 500 },
     );
   }
