@@ -1,4 +1,3 @@
-import { getToken } from "@/lib/auth-client";
 import { IndustryDeposit } from "@/types";
 import { apiFetch } from "../api";
 
