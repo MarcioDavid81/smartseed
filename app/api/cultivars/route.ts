@@ -1,13 +1,13 @@
 import { db } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { verifyToken } from "@/lib/auth";
 import { canCompanyAddCultivar } from "@/lib/permissions/canCompanyAddSeed";
 import { ProductType } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 const cultivarSchema = z.object({
   name: z.string().min(2, "Nome obrigatório"),
-  product: z.nativeEnum(ProductType)
+  product: z.nativeEnum(ProductType),
 });
 
 export async function POST(req: Request) {
@@ -18,40 +18,13 @@ export async function POST(req: Request) {
         error:
           "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
       },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { userId, companyId } = payload;
-
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { companyId: true },
-  });
-
-  if (!user || !user.companyId) {
-    return NextResponse.json(
-      { error: "Usuário ou empresa não encontrada" },
-      { status: 404 }
-    );
-  }
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   const body = await req.json();
   const parsed = cultivarSchema.safeParse(body);
@@ -60,7 +33,7 @@ export async function POST(req: Request) {
     const errors = parsed.error.errors.map((e) => e.message).join(", ");
     return NextResponse.json(
       { error: `Dados inválidos: ${errors}` },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -78,7 +51,7 @@ export async function POST(req: Request) {
     if (existingCultivar) {
       return NextResponse.json(
         { error: "Cultivar já cadastrada para esta empresa" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -95,7 +68,7 @@ export async function POST(req: Request) {
     console.error("Erro ao criar cultivar:", err);
     return NextResponse.json(
       { error: "Erro ao criar cultivar" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

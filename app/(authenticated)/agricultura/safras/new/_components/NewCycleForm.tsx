@@ -17,12 +17,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PRODUCT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/products";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
+import { DatePicker } from "@/components/ui/date-picker";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 const safraSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   productType: z.nativeEnum(ProductType),
-  startDate: z.string(),
-  endDate: z.string().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().optional(),
   talhoesIds: z.array(z.string()).optional(),
 });
 
@@ -36,18 +38,15 @@ interface SafraFormProps {
 export default function SafraForm({ initialData, isEditing }: SafraFormProps) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { showToast } = useSmartToast();
 
   const form = useForm<SafraFormData>({
     resolver: zodResolver(safraSchema),
     defaultValues: {
       name: initialData?.name || "",
       productType: initialData?.productType || "",
-      startDate: initialData?.startDate
-        ? new Date(initialData.startDate).toISOString().split("T")[0]
-        : "",
-      endDate: initialData?.endDate
-        ? new Date(initialData.endDate).toISOString().split("T")[0]
-        : "",
+      startDate: initialData?.startDate ? new Date(initialData.startDate) : new Date(),
+      endDate: initialData?.endDate ? new Date(initialData.endDate) : new Date(),
       talhoesIds: initialData?.talhoes?.map((t: any) => t.talhaoId) || [],
     },
   });
@@ -69,10 +68,18 @@ export default function SafraForm({ initialData, isEditing }: SafraFormProps) {
     });
 
     if (res.ok) {
-      toast.success("Safra salva com sucesso!");
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Safra salva com sucesso!",
+      });
       router.push("/agricultura/safras");
     } else {
-      toast.error("Erro ao salvar safra");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Erro ao salvar safra",
+      });
     }
     setLoading(false);
   }
@@ -109,7 +116,7 @@ export default function SafraForm({ initialData, isEditing }: SafraFormProps) {
                   <FormItem>
                     <FormLabel>Tipo de Produto</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
+                        <FormControl className="font-light">
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione um tipo de produto" />
                           </SelectTrigger>
@@ -134,7 +141,7 @@ export default function SafraForm({ initialData, isEditing }: SafraFormProps) {
                 render={({field}) => (
                   <FormItem>
                     <FormLabel>Data de Início</FormLabel>
-                      <Input {...field} type="date" />
+                      <DatePicker {...field} />
                       <FormMessage />
                   </FormItem>
                 )}
@@ -145,7 +152,7 @@ export default function SafraForm({ initialData, isEditing }: SafraFormProps) {
                 render={({field}) => (
                   <FormItem>
                     <FormLabel>Data de Fim</FormLabel>
-                      <Input {...field} type="date" />
+                      <DatePicker {...field} />
                       <FormMessage />
                   </FormItem>
                 )}

@@ -1,5 +1,4 @@
-import { adjustStockWhenDeleteMov } from "@/app/_helpers/adjustStockWhenDeleteMov";
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -48,11 +47,9 @@ import { NextRequest, NextResponse } from "next/server";
 // Atualizar descarte
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
     const { cultivarId, date, quantityKg, notes, destinationId } = await req.json();
@@ -69,7 +66,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       },
     });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existing || existing.companyId !== companyId) {
       return new NextResponse("Beneficiamento não encontrado ou acesso negado", {
         status: 403,
       });
@@ -105,7 +102,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           await tx.industryStock.updateMany({
             where: {
               industryDepositId: existing.destinationId,
-              companyId: payload.companyId,
+              companyId,
               product: productType,
             },
             data: { quantity: { decrement: existing.quantityKg } },
@@ -123,7 +120,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           create: {
             product: productType,
             industryDepositId: destinationId,
-            companyId: payload.companyId,
+            companyId,
             quantity: quantityKg,
           },
         });
@@ -133,7 +130,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         await tx.industryStock.updateMany({
           where: {
             industryDepositId: existing.destinationId!,
-            companyId: payload.companyId,
+            companyId,
             product: productType,
           },
           data: { quantity: { increment: diff } },
@@ -196,11 +193,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
@@ -213,7 +208,7 @@ export async function DELETE(
       },
     });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existing || existing.companyId !== companyId) {
       return new NextResponse("Descarte não encontrado ou acesso negado", {
         status: 403,
       });
@@ -235,7 +230,7 @@ export async function DELETE(
         await tx.industryStock.updateMany({
           where: {
             industryDepositId: existing.destinationId,
-            companyId: payload.companyId,
+            companyId,
             product: existing.cultivar.product,
           },
           data: {
@@ -266,18 +261,16 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
     // Buscar o descarte para garantir que pertence à empresa do usuário
     const descarte = await db.beneficiation.findUnique({ where: { id } });
 
-    if (!descarte || descarte.companyId !== payload.companyId) {
+    if (!descarte || descarte.companyId !== companyId) {
       return new NextResponse("Descarte não encontrado ou acesso negado", {
         status: 403,
       });

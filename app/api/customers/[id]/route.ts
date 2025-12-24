@@ -1,40 +1,19 @@
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 // Atualizar cliente (parcial)
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   try {
-    const {
-      name,
-      email,
-      adress,
-      city,
-      state,
-      phone,
-      cpf_cnpj,
-    } = await req.json();
+    const { name, email, adress, city, state, phone, cpf_cnpj } =
+      await req.json();
 
     // Verifica se o cliente pertence à empresa
     const existing = await db.customer.findFirst({
@@ -44,7 +23,7 @@ export async function PATCH(
     if (!existing) {
       return NextResponse.json(
         { error: "Cliente não encontrado ou não pertence à empresa" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -61,7 +40,7 @@ export async function PATCH(
     if (Object.keys(dataToUpdate).length === 0) {
       return NextResponse.json(
         { error: "Nenhum campo para atualizar" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -80,25 +59,11 @@ export async function PATCH(
 // Excluir cliente
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   try {
     // Verifica se o cliente pertence à empresa
@@ -109,25 +74,27 @@ export async function DELETE(
     if (!existing) {
       return NextResponse.json(
         { error: "Cliente não encontrado ou não pertence à empresa" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Consulta vínculos que impedem deleção
     const [
-      buySeedCount,           // compras de sementes
-      saleSeedCount,         // vendas de sementes
-      purchaseInsumoCount,  // compras de insumos
-      industrySaleCount,   // vendas de grão indústria
-      payableCount,       // contas a pagar
-      receivableCount,   // contas a receber
+      buySeedCount, // compras de sementes
+      saleSeedCount, // vendas de sementes
+      purchaseInsumoCount, // compras de insumos
+      industrySaleCount, // vendas de grão indústria
+      payableCount, // contas a pagar
+      receivableCount, // contas a receber
     ] = await Promise.all([
       db.buy.count({ where: { customerId: params.id, companyId } }),
       db.purchase.count({ where: { customerId: params.id, companyId } }),
       db.saleExit.count({ where: { customerId: params.id, companyId } }),
       db.industrySale.count({ where: { customerId: params.id, companyId } }),
       db.accountPayable.count({ where: { customerId: params.id, companyId } }),
-      db.accountReceivable.count({ where: { customerId: params.id, companyId } }),
+      db.accountReceivable.count({
+        where: { customerId: params.id, companyId },
+      }),
     ]);
 
     const blockers = [];
@@ -145,7 +112,7 @@ export async function DELETE(
             "Cliente não pode ser deletado. Existem vínculos que impedem a remoção.",
           details: blockers,
         },
-        { status: 409 }
+        { status: 409 },
       );
     }
 

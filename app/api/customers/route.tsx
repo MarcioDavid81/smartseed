@@ -1,4 +1,4 @@
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -37,20 +37,9 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Cliente criado com sucesso
  */
 export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Token não enviado ou mal formatado" }, { status: 401 });
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   try {
     const { name, email, adress, city, state, phone, cpf_cnpj } = await req.json();
@@ -118,20 +107,9 @@ export async function POST(req: NextRequest) {
  *         description: Token ausente ou inválido
  */
 export async function GET(req: NextRequest) {
-    const authHeader = req.headers.get("Authorization");
-  
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Token não enviado ou mal formatado" }, { status: 401 });
-    }
-  
-    const token = authHeader.split(" ")[1];
-    const payload = await verifyToken(token);
-  
-    if (!payload) {
-      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-    }
-  
-    const { companyId } = payload;
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
   
     try {
       const customer = await db.customer.findMany({

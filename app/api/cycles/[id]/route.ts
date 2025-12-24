@@ -1,4 +1,5 @@
 import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -39,16 +40,14 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
     const safra = await db.productionCycle.findMany({
-      where: { id: id },
+      where: { id: id, companyId: companyId },
       include: {
         talhoes: {
           include: {
@@ -57,9 +56,9 @@ export async function GET(
                 id: true,
                 name: true,
                 area: true,
-              }
-            }
-          }
+              },
+            },
+          },
         },
         industryHarvests: true,
       },
@@ -76,7 +75,7 @@ export async function GET(
  * @swagger
  * /api/cycles/{id}:
  *   put:
- *     summary: Atualizar uma safra pelo ID 
+ *     summary: Atualizar uma safra pelo ID
  *     tags:
  *       - Safra
  *     security:
@@ -106,75 +105,68 @@ export async function GET(
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
-  const authHeader = req.headers.get("Authorization");
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
   const { id } = params;
 
   try {
-    const { name, productType, startDate, endDate, talhoesIds } = await req.json();
+    const { name, productType, startDate, endDate, talhoesIds } =
+      await req.json();
 
     if (!name || !productType || !startDate || !endDate) {
       return NextResponse.json(
-        { error: "Campos obrigatórios faltando" },
-        { status: 400 }
+        {
+          error: {
+            code: "INVALID_BODY",
+            title: "Campos obrigatórios não informados",
+            message: "Campos obrigatórios não informados",
+          },
+        },
+        { status: 400 },
       );
     }
 
     // 1. Verifica se o ciclo existe
     const existingCycle = await db.productionCycle.findUnique({
-      where: { id },
+      where: { id, companyId },
     });
 
     if (!existingCycle) {
-      return NextResponse.json({ error: "Safra não encontrada" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Safra não encontrada" },
+        { status: 404 },
+      );
     }
 
-    // 2. Atualiza os dados principais
-    const updatedCycle = await db.productionCycle.update({
-      where: { id },
-      data: {
-        name,
-        productType,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        companyId,
-      },
-    });
-
-    // 3. Atualiza relacionamentos com os talhões
-    // Remove os relacionamentos antigos
-    await db.cycleTalhao.deleteMany({
-      where: { cycleId: id },
-    });
-
-    // Adiciona os novos relacionamentos
-    if (talhoesIds && talhoesIds.length > 0) {
-      await db.cycleTalhao.createMany({
-        data: talhoesIds.map((talhaoId: string) => ({
-          cycleId: id,
-          talhaoId,
-        })),
+    await db.$transaction(async (tx) => {
+      await tx.productionCycle.update({
+        where: { id },
+        data: {
+          name,
+          productType,
+          startDate: new Date(startDate),
+          endDate: new Date(endDate),
+        },
       });
-    }
 
-    // 4. Retorna a safra atualizada com os talhões relacionados
+      await tx.cycleTalhao.deleteMany({
+        where: { cycleId: id },
+      });
+
+      if (Array.isArray(talhoesIds) && talhoesIds.length > 0) {
+        await tx.cycleTalhao.createMany({
+          data: talhoesIds.map((talhaoId: string) => ({
+            cycleId: id,
+            talhaoId,
+          })),
+        });
+      }
+    });
+
     const cycleWithTalhoes = await db.productionCycle.findUnique({
       where: { id },
       include: {
@@ -186,9 +178,17 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json(cycleWithTalhoes, { status: 200 });
+    return NextResponse.json(cycleWithTalhoes);
   } catch (error) {
     console.error("Erro ao atualizar safra:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erro ao atualizar a safra",
+        },
+      },
+      { status: 500 },
+    );
   }
 }

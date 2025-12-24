@@ -1,8 +1,8 @@
-import { verifyToken } from "@/lib/auth";
 import { canCompanyAddPurchase } from "@/lib/permissions/canCompanyAddPurchase";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { PaymentCondition } from "@prisma/client"
+import { PaymentCondition } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 /**
  * @swagger
@@ -49,27 +49,12 @@ export async function POST(req: NextRequest) {
         error:
           "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
       },
-      { status: 403 }
+      { status: 403 },
     );
   }
-
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   try {
     const {
@@ -79,7 +64,7 @@ export async function POST(req: NextRequest) {
       unityPrice,
       totalPrice,
       customerId,
-      quantityKg, 
+      quantityKg,
       cycleId,
       notes,
       paymentCondition,
@@ -89,7 +74,7 @@ export async function POST(req: NextRequest) {
     if (!cultivarId || !date || !invoice || !quantityKg || !customerId) {
       return NextResponse.json(
         { error: "Campos obrigatórios faltando" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -195,23 +180,9 @@ export async function POST(req: NextRequest) {
  *         description: Token ausente ou inválido
  */
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
   const cycleId = req.nextUrl.searchParams.get("cycleId");
 
   try {

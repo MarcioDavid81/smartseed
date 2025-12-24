@@ -1,5 +1,5 @@
 import { adjustStockWhenDeleteMov } from "@/app/_helpers/adjustStockWhenDeleteMov";
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -50,22 +50,25 @@ import { NextRequest, NextResponse } from "next/server";
 // Atualizar plantio
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
     const { cultivarId, date, quantityKg, talhaoId, notes } = await req.json();
 
     // Buscar o plantio para garantir que pertence à empresa do usuário
-    const existingConsumption = await db.consumptionExit.findUnique({ where: { id } });
+    const existingConsumption = await db.consumptionExit.findUnique({
+      where: { id },
+    });
 
-    if (!existingConsumption || existingConsumption.companyId !== payload.companyId) {
+    if (
+      !existingConsumption ||
+      existingConsumption.companyId !== companyId
+    ) {
       return new NextResponse("Consumo não encontrado ou acesso negado", {
         status: 403,
       });
@@ -146,21 +149,24 @@ export async function PUT(
 // Deletar plantio
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
     // Buscar o plantio para garantir que pertence à empresa do usuário
-    const existingConsumption = await db.consumptionExit.findUnique({ where: { id } });
+    const existingConsumption = await db.consumptionExit.findUnique({
+      where: { id },
+    });
 
-    if (!existingConsumption || existingConsumption.companyId !== payload.companyId) {
+    if (
+      !existingConsumption ||
+      existingConsumption.companyId !== companyId
+    ) {
       return new NextResponse("Consumo não encontrado ou acesso negado", {
         status: 403,
       });
@@ -175,7 +181,7 @@ export async function DELETE(
         tx,
         "Plantio",
         existingConsumption.cultivarId,
-        existingConsumption.quantityKg
+        existingConsumption.quantityKg,
       );
     });
 
@@ -189,21 +195,19 @@ export async function DELETE(
 // Buscar plantio
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
     // Buscar o plantio para garantir que pertence à empresa do usuário
     const plantio = await db.consumptionExit.findUnique({ where: { id } });
 
-    if (!plantio || plantio.companyId !== payload.companyId) {
+    if (!plantio || plantio.companyId !== companyId) {
       return new NextResponse("Plantio não encontrado ou acesso negado", {
         status: 403,
       });
