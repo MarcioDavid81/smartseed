@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import CreatePlotButton from "./CreatePlotButton";
-import { FunnelX, FunnelXIcon } from "lucide-react";
+import { FunnelX } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -39,7 +39,6 @@ export function PlotsDataTable<TData, TValue>({
   pageSize = 8,
   searchFields = [],
 }: DataTableProps<TData, TValue>) {
-  const [modalOpen, setModalOpen] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
   const table = useReactTable({
@@ -81,17 +80,25 @@ export function PlotsDataTable<TData, TValue>({
             }
             className="max-w-sm bg-gray-50 text-primary"
           />
+          <Input
+            placeholder="Procure por fazenda"
+            value={(table.getColumn("farm")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("farm")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
           {table.getState().columnFilters.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => table.resetColumnFilters()}
-                  className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
-                >
-                  <FunnelX size={14} />
-                  Limpar filtros
-                </Button>
-              )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => table.resetColumnFilters()}
+              className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+            >
+              <FunnelX size={14} />
+                Limpar filtros
+            </Button>
+          )}
         </div>
         <CreatePlotButton />
       </div>

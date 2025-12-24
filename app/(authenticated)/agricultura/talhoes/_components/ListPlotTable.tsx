@@ -59,11 +59,16 @@ export function ListPlotsTable() {
       accessorKey: "area",
       header: "Área (ha)",
       accessorFn: (row) => row.area,
-      cell: ({ row: { original } }) => original.area,
+      cell: ({ row: { original } }) => new Intl.NumberFormat("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(original.area),
     },
     {
-      accessorKey: "fazenda",
+      id: "farm",
       header: "Fazenda",
+      accessorFn: (row) => row.farm.name,
+      filterFn: "includesString",
       cell: ({ row: { original } }) => original.farm.name,
     },
     {

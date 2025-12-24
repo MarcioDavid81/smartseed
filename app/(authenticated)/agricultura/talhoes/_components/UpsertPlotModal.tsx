@@ -13,9 +13,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 import { z } from "zod";
 import { Farm, Talhao } from "@/types";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 interface UpsertPlotModalProps {
   talhao?: Talhao;
@@ -40,6 +40,7 @@ const UpsertPlotModal = ({
 }: UpsertPlotModalProps) => {
   const [farms, setFarms] = useState<Farm[]>([])
   const [loading, setLoading] = useState(false);
+  const { showToast } = useSmartToast();
 
   const {
     register,
@@ -80,7 +81,11 @@ const UpsertPlotModal = ({
     setLoading(true);
     const token = getToken();
     if (!token) {
-      toast.error("Usuário não autenticado.");
+      showToast({
+        type: "error",
+        title: "Erro!",
+        message: "Por favor, faça login para continuar.",
+      });
       setLoading(false);
       return;
     }
@@ -104,26 +109,19 @@ const UpsertPlotModal = ({
     const result = await res.json();
 
     if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar depósito.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
+      showToast({
+        type: "error",
+        title: result.title || "Erro ao salvar talhão.",
+        message: result.message || "Ocorreu um erro ao salvar o talhão. Por favor, tente novamente.",
       });
     } else {
-      toast.success(
-        talhao
+      showToast({
+        type: "success",
+        title: "Sucesso!",
+        message: talhao
           ? "Talhão atualizado com sucesso!"
           : "Talhão cadastrado com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        },
-      );
+      });
       onClose();
       reset();
       if (onUpdated) onUpdated();
@@ -147,47 +145,47 @@ const UpsertPlotModal = ({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-                  <div className="space-y-4 py-2">
-                    <div>
-                      <Label htmlFor="name">Nome</Label>
-                      <Input
-                        placeholder="Nome do talhão"
-                        {...register("name")}
-                      />
-                      {errors.name && <span className="text-red-500">{errors.name.message}</span>}
-                    </div>
-                    <div>
-                      <Label htmlFor="area">Area</Label>
-                      <Input
-                        placeholder="Área em hectares"
-                        {...register("area", { valueAsNumber: true })}
-                      />
-                      {errors.area && <span className="text-red-500">{errors.area.message}</span>}
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label htmlFor="farmId">Fazenda</Label>
-                      <select
-                        className="border rounded p-2"
-                        {...register("farmId")}
-                      >
-                        <option value="" className=" text-md font-light">Selecione uma fazenda</option>
-                        {farms.map((farm) => (
-                          <option key={farm.id} value={farm.id} className="font-light">
-                            {farm.name}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.farmId && <span className="text-red-500">{errors.farmId.message}</span>}
-                    </div>
-                  </div>
-                  <Button
-                    disabled={loading}
-                    type="submit"
-                    className="w-full bg-green text-white"
-                  >
-                    {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
-                  </Button>
-                </form>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label htmlFor="name">Nome</Label>
+              <Input
+                placeholder="Nome do talhão"
+                {...register("name")}
+              />
+              {errors.name && <span className="text-red-500">{errors.name.message}</span>}
+            </div>
+            <div>
+            <Label htmlFor="area">Area</Label>
+            <Input
+              placeholder="Área em hectares"
+              {...register("area", { valueAsNumber: true })}
+            />
+            {errors.area && <span className="text-red-500">{errors.area.message}</span>}
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="farmId">Fazenda</Label>
+              <select
+                className="border rounded p-2"
+                {...register("farmId")}
+              >
+                <option value="" className=" text-md font-light">Selecione uma fazenda</option>
+                {farms.map((farm) => (
+                  <option key={farm.id} value={farm.id} className="font-light">
+                    {farm.name}
+                  </option>
+                ))}
+              </select>
+              {errors.farmId && <span className="text-red-500">{errors.farmId.message}</span>}
+            </div>
+          </div>
+            <Button
+              disabled={loading}
+              type="submit"
+              className="w-full bg-green text-white"
+            >
+              {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+            </Button>
+        </form>
       </DialogContent>
     </Dialog>
   );
