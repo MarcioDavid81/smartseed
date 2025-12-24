@@ -1,23 +1,25 @@
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
-import { ProductType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PUT (req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
     const { name } = await req.json();
 
     const existing = await db.industryDeposit.findUnique({ where: { id } });
 
-    if (!existing || existing.companyId !== payload.companyId) {
-      return new NextResponse("Depósito não encontrado ou acesso negado", { status: 403 });
+    if (!existing || existing.companyId !== companyId) {
+      return new NextResponse("Depósito não encontrado ou acesso negado", {
+        status: 403,
+      });
     }
 
     const updated = await db.industryDeposit.update({
@@ -34,25 +36,27 @@ export async function PUT (req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function DELETE (req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
     const existing = await db.industryDeposit.findUnique({ where: { id } });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existing || existing.companyId !== companyId) {
       return NextResponse.json(
         {
           error: {
             code: "DEPOSIT_NOT_FOUND",
             title: "Depósito não encontrado",
-            message: "O depósito com o ID fornecido não foi encontrado ou você não tem permissão para excluí-lo.",
+            message:
+              "O depósito com o ID fornecido não foi encontrado ou você não tem permissão para excluí-lo.",
           },
         },
         { status: 403 },
@@ -72,7 +76,8 @@ export async function DELETE (req: NextRequest, { params }: { params: { id: stri
           error: {
             code: "STOCK_PRESENT",
             title: "Estoque presente",
-            message: "O depósito possui estoque e não pode ser excluído. Remova o estoque antes de excluir o depósito.",
+            message:
+              "O depósito possui estoque e não pode ser excluído. Remova o estoque antes de excluir o depósito.",
           },
         },
         { status: 400 },
@@ -91,7 +96,8 @@ export async function DELETE (req: NextRequest, { params }: { params: { id: stri
         error: {
           code: "INTERNAL_ERROR",
           title: "Erro interno",
-          message: "Ocorreu um erro ao excluir o depósito. Por favor, tente novamente.",
+          message:
+            "Ocorreu um erro ao excluir o depósito. Por favor, tente novamente.",
         },
       },
       { status: 500 },
@@ -99,13 +105,14 @@ export async function DELETE (req: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function GET (req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
@@ -121,12 +128,14 @@ export async function GET (req: NextRequest, { params }: { params: { id: string 
       },
     });
 
-    if (!existing || existing.companyId !== payload.companyId) {
-      return new NextResponse("Depósito não encontrado ou acesso negado", { status: 403 });
+    if (!existing || existing.companyId !== companyId) {
+      return new NextResponse("Depósito não encontrado ou acesso negado", {
+        status: 403,
+      });
     }
 
     return NextResponse.json(existing, { status: 200 });
-  } catch (error) { 
+  } catch (error) {
     console.error("Erro ao obter depósito:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }

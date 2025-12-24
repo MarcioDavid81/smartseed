@@ -1,49 +1,32 @@
 import { getOrCreateIndustryStock } from "@/app/_helpers/getOrCreateIndustryStock";
 import { validateIndustryStockForOutput } from "@/app/_helpers/validateIndustryStockForOutput";
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { industryAdjustmentSchema } from "@/lib/schemas/industryAdjustStockSchema";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return NextResponse.json(      
-       { 
-        code: "UNAUTHORIZED",
-        title: "Token ausente",
-        message: "O token de autorização é necessário para acessar este recurso. Por favor, forneça um token válido e tente novamente.",
-       },
-     { status: 401 }
-    );
-
-    const payload = await verifyToken(token);
-    if (!payload) return NextResponse.json(
-      { 
-        code: "UNAUTHORIZED",
-        title: "Token inválido",
-        message: "O token fornecido é inválido. Por favor, obtenha um novo token e tente novamente.",
-      },
-      { status: 401 }
-    );
-
-    const { companyId } = payload;
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const body = await req.json();
     const parsed = industryAdjustmentSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
-        { 
+        {
           code: "INVALID_INPUT",
           title: "Dados inválidos",
-          message: "Os dados fornecidos são inválidos. Por favor, verifique e tente novamente.",
+          message:
+            "Os dados fornecidos são inválidos. Por favor, verifique e tente novamente.",
         },
         { status: 400 },
       );
     }
 
-    const data = parsed.data
+    const data = parsed.data;
 
     const adjusted = await db.$transaction(async (tx) => {
       if (data.quantityKg < 0) {
@@ -91,7 +74,8 @@ export async function POST(req: NextRequest) {
       {
         code: "INTERNAL_SERVER_ERROR",
         title: "Erro interno do servidor",
-        message: "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        message:
+          "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
       },
       { status: 500 },
     );
@@ -100,27 +84,9 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return NextResponse.json(
-       { 
-        code: "UNAUTHORIZED",
-        title: "Token ausente",
-        message: "O token de autorização é necessário para acessar este recurso. Por favor, forneça um token válido e tente novamente.",
-       },
-      { status: 401 }
-    );
-
-    const payload = await verifyToken(token);
-    if (!payload) return NextResponse.json(
-      { 
-        code: "UNAUTHORIZED",
-        title: "Token inválido",
-        message: "O token fornecido é inválido. Por favor, obtenha um novo token e tente novamente.",
-      },
-      { status: 401 }
-    );
-
-    const { companyId } = payload;
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const adjustments = await db.industryStockAdjustment.findMany({
       where: { companyId },
@@ -131,11 +97,12 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Erro ao buscar ajustes de estoque de sementes:", error);
     return NextResponse.json(
-      { 
+      {
         code: "INTERNAL_SERVER_ERROR",
         title: "Erro interno do servidor",
-        message: "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
-       },
+        message:
+          "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+      },
       { status: 500 },
     );
   }

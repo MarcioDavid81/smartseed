@@ -1,28 +1,20 @@
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST (req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Token não enviado ou mal formatado" }, { status: 401 });
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
-
+export async function POST(req: NextRequest) {  
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+    
     const { name } = await req.json();
 
     if (!name) {
-      return NextResponse.json({ error: "Nome do depósito é obrigatório" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Nome do depósito é obrigatório" },
+        { status: 400 },
+      );
     }
 
     const industryDeposit = await db.industryDeposit.create({
@@ -39,23 +31,12 @@ export async function POST (req: NextRequest) {
   }
 }
 
-export async function GET (req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Token não enviado ou mal formatado" }, { status: 401 });
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
-
+export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+
     const industryDeposits = await db.industryDeposit.findMany({
       where: { companyId },
       include: {
@@ -63,7 +44,7 @@ export async function GET (req: NextRequest) {
           select: {
             product: true,
             quantity: true,
-          }
+          },
         },
       },
       orderBy: { name: "asc" },

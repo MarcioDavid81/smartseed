@@ -1,8 +1,8 @@
-import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { industryHarvestSchema } from "@/lib/schemas/industryHarvest"; // ⚠️ vamos remover o product daqui
 import { ProductType } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 /**
  * @swagger
@@ -66,25 +66,11 @@ import { ProductType } from "@prisma/client";
  *         description: Colheita indústria criada com sucesso
  */
 export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
-
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+
     const body = await req.json();
 
     // ✅ product não vem mais do front
@@ -97,9 +83,9 @@ export async function POST(req: NextRequest) {
             code: "INVALID_DATA",
             title: "Dados inválidos",
             message: parsed.error.issues[0].message,
-          }
+          },
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -122,10 +108,11 @@ export async function POST(req: NextRequest) {
           error: {
             code: "NOT_FOUND",
             title: "Ciclo não encontrado",
-            message: "O ciclo de produção não foi encontrado ou não pertence à empresa.",
-          }
+            message:
+              "O ciclo de produção não foi encontrado ou não pertence à empresa.",
+          },
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -168,10 +155,11 @@ export async function POST(req: NextRequest) {
         error: {
           code: "INTERNAL_SERVER_ERROR",
           title: "Erro interno do servidor",
-          message: "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
-        }
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -276,21 +264,9 @@ export async function POST(req: NextRequest) {
  */
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   const { searchParams } = new URL(req.url);
   const depositId = searchParams.get("depositId");
@@ -300,7 +276,7 @@ export async function GET(req: NextRequest) {
   try {
     const industryHarvests = await db.industryHarvest.findMany({
       where: {
-        companyId: payload.companyId,
+        companyId,
         ...(depositId ? { industryDepositId: depositId } : {}),
         ...(product ? { product: product as ProductType } : {}),
         ...(cycleId ? { cycleId } : {}),
@@ -334,8 +310,9 @@ export async function GET(req: NextRequest) {
         error: {
           code: "INTERNAL_SERVER_ERROR",
           title: "Erro interno do servidor",
-          message: "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
-        }
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
       },
       { status: 500 },
     );

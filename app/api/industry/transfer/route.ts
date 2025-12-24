@@ -1,7 +1,7 @@
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { ProductType } from "@prisma/client";
 
 /**
@@ -51,21 +51,10 @@ const createTransferSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: "Token não informado" },
-        { status: 401 },
-      );
-    }
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    const token = authHeader.split(" ")[1];
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-    }
-
-    const { companyId } = payload;
     const body = await req.json();
     const parsed = createTransferSchema.parse(body);
 
@@ -219,21 +208,9 @@ const querySchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: "Token não informado" },
-        { status: 401 },
-      );
-    }
-
-    const token = authHeader.split(" ")[1];
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-    }
-
-    const { companyId } = payload;
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
     const parsed = querySchema.parse(searchParams);

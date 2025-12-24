@@ -1,5 +1,5 @@
 import { validateIndustryStockForDeleteAdjust } from "@/app/_helpers/validateIndustryStockForDeleteAdjust";
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -8,27 +8,10 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const token = req.headers.get("Authorization")?.split(" ")[1];
-    if (!token) return NextResponse.json(      
-       { 
-        code: "UNAUTHORIZED",
-        title: "Token ausente",
-        message: "O token de autorização é necessário para acessar este recurso. Por favor, forneça um token válido e tente novamente.",
-       },
-      { status: 401 }
-    );
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    const payload = await verifyToken(token);
-    if (!payload) return NextResponse.json(
-      { 
-        code: "UNAUTHORIZED",
-        title: "Token inválido",
-        message: "O token fornecido é inválido. Por favor, obtenha um novo token e tente novamente.",
-      },
-      { status: 401 }
-    );
-
-    const { companyId } = payload;
     const { id } = params;
 
     const existingAdjust = await db.industryStockAdjustment.findUnique({

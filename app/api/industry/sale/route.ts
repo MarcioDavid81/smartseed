@@ -1,4 +1,3 @@
-import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { PaymentCondition, ProductType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -158,23 +157,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
   const cycleId = req.nextUrl.searchParams.get("cycleId");
 
   try {

@@ -1,4 +1,4 @@
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { industryTransporterSchema } from "@/lib/schemas/industryTransporter";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,11 +8,9 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
     const body = await req.json();
@@ -30,7 +28,7 @@ export async function PUT(
 
     const existing = await db.industryTransporter.findUnique({ where: { id } });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existing || existing.companyId !== companyId) {
       return new NextResponse("Transportador não encontrado ou acesso negado", {
         status: 403,
       });
@@ -53,36 +51,11 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "TOKEN_MISSING",
-            title: "Autenticação necessária",
-            message: "Token ausente.",
-          },
-        },
-        { status: 401 },
-      );
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "TOKEN_INVALID",
-            title: "Token inválido",
-            message: "Não foi possível validar suas credenciais.",
-          },
-        },
-        { status: 401 },
-      );
-    }
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
-    const { companyId } = payload;
 
     const existing = await db.industryTransporter.findUnique({
       where: { 
@@ -166,36 +139,11 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "TOKEN_MISSING",
-            title: "Autenticação necessária",
-            message: "Token ausente.",
-          },
-        },
-        { status: 401 },
-      );
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "TOKEN_INVALID",
-            title: "Token inválido",
-            message: "Não foi possível validar suas credenciais.",
-          },
-        },
-        { status: 401 },
-      );
-    }
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
-    const { companyId } = payload;
     
     const existing = await db.industryTransporter.findUnique({ 
       where: { id },

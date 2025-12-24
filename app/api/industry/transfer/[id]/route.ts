@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyToken } from "@/lib/auth";
 import { ProductType } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 const updateTransferSchema = z.object({
   date: z.coerce.date().optional(),
@@ -20,19 +21,9 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader)
-      return NextResponse.json(
-        { error: "Token não informado" },
-        { status: 401 },
-      );
-
-    const token = authHeader.split(" ")[1];
-    const payload = await verifyToken(token);
-    if (!payload)
-      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-
-    const { companyId } = payload;
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
     const transferId = params.id;
 
     // Busca transferência existente
@@ -174,30 +165,11 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json({
-        error: {
-          code: "TOKEN_MISSING",
-          title: "Autenticação necessária",
-          message: "Token ausente.",
-        }
-      }, { status: 401 });
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({
-        error: {
-          code: "TOKEN_INVALID",
-          title: "Token inválido",
-          message: "Não foi possível validar suas credenciais.",
-        },
-      }, { status: 401 });
-    }
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
-    const { companyId } = payload;
 
     const existing = await db.industryTransfer.findUnique({
       where: { id },

@@ -1,4 +1,4 @@
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { ProductType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,15 +8,12 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
     const data = await req.json();
-    const { companyId } = payload;
 
 
     // 🔎 Verifica se a colheita existe e pertence à empresa
@@ -24,7 +21,7 @@ export async function PUT(
       where: { id },
     });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existing || existing.companyId !== companyId) {
       return new NextResponse("Colheita não encontrada ou acesso negado", {
         status: 403,
       });
@@ -71,7 +68,7 @@ export async function PUT(
       stockChanges.push(
         db.industryStock.updateMany({
           where: {
-            companyId: payload.companyId,
+            companyId: companyId,
             industryDepositId: existing.industryDepositId,
             product: existing.product,
           },
@@ -95,7 +92,7 @@ export async function PUT(
             quantity: { increment: weightToUse },
           },
           create: {
-            companyId: payload.companyId,
+            companyId: companyId,
             product: productToUse,
             industryDepositId: depositToUse,
             quantity: weightToUse,
@@ -110,7 +107,7 @@ export async function PUT(
       stockChanges.push(
         db.industryStock.updateMany({
           where: {
-            companyId: payload.companyId,
+            companyId: companyId,
             industryDepositId: existing.industryDepositId,
             product: existing.product,
           },
@@ -148,36 +145,11 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "TOKEN_MISSING",
-            title: "Autenticação necessária",
-            message: "Token ausente.",
-          },
-        },
-        { status: 401 },
-      );
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "TOKEN_INVALID",
-            title: "Token inválido",
-            message: "Não foi possível validar suas credenciais.",
-          },
-        },
-        { status: 401 },
-      );
-    }
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
-    const { companyId } = payload;
 
     const existing = await db.industryHarvest.findUnique({
       where: { id },
