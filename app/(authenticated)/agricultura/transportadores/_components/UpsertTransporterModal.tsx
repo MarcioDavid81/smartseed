@@ -12,7 +12,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 import { IndustryTransporter } from "@/types";
 import { industryTransporterSchema, IndustryTransporterFormData } from "@/lib/schemas/industryTransporter";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";

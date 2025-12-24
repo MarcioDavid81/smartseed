@@ -3,7 +3,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getToken } from "@/lib/auth-client";

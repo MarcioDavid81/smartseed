@@ -8,8 +8,6 @@ import { IndustrySale, IndustryTransfer } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getToken } from "@/lib/auth-client";
-// import DeleteSaleButton from "./DeleteSaleButton";
-// import EditSaleButton from "./EditSaleButton";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { AgroLoader } from "@/components/agro-loader";
 import { TransferDataTable } from "./TransferDataTable";

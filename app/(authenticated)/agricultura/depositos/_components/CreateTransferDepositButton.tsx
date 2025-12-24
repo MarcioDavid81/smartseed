@@ -1,7 +1,7 @@
 "use client";
 
 import HoverButton from "@/components/HoverButton";
-import { ArrowLeftIcon, ArrowLeftRightIcon, PlusIcon } from "lucide-react";
+import { ArrowLeftRightIcon } from "lucide-react";
 import { useState } from "react";
 import { IndustryTransfer } from "@/types";
 import UpsertTransferDepositModal from "./UpsertTransferDepositModal";
