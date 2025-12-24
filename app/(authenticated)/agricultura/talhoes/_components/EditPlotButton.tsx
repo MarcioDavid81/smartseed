@@ -13,10 +13,9 @@ import UpsertPlotModal from "./UpsertPlotModal";
 
 interface Props {
   talhao: Talhao;
-  onUpdated: () => void;
 }
 
-const EditPlotButton = ({ talhao, onUpdated }: Props) => {
+const EditPlotButton = ({ talhao }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -39,7 +38,6 @@ const EditPlotButton = ({ talhao, onUpdated }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         talhao={talhao}
-        onUpdated={onUpdated}
       />
     </>
   );

@@ -17,69 +17,26 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useHarvest } from "@/contexts/HarvestContext";
-import { getToken } from "@/lib/auth-client";
 import { Talhao } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
+import { useDeletePlot } from "@/queries/registrations/use-delete-plot";
 
 
 interface Props {
   talhao: Talhao;
-  onDeleted: () => void;
 }
 
-const DeletePlotButton = ({ talhao, onDeleted }: Props) => {
+const DeletePlotButton = ({ talhao }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchHarvests } = useHarvest();
 
-  const handleDelete = async (talhao: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 produto recebido:", talhao);
+  const { mutate, isPending } = useDeletePlot();
 
-    if (!talhao || !talhao.id) {
-      toast.error("ID do talhão ausente. Não é possível excluir.");
-      console.warn("❌ talhao.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/plots/${talhao.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar talhão:", errorText);
-        throw new Error(errorText);
-      }
-
-      toast.success("Talhão deletado com sucesso!");
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar talhão.");
-    } finally {
-      setLoading(false);
-    }
-
-    await fetchHarvests();
+  const handleConfirmDelete = () => {
+    mutate(talhao.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -113,13 +70,13 @@ const DeletePlotButton = ({ talhao, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(talhao)}
-              disabled={loading}
+              onClick={() => handleConfirmDelete()}
+              disabled={isPending}
               variant="ghost"
               className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>
