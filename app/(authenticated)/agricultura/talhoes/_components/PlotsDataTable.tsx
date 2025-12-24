@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import CreatePlotButton from "./CreatePlotButton";
-import { FunnelX } from "lucide-react";
+import { FunnelX, FunnelXIcon } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
