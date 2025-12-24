@@ -1,4 +1,4 @@
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -27,26 +27,18 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Fazenda criada com sucesso
  */
 export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Token não enviado ou mal formatado" }, { status: 401 });
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { userId, companyId } = payload;
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   try {
     const { name, area } = await req.json();
 
     if (!name || !area) {
-      return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Campos obrigatórios faltando" },
+        { status: 400 },
+      );
     }
 
     const farm = await db.farm.create({
@@ -87,7 +79,7 @@ export async function POST(req: NextRequest) {
  *                     type: string
  *                   name:
  *                     type: string
- *                   talhoes: 
+ *                   talhoes:
  *                     type: array
  *                     items:
  *                       type: object
@@ -100,20 +92,9 @@ export async function POST(req: NextRequest) {
  *         description: Token ausente ou inválido
  */
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Token não enviado ou mal formatado" }, { status: 401 });
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   try {
     const farms = await db.farm.findMany({

@@ -1,6 +1,6 @@
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-
 
 /**
  * @swagger
@@ -26,20 +26,35 @@ import { NextRequest, NextResponse } from "next/server";
  *       200:
  *         description: Fazenda atualizada com sucesso
  */
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
     const { name, area } = await req.json();
     const { id } = params;
 
     const farm = await db.farm.update({
-      where: { id },
+      where: { id, companyId },
       data: { name, area },
     });
 
     return NextResponse.json(farm, { status: 200 });
   } catch (error) {
     console.error("Erro ao atualizar fazenda:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json(
+      { 
+        error: {
+          code: "INTERNAL_ERROR",
+          title: "Erro interno",
+          message: "Erro interno no servidor",
+        }
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -69,15 +84,54 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
  *       500:
  *         description: Erro interno no servidor
  */
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
     const { id } = params;
 
-    await db.farm.delete({ where: { id } });
+    const farmPlot = await db.talhao.findMany({
+      where: { farmId: id, companyId },
+    });
 
-    return NextResponse.json({ message: "Fazenda deletada com sucesso" }, { status: 200 });
+    if (farmPlot.length > 0) {
+      return NextResponse.json(
+        { 
+          error: {
+            code: "FARM_PLOT_ASSOCIATED",
+            title: "Erro ao deletar fazenda",
+            message: "Fazenda possui talhões associados",
+          }
+         },
+        { status: 400 },
+      );
+    }
+
+    await db.farm.delete({ where: { id, companyId } });
+
+    return NextResponse.json(
+      { 
+        code: "FARM_DELETED",
+        title: "Fazenda deletada com sucesso",
+        message: "Fazenda deletada com sucesso",
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Erro ao deletar fazenda:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json(
+      { 
+        error: {
+          code: "INTERNAL_ERROR",
+          title: "Erro interno",
+          message: "Erro interno no servidor",
+        }
+      },
+      { status: 500 },
+    );
   }
 }
