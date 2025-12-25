@@ -2,11 +2,12 @@
 import { useState } from "react";
 import { LogOutIcon } from "lucide-react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 import HoverButton from "@/components/HoverButton";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 export default function LogoutButton() {
   const [loading, setLoading] = useState(false);
+  const { showToast } = useSmartToast();
 
   const handleLogout = async () => {
     setLoading(true);
@@ -17,14 +18,22 @@ export default function LogoutButton() {
       });
 
       if (response.ok) {
-        toast.success("Logout bem-sucedido");
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: "Logout bem-sucedido!",
+        });
         // Força uma atualização completa do estado da aplicação
         window.location.href = "/";
       } else {
         throw new Error("Falha ao fazer logout");
       }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Erro ao fazer logout");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: error instanceof Error ? error.message : "Erro ao fazer logout",
+      });
     } finally {
       setLoading(false);
     }

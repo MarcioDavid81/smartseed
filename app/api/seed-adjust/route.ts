@@ -81,6 +81,10 @@ export async function GET(req: NextRequest) {
     const adjustments = await db.seedStockAdjustment.findMany({
       where: { companyId },
       include: { cultivar: true },
+      orderBy: [
+        { date: "asc" },
+        { createdAt: "asc" },
+      ]
     });
 
     return NextResponse.json(adjustments);

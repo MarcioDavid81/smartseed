@@ -92,6 +92,7 @@ export async function GET(req: NextRequest) {
       ...harvests.map((item) => ({
         id: item.id,
         date: item.date,
+        createdAt: item.createdAt,
         quantity: Number(item.weightLiq),
         type: "ENTRY" as const,
         origin: "HARVEST" as const,
@@ -101,6 +102,7 @@ export async function GET(req: NextRequest) {
       ...discards.map((item) => ({
         id: item.id,
         date: item.date,
+        createdAt: item.createdAt,
         quantity: Number(item.quantityKg),
         type: "ENTRY" as const,
         origin: "DISCARD" as const,
@@ -110,6 +112,7 @@ export async function GET(req: NextRequest) {
       ...sales.map((item) => ({
         id: item.id,
         date: item.date,
+        createdAt: item.createdAt,
         quantity: Number(item.weightLiq),
         type: "EXIT" as const,
         origin: "SALE" as const,
@@ -120,6 +123,7 @@ export async function GET(req: NextRequest) {
       ...transfersOut.map((item) => ({
         id: item.id,
         date: item.date,
+        createdAt: item.createdAt,
         quantity: Number(item.quantity),
         type: "EXIT" as const,
         origin: "TRANSFER" as const,
@@ -130,6 +134,7 @@ export async function GET(req: NextRequest) {
       ...transfersIn.map((item) => ({
         id: item.id,
         date: item.date,
+        createdAt: item.createdAt,
         quantity: Number(item.quantity),
         type: "ENTRY" as const,
         origin: "TRANSFER" as const,
@@ -140,6 +145,7 @@ export async function GET(req: NextRequest) {
       ...adjustments.map((item) => ({
         id: item.id,
         date: item.date,
+        createdAt: item.date,
         quantity: Math.abs(Number(item.quantityKg)),
         type: item.quantityKg > 0 ? ("ENTRY" as const) : ("EXIT" as const),
         origin: "ADJUSTMENT" as const,
@@ -152,6 +158,7 @@ export async function GET(req: NextRequest) {
       ...transformations.map((item) => ({
         id: item.id,
         date: item.date,
+        createdAt: item.createdAt,
         quantity: Number(item.quantityKg),
         type: "ENTRY" as const,
         origin: "TRANSFORMATION" as const,
@@ -160,9 +167,18 @@ export async function GET(req: NextRequest) {
     ];
 
     // ✅ 8. ORDENAÇÃO CRESCENTE PARA CÁLCULO
-    statement.sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-    );
+    statement.sort((a, b) => {
+  const dateDiff =
+    new Date(a.date).getTime() - new Date(b.date).getTime();
+
+  if (dateDiff !== 0) return dateDiff;
+
+  return (
+    new Date(a.createdAt).getTime() -
+    new Date(b.createdAt).getTime()
+  );
+});
+
 
     // ✅ 9. SALDO ACUMULADO CORRETO
     let balance = 0;
