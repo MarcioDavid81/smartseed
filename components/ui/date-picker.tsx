@@ -28,7 +28,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange }) => {
             !date && "text-muted-foreground",
           )}
         >
-          <CalendarIcon className="mr-1 h-4 w-4" />
+          <CalendarIcon className="mr-1 h-4 w-4 hidden md:block" />
           {date ? (
             date.toLocaleDateString("pt-BR", {
               day: "2-digit",

@@ -218,7 +218,7 @@ const onSubmit = (data: IndustryHarvestFormData) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-hidden rounded-2xl">
         <DialogHeader>
           <DialogTitle>Colheita</DialogTitle>
           <DialogDescription>
