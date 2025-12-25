@@ -1,32 +1,10 @@
 import type { Metadata } from "next";
 import "../globals.css";
-import Sidebar from "./_components/Sidebar";
-import { Toaster } from "sonner";
-import { UserProvider } from "@/contexts/UserContext";
-import { getCompanyFromToken, getUserFromToken } from "@/lib/auth";
-import { StockProvider } from "@/contexts/StockContext";
-import { CompanyProvider } from "@/contexts/CompanyContext";
-import { HarvestProvider } from "@/contexts/HarvestContext";
 import roboto from "next/font/local";
-import { BuyProvider } from "@/contexts/BuyContext";
-import { SaleProvider } from "@/contexts/SaleContext";
-import { BeneficiationProvider } from "@/contexts/BeneficiationContext";
-import { ConsumptionProvider } from "@/contexts/ConsumptionContext";
 import { MobileMenu } from "./_components/MenuMobile";
-import { CycleProvider } from "@/contexts/CycleContext";
-import { InsumoStockProvider } from "@/contexts/InsumoStockContext";
-import { PurchaseProvider } from "@/contexts/PurchaseContext";
-import { ApplicationProvider } from "@/contexts/ApplicationContext";
-import { TransferProvider } from "@/contexts/TransferContext";
-import { ReceivableProvider } from "@/contexts/ReceivableContext";
-import { PayableProvider } from "@/contexts/PayableContext";
-import { IndustryHarvestProvider } from "@/contexts/IndustryHarvestContext";
 import NewSidebar from "./_components/new-sidebar/sidebar";
-import { IndustryStockProvider } from "@/contexts/IndustryStockContext";
-import { IndustrySaleProvider } from "@/contexts/IndustrySaleContext";
-import { IndustryTransferProvider } from "@/contexts/IndustryTransferContext";
-import { ToastProvider } from "@/contexts/ToastContext";
-import TanstackProvider from "@/providers/tanstack"
+import { AppProviders } from "@/providers/AppProviders";
+import { getCompanyFromToken, getUserFromToken } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 const robotoFont = roboto({
@@ -84,11 +62,13 @@ export const metadata: Metadata = {
   },
 };
 
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   const user = await getUserFromToken();
   const company = await getCompanyFromToken();
   if (!user || !company) {
@@ -96,19 +76,18 @@ export default async function RootLayout({
 }
 
   const safeUser = {
-  id: user.id,
-  name: user.name,
-  email: user.email,
-  companyId: user.companyId,
-  company: {
-    id: company.id,
-    name: company.name,
-    plan: company.plan ?? "",
-  },
-  imageUrl: user.imageUrl ?? "",
-  role: user.role ?? "USER",
-};
-  console.log("Vieram os dados fdp", safeUser);
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    companyId: user.companyId,
+    company: {
+      id: company.id,
+      name: company.name,
+      plan: company.plan ?? "",
+    },
+    imageUrl: user.imageUrl ?? "",
+    role: user.role ?? "USER",
+  };
 
   const safeCompany = company
     ? {
@@ -117,59 +96,17 @@ export default async function RootLayout({
         plan: company.plan ?? "",
       }
     : null;
-  console.log("vieram aqui tbm corno", safeCompany);
 
   return (
     <html lang="pt-BR">
       <body
         className={`${robotoFont.className} min-h-screen w-full antialiased md:flex`}
       >
-        <TanstackProvider>
-          <CompanyProvider name={safeCompany}>
-          <InsumoStockProvider>
-            <StockProvider>
-              <UserProvider user={safeUser}>
-                <HarvestProvider>
-                  <BuyProvider>
-                    <SaleProvider>
-                      <BeneficiationProvider>
-                        <ConsumptionProvider>
-                          <CycleProvider>
-                            <PurchaseProvider>
-                              <ApplicationProvider>
-                                <TransferProvider>
-                                  <ReceivableProvider>
-                                    <PayableProvider>
-                                      <IndustryHarvestProvider>
-                                        <IndustryStockProvider>
-                                          <IndustrySaleProvider>
-                                            <IndustryTransferProvider>
-                                              <NewSidebar />
-                                              <MobileMenu />
-                                              <ToastProvider>
-                                                {children}
-                                              </ToastProvider>
-                                              <Toaster richColors />
-                                            </IndustryTransferProvider>
-                                          </IndustrySaleProvider>
-                                        </IndustryStockProvider>
-                                      </IndustryHarvestProvider>
-                                    </PayableProvider>
-                                  </ReceivableProvider>
-                                </TransferProvider>
-                              </ApplicationProvider>
-                            </PurchaseProvider>
-                          </CycleProvider>
-                        </ConsumptionProvider>
-                      </BeneficiationProvider>
-                    </SaleProvider>
-                  </BuyProvider>
-                </HarvestProvider>
-              </UserProvider>
-            </StockProvider>
-          </InsumoStockProvider>
-        </CompanyProvider>
-        </TanstackProvider>
+        <AppProviders user={safeUser} company={safeCompany}>
+          <NewSidebar />
+          <MobileMenu />
+          {children}
+        </AppProviders>                                                
       </body>
     </html>
   );
