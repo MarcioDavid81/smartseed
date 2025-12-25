@@ -12,6 +12,15 @@ export async function getHarvestsByCycle(
   return data.filter((industryHarvest) => industryHarvest.weightLiq > 0);
 }
 
+export async function getHarvestById(
+  harvestId: string
+): Promise<IndustryHarvest> {
+  const data = await apiFetch<IndustryHarvest>(
+    `/api/industry/harvest/${harvestId}`
+  );
+
+  return data;
+}
 
 type UpsertHarvestParams = {
   data: IndustryHarvestFormData;

@@ -234,3 +234,70 @@ export async function DELETE(
   }
 }
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+
+    const { id } = params;
+
+    const existing = await db.industryHarvest.findUnique({
+      where: { id },
+      include: {
+        talhao: {
+          select: {
+            name: true,
+            farm: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        industryDeposit: {
+          select: {
+            name: true,
+          },
+        },
+        industryTransporter: {
+          select: {
+            name: true,
+          },
+        }
+      },
+    });
+
+    if (!existing || existing.companyId !== companyId) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "HARVEST_NOT_FOUND",
+            title: "Colheita não encontrada",
+            message:
+              "A colheita não foi localizada ou você não tem permissão para acessá-la.",
+          },
+        },
+        { status: 403 },
+      );
+    }
+
+    return NextResponse.json(existing, { status: 200 });
+  } catch (error) {
+    console.error("Erro ao buscar colheita:", error);
+    return NextResponse.json(
+      {
+        error: {
+          code: "HARVEST_FETCH_ERROR",
+          title: "Erro ao buscar colheita",
+          message:
+            "Ocorreu um erro inesperado durante a tentativa de buscar a colheita.",
+        },
+      },
+      { status: 500 },
+    );
+  }
+}
