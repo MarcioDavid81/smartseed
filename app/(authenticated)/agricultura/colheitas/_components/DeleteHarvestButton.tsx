@@ -60,8 +60,8 @@ const DeleteHarvestButton = ({ colheita, disabled = false }: Props) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 if (disabled) {
                   showToast({
                     type: "error",

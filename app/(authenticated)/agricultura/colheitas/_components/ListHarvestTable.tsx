@@ -94,7 +94,7 @@ export function ListHarvestTable() {
       cell: ({ row }) => {
         const colheita = row.original;
         return (
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4" onClick={(e) => e.stopPropagation()}>
             <EditHarvestButton colheita={colheita} />
             <DeleteHarvestButton colheita={colheita} disabled={!canDelete} />
           </div>

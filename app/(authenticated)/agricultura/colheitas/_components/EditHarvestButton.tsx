@@ -23,7 +23,10 @@ const UpsertHarvestButton = ({ colheita }: Props) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => setIsOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen(true);
+              }}
               className="hover:opacity-80 transition"
             >
               <SquarePenIcon size={20} className="text-green" />
