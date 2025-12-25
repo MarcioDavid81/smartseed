@@ -13,7 +13,7 @@ export function useDeleteIndustryTransporter() {
       showToast({
         type: "success",
         title: "Sucesso",
-        message: "Ajuste de estoque excluído com sucesso!",
+        message: "Transportador excluído com sucesso!",
       });
 
       queryClient.invalidateQueries({

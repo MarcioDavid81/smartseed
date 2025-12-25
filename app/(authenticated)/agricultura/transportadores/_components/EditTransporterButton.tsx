@@ -13,10 +13,9 @@ import UpsertIndustryTransporterModal from "./UpsertTransporterModal";
 
 interface Props {
   industryTransporter: IndustryTransporter;
-  onUpdated: () => void;
 }
 
-const EditIndustryTransporterButton = ({ industryTransporter, onUpdated }: Props) => {
+const EditIndustryTransporterButton = ({ industryTransporter }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -39,7 +38,6 @@ const EditIndustryTransporterButton = ({ industryTransporter, onUpdated }: Props
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         industryTransporter={industryTransporter}
-        onUpdated={onUpdated}
       />
     </>
   );

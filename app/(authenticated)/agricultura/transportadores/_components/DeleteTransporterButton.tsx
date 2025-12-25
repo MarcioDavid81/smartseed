@@ -17,103 +17,25 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useHarvest } from "@/contexts/HarvestContext";
-import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
+import { useDeleteIndustryTransporter } from "@/queries/industry/use-delete-industry-transporter";
 import { IndustryTransporter } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 
 interface Props {
   industryTransporter: IndustryTransporter;
-  onDeleted: () => void;
 }
 
-const DeleteIndustryTransporterButton = ({ industryTransporter, onDeleted }: Props) => {
+const DeleteIndustryTransporterButton = ({ industryTransporter }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchHarvests } = useHarvest();
-  const { showToast } = useSmartToast();
+  const { mutate, isPending } = useDeleteIndustryTransporter();
 
-  const handleDelete = async (industryTransporter: IndustryTransporter) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 transportador recebido:", industryTransporter);
-
-    if (!industryTransporter || !industryTransporter.id) {
-      showToast({
-        type: "error",
-        title: "ID do transportador ausente",
-        message: "Não é possível excluir um transportador sem um ID válido.",
-      });
-      console.warn("❌ industryTransporter.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/industry/transporter/${industryTransporter.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-          // ❌ SE A API RETORNOU ERRO
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-
-      console.error("Erro da API:", data);
-
-      // Tratamento para erros estruturados
-      if (data?.error) {
-        showToast({
-          type: "error",
-          title: data.error.title,
-          message: data.error.message,
-        });
-      } else {
-        // fallback
-        showToast({
-          type: "error",
-          title: "Erro",
-          message: "Erro ao deletar transportador.",
-        });
-      }
-
-      return; // evita continuar
-    }
-
-      // ✔ Sucesso
-      showToast({
-        type: "success",
-        title: "Transportador excluído",
-        message: "O transportador foi excluído com sucesso.",
-      });
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "Erro ao deletar transportador.",
-      });
-    } finally {
-      setLoading(false);
-    }
-
-    await fetchHarvests();
+  const handleConfirmDelete = () => {
+    mutate(industryTransporter.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -125,7 +47,7 @@ const DeleteIndustryTransporterButton = ({ industryTransporter, onDeleted }: Pro
               onClick={() => setIsOpen(true)}
               className="hover:opacity-80 transition"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+              <Trash2Icon size={20} className="text-red" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -147,13 +69,13 @@ const DeleteIndustryTransporterButton = ({ industryTransporter, onDeleted }: Pro
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(industryTransporter)}
-              disabled={loading}
+              onClick={() => handleConfirmDelete()}
+              disabled={isPending}
               variant="ghost"
               className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>

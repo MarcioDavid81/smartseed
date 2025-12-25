@@ -17,11 +17,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useDeletePlot } from "@/queries/registrations/use-delete-plot";
 import { Talhao } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { useDeletePlot } from "@/queries/registrations/use-delete-plot";
 
 
 interface Props {
@@ -30,7 +30,6 @@ interface Props {
 
 const DeletePlotButton = ({ talhao }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-
   const { mutate, isPending } = useDeletePlot();
 
   const handleConfirmDelete = () => {
@@ -48,7 +47,7 @@ const DeletePlotButton = ({ talhao }: Props) => {
               onClick={() => setIsOpen(true)}
               className="hover:opacity-80 transition"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+              <Trash2Icon size={20} className="text-red" />
             </button>
           </TooltipTrigger>
           <TooltipContent>

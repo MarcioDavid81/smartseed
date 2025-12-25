@@ -7,30 +7,27 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { getToken } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { IndustryTransporter } from "@/types";
 import { industryTransporterSchema, IndustryTransporterFormData } from "@/lib/schemas/industryTransporter";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useSmartToast } from "@/contexts/ToastContext";
+import { useUpsertIndustryTransporter } from "@/queries/industry/use-upsert-industry-transporter";
 
 interface UpsertIndustryTransporterModalProps {
   industryTransporter?: IndustryTransporter;
   isOpen: boolean;
   onClose: () => void;
-  onUpdated?: () => void;
 }
 
 const UpsertIndustryTransporterModal = ({
   industryTransporter,
   isOpen,
   onClose,
-  onUpdated,
 }: UpsertIndustryTransporterModalProps) => {
-  const [loading, setLoading] = useState(false);
   const { showToast } = useSmartToast();
 
   const form = useForm<IndustryTransporterFormData>({
@@ -64,59 +61,34 @@ const UpsertIndustryTransporterModal = ({
     }
   }, [industryTransporter, isOpen, form]);
 
-  const onSubmit = async (data: IndustryTransporterFormData) => {
-    setLoading(true);
-    const token = getToken();
-    if (!token) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "Usuário não autenticado.",
-      });
-      setLoading(false);
-      return;
-    }
-    
-    const url = industryTransporter
-      ? `/api/industry/transporter/${industryTransporter.id}`
-      : "/api/industry/transporter";
-    const method = industryTransporter ? "PUT" : "POST";
+  const { mutate, isPending } = useUpsertIndustryTransporter ({
+    transporterId: industryTransporter?.id
+  })
 
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        ...data,
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: result.error || "Erro ao salvar transportador.",
-      });
-      setLoading(false);
-    } else {
-      showToast({
-        type: "success",
-        title: "Sucesso",
-        message: industryTransporter
+  const onSubmit = (data: IndustryTransporterFormData) => {
+    mutate(data, {
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: industryTransporter
           ? "Transportador atualizado com sucesso!"
-          : "Transportador cadastrado com sucesso!",
+          : "Transportador cadastrado com sucesso!"
+        });
+        onClose(),
+        form.reset();
+      },
+      onError: (error: Error) => {
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: error.message || `Erro ao ${
+          industryTransporter ? "atualizar" : "criar"
+        } transportador.`,
       });
-      onClose();
-      form.reset();
-      if (onUpdated) onUpdated();
-    }
-
-    setLoading(false);
-  };
+    },
+    })
+  }
 
   useEffect(() => {
     if (!isOpen) form.reset();
@@ -239,10 +211,10 @@ const UpsertIndustryTransporterModal = ({
             </div>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="mt-4 w-full bg-green text-white"
             >
-              {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+              {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
             </Button>
           </form>
         </Form>

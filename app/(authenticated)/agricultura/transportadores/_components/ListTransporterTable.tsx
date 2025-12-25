@@ -1,44 +1,26 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import { IndustryTransporter } from "@/types";
 import EditIndustryTransporterButton from "./EditTransporterButton";
 import DeleteIndustryTransporterButton from "./DeleteTransporterButton";
 import { IndustryTransporterDataTable } from "./TransporterDataTable";
 import { AgroLoader } from "@/components/agro-loader";
+import { useIndustryTransporters } from "@/queries/industry/use-transporter-query";
 
 
 
 export function IndustryTransporterGetTable() {
-  const [industryTransporter, setIndustryTransporter] = useState<IndustryTransporter[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  async function fetchTransporters() {
-    try {
-      const token = getToken();
-      const res = await fetch("/api/industry/transporter", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      console.table(data);
-      setIndustryTransporter(data);
-    } catch (error) {
-      console.error("Erro ao buscar transportadores:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchTransporters();
-  }, []);
+  
+  const {
+        data: transporters = [],
+        isLoading,
+        isFetching,
+        refetch,
+      } = useIndustryTransporters();
 
   const columns: ColumnDef<IndustryTransporter>[] = [
     {
@@ -77,8 +59,8 @@ export function IndustryTransporterGetTable() {
         const product = row.original
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditIndustryTransporterButton industryTransporter={product} onUpdated={fetchTransporters} />
-            <DeleteIndustryTransporterButton industryTransporter={product} onDeleted={fetchTransporters} />
+            <EditIndustryTransporterButton industryTransporter={product} />
+            <DeleteIndustryTransporterButton industryTransporter={product} />
           </div>
         );
       },
@@ -89,14 +71,14 @@ export function IndustryTransporterGetTable() {
     <Card className="p-4 font-light dark:bg-primary">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Transportadores</h2>
-        <Button variant={"ghost"} onClick={fetchTransporters} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <IndustryTransporterDataTable columns={columns} data={industryTransporter} />
+        <IndustryTransporterDataTable columns={columns} data={transporters} />
       )}
     </Card>
   );

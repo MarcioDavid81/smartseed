@@ -2,8 +2,8 @@ import { IndustryTransporter } from "@/types";
 import { apiFetch } from "../api";
 import { IndustryTransporterFormData } from "@/lib/schemas/industryTransporter";
 
-export async function getIndustryTransporter(): Promise<IndustryTransporter> {
-  const data = await apiFetch<IndustryTransporter>(
+export async function getIndustryTransporters(): Promise<IndustryTransporter[]> {
+  const data = await apiFetch<IndustryTransporter[]>(
     `/api/industry/transporter`,
   );
   return data;
