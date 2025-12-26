@@ -1,17 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { hash } from "bcryptjs";
+import { getAuthUserOrThrow, requireAdmin, verifyToken } from "@/lib/auth";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { db } from "@/lib/prisma";
-import { v2 as cloudinary } from "cloudinary";
-import { getUserFromToken, verifyToken } from "@/lib/auth";
-import { ensureAdmin } from "@/lib/ensureAdmin";
+import { createUserSchema } from "@/lib/schemas/userSchema";
 import { sendUserWelcomeEmail } from "@/lib/send-user-welcome";
+import { Role } from "@prisma/client";
+import { hash } from "bcryptjs";
+import { NextRequest, NextResponse } from "next/server";
 
-// Configuração do Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
-  api_key: process.env.CLOUDINARY_API_KEY!,
-  api_secret: process.env.CLOUDINARY_API_SECRET!,
-});
 
 /**
  * @swagger
@@ -23,7 +18,7 @@ cloudinary.config({
  *     requestBody:
  *       required: true
  *       content:
- *         aplication/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -50,105 +45,73 @@ cloudinary.config({
  */
 export async function POST(req: NextRequest) {
   try {
-    const authUser = await getUserFromToken();
-    ensureAdmin(authUser);
-  } catch (err) {
-    return NextResponse.json(
-      { error: "Acesso não autorizado" },
-      { status: 403 }
-    );
-  }
+    const authUser = await getAuthUserOrThrow();
+    requireAdmin(authUser)
+    const formData = await req.formData();
+    const rawData = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+    };
 
-  const formData = await req.formData();
-
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const companyId = formData.get("companyId") as string;
-  const avatar = formData.get("avatar") as File | null;
-
-  if (!name || !email || !password || !companyId) {
-    return NextResponse.json(
-      { error: "Campos obrigatórios faltando" },
-      { status: 400 }
-    );
-  }
-
-  let imageUrl: string | null = null;
-
-  if (avatar && avatar.size > 0) {
-    try {
-      const bytes = await avatar.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const base64 = buffer.toString("base64");
-      const dataUrl = `data:${avatar.type};base64,${base64}`;
-
-      const uploaded = await cloudinary.uploader.upload(dataUrl, {
-        folder: "avatars",
-      });
-
-      imageUrl = uploaded.secure_url;
-    } catch (err) {
-      console.error("Erro ao fazer upload no Cloudinary:", err);
+    const parsed = createUserSchema.safeParse(rawData);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Erro ao salvar imagem" },
-        { status: 500 }
-      );
-    }
-  }
-
-  try {
-    // Verifica se a empresa existe
-    const company = await db.company.findUnique({ where: { id: companyId } });
-    if (!company) {
-      return NextResponse.json(
-        { error: "Empresa não encontrada" },
-        { status: 404 }
+        { error: parsed.error.flatten().fieldErrors },
+        { status: 400 },
       );
     }
 
-    // Verifica se o email já está cadastrado
+    const { name, email, password } = parsed.data;
+    const avatar = formData.get("avatar") as File | null;
+
+    console.log("avatar raw:", avatar);
+    console.log("is File:", avatar instanceof File);
+
+    let imageUrl: string | null = null;
+    if (avatar && avatar.size > 0) {
+      imageUrl = await uploadImageToCloudinary(avatar);
+    }
+
     const existingUser = await db.user.findUnique({ where: { email } });
     if (existingUser) {
       return NextResponse.json(
         { error: "Email já cadastrado" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Cria o usuário
     const hashedPassword = await hash(password, 10);
+
     const user = await db.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
-        companyId,
         imageUrl,
-        role: "USER",
+        role: Role.USER,
+        companyId: authUser.companyId,
       },
     });
 
-    // Envia o e-mail de boas-vindas
     await sendUserWelcomeEmail({
       name: user.name,
       email: user.email,
-      companyName: company.name,
+      companyName: authUser.company.name,
     });
 
     return NextResponse.json(
-      { success: true, userId: user.id },
-      { status: 201 }
+      { success: true, user },
+      { status: 201 },
     );
-  } catch (err) {
-    console.error("Erro ao criar usuário:", err);
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
-      { error: "Erro interno ao criar o usuário" },
-      { status: 500 }
+      { error: "Erro interno ao criar usuário" },
+      { status: 500 },
     );
   }
 }
-
 /**
  * @swagger
  * /api/auth/register:
@@ -190,7 +153,7 @@ export async function GET(req: NextRequest) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
       { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -220,7 +183,7 @@ export async function GET(req: NextRequest) {
     console.error("Erro ao listar usuários:", error);
     return NextResponse.json(
       { error: "Erro interno ao listar usuários" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
