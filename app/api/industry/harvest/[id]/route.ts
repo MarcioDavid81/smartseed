@@ -15,7 +15,6 @@ export async function PUT(
     const { id } = params;
     const data = await req.json();
 
-
     // 🔎 Verifica se a colheita existe e pertence à empresa
     const existing = await db.industryHarvest.findUnique({
       where: { id },
@@ -30,7 +29,10 @@ export async function PUT(
     // 🔄 Vamos determinar os alvos finais de depósito, produto e peso
     // com base nos dados enviados e no estado atual.
     // Em seguida, ajustaremos o estoque de acordo.
-    const stockChanges = [] as Array<ReturnType<typeof db.industryStock.updateMany> | ReturnType<typeof db.industryStock.upsert>>;
+    const stockChanges = [] as Array<
+      | ReturnType<typeof db.industryStock.updateMany>
+      | ReturnType<typeof db.industryStock.upsert>
+    >;
 
     // 🧠 Busca o produto do ciclo, se um novo ciclo foi fornecido; caso contrário, usa o produto atual
     let productToUse: ProductType = existing.product;
@@ -99,11 +101,15 @@ export async function PUT(
           },
         }),
       );
-    } else if (typeof data.weightLiq !== "undefined" && data.weightLiq !== existing.weightLiq) {
+    } else if (
+      typeof data.weightLiq !== "undefined" &&
+      data.weightLiq !== existing.weightLiq
+    ) {
       // Se só o peso mudou, ajusta o estoque no mesmo depósito
-      const diff = (typeof data.weightLiq === "number"
-        ? data.weightLiq
-        : Number(data.weightLiq)) - existing.weightLiq.toNumber();
+      const diff =
+        (typeof data.weightLiq === "number"
+          ? data.weightLiq
+          : Number(data.weightLiq)) - existing.weightLiq.toNumber();
       stockChanges.push(
         db.industryStock.updateMany({
           where: {
@@ -248,6 +254,11 @@ export async function GET(
     const existing = await db.industryHarvest.findUnique({
       where: { id },
       include: {
+        company: {
+          select: {
+            name: true,
+          },
+        },
         talhao: {
           select: {
             name: true,
@@ -267,7 +278,7 @@ export async function GET(
           select: {
             name: true,
           },
-        }
+        },
       },
     });
 

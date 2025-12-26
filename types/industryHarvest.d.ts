@@ -39,4 +39,8 @@ export interface IndustryHarvest {
   adjust_kg?: number;
   weightLiq: number;
   companyId: string;
+  company: {
+    id: string;
+    name: string;
+  }
 }

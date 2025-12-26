@@ -8,6 +8,8 @@ import { useIndustryHarvest } from "@/queries/industry/use-harvest-query"
 import { format } from "date-fns"
 import { motion } from "framer-motion"
 import { Discount, Info } from "./Auxiliares"
+import GenerateRomaneioButton from "./GenerateRomaneioButton"
+import { formatNumber } from "@/app/_helpers/currency"
 
 interface HarvestDetailsModalProps {
   harvestId?: string | null
@@ -107,17 +109,17 @@ export function HarvestDetailsModal({
               <h3 className="font-semibold mb-2">Descontos</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <Discount
-                  label="Umidade"
-                  percent={data.humidity_percent}
-                  kg={data.humidity_kg}
-                />
-                <Discount
                   label="Impurezas"
                   percent={data.impurities_discount}
                   kg={data.impurities_kg}
                 />
-                <Info label="Taxas" value={`${data.tax_kg} kg`} />
-                <Info label="Ajuste" value={`${data.adjust_kg} kg`} />
+                <Discount
+                  label="Umidade"
+                  percent={data.humidity_percent}
+                  kg={data.humidity_kg}
+                />
+                <Info label="Taxas" value={`${formatNumber(data.tax_kg || 0)} kg`} />
+                <Info label="Ajuste" value={`${formatNumber(data.adjust_kg || 0)} kg`} />
               </div>
             </motion.div>
 
@@ -125,16 +127,17 @@ export function HarvestDetailsModal({
             <motion.div variants={item}>
               <h3 className="font-semibold mb-2">Pesagens</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <Info label="Peso Bruto" value={`${data.weightBt} kg`} />
-                <Info label="Tara" value={`${data.weightTr} kg`} />
-                <Info label="Sub-líquido" value={`${data.weightSubLiq} kg`} />
+                <Info label="Peso Bruto" value={`${formatNumber(data.weightBt)} kg`} />
+                <Info label="Tara" value={`${formatNumber(data.weightTr)} kg`} />
+                <Info label="Sub-líquido" value={`${formatNumber(data.weightSubLiq)} kg`} />
                 <Info
                   label="Líquido"
-                  value={`${data.weightLiq} kg`}
+                  value={`${formatNumber(data.weightLiq)} kg`}
                   highlight
                 />
               </div>
             </motion.div>
+            <GenerateRomaneioButton harvest={data} />
           </motion.div>
           </div>
         )}
