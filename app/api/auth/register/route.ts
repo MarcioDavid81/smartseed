@@ -205,6 +205,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const user = await db.user.findMany({
+      where: {
+        companyId,
+      },
       include: {
         company: true,
       },
