@@ -45,14 +45,18 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Erro interno no servidor
  */
 // Atualizar descarte
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
 
     const { id } = params;
-    const { cultivarId, date, quantityKg, notes, destinationId } = await req.json();
+    const { cultivarId, date, quantityKg, notes, destinationId } =
+      await req.json();
 
     if (!cultivarId || !date || !quantityKg || !destinationId) {
       return new NextResponse("Campos obrigatórios faltando", { status: 400 });
@@ -67,20 +71,28 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     });
 
     if (!existing || existing.companyId !== companyId) {
-      return new NextResponse("Beneficiamento não encontrado ou acesso negado", {
-        status: 403,
-      });
+      return new NextResponse(
+        "Beneficiamento não encontrado ou acesso negado",
+        {
+          status: 403,
+        },
+      );
     }
 
     const result = await db.$transaction(async (tx) => {
       // 1️⃣ Reverter estoque anterior da cultivar, se quantidade ou cultivar mudaram
-      if (existing.cultivarId !== cultivarId || existing.quantityKg !== quantityKg) {
+      if (
+        existing.cultivarId !== cultivarId ||
+        existing.quantityKg !== quantityKg
+      ) {
         await tx.cultivar.update({
           where: { id: existing.cultivarId },
           data: { stock: { increment: existing.quantityKg } },
         });
 
-        const newCultivar = await tx.cultivar.findUnique({ where: { id: cultivarId } });
+        const newCultivar = await tx.cultivar.findUnique({
+          where: { id: cultivarId },
+        });
         if (!newCultivar) throw new Error("Cultivar destino não encontrada");
 
         if (newCultivar.stock < quantityKg) {
@@ -155,11 +167,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error("Erro ao atualizar beneficiamento:", error);
-    const message = error instanceof Error ? error.message : "Erro interno no servidor";
+    const message =
+      error instanceof Error ? error.message : "Erro interno no servidor";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
 
 /**
  * @swagger
@@ -190,7 +202,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 // Deletar descarte
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const auth = await requireAuth(req);
@@ -250,7 +262,8 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Erro ao deletar beneficiamento:", error);
-    const message = error instanceof Error ? error.message : "Erro interno no servidor";
+    const message =
+      error instanceof Error ? error.message : "Erro interno no servidor";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -258,7 +271,7 @@ export async function DELETE(
 // Buscar descarte
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const auth = await requireAuth(req);
@@ -276,7 +289,10 @@ export async function GET(
       });
     }
 
-    return NextResponse.json(descarte);
+    return NextResponse.json(
+      { message: "Beneficiamento encontrado com sucesso", descarte },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Erro ao buscar descarte:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });

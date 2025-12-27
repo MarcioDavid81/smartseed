@@ -5,6 +5,8 @@ import { v2 as cloudinary } from "cloudinary";
 import { verifyToken } from "@/lib/auth";
 import { sendUserUpdatedEmail } from "@/lib/send-user-updated";
 import { Role } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/require-auth";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 // Configuração do Cloudinary
 cloudinary.config({
@@ -31,7 +33,7 @@ cloudinary.config({
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:  
+ *         application/json:
  *           schema:
  *             type: object
  *             properties:
@@ -70,82 +72,95 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    /* =========================
+       AUTH
+    ========================= */
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
-    const body = await req.json();
-    const { name, email, password, companyId, avatar } = body;
+    /* =========================
+       FORM DATA
+    ========================= */
+    const formData = await req.formData();
 
-    // Busca o usuário atual
-    const currentUser = await db.user.findUnique({ 
+    const name = formData.get("name") as string | null;
+    const email = formData.get("email") as string | null;
+    const password = formData.get("password") as string | null;
+    const avatar = formData.get("avatar") as File | null;
+
+    /* =========================
+       USUÁRIO ATUAL
+    ========================= */
+    const currentUser = await db.user.findUnique({
       where: { id },
-      include: { company: true }
+      include: { company: true },
     });
 
     if (!currentUser) {
       return NextResponse.json(
         { error: "Usuário não encontrado" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-    // Prepara os dados para atualização (merge com dados existentes)
-    const updateData: any = {};
+    /* =========================
+       PREPARA UPDATE
+    ========================= */
+    const updateData: Record<string, any> = {};
     let originalPassword: string | null = null;
 
-    // Nome - usa o fornecido ou mantém o atual
-    if (name !== undefined) {
+    // Nome
+    if (name !== null && name !== currentUser.name) {
       updateData.name = name;
     }
 
-    // Email - valida se fornecido e se não está em uso por outro usuário
-    if (email !== undefined) {
-      if (email !== currentUser.email) {
-        const existingUser = await db.user.findUnique({ where: { email } });
-        if (existingUser) {
-          return NextResponse.json(
-            { error: "Email já cadastrado" },
-            { status: 400 }
-          );
-        }
+    // Email
+    if (email !== null && email !== currentUser.email) {
+      const existingUser = await db.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser && existingUser.id !== id) {
+        return NextResponse.json(
+          { error: "Email já cadastrado" },
+          { status: 400 },
+        );
       }
+
       updateData.email = email;
     }
 
-    // Senha - hash apenas se fornecida
-    if (password !== undefined) {
-      originalPassword = password; // Armazena a senha original para o email
+    // Senha
+    if (password) {
+      originalPassword = password;
       updateData.password = await hash(password, 10);
     }
 
-    // CompanyId - valida se a empresa existe apenas se fornecida
-    if (companyId !== undefined) {
-      if (companyId !== currentUser.companyId) {
-        const company = await db.company.findUnique({ where: { id: companyId } });
-        if (!company) {
-          return NextResponse.json(
-            { error: "Empresa não encontrada" },
-            { status: 404 }
-          );
-        }
+    // Empresa
+    if (companyId && companyId !== currentUser.companyId) {
+      const company = await db.company.findUnique({
+        where: { id: companyId },
+      });
+
+      if (!company) {
+        return NextResponse.json(
+          { error: "Empresa não encontrada" },
+          { status: 404 },
+        );
       }
+
       updateData.companyId = companyId;
     }
 
-    // Avatar - processa upload apenas se fornecido
-    if (avatar && typeof avatar === "string" && avatar.startsWith("data:")) {
+    // Avatar
+    if (avatar && avatar.size > 0) {
       try {
-        const uploaded = await cloudinary.uploader.upload(avatar, {
-          folder: "avatars",
-        });
-        updateData.imageUrl = uploaded.secure_url;
-      } catch (err) {
-        console.error("Erro ao fazer upload no Cloudinary:", err);
+        updateData.imageUrl = await uploadImageToCloudinary(avatar);
+      } catch (error) {
+        console.error("Erro Cloudinary:", error);
         return NextResponse.json(
           { error: "Erro ao salvar imagem" },
           { status: 500 },
@@ -153,29 +168,37 @@ export async function PUT(
       }
     }
 
-    // Verifica se há pelo menos um campo para atualizar
+    /* =========================
+       VALIDA UPDATE
+    ========================= */
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
         { error: "Nenhum campo fornecido para atualização" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Atualiza o usuário
+    /* =========================
+       UPDATE
+    ========================= */
     const userUpdated = await db.user.update({
-      where: { id: id },
+      where: { id },
       data: updateData,
     });
 
-    // Envia email apenas se senha, email ou nome foram alterados
-    if (originalPassword || email !== undefined || name !== undefined) {
+    /* =========================
+       EMAIL
+    ========================= */
+    if (originalPassword || name !== null || email !== null) {
       await sendUserUpdatedEmail({
         name: userUpdated.name,
         email: userUpdated.email,
         password: originalPassword || "Senha não alterada",
       });
     }
-
+    /* =========================
+       RESPONSE
+    ========================= */
     return NextResponse.json(
       {
         message: "Usuário atualizado com sucesso",
@@ -190,12 +213,12 @@ export async function PUT(
       },
       { status: 200 },
     );
-  } catch (err) {
-    console.error("Erro no PUT /api/auth/register/[id]:", err);
-  return NextResponse.json(
-    { error: "Erro ao atualizar usuário" },
-    { status: 500 },
-  );
+  } catch (error) {
+    console.error("Erro no PUT /api/auth/register/[id]:", error);
+    return NextResponse.json(
+      { error: "Erro ao atualizar usuário" },
+      { status: 500 },
+    );
   }
 }
 
@@ -204,41 +227,83 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
     // Busca o usuário atual
-    const existing = await db.user.findUnique({ 
+    const existing = await db.user.findUnique({
       where: { id },
-      include: { company: true }
+      include: { company: true },
     });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existing || existing.companyId !== companyId) {
       return NextResponse.json(
         { error: "Usuário não pertence à empresa atual" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-      // Exclui o usuário
-      await db.user.delete({
-        where: { id },
-      });
-      
-      return NextResponse.json(
-        { message: "Usuário excluído com sucesso" },
-        { status: 200 }
-      );
+    // Exclui o usuário
+    await db.user.delete({
+      where: { id },
+    });
+
+    return NextResponse.json(
+      { message: "Usuário excluído com sucesso" },
+      { status: 200 },
+    );
   } catch (err) {
     console.error("Erro no DELETE /api/auth/register/[id]:", err);
     return NextResponse.json(
       { error: "Erro ao excluir usuário" },
       { status: 500 },
-    );    
+    );
   }
+}
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+
+    const { id } = params;
+
+    // Busca o usuário atual
+    const existing = await db.user.findUnique({
+      where: { id },
+      include: { company: true },
+    });
+
+    if (!existing || existing.companyId !== companyId) {
+      return NextResponse.json(
+        { error: "Usuário não pertence à empresa atual" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        message: "Usuário encontrado com sucesso",
+        user: {
+          id: existing.id,
+          name: existing.name,
+          email: existing.email,
+          companyId: existing.companyId,
+          imageUrl: existing.imageUrl,
+          role: existing.role,
+        },
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("Erro ao buscar usuário:", error);
+    return new NextResponse("Erro interno no servidor", { status: 500 });
   }
+}
