@@ -14,10 +14,12 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = getToken();
 
+  const isFormData = init?.body instanceof FormData;
+
   const res = await fetch(input, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       Authorization: `Bearer ${token}`,
       ...init?.headers,
     },
@@ -27,14 +29,14 @@ export async function apiFetch<T>(
     let message = "Erro na requisição";
 
     try {
-    const body = await res.json();
+      const body = await res.json();
 
-    if (body?.error?.message) {
-      message = body.error.message;
-    } else if (typeof body?.error === "string") {
-      message = body.error;
-    }
-  } catch {}
+      if (body?.error?.message) {
+        message = body.error.message;
+      } else if (typeof body?.error === "string") {
+        message = body.error;
+      }
+    } catch {}
 
     throw new Error(message);
   }

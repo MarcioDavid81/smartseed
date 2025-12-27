@@ -13,6 +13,11 @@ export const uploadImageToCloudinary = async (image: File): Promise<string> => {
 
   const result = await cloudinary.uploader.upload(dataUri, {
     folder: "avatars",
+    transformation: [
+          { width: 300, height: 300, crop: 'fill' },
+          { quality: 'auto' },
+          { format: 'webp' }
+        ]
   });
 
   return result.secure_url;

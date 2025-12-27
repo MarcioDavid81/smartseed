@@ -10,8 +10,8 @@ type Params = {
 export function useUpsertUser({ userId }: Params) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (data: CreateUserInput) =>
+  return useMutation<AppUser, Error, CreateUserInput>({
+    mutationFn: (data) =>
       upsertUser({
         data,
         userId,
@@ -24,17 +24,19 @@ export function useUpsertUser({ userId }: Params) {
           if (!old) return [savedUser];
 
           if (userId) {
-            return old.map((p) =>
-              p.id === savedUser.id ? savedUser : p,
+            return old.map((u) =>
+              u.id === savedUser.id ? savedUser : u
             );
           }
 
           return [savedUser, ...old];
-        },
+        }
       );
+
       queryClient.invalidateQueries({
         queryKey: ["users"],
       });
     },
   });
 }
+

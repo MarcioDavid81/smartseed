@@ -11,24 +11,33 @@ export async function getUsers(): Promise<AppUser[]> {
 
 type UpsertUserParams = {
   data: CreateUserInput;
+  avatar?: File | null;
   userId?: string;
 };
 
-export function upsertUser({
-  data,
-  userId,
-}: UpsertUserParams) {
+export function upsertUser({ data, userId }: UpsertUserParams) {
   const url = userId
     ? `/api/auth/register/${userId}`
     : "/api/auth/register";
 
   const method = userId ? "PUT" : "POST";
 
+  const formData = new FormData();
+
+  formData.append("name", data.name);
+  formData.append("email", data.email);
+
+  if (data.password) {
+    formData.append("password", data.password);
+  }
+
+  if (data.avatar) {
+    formData.append("avatar", data.avatar);
+  }
+
   return apiFetch<AppUser>(url, {
     method,
-    body: JSON.stringify({
-      ...data,
-    }),
+    body: formData,
   });
 }
 
