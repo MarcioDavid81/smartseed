@@ -13,10 +13,9 @@ import { AppUser } from "@/types";
 
 interface Props {
   user: AppUser;
-  onUpdated: () => void;
 }
 
-const EditUserButton = ({ user, onUpdated }: Props) => {
+const EditUserButton = ({ user }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -39,7 +38,6 @@ const EditUserButton = ({ user, onUpdated }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         user={user}
-        onUpdated={onUpdated}
       />
     </>
   );

@@ -86,7 +86,7 @@ export function UsersGetTable() {
         const user = row.original
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditUserButton user={user} onUpdated={fetchUsers} />
+            <EditUserButton user={user} />
             <DeleteUserButton user={user} onDeleted={fetchUsers} />
           </div>
         );

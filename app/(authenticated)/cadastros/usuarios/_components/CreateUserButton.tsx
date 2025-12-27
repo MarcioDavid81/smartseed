@@ -4,12 +4,13 @@ import HoverButton from "@/components/HoverButton";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import UpsertUserModal from "./UpsertUserModal";
+import { AppUser } from "@/types";
 
 interface Props {
-  onUpdated?: () => void;
+  user?: AppUser;
 }
 
-const CreateUserButton = ({ onUpdated }: Props) => {
+const CreateUserButton = ({ user }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
@@ -20,7 +21,7 @@ const CreateUserButton = ({ onUpdated }: Props) => {
       <UpsertUserModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onUpdated={onUpdated}
+        user={user}
       />
     </div>
   );

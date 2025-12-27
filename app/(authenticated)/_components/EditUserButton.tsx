@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { UpsertUserModal } from "./UpsertUserModal";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
+import UpsertUserModal from "../cadastros/usuarios/_components/UpsertUserModal";
 
 export default function EditUserButton() {
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const { user } = useUser();
 
   return (
@@ -20,7 +20,7 @@ export default function EditUserButton() {
         <DropdownMenuItem
           onSelect={(event) => {
             event.preventDefault(); // evita fechar o menu
-            setOpen(true); // abre o modal
+            setIsOpen(true); // abre o modal
           }}
           className="cursor-pointer"
         >
@@ -28,7 +28,7 @@ export default function EditUserButton() {
         </DropdownMenuItem>
       </HoverButton>
 
-      <UpsertUserModal open={open} onClose={() => setOpen(false)} user={user} />
+      <UpsertUserModal isOpen={isOpen} onClose={() => setIsOpen(false)} user={user} />
     </>
   );
 };

@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
-import UploadAvatar from "@/app/(public)/_components/UploadAvatar";
 
 export function SignInForm({
   className,
@@ -163,7 +162,6 @@ export function SignInForm({
 
               <div className="grid items-center justify-center gap-2">
                 <Label>Avatar</Label>
-                <UploadAvatar onFileSelect={setAvatarFile} />
               </div>
 
               <Button

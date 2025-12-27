@@ -7,142 +7,82 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"
-import { getToken } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-import { z } from "zod";
-import { AppUser, Company } from "@/types";
-import UploadAvatar from "@/app/(public)/_components/UploadAvatar";
+import { AppUser } from "@/types";
+import { useSmartToast } from "@/contexts/ToastContext";
+import { CreateUserInput, createUserSchema } from "@/lib/schemas/userSchema";
+import { useUpsertUser } from "@/queries/registrations/use-upsert-user";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { UploadAvatar } from "@/app/(public)/_components/UploadAvatar";
 
 interface UpsertUserModalProps {
   user?: AppUser;
   isOpen: boolean;
   onClose: () => void;
-  onUpdated?: () => void;
 }
-
-const userSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  email: z.string().email("Email inválido"),
-  password: z.string().optional(),
-  avatarUrl: z.string().url("URL inválida"),
-  companyId: z.string().min(1, "Empresa é obrigatória"),
-});
-
-type UserFormData = z.infer<typeof userSchema>;
 
 const UpsertUserModal = ({
   user,
   isOpen,
   onClose,
-  onUpdated,
 }: UpsertUserModalProps) => {
-  const [loading, setLoading] = useState(false);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const { showToast } = useSmartToast();
+  const [avatar, setAvatar] = useState<File | null>(null)
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<UserFormData>({
-    resolver: zodResolver(userSchema),
+  const form = useForm<CreateUserInput>({
+    resolver: zodResolver(createUserSchema),
     defaultValues: {
       name: user?.name ?? "",
       email: user?.email ?? "",
-      avatarUrl: user?.imageUrl ?? "",
-      companyId: user?.companyId ?? "",
     },
   });
 
   useEffect(() => {
     if (user) {
-      reset({
+      form.reset({
         name: user.name,
         email: user.email,
-        avatarUrl: user.imageUrl || "",
-        companyId: user.companyId,
+        password: "",
       });
     } else {
-      reset();
+      form.reset();
     }
-  }, [user, isOpen, reset]);
+    setAvatar(null);
+  }, [user, isOpen]);
 
-   useEffect(() => {
-    async function fetchCompanies() {
-      const res = await fetch("/api/companies", {
-        cache: "no-store",
-      });
-      const data = await res.json();
-      setCompanies(data);
-    }
-    fetchCompanies();
-  }, []);
+  const { mutate, isPending } = useUpsertUser({
+      userId: user?.id,
+    })
 
-  const onSubmit = async (data: UserFormData) => {
-    setLoading(true);
-    const token = getToken();
-    if (!token) {
-      toast.error("Usuário não autenticado.");
-      setLoading(false);
-      return;
-    }
-
-    const url = user
-      ? `/api/auth/register/${user.id}`
-      : "/api/auth/register";
-    const method = user ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        ...data,
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar insumo.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
+  const onSubmit = async (data: CreateUserInput) => {
+      mutate(data, {
+        onSuccess: () => {
+          showToast({
+            type: "success",
+            title: "Sucesso!",
+            message: user
+              ? "Usuário atualizado com sucesso!"
+              : "Usuário cadastrado com sucesso!",
+          });
+          onClose();
+          form.reset();
         },
-        icon: "❌",
-      });
-    } else {
-      toast.success(
-        user
-          ? "Usuário atualizado com sucesso!"
-          : "Usuário cadastrado com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
+        onError: (error) => {
+          showToast({
+            type: "error",
+            title: "Erro",
+            message: error.message || "Ocorreu um erro ao salvar o usuário. Por favor, tente novamente.",
+          });
         },
-      );
-      onClose();
-      reset();
-      if (onUpdated) onUpdated();
-    }
-
-    setLoading(false);
-  };
+      });
+    };
 
   useEffect(() => {
-    if (!isOpen) reset();
-  }, [isOpen, reset]);
+    if (!isOpen) form.reset();
+  }, [isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -153,62 +93,90 @@ const UpsertUserModal = ({
             {user ? "Editar usuário" : "Cadastrar usuário"}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-4">
-              <div className="flex flex-col items-center justify-center gap-2">
-                <Label>Avatar</Label>
-                <UploadAvatar onFileSelect={setAvatarFile} />
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <div className="space-y-4 py-2">
+              <div>
+                <FormField
+                  control={form.control}
+                  name="avatar"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col items-center justify-center space-y-4">
+                      <FormControl>
+                        <UploadAvatar
+                          value={field.value}
+                          onChange={field.onChange}
+                          initialImageUrl={user?.imageUrl}
+                          fallbackText={user?.name?.slice(0, 2).toUpperCase()}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               <div>
-                <Label>Nome</Label>
-                <Input {...register("name")} placeholder="Ex: João da Silva" />
-                {errors.name && (
-                  <span className="text-xs text-red">
-                    {errors.name.message}
-                  </span>
+                <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
               </div>
               <div>
-                <Label>Email</Label>
-                <Input {...register("email")} placeholder="Ex: joao.silva@example.com" />
-                {errors.email && (
-                  <span className="text-xs text-red">
-                    {errors.email.message}
-                  </span>
+                <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
               </div>
               <div>
-                <Label>Senha</Label>
-                <Input {...register("password")} placeholder="Ex: 123456" />
-                {errors.password && (
-                  <span className="text-xs text-red">
-                    {errors.password.message}
-                  </span>
+                <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Senha
+                      {user && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          (deixe em branco para manter)
+                        </span>
+                      )}
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} type="password" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="company">Empresa</Label>
-                <select
-                  {...register("companyId")}
-                  className="w-full rounded border px-2 py-1"
-                >
-                  <option value="">Selecione uma empresa</option>
-                  {companies.map((company) => (
-                    <option key={company.id} value={company.id}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              />
+            </div>
           </div>
           <Button
             type="submit"
-            disabled={loading}
+            disabled={isPending}
             className="mt-4 w-full bg-green text-white"
           >
-            {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+            {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
           </Button>
         </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
