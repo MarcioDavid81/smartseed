@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { AppUser } from "@/types";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { CreateUserInput, createUserSchema } from "@/lib/schemas/userSchema";
+import { CreateUserInput, createUserSchema, UpdateUserInput, updateUserSchema } from "@/lib/schemas/userSchema";
 import { useUpsertUser } from "@/queries/registrations/use-upsert-user";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { UploadAvatar } from "@/app/(public)/_components/UploadAvatar";
@@ -32,11 +32,17 @@ const UpsertUserModal = ({
   const { showToast } = useSmartToast();
   const [avatar, setAvatar] = useState<File | null>(null)
 
-  const form = useForm<CreateUserInput>({
-    resolver: zodResolver(createUserSchema),
+  const isEditing = !!user;
+
+  const form = useForm<CreateUserInput | UpdateUserInput>({
+    resolver: zodResolver(
+      isEditing ? updateUserSchema : createUserSchema
+    ),
     defaultValues: {
       name: user?.name ?? "",
       email: user?.email ?? "",
+      password: "",
+      avatar: null,
     },
   });
 
@@ -57,8 +63,12 @@ const UpsertUserModal = ({
       userId: user?.id,
     })
 
-  const onSubmit = async (data: CreateUserInput) => {
-      mutate(data, {
+  const onSubmit = async (data: CreateUserInput | UpdateUserInput) => {
+      const payload = {
+        ...data,
+        password: data.password || undefined,
+      };
+      mutate(payload, {
         onSuccess: () => {
           showToast({
             type: "success",

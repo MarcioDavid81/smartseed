@@ -12,32 +12,16 @@ import { UsersDataTable } from "./UserDataTable";
 import DeleteUserButton from "./DeleteUserButton";
 import EditUserButton from "./EditUserButton";
 import { AgroLoader } from "@/components/agro-loader";
+import { useUsers } from "@/queries/registrations/use-user-query";
 
 export function UsersGetTable() {
-  const [user, setUser] = useState<AppUser[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  async function fetchUsers() {
-    try {
-      const token = getToken();
-      const res = await fetch("/api/auth/register", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      console.table(data);
-      setUser(data);
-    } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  
+  const {
+        data: usuarios = [],
+        isLoading,
+        isFetching,
+        refetch,
+      } = useUsers();
 
   const columns: ColumnDef<AppUser>[] = [
     {
@@ -87,7 +71,7 @@ export function UsersGetTable() {
         return (
           <div className="flex items-center justify-center gap-4">
             <EditUserButton user={user} />
-            <DeleteUserButton user={user} onDeleted={fetchUsers} />
+            <DeleteUserButton user={user} />
           </div>
         );
       },
@@ -98,14 +82,14 @@ export function UsersGetTable() {
     <Card className="p-4 font-light dark:bg-primary">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Usuários</h2>
-        <Button variant={"ghost"} onClick={fetchUsers} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <UsersDataTable columns={columns} data={user} />
+        <UsersDataTable columns={columns} data={usuarios} />
       )}
     </Card>
   );

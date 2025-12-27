@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useHarvest } from "@/contexts/HarvestContext";
 import { getToken } from "@/lib/auth-client";
+import { useDeleteUser } from "@/queries/registrations/use-delete-user";
 import { AppUser } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
@@ -28,58 +29,16 @@ import { toast } from "sonner";
 
 interface Props {
   user: AppUser;
-  onDeleted: () => void;
 }
 
-const DeleteUserButton = ({ user, onDeleted }: Props) => {
+const DeleteUserButton = ({ user }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchHarvests } = useHarvest();
+  const { mutate, isPending } = useDeleteUser();
 
-  const handleDelete = async (user: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 usuário recebido:", user);
-
-    if (!user || !user.id) {
-      toast.error("ID do usuário ausente. Não é possível excluir.");
-      console.warn("❌ user.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/auth/register/${user.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar usuário:", errorText);
-        throw new Error(errorText);
-      }
-
-      toast.success("Usuário deletado com sucesso!");
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar usuário.");
-    } finally {
-      setLoading(false);
-    }
-
-    await fetchHarvests();
+  const handleConfirmDelete = () => {
+    mutate(user.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -113,13 +72,13 @@ const DeleteUserButton = ({ user, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(user)}
-              disabled={loading}
+              onClick={handleConfirmDelete}
+              disabled={isPending}
               variant="ghost"
               className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>
