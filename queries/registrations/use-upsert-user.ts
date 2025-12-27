@@ -1,17 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AppUser } from "@/types";
-import { CreateUserInput } from "@/lib/schemas/userSchema";
+import { CreateUserInput, UpdateUserInput } from "@/lib/schemas/userSchema";
 import { upsertUser } from "@/services/registrations/user";
 
 type Params = {
   userId?: string;
 };
 
+type UpsertUserInput = CreateUserInput | UpdateUserInput;
+
 export function useUpsertUser({ userId }: Params) {
   const queryClient = useQueryClient();
 
-  return useMutation<AppUser, Error, CreateUserInput>({
-    mutationFn: (data) =>
+  return useMutation<AppUser, Error, UpsertUserInput>({
+    mutationFn: (data: UpsertUserInput) =>
       upsertUser({
         data,
         userId,

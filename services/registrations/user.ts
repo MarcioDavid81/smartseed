@@ -1,6 +1,6 @@
 import { AppUser } from "@/types";
 import { apiFetch } from "../api";
-import { CreateUserInput } from "@/lib/schemas/userSchema";
+import { CreateUserInput, UpdateUserInput } from "@/lib/schemas/userSchema";
 
 export async function getUsers(): Promise<AppUser[]> {
   const data = await apiFetch<AppUser[]>(
@@ -10,7 +10,7 @@ export async function getUsers(): Promise<AppUser[]> {
 }
 
 type UpsertUserParams = {
-  data: CreateUserInput;
+  data: CreateUserInput | UpdateUserInput;
   avatar?: File | null;
   userId?: string;
 };
