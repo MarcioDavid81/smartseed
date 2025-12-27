@@ -53,7 +53,7 @@ export function LoginForm({
       console.log(data.token);
       showToast({
         title: "Successo",
-        message: "Login bem-sucedido!",
+        message: "Bem vindo de volta!",
         type: "success",
       });
       window.location.href = "/dashboard";
