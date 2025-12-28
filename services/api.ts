@@ -1,4 +1,5 @@
 import { getToken } from "@/lib/auth-client";
+import { ApiError } from "@/lib/http/api-error";
 
 type ApiErrorBody = {
   error?: {
@@ -26,20 +27,26 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
-    let message = "Erro na requisição";
+  let message = "Erro na requisição";
+  let code: string | undefined;
 
-    try {
-      const body = await res.json();
+  try {
+    const body = await res.json();
 
-      if (body?.error?.message) {
-        message = body.error.message;
-      } else if (typeof body?.error === "string") {
-        message = body.error;
-      }
-    } catch {}
+    if (body?.message) {
+      message = body.message;
+    }
 
-    throw new Error(message);
-  }
+    if (body?.error) {
+      code =
+        typeof body.error === "string"
+          ? body.error
+          : body.error.code;
+    }
+  } catch {}
+
+  throw new ApiError(message, res.status, code);
+}
 
   return res.json();
 }

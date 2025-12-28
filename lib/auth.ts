@@ -16,6 +16,7 @@ type JWTPayload = {
   userId: string;
   companyId: string;
   role: string;
+  sub: string;
 };
 
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
@@ -25,12 +26,14 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
     if (
       typeof payload.userId === "string" &&
       typeof payload.companyId === "string" &&
-      typeof payload.role === "string"
+      typeof payload.role === "string" &&
+      typeof payload.sub === "string"
     ) {
       return {
         userId: payload.userId,
         companyId: payload.companyId,
         role: payload.role,
+        sub: payload.sub,
       };
     }
 

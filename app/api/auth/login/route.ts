@@ -35,6 +35,7 @@ export async function POST(req: Request) {
     userId: user.id,
     companyId: user.companyId,
     role: user.role,
+    sub: user.company?.plan || "BASIC",
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()

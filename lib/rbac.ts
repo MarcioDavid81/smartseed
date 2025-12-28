@@ -12,7 +12,8 @@ export type Permission =
   | "maintenance:delete"
   | "harvest:delete"
   | "sale:delete"
-  | "transport:delete";
+  | "transport:delete"
+  | "user:create"
 
 export const rolePermissions: Record<UserRole, Permission[]> = {
   ADMIN: [
@@ -27,6 +28,7 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "harvest:delete",
     "sale:delete",
     "transport:delete",
+    "user:create",
   ],
 
   USER: [
