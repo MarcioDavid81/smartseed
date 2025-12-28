@@ -1,13 +1,6 @@
 import { getToken } from "@/lib/auth-client";
 import { ApiError } from "@/lib/http/api-error";
 
-type ApiErrorBody = {
-  error?: {
-    code?: string;
-    title?: string;
-    message?: string;
-  };
-};
 
 export async function apiFetch<T>(
   input: RequestInfo,
@@ -43,6 +36,11 @@ export async function apiFetch<T>(
           ? body.error
           : body.error.code;
     }
+
+    if (body?.error) {
+        message = body.error.message ?? message;
+        code = body.error.code;
+      }
   } catch {}
 
   throw new ApiError(message, res.status, code);

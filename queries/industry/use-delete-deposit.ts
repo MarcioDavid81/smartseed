@@ -1,6 +1,7 @@
 import { useSmartToast } from "@/contexts/ToastContext";
 import { deleteIndustryDeposit } from "@/services/industry/industryDeposit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ApiError } from "@/lib/http/api-error";
 
 export function useDeleteIndustryDeposit() {
   const queryClient = useQueryClient();
@@ -21,7 +22,15 @@ export function useDeleteIndustryDeposit() {
       });
     },
 
-    onError: (error: Error) => {
+    onError: (error: ApiError) => {
+      if (error.code === "STOCK_PRESENT") {
+        showToast({
+          type: "error",
+          title: "Estoque presente",
+          message: error.message,
+        });
+        return;
+      }
       showToast({
         type: "error",
         title: "Erro",
