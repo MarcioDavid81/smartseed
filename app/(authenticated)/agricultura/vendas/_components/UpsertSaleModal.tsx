@@ -16,6 +16,7 @@ import { useCycle } from "@/contexts/CycleContext";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
+import { ApiError } from "@/lib/http/api-error";
 import { IndustrySaleFormData, industrySaleSchema } from "@/lib/schemas/industrySale";
 import { useUpsertIndustrySale } from "@/queries/industry/use-upsert-industry-sale";
 import {
@@ -171,6 +172,25 @@ const UpsertSaleModal = ({
         form.reset();
       },
       onError: (error: Error) => {
+        if (error instanceof ApiError) {
+          if (error.status === 402) {
+            showToast({
+              type: "info",
+              title: "Limite atingido",
+              message: error.message,
+            });
+            return;
+          }
+        
+          if (error.status === 401) {
+            showToast({
+              type: "info",
+              title: "Sessão expirada",
+              message: "Faça login novamente",
+            });
+            return;
+          }
+        }
         showToast({
           type: "error",
           title: "Erro",

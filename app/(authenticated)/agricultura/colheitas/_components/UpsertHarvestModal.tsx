@@ -212,15 +212,15 @@ const onSubmit = (data: IndustryHarvestFormData) => {
           return;
         }
 
-      if (error.status === 401) {
-        showToast({
-          type: "info",
-          title: "Sessão expirada",
-          message: "Faça login novamente",
-        });
-        return;
+        if (error.status === 401) {
+          showToast({
+            type: "info",
+            title: "Sessão expirada",
+            message: "Faça login novamente",
+          });
+          return;
+        }
       }
-    }
       showToast({
         type: "error",
         title: "Erro",

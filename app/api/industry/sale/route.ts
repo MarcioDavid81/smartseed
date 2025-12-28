@@ -4,12 +4,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { industrySaleSchema } from "@/lib/schemas/industrySale";
 import { validateIndustryStock } from "@/app/_helpers/validateIndustryStock";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { withAccessControl } from "@/lib/api/with-access-control";
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
 
 export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
+
+    const session = await withAccessControl('REGISTER_MOVEMENT');
 
     const body = await req.json();
     const parsed = industrySaleSchema.safeParse(body);
@@ -88,7 +92,7 @@ export async function POST(req: NextRequest) {
         data: {
           ...data,
           date: new Date(data.date),
-          companyId,
+          companyId: session.user.companyId,
           product: cycle.productType as ProductType,
           industryTransporterId: data.industryTransporterId || null,
         },
@@ -142,6 +146,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(industrySale, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar venda industrial:", error);
+    if (error instanceof PlanLimitReachedError) {
+          return NextResponse.json(
+            { message: error.message },
+            { status: 402 }
+          )
+        }
+    
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: 403 }
+      )
+    }
     return NextResponse.json(
       {
         error: {
