@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { industryHarvestSchema } from "@/lib/schemas/industryHarvest"; // ⚠️ vamos remover o product daqui
 import { ProductType } from "@prisma/client";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { withAccessControl } from '@/lib/api/with-access-control'
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
 
 /**
  * @swagger
@@ -71,6 +73,8 @@ export async function POST(req: NextRequest) {
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
 
+    const session = await withAccessControl('REGISTER_MOVEMENT');
+
     const body = await req.json();
 
     // ✅ product não vem mais do front
@@ -121,7 +125,7 @@ export async function POST(req: NextRequest) {
       data: {
         ...data,
         date: new Date(data.date),
-        companyId,
+        companyId: session.user.companyId,
         product: cycle.productType as ProductType, // 🔥 injeta aqui
       },
     });
@@ -150,6 +154,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(industryHarvest, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar colheita:", error);
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: 402 }
+      )
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: 403 }
+      )
+    }
     return NextResponse.json(
       {
         error: {

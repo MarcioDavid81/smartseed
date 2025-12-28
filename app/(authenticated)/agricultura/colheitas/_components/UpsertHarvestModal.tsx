@@ -28,6 +28,7 @@ import { FaSpinner } from "react-icons/fa";
 import { ComboBoxOption } from "@/components/combo-option";
 import { normalizeNumber } from "@/app/_helpers/normalize-number";
 import { useUpsertIndustryHarvest } from "@/queries/industry/use-upsert-industry-harvest";
+import { ApiError } from "@/lib/http/api-error";
 
 interface UpsertHarvestModalProps {
   colheita?: IndustryHarvest;
@@ -201,6 +202,25 @@ const onSubmit = (data: IndustryHarvestFormData) => {
       form.reset();
     },
     onError: (error: Error) => {
+      if (error instanceof ApiError) {
+        if (error.status === 402) {
+          showToast({
+            type: "info",
+            title: "Limite atingido",
+            message: error.message,
+          });
+          return;
+        }
+
+      if (error.status === 401) {
+        showToast({
+          type: "info",
+          title: "Sessão expirada",
+          message: "Faça login novamente",
+        });
+        return;
+      }
+    }
       showToast({
         type: "error",
         title: "Erro",
