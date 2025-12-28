@@ -17,101 +17,26 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useHarvest } from "@/contexts/HarvestContext";
-import { getToken } from "@/lib/auth-client";
 import { IndustryDeposit } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-import { useSmartToast } from "@/contexts/ToastContext";
+import { useDeleteIndustryDeposit } from "@/queries/industry/use-delete-deposit";
 
 
 interface Props {
   industryDeposit: IndustryDeposit;
-  onDeleted: () => void;
 }
 
-const DeleteIndustryDepositButton = ({ industryDeposit, onDeleted }: Props) => {
+const DeleteIndustryDepositButton = ({ industryDeposit }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchHarvests } = useHarvest();
-  const { showToast } = useSmartToast();
+  const { mutate, isPending } = useDeleteIndustryDeposit();
 
-  const handleDelete = async (industryDeposit: IndustryDeposit) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 depósito recebido:", industryDeposit);
 
-    if (!industryDeposit || !industryDeposit.id) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "ID do depósito ausente. Não é possível excluir.",
-      });
-      console.warn("❌ industryDeposit.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/industry/deposit/${industryDeposit.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-      const data = await res.json().catch(() => null);
-
-      console.error("Erro da API:", data);
-
-      // Tratamento para erros estruturados
-      if (data?.error) {
-        showToast({
-          type: "error",
-          title: data.error.title,
-          message: data.error.message,
-        });
-      } else {
-        // fallback
-        showToast({
-          type: "error",
-          title: "Erro",
-          message: "Erro ao deletar depósito.",
-        });
-      }
-
-      return; // evita continuar
-    }
-
-      showToast({
-        type: "success",
-        title: "Sucesso",
-        message: "Depósito excluído com sucesso!",
-      });
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "Erro inesperado ao deletar depósito.",
-      });
-    } finally {
-      setLoading(false);
-    }
-
-    await fetchHarvests();
+  const handleConfirmDelete = () => {
+    mutate(industryDeposit.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -145,13 +70,13 @@ const DeleteIndustryDepositButton = ({ industryDeposit, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(industryDeposit)}
-              disabled={loading}
+              onClick={() => handleConfirmDelete()}
+              disabled={isPending}
               variant="ghost"
               className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>

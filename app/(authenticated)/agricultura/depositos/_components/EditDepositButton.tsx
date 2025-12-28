@@ -13,10 +13,9 @@ import UpsertIndustryDepositModal from "./UpsertDepositModal";
 
 interface Props {
   industryDeposit: IndustryDeposit;
-  onUpdated: () => void;
 }
 
-const EditIndustryDepositButton = ({ industryDeposit, onUpdated }: Props) => {
+const EditIndustryDepositButton = ({ industryDeposit }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -39,7 +38,6 @@ const EditIndustryDepositButton = ({ industryDeposit, onUpdated }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         industryDeposit={industryDeposit}
-        onUpdated={onUpdated}
       />
     </>
   );

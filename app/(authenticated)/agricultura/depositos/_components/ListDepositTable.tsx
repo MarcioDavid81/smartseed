@@ -123,11 +123,9 @@ export function IndustryDepositGetTable() {
           <div className="flex items-center justify-center gap-4">
             <EditIndustryDepositButton
               industryDeposit={originalDeposit}
-              onUpdated={fetchDeposits}
             />
             <DeleteIndustryDepositButton
               industryDeposit={originalDeposit}
-              onDeleted={fetchDeposits}
             />
           </div>
         );

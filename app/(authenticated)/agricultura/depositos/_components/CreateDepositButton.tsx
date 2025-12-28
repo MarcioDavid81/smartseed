@@ -4,12 +4,13 @@ import HoverButton from "@/components/HoverButton";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import UpsertIndustryDepositModal from "./UpsertDepositModal";
+import { IndustryDeposit } from "@/types";
 
 interface Props {
-  onUpdated?: () => void;
+  deposit?: IndustryDeposit,
 }
 
-const CreateIndustryDepositButton = ({ onUpdated }: Props) => {
+const CreateIndustryDepositButton = ({ deposit }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
@@ -20,7 +21,7 @@ const CreateIndustryDepositButton = ({ onUpdated }: Props) => {
       <UpsertIndustryDepositModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onUpdated={onUpdated}
+        industryDeposit={deposit}
       />
     </div>
   );
