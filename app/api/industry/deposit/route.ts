@@ -1,5 +1,8 @@
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
+import { industryDepositSchema } from "@/lib/schemas/industryDepositSchema";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {  
@@ -7,12 +10,21 @@ export async function POST(req: NextRequest) {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
+
+    const session = await withAccessControl('CREATE_MASTER_DATA');
     
-    const { name } = await req.json();
+    const body = await req.json();
+    const { name } = industryDepositSchema.parse(body);
 
     if (!name) {
       return NextResponse.json(
-        { error: "Nome do depósito é obrigatório" },
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: "O nome do depósito é obrigatório.",
+          },
+        },
         { status: 400 },
       );
     }
@@ -20,13 +32,26 @@ export async function POST(req: NextRequest) {
     const industryDeposit = await db.industryDeposit.create({
       data: {
         name,
-        companyId,
+        companyId: session.user.companyId,
       },
     });
 
     return NextResponse.json(industryDeposit, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar depósito:", error);
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: 402 }
+      )
+    }
+    
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: 403 }
+      )
+    }
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }
