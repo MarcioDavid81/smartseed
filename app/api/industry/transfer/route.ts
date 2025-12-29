@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { ProductType } from "@prisma/client";
+import { createIndustryTransferSchema } from "@/lib/schemas/industryTransferSchema";
 
 /**
  * @swagger
@@ -39,15 +40,6 @@ import { ProductType } from "@prisma/client";
  *       201:
  *         description: Transferência de grão criada com sucesso
  */
-const createTransferSchema = z.object({
-  date: z.coerce.date(),
-  product: z.nativeEnum(ProductType),
-  fromDepositId: z.string().cuid(),
-  toDepositId: z.string().cuid(),
-  quantity: z.number().positive(),
-  document: z.string().optional(),
-  observation: z.string().optional(),
-});
 
 export async function POST(req: NextRequest) {
   try {
@@ -56,7 +48,7 @@ export async function POST(req: NextRequest) {
     const { companyId } = auth;
 
     const body = await req.json();
-    const parsed = createTransferSchema.parse(body);
+    const parsed = createIndustryTransferSchema.parse(body);
 
     if (parsed.fromDepositId === parsed.toDepositId) {
       return NextResponse.json(
@@ -197,14 +189,6 @@ export async function POST(req: NextRequest) {
  *       200:
  *         description: Lista de transferências de grãos
  */
-const querySchema = z.object({
-  product: z.nativeEnum(ProductType).optional(),
-  fromDepositId: z.string().cuid().optional(),
-  toDepositId: z.string().cuid().optional(),
-  cycleId: z.string().cuid().optional(),
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
-});
 
 export async function GET(req: NextRequest) {
   try {
@@ -212,21 +196,25 @@ export async function GET(req: NextRequest) {
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
 
-    const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
-    const parsed = querySchema.parse(searchParams);
+    const searchParams = req.nextUrl.searchParams;
+    const product = searchParams.get("product") as ProductType | undefined;
+    const fromDepositId = searchParams.get("fromDepositId") || undefined;
+    const toDepositId = searchParams.get("toDepositId") || undefined;
+    const cycleId = searchParams.get("cycleId") || undefined;
+    const startDate = searchParams.get("startDate") || undefined;
+    const endDate = searchParams.get("endDate") || undefined;
 
     const transfers = await db.industryTransfer.findMany({
       where: {
         companyId,
-        ...(parsed.product && { product: parsed.product }),
-        ...(parsed.fromDepositId && { fromDepositId: parsed.fromDepositId }),
-        ...(parsed.toDepositId && { toDepositId: parsed.toDepositId }),
-        ...(parsed.cycleId && { cycleId: parsed.cycleId }),
-        ...(parsed.startDate &&
-          parsed.endDate && {
+        ...(product && { product }),
+        ...(fromDepositId && { fromDepositId }),
+        ...(toDepositId && { toDepositId }),
+        ...(cycleId && { cycleId }),
+        ...(startDate && endDate && {
             date: {
-              gte: parsed.startDate,
-              lte: parsed.endDate,
+              gte: new Date(startDate),
+              lte: new Date(endDate),
             },
           }),
       },

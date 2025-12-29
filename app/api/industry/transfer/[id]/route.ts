@@ -1,20 +1,9 @@
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { verifyToken } from "@/lib/auth";
-import { ProductType } from "@prisma/client";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { ProductType } from "@prisma/client";
 
-const updateTransferSchema = z.object({
-  date: z.coerce.date().optional(),
-  product: z.nativeEnum(ProductType).optional(),
-  fromDepositId: z.string().cuid().optional(),
-  toDepositId: z.string().cuid().optional(),
-  quantity: z.number().positive().optional(),
-  document: z.string().optional(),
-  observation: z.string().optional(),
-  cycleId: z.string().cuid().optional(),
-});
 
 export async function PUT(
   req: NextRequest,
@@ -33,33 +22,61 @@ export async function PUT(
 
     if (!existingTransfer || existingTransfer.companyId !== companyId) {
       return NextResponse.json(
-        { error: "Transferência não encontrada para esta empresa." },
+        { 
+          error: {
+            code: "TRANSFER_NOT_FOUND",
+            title: "Transferência não encontrada para esta empresa.",
+            message: "A transferência com o ID fornecido não foi encontrada ou não pertence à sua empresa.",
+          }
+         },
         { status: 404 },
       );
     }
 
     const body = await req.json();
-    const parsed = updateTransferSchema.parse(body);
+    const {
+      date,
+      product,
+      fromDepositId,
+      toDepositId,
+      quantity,
+      document,
+      observation,
+    } = body as {
+      date?: string | Date;
+      product?: ProductType;
+      fromDepositId?: string;
+      toDepositId?: string;
+      quantity?: number;
+      document?: string;
+      observation?: string;
+    };
 
     // Evita origem = destino
     if (
-      parsed.fromDepositId &&
-      parsed.toDepositId &&
-      parsed.fromDepositId === parsed.toDepositId
+      fromDepositId &&
+      toDepositId &&
+      fromDepositId === toDepositId
     ) {
       return NextResponse.json(
-        { error: "Depósito de origem e destino devem ser diferentes." },
+        {
+          error: {
+            code: "INVALID_DEPOSIT",
+            title: "Depósito de origem e destino devem ser diferentes.",
+            message: "A transferência não pode ter o mesmo depósito de origem e destino.",
+          }
+         },
         { status: 400 },
       );
     }
 
     // Busca estoques de origem e destino (atuais ou novos)
     const currentFromDepositId =
-      parsed.fromDepositId ?? existingTransfer.fromDepositId;
+      fromDepositId ?? existingTransfer.fromDepositId;
     const currentToDepositId =
-      parsed.toDepositId ?? existingTransfer.toDepositId;
-    const currentProduct = parsed.product ?? existingTransfer.product;
-    const newQuantity = parsed.quantity ?? existingTransfer.quantity.toNumber();
+      toDepositId ?? existingTransfer.toDepositId;
+    const currentProduct = product ?? existingTransfer.product;
+    const newQuantity = quantity ?? existingTransfer.quantity.toNumber();
 
     const originStock = await db.industryStock.findUnique({
       where: {
@@ -81,7 +98,13 @@ export async function PUT(
 
     if (!originStock || originStock.companyId !== companyId) {
       return NextResponse.json(
-        { error: "Estoque de origem não encontrado para esta empresa." },
+        { 
+          error: {
+            code: "INVALID_DEPOSIT",
+            title: "Estoque de origem não encontrado para esta empresa.",
+            message: "O depósito de origem fornecido não possui um estoque válido para a sua empresa.",
+          }
+         },
         { status: 404 },
       );
     }
@@ -91,24 +114,25 @@ export async function PUT(
       const oldQuantity = existingTransfer.quantity.toNumber();
       const quantityDiff = newQuantity - oldQuantity;
 
-      // Caso altere depósitos ou quantidade, ajusta estoques
-      if (
+      const depositChanged =
         existingTransfer.fromDepositId !== currentFromDepositId ||
-        existingTransfer.toDepositId !== currentToDepositId ||
-        quantityDiff !== 0
-      ) {
+        existingTransfer.toDepositId !== currentToDepositId;
+
+      if (depositChanged || quantityDiff !== 0) {
         // Reverte movimentação antiga
         await tx.industryStock.update({
           where: { id: originStock.id },
           data: { quantity: { increment: oldQuantity } },
         });
 
-        await tx.industryStock.update({
-          where: { id: destStock?.id },
-          data: { quantity: { decrement: oldQuantity } },
-        });
+        if (destStock) {
+          await tx.industryStock.update({
+            where: { id: destStock.id },
+            data: { quantity: { decrement: oldQuantity } },
+          });
+        }
 
-        // Garante estoque destino válido
+        // Garante estoque destino
         let finalDestStock = destStock;
         if (!finalDestStock) {
           finalDestStock = await tx.industryStock.create({
@@ -133,11 +157,15 @@ export async function PUT(
         });
       }
 
-      // Atualiza registro da transferência
       return tx.industryTransfer.update({
         where: { id: transferId },
         data: {
-          ...parsed,
+          ...(date && { date: new Date(date) }),
+          ...(product && { product }),
+          ...(fromDepositId && { fromDepositId }),
+          ...(toDepositId && { toDepositId }),
+          ...(document && { document }),
+          ...(observation && { observation }),
           quantity: newQuantity,
         },
         include: {
