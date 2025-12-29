@@ -2,7 +2,6 @@
 
 import { SquarePenIcon } from "lucide-react";
 import { useState } from "react";
-import { useStock } from "@/contexts/StockContext";
 import {
   Tooltip,
   TooltipContent,
@@ -14,12 +13,10 @@ import UpsertTransferDepositModal from "../../depositos/_components/UpsertTransf
 
 interface Props {
   transferencia: IndustryTransfer;
-  onUpdated: () => void;
 }
 
-const EditTransferButton = ({ transferencia, onUpdated }: Props) => {
+const EditTransferButton = ({ transferencia }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { fetchCultivars } = useStock();
   return (
     <>
       <TooltipProvider>
@@ -40,9 +37,7 @@ const EditTransferButton = ({ transferencia, onUpdated }: Props) => {
       <UpsertTransferDepositModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onTransferCreated={fetchCultivars}
         transferencia={transferencia}
-        onUpdated={onUpdated}
       />
     </>
   );

@@ -8,10 +8,9 @@ import UpsertTransferDepositModal from "./UpsertTransferDepositModal";
 
 interface Props {
   transferencia?: IndustryTransfer;
-  onUpdated?: () => void;
 }
 
-const CreateTransferDepositButton = ({ transferencia, onUpdated }: Props) => {
+const CreateTransferDepositButton = ({ transferencia }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
@@ -23,7 +22,6 @@ const CreateTransferDepositButton = ({ transferencia, onUpdated }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         transferencia={transferencia}
-        onUpdated={onUpdated}
       />
     </div>
   );

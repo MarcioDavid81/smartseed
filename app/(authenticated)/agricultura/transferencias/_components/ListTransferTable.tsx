@@ -13,37 +13,16 @@ import { AgroLoader } from "@/components/agro-loader";
 import { TransferDataTable } from "./TransferDataTable";
 import EditTransferButton from "./EditTransferButton";
 import DeleteTransferButton from "./DeleteTransferButton";
+import { useIndustryTransfers } from "@/queries/industry/use-transfers-query";
 
 export function ListTransferTable() {
-  const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
-  const [transfers, setTransfers] = useState<IndustryTransfer[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  async function fetchTransfers() {
-    if (!selectedCycle?.id) return;
-
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/industry/transfer`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      const filteredData = data.filter((product: IndustryTransfer) => product.quantity > 0);
-      setTransfers(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar transferências:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchTransfers();
-  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
+  const {
+      data: industryTransfers = [],
+      isLoading,
+      isFetching,
+      refetch,
+    } = useIndustryTransfers();
 
   const columns: ColumnDef<IndustryTransfer>[] = [
     {
@@ -105,8 +84,8 @@ export function ListTransferTable() {
         const transferencia = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditTransferButton transferencia={transferencia} onUpdated={fetchTransfers} />
-            <DeleteTransferButton transferencia={transferencia} onDeleted={fetchTransfers} />
+            <EditTransferButton transferencia={transferencia} />
+            <DeleteTransferButton transferencia={transferencia} />
           </div>
         );
       },
@@ -117,14 +96,14 @@ export function ListTransferTable() {
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Transferências</h2>
-        <Button variant={"ghost"} onClick={fetchTransfers} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <TransferDataTable columns={columns} data={transfers} />
+        <TransferDataTable columns={columns} data={industryTransfers} />
       )}
     </Card>
   );

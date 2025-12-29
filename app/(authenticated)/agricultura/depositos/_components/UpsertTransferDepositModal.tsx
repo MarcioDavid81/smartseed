@@ -1,7 +1,9 @@
 "use client";
 
 import { PRODUCT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/products";
+import { QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -18,74 +20,38 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
+import { CreateIndustryTransferFormData, createIndustryTransferSchema } from "@/lib/schemas/industryTransferSchema";
+import { useUpsertIndustryTransfer } from "@/queries/industry/use-upsert-industry-transfer";
 import { IndustryDeposit, IndustryTransfer } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProductType } from "@prisma/client";
-import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-import { z } from "zod";
 
 interface UpsertTransferDepositModalProps {
   transferencia?: IndustryTransfer;
   isOpen: boolean;
   onClose: () => void;
-  onTransferCreated?: () => void;
-  onUpdated?: () => void;
 }
 
-const transferDepositSchema = z.object({
-  date: z.string().min(1, "Selecione uma data"),
-  product: z.nativeEnum(ProductType),
-  fromDepositId: z.string().cuid(),
-  toDepositId: z.string().cuid(),
-  quantity: z.coerce.number().positive(),
-  document: z.string().optional(),
-  observation: z.string().optional(),
-});
-
-type TransferFormData = z.infer<typeof transferDepositSchema>;
 
 const UpsertTransferDepositModal = ({
   transferencia,
   isOpen,
   onClose,
-  onTransferCreated,
-  onUpdated,
 }: UpsertTransferDepositModalProps) => {
-  const [loading, setLoading] = useState(false);
   const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
+  const { showToast } = useSmartToast();
 
-  const form = useForm<TransferFormData>({
-    resolver: zodResolver(transferDepositSchema),
+  const form = useForm<CreateIndustryTransferFormData>({
+    resolver: zodResolver(createIndustryTransferSchema),
     defaultValues: {
-      date: transferencia
-        ? new Date(transferencia.date).toISOString().split("T")[0]
-        : format(new Date(), "yyyy-MM-dd"),
-      product: transferencia?.product ?? ProductType.SOJA,
-      fromDepositId: transferencia?.fromDepositId ?? "",
-      toDepositId: transferencia?.toDepositId ?? "",
-      quantity: transferencia?.quantity ?? 0,
-      document: transferencia?.document ?? "",
-      observation: transferencia?.observation ?? "",
-    },
-  });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<TransferFormData>({
-    resolver: zodResolver(transferDepositSchema),
-    defaultValues: {
-      date: transferencia
-        ? new Date(transferencia.date).toISOString().split("T")[0]
-        : "",
+      date: transferencia ? new Date(transferencia.date) : new Date(),
       product: transferencia?.product ?? ProductType.SOJA,
       fromDepositId: transferencia?.fromDepositId ?? "",
       toDepositId: transferencia?.toDepositId ?? "",
@@ -97,8 +63,8 @@ const UpsertTransferDepositModal = ({
 
   useEffect(() => {
     if (transferencia) {
-      reset({
-        date: new Date(transferencia.date).toISOString().split("T")[0],
+      form.reset({
+        date: transferencia.date ? new Date(transferencia.date) : new Date(),
         product: transferencia.product,
         fromDepositId: transferencia.fromDepositId,
         toDepositId: transferencia.toDepositId,
@@ -107,9 +73,9 @@ const UpsertTransferDepositModal = ({
         observation: transferencia.observation,
       });
     } else {
-      reset();
+      form.reset();
     }
-  }, [transferencia, isOpen, reset]);
+  }, [transferencia, isOpen, form]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -127,63 +93,36 @@ const UpsertTransferDepositModal = ({
     if (isOpen) fetchData();
   }, [isOpen]);
 
-  const onSubmit = async (data: TransferFormData) => {
-    setLoading(true);
-    const token = getToken();
-    console.log("Dados enviados para API:", {
-      ...data,
-    });
+  const { mutate, isPending } = useUpsertIndustryTransfer({
+    transferId: transferencia?.id,
+  });
 
-    const url = transferencia
-      ? `/api/industry/transfer/${transferencia.id}`
-      : "/api/industry/transfer";
-    const method = transferencia ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+  const onSubmit = async (data: CreateIndustryTransferFormData) => {
+    mutate(data, {
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: transferencia
+            ? "Transferência atualizada com sucesso!"
+            : "Transferência cadastrada com sucesso!",
+        });
+        onClose();
+        form.reset();
       },
-      body: JSON.stringify({
-        ...data,
-      }),
+      onError: (error) => {
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: error.message || "Erro ao salvar transferência.",
+        });
+      },
     });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar transferência.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
-      });
-    } else {
-      toast.success(
-        transferencia
-          ? "Transferência atualizada com sucesso!"
-          : "Transferência cadastrada com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        },
-      );
-      onClose();
-      reset();
-      if (onTransferCreated) onTransferCreated();
-    }
-
-    setLoading(false);
   };
 
   useEffect(() => {
-    if (!isOpen) reset();
-  }, [isOpen, reset]);
+    if (!isOpen) form.reset();
+  }, [isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -197,42 +136,52 @@ const UpsertTransferDepositModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
-              <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              <FormField
-                control={form.control}
-                name="product"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Produto</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="w-full rounded border px-2 py-1"
-                      >
-                        <option value="" className="text-sm font-light">Selecione</option>
-                        {PRODUCT_TYPE_OPTIONS.map((c) => (
-                          <option key={c.value} value={c.value} className="text-sm font-light">
-                            {c.label}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Data</FormLabel>
+                          <FormControl>
+                            <DatePicker value={field.value} onChange={field.onChange}/>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </div>
+                <div>
+                  <FormField
+                    control={form.control}
+                    name="product"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Produto</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um produto" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PRODUCT_TYPE_OPTIONS.map((p) => (
+                                <SelectItem key={p.value} value={p.value}>
+                                  {p.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
               <FormField
                 control={form.control}
                 name="fromDepositId"
@@ -240,17 +189,21 @@ const UpsertTransferDepositModal = ({
                   <FormItem>
                     <FormLabel>Depósito Origem</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full rounded border px-2 py-1"
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
                       >
-                        <option value="" className="text-sm font-light">Selecione</option>
-                        {deposits.map((c) => (
-                          <option key={c.id} value={c.id} className="text-sm font-light">
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um depósito" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {deposits.map((d) => (
+                            <SelectItem key={d.id} value={d.id}>
+                              {d.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -264,17 +217,21 @@ const UpsertTransferDepositModal = ({
                   <FormItem>
                     <FormLabel>Depósito Destino</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full rounded border px-2 py-1"
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
                       >
-                        <option value="" className="text-sm font-light">Selecione</option>
-                        {deposits.map((c) => (
-                          <option key={c.id} value={c.id} className="text-sm font-light">
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um depósito" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {deposits.map((d) => (
+                            <SelectItem key={d.id} value={d.id}>
+                              {d.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -286,13 +243,7 @@ const UpsertTransferDepositModal = ({
                   control={form.control}
                   name="quantity"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quantidade (Kg)</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <QuantityInput label="Quantidade" field={field} suffix=" kg" />
                   )}
                 />
                 <FormField
@@ -314,7 +265,7 @@ const UpsertTransferDepositModal = ({
                 name="observation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Observação</FormLabel>
+                    <FormLabel>Observações</FormLabel>
                     <FormControl>
                       <Textarea {...field} />
                     </FormControl>
@@ -325,10 +276,10 @@ const UpsertTransferDepositModal = ({
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isPending}
                 className="mt-4 w-full bg-green text-white"
               >
-                {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
             </div>
           </form>
