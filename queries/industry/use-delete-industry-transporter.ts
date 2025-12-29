@@ -1,4 +1,5 @@
 import { useSmartToast } from "@/contexts/ToastContext";
+import { ApiError } from "@/lib/http/api-error";
 import { deleteIndustryTransporter } from "@/services/industry/industryTransporter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -21,7 +22,23 @@ export function useDeleteIndustryTransporter() {
       });
     },
 
-    onError: (error: Error) => {
+    onError: (error: ApiError) => {
+      if (error.code === "TRANSPORTER_HAS_SALES") {
+        showToast({
+          type: "error",
+          title: "Vendas associadas",
+          message: error.message,
+        });
+        return;
+      }
+      if (error.code === "TRANSPORTER_HAS_HARVESTS") {
+        showToast({
+          type: "error",
+          title: "Colheitas associadas",
+          message: error.message,
+        });
+        return;
+      }
       showToast({
         type: "error",
         title: "Erro",

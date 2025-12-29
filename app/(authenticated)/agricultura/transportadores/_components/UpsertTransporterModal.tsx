@@ -16,6 +16,7 @@ import { industryTransporterSchema, IndustryTransporterFormData } from "@/lib/sc
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { useUpsertIndustryTransporter } from "@/queries/industry/use-upsert-industry-transporter";
+import { ApiError } from "@/lib/http/api-error";
 
 interface UpsertIndustryTransporterModalProps {
   industryTransporter?: IndustryTransporter;
@@ -79,14 +80,33 @@ const UpsertIndustryTransporterModal = ({
         form.reset();
       },
       onError: (error: Error) => {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: error.message || `Erro ao ${
-          industryTransporter ? "atualizar" : "criar"
-        } transportador.`,
-      });
-    },
+        if (error instanceof ApiError) {
+          if (error.status === 402) {
+            showToast({
+              type: "info",
+              title: "Limite atingido",
+              message: error.message,
+            });
+            return;
+          } 
+            
+          if (error.status === 401) {
+            showToast({
+              type: "info",
+              title: "Sessão expirada",
+              message: "Faça login novamente",
+            });
+            return;
+          }
+        }
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: error.message || `Erro ao ${
+            industryTransporter ? "atualizar" : "criar"
+          } transportador.`,
+        });
+      },
     })
   }
 

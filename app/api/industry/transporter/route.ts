@@ -2,12 +2,16 @@ import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { industryTransporterSchema } from "@/lib/schemas/industryTransporter";
+import { withAccessControl } from "@/lib/api/with-access-control";
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
 
 export async function POST (req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
+
+    const session = await withAccessControl('CREATE_MASTER_DATA');
 
     const body = await req.json();
     const parsed = industryTransporterSchema.safeParse(body);
@@ -23,13 +27,26 @@ export async function POST (req: NextRequest) {
     const industryTransporter = await db.industryTransporter.create({
       data: {
         ...data,
-        companyId,
+        companyId: session.user.companyId,
       },
     });
 
     return NextResponse.json(industryTransporter, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar transportador:", error);
+    if (error instanceof PlanLimitReachedError) {
+          return NextResponse.json(
+            { message: error.message },
+            { status: 402 }
+          )
+        }
+        
+    if (error instanceof ForbiddenPlanError) {
+          return NextResponse.json(
+            { message: error.message },
+            { status: 403 }
+          )
+        }
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }
