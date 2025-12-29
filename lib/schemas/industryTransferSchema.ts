@@ -6,7 +6,7 @@ export const createIndustryTransferSchema = z.object({
   product: z.nativeEnum(ProductType),
   fromDepositId: z.string().cuid(),
   toDepositId: z.string().cuid(),
-  quantity: z.number().positive(),
+  quantity: z.coerce.number().positive(),
   document: z.string().optional(),
   observation: z.string().optional(),
 });

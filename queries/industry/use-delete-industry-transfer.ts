@@ -1,6 +1,6 @@
 import { useSmartToast } from "@/contexts/ToastContext";
 import { ApiError } from "@/lib/http/api-error";
-import { deleteIndustryTransporter } from "@/services/industry/industryTransporter";
+import { deleteIndustryTransfer } from "@/services/industry/industryTransfer";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useDeleteIndustryTransfer() {
@@ -8,7 +8,7 @@ export function useDeleteIndustryTransfer() {
   const { showToast } = useSmartToast();
 
   return useMutation({
-    mutationFn: (industryTransferId: string) => deleteIndustryTransporter(industryTransferId),
+    mutationFn: (industryTransferId: string) => deleteIndustryTransfer(industryTransferId),
     mutationKey: ["industry-transfer"],
     onSuccess: () => {
       showToast({
