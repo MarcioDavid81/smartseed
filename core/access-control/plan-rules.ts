@@ -2,8 +2,8 @@ import { PlanRules } from './types'
 
 export const PLAN_RULES: PlanRules = {
   BASIC: {
-    REGISTER_MOVEMENT: { max: 10 },
-    CREATE_MASTER_DATA: { max: 10 },
+    REGISTER_MOVEMENT: { max: 2 },
+    CREATE_MASTER_DATA: { max: 2 },
     CREATE_USER: { max: 1 },
     FINANCIAL_OPERATION: false,
   },

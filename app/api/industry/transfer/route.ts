@@ -1,9 +1,11 @@
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+
 import { requireAuth } from "@/lib/auth/require-auth";
 import { ProductType } from "@prisma/client";
 import { createIndustryTransferSchema } from "@/lib/schemas/industryTransferSchema";
+import { withAccessControl } from "@/lib/api/with-access-control";
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
 
 /**
  * @swagger
@@ -47,12 +49,20 @@ export async function POST(req: NextRequest) {
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
 
+    const session = await withAccessControl('REGISTER_MOVEMENT');
+
     const body = await req.json();
     const parsed = createIndustryTransferSchema.parse(body);
 
     if (parsed.fromDepositId === parsed.toDepositId) {
       return NextResponse.json(
-        { error: "O depósito de origem e destino devem ser diferentes." },
+        { 
+          error: {
+            code: 'INVALID_PAYLOAD',
+            title: "Dados inválidos",
+            message: 'O depósito de origem e destino devem ser diferentes.'
+          }
+         },
         { status: 400 },
       );
     }
@@ -68,14 +78,26 @@ export async function POST(req: NextRequest) {
 
     if (!originStock || originStock.companyId !== companyId) {
       return NextResponse.json(
-        { error: "Estoque de origem não encontrado para esta empresa." },
+        { 
+          error: {
+            code: 'INVALID_PAYLOAD',
+            title: "Dados inválidos",
+            message: 'Estoque de origem não encontrado para esta empresa.'
+          }
+         },
         { status: 404 },
       );
     }
 
     if (originStock.quantity.toNumber() < parsed.quantity) {
       return NextResponse.json(
-        { error: "Estoque insuficiente no depósito de origem." },
+        { 
+          error: {
+            code: 'INVALID_PAYLOAD',
+            title: "Dados inválidos",
+            message: 'Estoque insuficiente no depósito de origem.'
+          }
+         },
         { status: 400 },
       );
     }
@@ -120,7 +142,7 @@ export async function POST(req: NextRequest) {
           toDepositId: parsed.toDepositId,
           document: parsed.document,
           observation: parsed.observation,
-          companyId,
+          companyId: session.user.companyId,
         },
         include: {
           fromDeposit: { select: { id: true, name: true } },
@@ -132,11 +154,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(transfer, { status: 201 });
   } catch (error) {
     console.error(error);
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+    if (error instanceof PlanLimitReachedError) {
+          return NextResponse.json(
+            { message: error.message },
+            { status: 402 }
+          )
+        }
+    
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: 403 }
+      )
     }
     return NextResponse.json(
-      { error: "Erro interno no servidor" },
+      { 
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          title: "Erro interno no servidor",
+          message: 'Ocorreu um erro ao processar a solicitação, por favor, tente novamente mais tarde.'
+        }
+       },
       { status: 500 },
     );
   }
@@ -231,12 +269,15 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(transfers, { status: 200 });
   } catch (error) {
-    console.error(error);
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
-    }
+    console.error("Erro ao buscar transferências de grãos:", error);
     return NextResponse.json(
-      { error: "Erro interno no servidor" },
+      { 
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          title: "Erro interno no servidor",
+          message: 'Ocorreu um erro ao processar a solicitação, por favor, tente novamente mais tarde.'
+        }
+       },
       { status: 500 },
     );
   }

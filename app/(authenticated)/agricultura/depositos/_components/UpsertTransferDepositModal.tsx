@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
+import { ApiError } from "@/lib/http/api-error";
 import { CreateIndustryTransferFormData, createIndustryTransferSchema } from "@/lib/schemas/industryTransferSchema";
 import { useUpsertIndustryTransfer } from "@/queries/industry/use-upsert-industry-transfer";
 import { IndustryDeposit, IndustryTransfer } from "@/types";
@@ -111,6 +112,25 @@ const UpsertTransferDepositModal = ({
         form.reset();
       },
       onError: (error) => {
+        if (error instanceof ApiError) {
+          if (error.status === 402) {
+            showToast({
+              type: "info",
+              title: "Limite atingido",
+              message: error.message,
+            });
+            return;
+          }
+        
+          if (error.status === 401) {
+            showToast({
+              type: "info",
+              title: "Sessão expirada",
+              message: "Faça login novamente",
+            });
+            return;
+          }
+        }
         showToast({
           type: "error",
           title: "Erro",

@@ -142,7 +142,15 @@ export async function PUT(
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
     console.error("Erro ao atualizar colheita:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json({
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        title: "Erro interno no servidor",
+        message: 'Ocorreu um erro ao processar a solicitação, por favor, tente novamente mais tarde.'
+      }
+    },
+    { status: 500 },
+  );
   }
 }
 

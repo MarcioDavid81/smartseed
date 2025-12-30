@@ -1,6 +1,5 @@
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { ProductType } from "@prisma/client";
 
@@ -177,12 +176,15 @@ export async function PUT(
 
     return NextResponse.json(updatedTransfer, { status: 200 });
   } catch (error) {
-    console.error(error);
-    if (error instanceof z.ZodError)
-      return NextResponse.json({ error: error.errors }, { status: 400 });
-
+    console.error("Erro ao atualizar transferência de grãos:", error);
     return NextResponse.json(
-      { error: "Erro interno no servidor" },
+      { 
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          title: "Erro interno no servidor",
+          message: 'Ocorreu um erro ao processar a solicitação, por favor, tente novamente mais tarde.'
+        }
+       },
       { status: 500 },
     );
   }
