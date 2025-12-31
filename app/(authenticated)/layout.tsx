@@ -93,7 +93,7 @@ export default async function RootLayout({
     ? {
         id: company.id,
         name: company.name,
-        plan: company.plan ?? "",
+        plan: company.plan ?? undefined,
       }
     : null;
 

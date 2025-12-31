@@ -1,5 +1,7 @@
+import { Plan } from "@prisma/client";
+
 export interface Company {
   id: string;
   name: string;
-  plan: string;
+  plan?: Plan | null;
 }
