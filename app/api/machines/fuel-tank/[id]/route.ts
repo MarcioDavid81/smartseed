@@ -1,4 +1,4 @@
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { fuelTankSchema } from "@/lib/schemas/fuelTankSchema";
 import { NextRequest, NextResponse } from "next/server";
@@ -7,39 +7,16 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: {
-        code: "UNAUTHORIZED",
-        title: "Autenticação necessária",
-        message: "Token ausente.",
-        } 
-      },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: {
-      code: "TOKEN_INVALID",
-      title: "Token inválido",
-      message: "O token fornecido é inválido ou expirado.",
-    } 
-  },
-  { status: 401 });
-  }
-
-  const { companyId } = payload;
-
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+
+    const { id } = params;
+
     const fuelTank = await db.fuelTank.findUnique({
       where: {
-        id: params.id,
+        id,
         companyId,
       },
     });
@@ -97,36 +74,11 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "UNAUTHORIZED",
-            title: "Autenticação necessária",
-            message: "Token ausente.",
-          },
-        },
-        { status: 401 },
-      );
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "TOKEN_INVALID",
-            title: "Token inválido",
-            message: "O token fornecido é inválido ou expirado.",
-          },
-        },
-        { status: 401 },
-      );
-    }
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
-    const { companyId } = payload;
 
     const existing = await db.fuelTank.findUnique({
       where: {
@@ -224,36 +176,11 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "UNAUTHORIZED",
-            title: "Autenticação necessária",
-            message: "Token ausente.",
-          },
-        },
-        { status: 401 },
-      );
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "TOKEN_INVALID",
-            title: "Token inválido",
-            message: "O token fornecido é inválido ou expirado.",
-          },
-        },
-        { status: 401 },
-      );
-    }
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
-    const { companyId } = payload;
 
     const existing = await db.fuelTank.findUnique({
       where: {  

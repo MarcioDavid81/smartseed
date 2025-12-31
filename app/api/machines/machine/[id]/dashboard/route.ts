@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 const MONTHS = [
   "Jan",
@@ -22,24 +22,16 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    // 🔐 Auth
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json({ error: "Token ausente" }, { status: 401 });
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-    }
-
-    const { companyId } = payload;
-    const machineId = params.id;
+    const auth = await requireAuth(req);
+        if (!auth.ok) return auth.response;
+        const { companyId } = auth;
+    
+        const { id } = params;
 
     // 🧠 Máquina
     const machine = await db.machine.findFirst({
       where: {
-        id: machineId,
+        id: id,
         companyId,
       },
       select: {
@@ -89,7 +81,7 @@ export async function GET(
     // ⛽ Abastecimentos
     const refuels = await db.refuel.findMany({
       where: {
-        machineId,
+        machineId: id,
         companyId,
       },
       select: {
@@ -101,7 +93,7 @@ export async function GET(
     // 🔧 Manutenções
     const maintenances = await db.maintenance.findMany({
       where: {
-        machineId,
+        machineId: id,
         companyId,
       },
       select: {
