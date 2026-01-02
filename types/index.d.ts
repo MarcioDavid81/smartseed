@@ -6,6 +6,7 @@ export * from "./company";
 export * from "./consumptionExit";
 export * from "./cultivar";
 export * from "./customers";
+export * from "./cycles";
 export * from "./farm";
 export * from "./finalStock";
 export * from "./fuelPurchase";

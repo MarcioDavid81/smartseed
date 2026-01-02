@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { Cycle } from "@/types/cycles";
+import { Cycle } from "@/types";
 
 type CycleContextType = {
   selectedCycle: Cycle | null;

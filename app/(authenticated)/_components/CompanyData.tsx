@@ -1,7 +1,6 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { useCompany } from "@/contexts/CompanyContext";
 import { Plan } from "@prisma/client";
 import Link from "next/link";
