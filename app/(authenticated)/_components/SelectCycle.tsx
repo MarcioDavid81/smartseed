@@ -1,37 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Cycle } from "@/types/cycles";
 import { useCycle } from "@/contexts/CycleContext";
-import { getToken } from "@/lib/auth-client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCycles } from "@/queries/registrations/use-cycles-query";
 
 const SelectCycle = () => {
   const { selectedCycle, setSelectedCycle } = useCycle();
-  const [cycles, setCycles] = useState<Cycle[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCycles = async () => {
-      try {
-        setLoading(true);
-        const token = getToken();
-        const res = await fetch("/api/cycles", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
-        setCycles(data);
-      } catch (error) {
-        console.error("Erro ao carregar ciclos:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCycles();
-  }, []);
+  
+  const {
+    data: safras = [],
+    isLoading,
+  } = useCycles();
 
   return (
     <div>
@@ -40,16 +19,16 @@ const SelectCycle = () => {
       <Select
         value={selectedCycle?.id}
         onValueChange={(id) => {
-          const found = cycles.find((c) => c.id === id);
+          const found = safras.find((c) => c.id === id);
           if (found) setSelectedCycle(found);
         }}
-        disabled={loading}
+        disabled={isLoading}
       >
         <SelectTrigger className="w-[200px] text-sm font-light">
-          <SelectValue placeholder={loading ? "Carregando..." : "Selecione uma safra"} />
+          <SelectValue placeholder={isLoading ? "Carregando..." : "Selecione uma safra"} />
         </SelectTrigger>
         <SelectContent>
-          {cycles.map((cycle) => (
+          {safras.map((cycle) => (
             <SelectItem key={cycle.id} value={cycle.id} className="font-light">
               <span className="text-sm font-light">{cycle.name}</span>
             </SelectItem>

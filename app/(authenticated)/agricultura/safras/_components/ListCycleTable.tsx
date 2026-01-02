@@ -1,12 +1,9 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import { Cycle } from "@/types/cycles";
 import { CycleDataTable } from "./CycleDataTable";
 import { format } from "date-fns";
@@ -14,32 +11,16 @@ import DetailCycleButton from "./DetailCycleButton";
 import EditCycleButton from "./EditCycleButton";
 import DeleteCycleButton from "./DeleteCycleButton";
 import { AgroLoader } from "@/components/agro-loader";
+import { useCycles } from "@/queries/registrations/use-cycles-query";
 
 export function CycleGetTable() {
-  const [cycle, setCycle] = useState<Cycle[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  async function fetchCycles() {
-    try {
-      const token = getToken();
-      const res = await fetch("/api/cycles", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      console.table(data);
-      setCycle(data);
-    } catch (error) {
-      console.error("Erro ao buscar safras:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchCycles();
-  }, []);
+    const {
+        data: safras = [],
+        isLoading,
+        isFetching,
+        refetch,
+      } = useCycles();
 
   const columns: ColumnDef<Cycle>[] = [
     {
@@ -94,7 +75,7 @@ export function CycleGetTable() {
         const cycle = row.original
         return (
           <div className="flex items-center justify-center gap-4">
-            <DetailCycleButton safra={cycle} onUpdated={fetchCycles} />
+            <DetailCycleButton safra={cycle} onUpdated={refetch} />
             <EditCycleButton safraId={cycle.id} />
             <DeleteCycleButton  />
           </div>
@@ -107,14 +88,14 @@ export function CycleGetTable() {
     <Card className="p-4 font-light dark:bg-primary">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Safras</h2>
-        <Button variant={"ghost"} onClick={fetchCycles} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <CycleDataTable columns={columns} data={cycle} />
+        <CycleDataTable columns={columns} data={safras} />
       )}
     </Card>
   );

@@ -13,7 +13,7 @@ const DeleteCycleButton = () => {
   const router = useRouter();
 
   const handleClick = () => {
-    alert("Excluir Safra");
+    alert("Função em desenvolvimento");
   };
 
   return (
