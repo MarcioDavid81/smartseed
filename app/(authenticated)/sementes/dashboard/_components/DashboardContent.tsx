@@ -1,0 +1,208 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import StockByProductTypeChart from "./StockByProductTypeChart";
+import { getToken } from "@/lib/auth-client";
+import { Cultivar } from "@/types";
+import UseByCultivarChart from "./UseByCultivarChart";
+import { useCycle } from "@/contexts/CycleContext";
+import { ArrowDown, ArrowUp } from "lucide-react";
+import { CultivarStatusBadge } from "../../estoque/_components/CultivarStatusBadge";
+import ProductionMarquee from "./ProductionMarquee";
+
+const DashboardContent = () => {
+  const { selectedCycle } = useCycle();
+  const [cultivars, setCultivars] = useState<Cultivar[]>([]);
+  const [selectedCultivar, setSelectedCultivar] = useState<Cultivar | null>(
+    null
+  );
+  const [totalCultivar, setTotalCultivar] = useState(0);
+  const [totalDescarte, setTotalDescarte] = useState(0);
+  const [totalAjuste, setTotalAjuste] = useState(0)
+  const [totalSemente, setTotalSemente] = useState(0);
+  const [porcentagemAproveitamento, setPorcentagemAproveitamento] = useState(0);
+  const [chartData, setChartData] = useState([]);
+
+  useEffect(() => {
+    const fetchCultivars = async () => {
+      const token = getToken();
+      const res = await fetch("/api/cultivars/get", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      // Filtra por estoque > 0 e por tipo de produto do ciclo selecionado
+      const filteredData = data
+        .filter((c: Cultivar) => c.stock > 0)
+        .filter((c: Cultivar) =>
+          selectedCycle?.productType ? c.product === selectedCycle.productType : true,
+        );
+
+      setCultivars(filteredData);
+      // Define cultivar inicial conforme ciclo selecionado
+      setSelectedCultivar(filteredData[0] ?? null);
+    };
+
+    fetchCultivars();
+  }, [selectedCycle]);
+
+  useEffect(() => {
+    if (!selectedCultivar) return;
+
+    async function fetchDashboardData() {
+      const token = getToken();
+      const res = await fetch(
+        `/api/dashboard/summary?cultivar=${selectedCultivar?.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const json = await res.json();
+
+      setTotalCultivar(json.totalCultivar);
+      setTotalDescarte(json.totalDescarte);
+      setTotalAjuste(json.totalAjuste)
+      setPorcentagemAproveitamento(
+        ((json.colheitaKg - json.totalDescarte + json.totalAjuste) / json.colheitaKg) * 100 || 0
+      );
+      setTotalSemente(json.colheitaKg - json.totalDescarte + json.totalAjuste);
+      setChartData(json.chartData);
+    }
+
+    fetchDashboardData();
+  }, [selectedCultivar]);
+
+  // Quando o ciclo mudar, se o cultivar selecionado não pertencer ao novo tipo, ajuste
+  useEffect(() => {
+    if (!selectedCycle) return;
+    if (selectedCultivar && selectedCultivar.product !== selectedCycle.productType) {
+      const firstMatch = cultivars.find(c => c.product === selectedCycle.productType);
+      setSelectedCultivar(firstMatch ?? null);
+    }
+  }, [selectedCycle, cultivars, selectedCultivar]);
+
+  const ajusteValorAbsoluto = Math.abs(totalAjuste);
+  const ajusteTipo = totalAjuste >= 0 ? "entrada" : "saída";
+
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Coluna principal */}
+      <div className="md:col-span-4 flex flex-col space-y-4">
+        <div className="flex items-center justify-between space-x-4">
+          <Select
+            value={selectedCultivar?.id}
+            onValueChange={(id) => {
+              const found = cultivars.find((c) => c.id === id);
+              if (found) setSelectedCultivar(found);
+            }}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Cultivar" />
+            </SelectTrigger>
+            <SelectContent>
+              {cultivars.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  <span className="text-sm font-light">{c.name}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <ProductionMarquee 
+            name={selectedCultivar?.name || ""}
+            totalCultivar={totalCultivar}
+            totalDescarte={totalDescarte}
+            totalAjuste={totalAjuste}
+            porcentagemAproveitamento={porcentagemAproveitamento}
+          />
+        </div>
+
+        {/* Cards em linha */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-normal">Total Colhido</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-medium">
+                {totalCultivar.toLocaleString("pt-BR")} kg
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-normal">Total Descartado</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center space-x-6">
+              <div>
+                <p className="text-2xl font-medium">
+                  {totalDescarte.toLocaleString("pt-BR")} kg
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-normal">Total Ajustado</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center space-x-6">
+              <div>
+                <p className="text-2xl font-medium flex items-center">
+                  {ajusteValorAbsoluto.toLocaleString("pt-BR")} kg
+                  {ajusteTipo === "entrada" ? (
+                    <ArrowUp size={20} className="text-green" />
+                    ) : (
+                    <ArrowDown size={20} className="text-red" />
+                    )}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative">
+            <CardHeader>
+              <CardTitle className="font-normal">Aproveitamento</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-end gap-2">
+              <p className="text-2xl font-medium">
+                {porcentagemAproveitamento.toFixed(2)}%
+              </p>
+              <p className="text-sm font-light">
+                {(totalCultivar - totalDescarte + totalAjuste).toLocaleString("pt-BR")} kg de
+                semente
+              </p>
+              {selectedCultivar && (
+                <div className="absolute right-6 top-6">
+                  <CultivarStatusBadge status={selectedCultivar.status} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Gráfico principal */}
+          <StockByProductTypeChart className="md:col-span-3" />
+          <UseByCultivarChart
+            aproveitado={totalSemente}
+            descartado={totalDescarte}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardContent;

@@ -41,6 +41,7 @@ const routes = [
     name: "Sementes",
     icon: <FaSeedling size={20} />,
     subRoutes: [
+      { path: "/sementes/dashboard", name: "Dashboard" },
       { path: "/sementes/colheitas", name: "Colheita" },
       { path: "/sementes/compras", name: "Compra" },
       { path: "/sementes/vendas", name: "Venda" },
