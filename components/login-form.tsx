@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useSmartToast } from "@/contexts/ToastContext";
+import Link from "next/link";
 
 export function LoginForm({
   className,
@@ -53,7 +54,7 @@ export function LoginForm({
       console.log(data.token);
       showToast({
         title: "Successo",
-        message: "Bem vindo de volta!",
+        message: "Bem vindo ao SmartSeed!",
         type: "success",
       });
       window.location.href = "/dashboard";
@@ -114,7 +115,7 @@ export function LoginForm({
                 </div>
               </div>
 
-              {error && <p className="text-red-500 text-sm">{error}</p>}
+              {error && <p className="text-red text-sm">{error}</p>}
               <Button
                 type="submit"
                 className={`p-2 bg-green rounded-md transition-colors ${
@@ -124,16 +125,13 @@ export function LoginForm({
               >
                 {loading ? <FaSpinner className="animate-spin" /> : "Login"}
               </Button>
-              <div className="text-center text-sm">
-                Ainda não tem uma conta?{" "}
-                <a
-                  href="https://smartseed.app.br/#contact"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-4"
-                >
-                  Solicite um teste!
-                </a>
+              <div className="flex flex-col text-center">
+                <p>Ainda não tem uma conta?</p>
+                <Button asChild variant="link" className="hover:text-green">
+                  <Link href="/on-boarding" className="hover:no-underline">
+                    Cadastre-se gratuitamente clicando aqui.
+                  </Link>
+                </Button>
               </div>
             </div>
           </form>

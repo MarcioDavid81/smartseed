@@ -1,6 +1,20 @@
 import FuzzyText from "@/components/fuzzy-text";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Acesso não autorizado",
+  keywords: [
+    "produção de sementes",
+    "gestão de sementeiras",
+    "controle de produção e estoque de sementes",
+  ],
+  description: "O seu sistema de gestão de produção de sementes",
+  authors: [
+    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+  ],
+};
 
 export default function UnauthorizedPage() {
   return (
