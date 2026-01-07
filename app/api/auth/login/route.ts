@@ -24,6 +24,16 @@ export async function POST(req: Request) {
     );
   }
 
+  if (!user.emailVerifiedAt) {
+    return NextResponse.json(
+    {
+      error:
+        "E-mail ainda não confirmado. Verifique sua caixa de entrada para ativar sua conta.",
+    },
+    { status: 403 }
+  );
+  }
+
   const isValid = await compare(password, user.password);
 
   if (!isValid) {
