@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     });
 
     // 🌍 monta URL
-    const verifyUrl = `${process.env.APP_URL}/api/auth/verify-email?token=${token}`;
+    const verifyUrl = `${process.env.APP_URL}/verify-email?token=${token}`;
 
     // 📧 envia e-mail
     await sendUserVerificationEmail({

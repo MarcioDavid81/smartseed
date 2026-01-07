@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
 
@@ -9,31 +8,32 @@ export async function GET(req: NextRequest) {
     const token = searchParams.get("token");
 
     if (!token) {
-      return NextResponse.redirect(
-        `${process.env.APP_URL}/login?error=invalid-token`
+      return NextResponse.json(
+        { error: "Token não informado" },
+        { status: 400 }
       );
     }
 
     const verificationToken = await db.emailVerificationToken.findUnique({
       where: { token },
-      include: { user: true },
     });
 
     if (!verificationToken) {
-      return NextResponse.redirect(
-        `${process.env.APP_URL}/login?error=token-not-found`
+      return NextResponse.json(
+        { error: "Token inválido" },
+        { status: 404 }
       );
     }
 
     // ⏱️ token expirado
     if (verificationToken.expiresAt < new Date()) {
-      // limpa token expirado
       await db.emailVerificationToken.delete({
         where: { id: verificationToken.id },
       });
 
-      return NextResponse.redirect(
-        `${process.env.APP_URL}/login?error=token-expired`
+      return NextResponse.json(
+        { error: "Token expirado" },
+        { status: 410 }
       );
     }
 
@@ -50,14 +50,16 @@ export async function GET(req: NextRequest) {
       where: { id: verificationToken.id },
     });
 
-    return NextResponse.redirect(
-      `${process.env.APP_URL}/login?verified=true`
+    return NextResponse.json(
+      { success: true },
+      { status: 200 }
     );
   } catch (error) {
     console.error("[VERIFY_EMAIL_ERROR]", error);
 
-    return NextResponse.redirect(
-      `${process.env.APP_URL}/login?error=internal`
+    return NextResponse.json(
+      { error: "Erro interno" },
+      { status: 500 }
     );
   }
 }
