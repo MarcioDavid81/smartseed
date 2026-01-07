@@ -61,15 +61,28 @@ model Farm {
 }
 
 model User {
+  id                      String                   @id @default(uuid())
+  name                    String
+  email                   String                   @unique
+  emailVerifiedAt         DateTime?
+  emailVerificationTokens EmailVerificationToken[]
+  password                String
+  companyId               String
+  createdAt               DateTime                 @default(now())
+  imageUrl                String?
+  role                    Role?                    @default(USER)
+  company                 Company                  @relation(fields: [companyId], references: [id])
+}
+
+model EmailVerificationToken {
   id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  companyId String
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
   createdAt DateTime @default(now())
-  imageUrl  String?
-  role      Role?    @default(USER)
-  company   Company  @relation(fields: [companyId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Customer {
