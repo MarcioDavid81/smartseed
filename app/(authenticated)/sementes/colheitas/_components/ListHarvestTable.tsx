@@ -1,50 +1,28 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Harvest } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import { HarvestDataTable } from "./HarvestDataTable";
 import DeleteHarvestButton from "./DeleteHarvestButton";
 import UpsertHarvestButton from "./UpsertHarvestButton";
 import DetailHarvestButton from "./DetailHarvestButton";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { AgroLoader } from "@/components/agro-loader";
+import { useSeedHarvestsByCycle } from "@/queries/seed/use-seed-harvest-query";
+import { LoadingData } from "@/components/loading-data";
 
 export function ListHarvestTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
-  const [harvests, setHarvests] = useState<Harvest[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  async function fetchHarvests() {
-    if (!selectedCycle?.id) return;
-
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/harvest?cycleId=${selectedCycle.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      const filteredData = data.filter((product: Harvest) => product.quantityKg > 0);
-      setHarvests(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar colheitas:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchHarvests();
-  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
+  const {
+    data: colheitas = [],
+    isLoading,
+    isFetching,
+    refetch, 
+  } = useSeedHarvestsByCycle(selectedCycle?.id || "");
 
   const columns: ColumnDef<Harvest>[] = [
     {
@@ -64,18 +42,57 @@ export function ListHarvestTable() {
     {
       accessorKey: "cultivar",
       header: "Cultivar",
-      accessorFn: (row) => row.cultivar.name,
-      cell: ({ row: { original } }) => original.cultivar.name,
+      cell: ({ row }) => {
+        const cultivar = row.original.cultivar;
+         if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+         }
+              
+        if (!cultivar) {
+         return (
+          <span className="text-muted-foreground italic text-sm">
+            Sem cultivar
+          </span>
+         );
+        }
+      return <span>{cultivar.name}</span>;
+      },
     },
     {
       accessorKey: "talhao",
       header: "Talhão",
-      cell: ({ row: { original } }) => original.talhao.name,
+      cell: ({ row }) => {
+        const talhao = row.original.talhao;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!talhao) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem talhão
+            </span>
+          );
+        }
+        return <span>{talhao.name}</span>;
+      },
     },
     {
       accessorKey: "farm",
       header: () => <div className="text-left">Fazenda</div>,
-      cell: ({ row: { original } }) => <div className="text-left">{original.talhao.farm.name}</div>,
+      cell: ({ row }) => {
+        const farm = row.original.talhao?.farm;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!farm) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem fazenda
+            </span>
+          );
+        }
+        return <div className="text-left">{farm.name}</div>;
+      },
     },
     {
       accessorKey: "quantityKg",
@@ -99,9 +116,9 @@ export function ListHarvestTable() {
         const colheita = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <DetailHarvestButton colheita={colheita} onUpdated={fetchHarvests} />
-            <UpsertHarvestButton colheita={colheita} onUpdated={fetchHarvests} />
-            <DeleteHarvestButton colheita={colheita} onDeleted={fetchHarvests} />
+            <DetailHarvestButton colheita={colheita} />
+            <UpsertHarvestButton colheita={colheita} />
+            <DeleteHarvestButton colheita={colheita} />
           </div>
         );
       },
@@ -112,14 +129,14 @@ export function ListHarvestTable() {
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Colheitas</h2>
-        <Button variant={"ghost"} onClick={fetchHarvests} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <HarvestDataTable columns={columns} data={harvests} />
+        <HarvestDataTable columns={columns} data={colheitas} />
       )}
     </Card>
   );

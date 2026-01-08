@@ -13,10 +13,9 @@ import { DetailHarvestModal } from "./DetailHarvestModal";
 
 interface Props {
   colheita: Harvest;
-  onUpdated: () => void;
 }
 
-const DetailHarvestButton = ({ colheita, onUpdated }: Props) => {
+const DetailHarvestButton = ({ colheita }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<Harvest | null>(null);
   return (

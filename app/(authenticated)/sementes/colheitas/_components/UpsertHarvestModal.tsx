@@ -18,51 +18,36 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
+import { ApiError } from "@/lib/http/api-error";
+import { SeedHarvestFormData, seedHarvestSchema } from "@/lib/schemas/seedHarvestSchema";
+import { useUpsertSeedHarvest } from "@/queries/seed/use-upsert-seed-harvest";
 import { Cultivar, Harvest, Talhao } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProductType } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-import { z } from "zod";
 
 interface UpsertHarvestModalProps {
   colheita?: Harvest;
   isOpen: boolean;
   onClose: () => void;
-  onHarvestCreated?: () => void;
-  onUpdated?: () => void;
 }
-
-const harvestSchema = z.object({
-  cultivarId: z.string().min(1, "Selecione uma cultivar"),
-  talhaoId: z.string().min(1, "Selecione um talhão"),
-  date: z.coerce.date(),
-  quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
-  notes: z.string(),
-});
-
-type HarvestFormData = z.infer<typeof harvestSchema>;
 
 const UpsertHarvestModal = ({
   colheita,
   isOpen,
   onClose,
-  onHarvestCreated,
-  onUpdated,
 }: UpsertHarvestModalProps) => {
-  const [loading, setLoading] = useState(false);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const { showToast } = useSmartToast();
 
-  const form = useForm<HarvestFormData>({
-    resolver: zodResolver(harvestSchema),
+  const form = useForm<SeedHarvestFormData>({
+    resolver: zodResolver(seedHarvestSchema),
     defaultValues: {
       cultivarId: colheita?.cultivarId ?? "",
       talhaoId: colheita?.talhaoId ?? "",
@@ -118,62 +103,63 @@ const UpsertHarvestModal = ({
     if (isOpen) fetchData();
   }, [isOpen]);
 
-  const onSubmit = async (data: HarvestFormData) => {
-    setLoading(true);
-    const token = getToken();
-    const cycle = getCycle();
-    if (!cycle || !cycle.id) {
+  const cycle = getCycle();
+      
+  const { mutate, isPending } = useUpsertSeedHarvest({
+    cycleId: cycle?.id!,
+    harvestId: colheita?.id,
+  });
+
+  const onSubmit = async (data: SeedHarvestFormData) => {
+    if (!cycle?.id) {
       showToast({
         type: "error",
         title: "Erro",
         message: "Nenhum ciclo de produção selecionado.",
       });
-      setLoading(false);
       return;
     }
-    const cycleId = cycle.id;
-    console.log("Dados enviados para API:", {
-      ...data,
-      cycleId,
-    });
 
-    const url = colheita ? `/api/harvest/${colheita.id}` : "/api/harvest";
-    const method = colheita ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    mutate(data, {
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: colheita
+            ? "Colheita atualizada com sucesso!"
+            : "Colheita cadastrada com sucesso!",
+        });
+          
+        onClose();
+        form.reset();
       },
-      body: JSON.stringify({
-        ...data,
-        cycleId,
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
+      onError: (error: Error) => {
+        if (error instanceof ApiError) {
+          if (error.status === 402) {
+            showToast({
+              type: "info",
+              title: "Limite atingido",
+              message: error.message,
+            });
+            return;
+          }
+            
+        if (error.status === 401) {
+          showToast({
+            type: "info",
+            title: "Sessão expirada",
+            message: "Faça login novamente",
+          });
+          return;
+        }
+      }
       showToast({
         type: "error",
         title: "Erro",
-        message: result.error || "Erro ao salvar colheita.",
+        message: error.message,
       });
-    } else {
-      showToast({
-        type: "success",
-        title: "Sucesso",
-        message: colheita
-          ? "Colheita atualizada com sucesso!"
-          : "Colheita cadastrada com sucesso!",
+      },
     });
-      onClose();
-      form.reset();
-      if (onHarvestCreated) onHarvestCreated();
-    }
-
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -192,89 +178,93 @@ const UpsertHarvestModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-4">
-            <FormField
-              control={form.control}
-              name="cultivarId"
-              render={({field}) => (
-                <FormItem>
-                  <FormLabel>Cultivar</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma cultivar" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {cultivars.map((cultivar) => (
-                          <SelectItem key={cultivar.id} value={cultivar.id}>
-                            <div className="flex items-center gap-2">
-                              <span>{cultivar.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {`Estoque: ${cultivar.stock} kg`}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="cultivarId"
+                render={({field}) => (
+                  <FormItem>
+                    <FormLabel>Cultivar</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma cultivar" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {cultivars.map((cultivar) => (
+                            <SelectItem key={cultivar.id} value={cultivar.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{cultivar.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {`Estoque: ${cultivar.stock} kg`}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="talhaoId"
+                render={({field}) => (
+                  <FormItem>
+                    <FormLabel>Talhão</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um talhão" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {talhoes.map((talhao) => (
+                            <SelectItem key={talhao.id} value={talhao.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{talhao.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {talhao.farm.name}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="date"
+                render={({field}) => (
+                  <FormItem>
+                    <FormLabel>Data</FormLabel>
+                    <DatePicker value={field.value} onChange={field.onChange} />
                     <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="talhaoId"
-              render={({field}) => (
-                <FormItem>
-                  <FormLabel>Talhão</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um talhão" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {talhoes.map((talhao) => (
-                          <SelectItem key={talhao.id} value={talhao.id}>
-                            <div className="flex items-center gap-2">
-                              <span>{talhao.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {talhao.farm.name}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="date"
-              render={({field}) => (
-                <FormItem>
-                  <FormLabel>Data</FormLabel>
-                  <DatePicker value={field.value} onChange={field.onChange} />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="quantityKg"
-              render={({field}) => (
-                <QuantityInput label="Quantidade" field={field} suffix="kg" />
-              )}
-            />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="quantityKg"
+                render={({field}) => (
+                  <QuantityInput label="Quantidade" field={field} suffix=" kg" />
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="notes"
               render={({field}) => (
                 <FormItem>
                   <FormLabel>Observações</FormLabel>
-                  <Textarea {...field} placeholder="Opcional" />
+                  <Input {...field} placeholder="Opcional" />
                   <FormMessage />
                 </FormItem>
               )}
@@ -283,10 +273,10 @@ const UpsertHarvestModal = ({
           </div>
           <Button
             type="submit"
-            disabled={loading}
-            className="w-full bg-green text-white mt-4"
+            disabled={isPending}
+            className="w-full bg-green text-white mt-4 hover:bg-green/90"
           >
-            {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+            {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
           </Button>
         </form>
         </Form>

@@ -9,12 +9,10 @@ import { Harvest } from "@/types";
 
 interface Props {
   colheita?: Harvest;
-  onUpdated?: () => void;
 }
 
-const CreateHarvestButton = ({ colheita, onUpdated }: Props) => {
+const CreateHarvestButton = ({ colheita }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { fetchCultivars } = useStock();
   return (
     <div>
       <HoverButton onClick={() => setIsOpen(true)}>
@@ -24,9 +22,7 @@ const CreateHarvestButton = ({ colheita, onUpdated }: Props) => {
       <UpsertHarvestModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onHarvestCreated={fetchCultivars}
         colheita={colheita}
-        onUpdated={onUpdated}
       />
     </div>
   );
