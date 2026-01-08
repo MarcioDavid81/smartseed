@@ -1,7 +1,9 @@
 import { validateStock } from "@/app/_helpers/validateStock";
+import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { canCompanyAddBeneficiation } from "@/lib/permissions/canCompanyAddBeneficiation";
 import { db } from "@/lib/prisma";
+import { beneficiationSchema } from "@/lib/schemas/seedBeneficiationSchema";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -34,43 +36,37 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Descarte criado com sucesso
  */
 export async function POST(req: NextRequest) {
-  const allowed = await canCompanyAddBeneficiation();
-  if (!allowed) {
-    return NextResponse.json(
-      {
-        error:
-          "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
-      },
-      { status: 403 },
-    );
-  }
-
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-  const { companyId } = auth;
-
   try {
-    const {
-      cultivarId,
-      date,
-      quantityKg,
-      notes,
-      cycleId,
-      destinationId, // 🆕 novo campo
-    } = await req.json();
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    if (!cultivarId || !date || !quantityKg) {
+    const session = await withAccessControl("REGISTER_MOVEMENT");
+
+    const body = await req.json();
+
+    const parsed = beneficiationSchema.safeParse(body);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Campos obrigatórios faltando" },
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: parsed.error.issues[0].message,
+          },
+        },
         { status: 400 },
       );
     }
 
-    const stockValidation = await validateStock(cultivarId, quantityKg);
+    const data = parsed.data;
+
+    const stockValidation = await validateStock(data.cultivarId, data.quantityKg);
     if (stockValidation) return stockValidation;
 
     const cultivar = await db.cultivar.findUnique({
-      where: { id: cultivarId },
+      where: { id: data.cultivarId },
       select: { id: true, name: true, product: true },
     });
 
@@ -86,31 +82,26 @@ export async function POST(req: NextRequest) {
       // 1️⃣ Cria o registro do beneficiamento
       const beneficiation = await tx.beneficiation.create({
         data: {
-          cultivarId,
-          date: new Date(date),
-          quantityKg,
-          notes,
-          companyId,
-          cycleId,
-          destinationId, // salva o depósito de destino
+          ...data,
+          companyId: session.user.companyId,
         },
       });
 
       // 2️⃣ Atualiza o estoque da cultivar (decrementa)
       await tx.cultivar.update({
-        where: { id: cultivarId },
+        where: { id: data.cultivarId },
         data: {
-          stock: { decrement: quantityKg },
+          stock: { decrement: data.quantityKg },
         },
       });
 
       // 3️⃣ Incrementa o estoque no depósito industrial, se houver destino
-      if (destinationId) {
+      if (data.destinationId) {
         const existingIndustryStock = await tx.industryStock.findFirst({
           where: {
             companyId,
             product: cultivar.product,
-            industryDepositId: destinationId,
+            industryDepositId: data.destinationId,
           },
         });
 
@@ -118,7 +109,7 @@ export async function POST(req: NextRequest) {
           await tx.industryStock.update({
             where: { id: existingIndustryStock.id },
             data: {
-              quantity: { increment: quantityKg },
+              quantity: { increment: data.quantityKg },
             },
           });
         } else {
@@ -126,8 +117,8 @@ export async function POST(req: NextRequest) {
             data: {
               companyId,
               product: cultivar.product,
-              industryDepositId: destinationId,
-              quantity: quantityKg,
+              industryDepositId: data.destinationId,
+              quantity: data.quantityKg,
             },
           });
         }

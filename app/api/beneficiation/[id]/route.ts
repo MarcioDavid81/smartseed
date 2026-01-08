@@ -221,9 +221,17 @@ export async function DELETE(
     });
 
     if (!existing || existing.companyId !== companyId) {
-      return new NextResponse("Descarte não encontrado ou acesso negado", {
-        status: 403,
-      });
+      return NextResponse.json(
+        {
+          error: {
+            code: "BENEFICIATION_NOT_FOUND",
+            title: "Beneficiamento não encontrado",
+            message:
+              "O beneficiamento não foi localizado ou você não tem permissão para acessá-lo.",
+          },
+        },
+        { status: 403 },
+      );
     }
 
     await db.$transaction(async (tx) => {
@@ -257,14 +265,23 @@ export async function DELETE(
       await tx.beneficiation.delete({ where: { id } });
     });
 
-    return new NextResponse("Beneficiamento removido com sucesso", {
-      status: 200,
-    });
+    return NextResponse.json(
+      { message: "Beneficiamento removido com sucesso" },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Erro ao deletar beneficiamento:", error);
-    const message =
-      error instanceof Error ? error.message : "Erro interno no servidor";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: {
+          code: "BENEFICIATION_DELETE_ERROR",
+          title: "Erro ao deletar beneficiamento",
+          message:
+            "Ocorreu um erro inesperado durante a tentativa de remover o beneficiamento.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 

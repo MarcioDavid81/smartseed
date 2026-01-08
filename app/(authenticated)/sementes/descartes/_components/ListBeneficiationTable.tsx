@@ -99,7 +99,6 @@ export function ListBeneficiationTable() {
             />
             <DeleteBeneficiationButton
               descarte={descarte}
-              onDeleted={refetch}
             />
           </div>
         );

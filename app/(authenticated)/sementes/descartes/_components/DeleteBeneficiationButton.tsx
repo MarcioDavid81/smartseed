@@ -17,70 +17,30 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useBeneficiation } from "@/contexts/BeneficiationContext";
-import { useSale } from "@/contexts/SaleContext";
-import { getToken } from "@/lib/auth-client";
+import { useCycle } from "@/contexts/CycleContext";
+import { useDeleteSeedBeneficiation } from "@/queries/seed/use-delete-seed-beneficiation";
 import { Beneficiation } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 
 interface Props {
   descarte: Beneficiation;
-  onDeleted: () => void;
 }
 
-const DeleteBeneficiationButton = ({ descarte, onDeleted }: Props) => {
+const DeleteBeneficiationButton = ({ descarte }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchBeneficiations } = useBeneficiation();
+  const { selectedCycle } = useCycle();
 
-  const handleDelete = async (descarte: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 descarte recebida:", descarte);
+  const { mutate, isPending } = useDeleteSeedBeneficiation({
+      cycleId: selectedCycle!.id,
+    });
 
-    if (!descarte || !descarte.id) {
-      toast.error("ID da descarte ausente. Não é possível excluir.");
-      console.warn("❌ descarte.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/beneficiation/${descarte.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar descarte:", errorText);
-        throw new Error(errorText);
-      }
-
-      toast.success("Descarte deletada com sucesso!");
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar descarte.");
-    } finally {
-      setLoading(false);
-    }
-
-    await fetchBeneficiations();
+  const handleConfirmDelete = () => {
+    mutate(descarte.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -92,7 +52,7 @@ const DeleteBeneficiationButton = ({ descarte, onDeleted }: Props) => {
               onClick={() => setIsOpen(true)}
               className="hover:opacity-80 transition"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+              <Trash2Icon size={20} className="text-red" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -114,13 +74,13 @@ const DeleteBeneficiationButton = ({ descarte, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(descarte)}
-              disabled={loading}
+              onClick={handleConfirmDelete}
+              disabled={isPending}
               variant="ghost"
-              className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
+              className="bg-transparent border border-red text-red hover:text-red"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>
