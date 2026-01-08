@@ -1,4 +1,8 @@
 import { validateStock } from "@/app/_helpers/validateStock";
+import {
+  ForbiddenPlanError,
+  PlanLimitReachedError,
+} from "@/core/access-control";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { canCompanyAddBeneficiation } from "@/lib/permissions/canCompanyAddBeneficiation";
@@ -62,7 +66,10 @@ export async function POST(req: NextRequest) {
 
     const data = parsed.data;
 
-    const stockValidation = await validateStock(data.cultivarId, data.quantityKg);
+    const stockValidation = await validateStock(
+      data.cultivarId,
+      data.quantityKg,
+    );
     if (stockValidation) return stockValidation;
 
     const cultivar = await db.cultivar.findUnique({
@@ -130,9 +137,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar descarte:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Erro interno";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 

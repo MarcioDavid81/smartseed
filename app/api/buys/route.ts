@@ -3,6 +3,12 @@ import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentCondition } from "@prisma/client";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { withAccessControl } from "@/lib/api/with-access-control";
+import { seedBuySchema } from "@/lib/schemas/seedBuyScheema";
+import {
+  ForbiddenPlanError,
+  PlanLimitReachedError,
+} from "@/core/access-control";
 
 /**
  * @swagger
@@ -42,99 +48,112 @@ import { requireAuth } from "@/lib/auth/require-auth";
  *         description: Compra criada com sucesso
  */
 export async function POST(req: NextRequest) {
-  const allowed = await canCompanyAddPurchase();
-  if (!allowed) {
-    return Response.json(
-      {
-        error:
-          "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
-      },
-      { status: 403 },
-    );
-  }
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-  const { companyId } = auth;
-
   try {
-    const {
-      cultivarId,
-      date,
-      invoice,
-      unityPrice,
-      totalPrice,
-      customerId,
-      quantityKg,
-      cycleId,
-      notes,
-      paymentCondition,
-      dueDate,
-    } = await req.json();
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    if (!cultivarId || !date || !invoice || !quantityKg || !customerId) {
+    const session = await withAccessControl("REGISTER_MOVEMENT");
+
+    const body = await req.json();
+
+    const parsed = seedBuySchema.safeParse(body);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Campos obrigatórios faltando" },
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: parsed.error.issues[0].message,
+          },
+        },
         { status: 400 },
       );
     }
 
-    const buy = await db.buy.create({
-      data: {
-        cultivarId,
-        date: new Date(date),
-        invoice,
-        unityPrice,
-        totalPrice,
-        customerId,
-        quantityKg,
-        notes,
-        companyId,
-        cycleId,
-        paymentCondition,
-        dueDate: dueDate ? new Date(dueDate) : null,
-      },
-    });
-    // Se for a prazo → cria conta a pagar
-    if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
-      const cultivar = await db.cultivar.findUnique({
-        where: { id: cultivarId },
-        select: {
-          name: true,
-        },
-      });
-      const customer = await db.customer.findUnique({
-        where: { id: customerId },
-        select: {
-          name: true,
-        },
-      });
-      // Cria conta a pagar
-      await db.accountPayable.create({
-        data: {
-          description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice ?? "S/NF"}, de ${customer?.name ?? "cliente"}`,
-          amount: totalPrice,
-          dueDate: new Date(dueDate),
-          companyId,
-          customerId,
-          buyId: buy.id,
-        },
-      });
-    }
-    console.log("Atualizando estoque da cultivar:", cultivarId);
-    // Atualiza o estoque da cultivar
-    await db.cultivar.update({
-      where: { id: cultivarId },
-      data: {
-        stock: {
-          increment: quantityKg,
-        },
-      },
+    const data = parsed.data;
+
+    const cultivar = await db.cultivar.findUnique({
+      where: { id: data.cultivarId },
+      select: { id: true, name: true, product: true },
     });
 
-    return NextResponse.json(buy, { status: 201 });
+    if (!cultivar) {
+      return NextResponse.json(
+        { error: "Cultivar não encontrada" },
+        { status: 404 },
+      );
+    }
+
+    const result = await db.$transaction(async (tx) => {
+      const buy = await tx.buy.create({
+        data: {
+          ...data,
+          companyId: session.user.companyId,
+        },
+      });
+
+      // Atualiza o estoque da cultivar
+      await tx.cultivar.update({
+        where: { id: data.cultivarId },
+        data: {
+          stock: {
+            increment: data.quantityKg,
+          },
+        },
+      });
+
+      // Se for a prazo → cria conta a pagar
+      if (data.paymentCondition === PaymentCondition.APRAZO && data.dueDate) {
+        const cultivar = await tx.cultivar.findUnique({
+          where: { id: data.cultivarId },
+          select: {
+            name: true,
+          },
+        });
+        const customer = await tx.customer.findUnique({
+          where: { id: data.customerId },
+          select: {
+            name: true,
+          },
+        });
+        // Cria conta a pagar
+        await tx.accountPayable.create({
+          data: {
+            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${data.invoice ?? "S/NF"}, de ${customer?.name ?? "cliente"}`,
+            amount: data.totalPrice,
+            dueDate: new Date(data.dueDate),
+            companyId,
+            customerId: data.customerId,
+            buyId: buy.id,
+          },
+        });
+      }
+      return buy;
+    });
+
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar compra:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 
