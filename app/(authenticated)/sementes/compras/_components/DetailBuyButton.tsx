@@ -13,10 +13,9 @@ import { DetailBuyModal } from "./DetailBuyModal";
 
 interface Props {
   compra: Buy;
-  onUpdated: () => void;
 }
 
-const DetailBuyButton = ({ compra, onUpdated }: Props) => {
+const DetailBuyButton = ({ compra }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<Buy | null>(null);
   return (
@@ -39,7 +38,10 @@ const DetailBuyButton = ({ compra, onUpdated }: Props) => {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <DetailBuyModal compra={selected} onClose={() => setSelected(null)} />
+      <DetailBuyModal
+        compra={selected}
+        onClose={() => setSelected(null)}
+      />
     </>
   );
 };

@@ -14,12 +14,10 @@ import UpsertBuyModal from "./UpsertBuyModal";
 
 interface Props {
   compra: Buy;
-  onUpdated: () => void;
 }
 
-const UpsertBuyButton = ({ compra, onUpdated }: Props) => {
+const UpsertBuyButton = ({ compra }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { fetchCultivars } = useStock();
   return (
     <>
       <TooltipProvider>
@@ -40,9 +38,7 @@ const UpsertBuyButton = ({ compra, onUpdated }: Props) => {
       <UpsertBuyModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onHarvestCreated={fetchCultivars}
         compra={compra}
-        onUpdated={onUpdated}
       />
     </>
   );

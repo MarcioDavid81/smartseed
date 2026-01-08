@@ -6,7 +6,7 @@ export async function getBuyByCycle(
   cycleId: string
 ): Promise<Buy[]> {
   const data = await apiFetch<Buy[]>(
-    `/api/buy?cycleId=${cycleId}`
+    `/api/buys?cycleId=${cycleId}`
   );
 
   return data.filter((buy) => buy.quantityKg > 0);
@@ -25,8 +25,8 @@ export function upsertBuy({
   buyId,
 }: UpsertBuyParams) {
   const url = buyId
-    ? `/api/buy/${buyId}`
-    : "/api/buy";
+    ? `/api/buys/${buyId}`
+    : "/api/buys";
 
   const method = buyId ? "PUT" : "POST";
 
@@ -40,7 +40,7 @@ export function upsertBuy({
 }
 
 export function deleteBuy(buyId: string) {
-  return apiFetch<Buy>(`/api/buy/${buyId}`, {
+  return apiFetch<Buy>(`/api/buys/${buyId}`, {
     method: "DELETE",
   });
 }

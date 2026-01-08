@@ -17,69 +17,30 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useHarvest } from "@/contexts/HarvestContext";
-import { getToken } from "@/lib/auth-client";
+import { useCycle } from "@/contexts/CycleContext";
+import { useDeleteSeedBuy } from "@/queries/seed/use-delete-seed-buy";
 import { Buy } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 
 interface Props {
   compra: Buy;
-  onDeleted: () => void;
 }
 
-const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
+const DeleteBuyButton = ({ compra }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchHarvests } = useHarvest();
+  const { selectedCycle } = useCycle();
 
-  const handleDelete = async (compra: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 compra recebida:", compra);
+  const { mutate, isPending } = useDeleteSeedBuy({
+    cycleId: selectedCycle!.id,
+  });
 
-    if (!compra || !compra.id) {
-      toast.error("ID da compra ausente. Não é possível excluir.");
-      console.warn("❌ compra.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/buys/${compra.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar compra:", errorText);
-        throw new Error(errorText);
-      }
-
-      toast.success("Compra deletada com sucesso!");
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar compra.");
-    } finally {
-      setLoading(false);
-    }
-
-    await fetchHarvests();
+  const handleConfirmDelete = () => {
+    mutate(compra.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -91,7 +52,7 @@ const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
               onClick={() => setIsOpen(true)}
               className="hover:opacity-80 transition"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+              <Trash2Icon size={20} className="text-red" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -113,13 +74,13 @@ const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(compra)}
-              disabled={loading}
+              onClick={handleConfirmDelete}
+              disabled={isPending}
               variant="ghost"
-              className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
+              className="bg-transparent border border-red text-red hover:text-red"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>

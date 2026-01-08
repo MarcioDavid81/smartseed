@@ -1,6 +1,5 @@
 "use client";
 
-import { formatCurrency } from "@/app/_helpers/currency";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,21 +17,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { getToken } from "@/lib/auth-client";
 import { Buy, Cultivar } from "@/types";
 import { Customer } from "@/types/customers";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
-import { z } from "zod";
 import { getCycle } from "@/lib/cycle";
-import { NumericFormat } from "react-number-format";
 import { PaymentCondition, ProductType } from "@prisma/client";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -40,73 +34,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { BuyFormData, seedBuySchema } from "@/lib/schemas/seedBuyScheema";
+import { useSmartToast } from "@/contexts/ToastContext";
+import { useUpsertSeedBuy } from "@/queries/seed/use-upsert-seed-buy";
+import { ApiError } from "@/lib/http/api-error";
+import { DatePicker } from "@/components/ui/date-picker";
+import { MoneyInput, QuantityInput } from "@/components/inputs";
 
 interface UpsertBuyModalProps {
   compra?: Buy;
   isOpen: boolean;
   onClose: () => void;
-  onHarvestCreated?: () => void;
-  onUpdated?: () => void;
 }
-
-const buySchema = z.object({
-  cultivarId: z.string().min(1, "Selecione uma cultivar"),
-  customerId: z.string().min(1, "Selecione um talhão"),
-  date: z.string().min(1, "Selecione uma data"),
-  invoice: z.string().min(1, "Informe a nota fiscal"),
-  unityPrice: z.coerce.number().min(1, "Preço unitário é obrigatório"),
-  quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
-  notes: z.string(),
-  paymentCondition: z.nativeEnum(PaymentCondition),
-  dueDate: z.string().min(1, "Selecione uma data de vencimento"),
-});
-
-type BuyFormData = z.infer<typeof buySchema>;
 
 const UpsertBuyModal = ({
   compra,
   isOpen,
   onClose,
-  onHarvestCreated,
-  onUpdated,
 }: UpsertBuyModalProps) => {
-  const [loading, setLoading] = useState(false);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [totalPrice, setTotalPrice] = useState("");
+  const { showToast } = useSmartToast();
 
   const form = useForm<BuyFormData>({
-    resolver: zodResolver(buySchema),
+    resolver: zodResolver(seedBuySchema),
     defaultValues: {
       cultivarId: compra?.cultivarId ?? "",
       customerId: compra?.customerId ?? "",
-      date: compra
-        ? new Date(compra.date).toISOString().split("T")[0]
-        : format(new Date(), "yyyy-MM-dd"),
+      date: compra ? new Date(compra.date) : new Date(),
       invoice: compra?.invoice ?? "",
       unityPrice: compra?.unityPrice ?? 0,
+      totalPrice: compra?.totalPrice ?? 0,
       quantityKg: compra?.quantityKg ?? 0,
       notes: compra?.notes ?? "",
       paymentCondition: compra?.paymentCondition ?? PaymentCondition.AVISTA,
-      dueDate: compra?.dueDate
-        ? new Date(compra.dueDate).toISOString().split("T")[0]
-        : "",
+      dueDate: compra?.dueDate 
+        ? new Date(compra.dueDate) 
+        : new Date(),
     },
   });
 
-  const unityPrice = form.watch("unityPrice");
-  const quantityKg = form.watch("quantityKg");
+  const unityPrice = Number(form.watch("unityPrice") ?? 0);
+  const quantityKg = Number(form.watch("quantityKg") ?? 0);
 
   useEffect(() => {
-    const price = unityPrice;
-    const qty = quantityKg;
-
-    if (!isNaN(price) && !isNaN(qty)) {
-      const total = price * qty;
-      setTotalPrice(formatCurrency(total));
-    } else {
-      setTotalPrice("");
-    }
+    const total = unityPrice * quantityKg;
+    form.setValue("totalPrice", Number.isFinite(total) ? parseFloat(total.toFixed(2)) : 0);
   }, [unityPrice, quantityKg]);
 
   useEffect(() => {
@@ -114,15 +87,16 @@ const UpsertBuyModal = ({
       form.reset({
         cultivarId: compra.cultivarId,
         customerId: compra.customerId,
-        date: new Date(compra.date).toISOString().split("T")[0],
+        date: compra ? new Date(compra.date) : new Date(),
         invoice: compra.invoice,
         unityPrice: compra.unityPrice,
+        totalPrice: compra.totalPrice,
         quantityKg: compra.quantityKg,
         notes: compra.notes || "",
         paymentCondition: compra.paymentCondition ?? PaymentCondition.AVISTA,
         dueDate: compra.dueDate
-          ? new Date(compra.dueDate).toISOString().split("T")[0]
-          : "",
+          ? new Date(compra.dueDate)
+          : new Date(),
       });
     } else {
       form.reset();
@@ -157,80 +131,68 @@ const UpsertBuyModal = ({
     if (isOpen) fetchData();
   }, [isOpen]);
 
+  const cycle = getCycle();
+    
+  const { mutate, isPending } = useUpsertSeedBuy({
+    cycleId: cycle?.id!,
+    buyId: compra?.id,
+  });
+
   const onSubmit = async (data: BuyFormData) => {
-    setLoading(true);
-    const token = getToken();
-    const cycle = getCycle();
-    if (!cycle || !cycle.id) {
-      toast.error("Nenhum ciclo de produção selecionado.");
-      setLoading(false);
+    if (!cycle?.id) {
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Nenhum ciclo de produção selecionado.",
+      });
       return;
     }
-    const cycleId = cycle.id;
-    console.log("Dados enviados para API:", {
-      ...data,
-      cycleId,
-    });
-
-    const url = compra ? `/api/buys/${compra.id}` : "/api/buys";
-    const method = compra ? "PUT" : "POST";
-
-    const unity = data.unityPrice;
-    const qty = data.quantityKg;
-    const total = unity * qty;
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+      
+    mutate(data, {
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: compra
+            ? "Compra atualizada com sucesso!"
+            : "Compra cadastrada com sucesso!",
+        });
+      
+        onClose();
+        form.reset();
       },
-      body: JSON.stringify({
-        ...data,
-        unityPrice: unity,
-        quantityKg: qty,
-        totalPrice: total,
-        cycleId,
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar Compra.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
+      onError: (error: Error) => {
+        if (error instanceof ApiError) {
+          if (error.status === 402) {
+            showToast({
+              type: "info",
+              title: "Limite atingido",
+              message: error.message,
+            });
+            return;
+          }
+        
+        if (error.status === 401) {
+          showToast({
+            type: "info",
+            title: "Sessão expirada",
+            message: "Faça login novamente",
+          });
+          return;
+        }
+      }
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: error.message,
       });
-    } else {
-      toast.success(
-        compra
-          ? "Compra atualizada com sucesso!"
-          : "Compra cadastrada com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        },
-      );
-      onClose();
-      form.reset();
-      setTotalPrice("");
-      if (onHarvestCreated) onHarvestCreated();
-    }
-
-    setLoading(false);
+    },
+  });
   };
 
   useEffect(() => {
     if (!isOpen) form.reset();
   }, [isOpen, form]);
-
-  const paymentCondition = form.watch("paymentCondition");
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -244,7 +206,7 @@ const UpsertBuyModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="cultivarId"
@@ -305,7 +267,7 @@ const UpsertBuyModal = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -313,7 +275,7 @@ const UpsertBuyModal = ({
                     <FormItem>
                       <FormLabel>Data</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DatePicker value={field.value} onChange={field.onChange} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -334,78 +296,72 @@ const UpsertBuyModal = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {/* Preço Unitário */}
-                <FormField
-                  control={form.control}
-                  name="unityPrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preço Unitário</FormLabel>
-                      <FormControl>
-                        <NumericFormat
-                          customInput={Input}
-                          thousandSeparator="."
-                          decimalSeparator=","
-                          prefix="R$ "
-                          allowNegative={false}
-                          value={field.value ?? ""}
-                          onValueChange={(values) =>
-                            field.onChange(values.floatValue ?? 0)
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Quantidade (kg) */}
                 <FormField
                   control={form.control}
                   name="quantityKg"
                   render={({ field }) => (
+                    <QuantityInput label="Quantidade (kg)" field={field} />
+                  )}
+                />
+                {/* Preço Unitário */}
+                <FormField
+                  control={form.control}
+                  name="unityPrice"
+                  render={({ field }) => (
+                    <MoneyInput label="Preço Unitário" field={field} />
+                  )}
+                />
+                {/* Preço Total */}
+                <FormField
+                  control={form.control}
+                  name="totalPrice"
+                  render={({ field }) => (
+                    <MoneyInput label="Preço Total" field={field} readonly />
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="paymentCondition"
+                  render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Quantidade (kg)</FormLabel>
+                      <FormLabel>Condição de Pagamento</FormLabel>
                       <FormControl>
-                        <Input {...field} type="text" placeholder="Ex: 1000" />
+                        <Select
+                          value={field.value ?? PaymentCondition.AVISTA}
+                          onValueChange={(v) => field.onChange(v as PaymentCondition)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a condição" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={PaymentCondition.AVISTA}>À Vista</SelectItem>
+                            <SelectItem value={PaymentCondition.APRAZO}>À Prazo</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Valor Total</label>
-                <Input type="text" value={totalPrice} disabled />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="paymentCondition">Condição de Pagamento</Label>
-                  <Select
-                    onValueChange={(value: PaymentCondition) =>
-                      form.setValue("paymentCondition", value)
-                    }
-                    defaultValue={form.getValues("paymentCondition")}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a condição" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={PaymentCondition.AVISTA}>À Vista</SelectItem>
-                      <SelectItem value={PaymentCondition.APRAZO}>À Prazo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {form.getValues("paymentCondition") === PaymentCondition.APRAZO && (
-                  <div>
-                    <Label htmlFor="installments">Data de Vencimento</Label>
-                    <Input
-                      type="date"
-                      {...form.register("dueDate")}
-                    />
-                  </div>
+                {form.watch("paymentCondition") === PaymentCondition.APRAZO && (
+                  <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data de Vencimento</FormLabel>
+                        <FormControl>
+                          <DatePicker value={field.value} onChange={field.onChange} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
               </div>
 
@@ -416,7 +372,7 @@ const UpsertBuyModal = ({
                   <FormItem>
                     <FormLabel>Observações</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Opcional" />
+                      <Input {...field} placeholder="Opcional" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -425,10 +381,10 @@ const UpsertBuyModal = ({
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isPending}
                 className="mt-4 w-full bg-green text-white hover:bg-green/90"
               >
-                {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
             </div>
           </form>

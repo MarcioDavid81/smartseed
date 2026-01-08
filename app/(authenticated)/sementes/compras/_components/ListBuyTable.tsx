@@ -1,52 +1,28 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Buy } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import UpsertBuyButton from "./UpsertBuyButton";
 import { BuyDataTable } from "./BuyDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DeleteBuyButton from "./DeleteBuyButton";
 import DetailBuyButton from "./DetailBuyButton";
 import { AgroLoader } from "@/components/agro-loader";
+import { useSeedBuysByCycle } from "@/queries/seed/use-seed-buy-query";
+import { LoadingData } from "@/components/loading-data";
 
 export function ListBuyTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
-  const [buys, setBuys] = useState<Buy[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  async function fetchBuys() {
-    if (!selectedCycle?.id) return;
-
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/buys?cycleId=${selectedCycle.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      const filteredData = data.filter(
-        (product: Buy) => product.quantityKg > 0
-      );
-      setBuys(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar compras:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchBuys();
-  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
+  const {
+      data: compras = [],
+      isLoading,
+      isFetching,
+      refetch, 
+    } = useSeedBuysByCycle(selectedCycle?.id || "");
 
   const columns: ColumnDef<Buy>[] = [
     {
@@ -68,18 +44,44 @@ export function ListBuyTable() {
     {
       accessorKey: "cultivar",
       header: "Cultivar",
-      accessorFn: (row) => row.cultivar.name,
-      cell: ({ row: { original } }) => original.cultivar.name,
+      cell: ({ row }) => {
+        const cultivar = row.original.cultivar;
+         if ((row.original as any)._optimistic) {
+            return <LoadingData />;
+          }
+        
+        if (!cultivar) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem cultivar
+            </span>
+          );
+        }
+      return <span>{cultivar.name}</span>;
+      },
     },
     {
       accessorKey: "customer",
       header: "Fornecedor",
-      cell: ({ row: { original: original } }) => original.customer.name,
+      cell: ({ row }) => {
+        const customer = row.original.customer;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!customer) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem fornecedor
+            </span>
+          );
+        }
+        return <span>{customer.name}</span>;
+      },
     },
     {
       accessorKey: "invoice",
       header: "Nota Fiscal",
-      cell: ({ row: { original: original } }) => original.invoice,
+      cell: ({ row: { original } }) => original.invoice,
     },
     {
       accessorKey: "quantityKg",
@@ -135,15 +137,12 @@ export function ListBuyTable() {
           <div className="flex items-center justify-center gap-4">
             <DetailBuyButton
               compra={compra}
-              onUpdated={fetchBuys}
             />
             <UpsertBuyButton
               compra={compra}
-              onUpdated={fetchBuys}
             />
             <DeleteBuyButton
               compra={compra}
-              onDeleted={fetchBuys}
             />
           </div>
         );
@@ -155,14 +154,14 @@ export function ListBuyTable() {
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Compras</h2>
-        <Button variant={"ghost"} onClick={fetchBuys} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <BuyDataTable columns={columns} data={buys} />
+        <BuyDataTable columns={columns} data={compras} />
       )}
     </Card>
   );
