@@ -1,6 +1,13 @@
+import {
+  ForbiddenPlanError,
+  PlanLimitReachedError,
+} from "@/core/access-control";
+import { withAccessControl } from "@/lib/api/with-access-control";
 import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { canCompanyAddHarvest } from "@/lib/permissions/canCompanyAddHarvest";
 import { db } from "@/lib/prisma";
+import { seedHarvestSchema } from "@/lib/schemas/seedHarvestSchema";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -35,72 +42,98 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Colheita criada com sucesso
  */
 export async function POST(req: NextRequest) {
-  const allowed = await canCompanyAddHarvest();
-  if (!allowed) {
-    return Response.json(
-      {
-        error:
-          "Limite de registros atingido para seu plano. Faça upgrade para continuar.",
-      },
-      { status: 403 }
-    );
-  }
-
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
-
   try {
-    const { cultivarId, talhaoId, date, quantityKg, notes, cycleId } =
-      await req.json();
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    if (!cultivarId || !talhaoId || !date || !quantityKg) {
+    const session = await withAccessControl("REGISTER_MOVEMENT");
+
+    const body = await req.json();
+
+    const parsed = seedHarvestSchema.safeParse(body);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Campos obrigatórios faltando" },
-        { status: 400 }
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: parsed.error.issues[0].message,
+          },
+        },
+        { status: 400 },
       );
     }
 
-    const harvest = await db.harvest.create({
-      data: {
-        cultivarId,
-        talhaoId,
-        date: new Date(date),
-        quantityKg,
-        notes,
-        companyId,
-        cycleId,
-      },
-    });
-    console.log("Atualizando estoque da cultivar:", cultivarId);
-    // Atualiza o estoque da cultivar
-    await db.cultivar.update({
-      where: { id: cultivarId },
-      data: {
-        stock: {
-          increment: quantityKg,
-        },
-      },
+    const data = parsed.data;
+
+    const cultivar = await db.cultivar.findUnique({
+      where: { id: data.cultivarId },
+      select: { id: true, name: true, product: true },
     });
 
-    return NextResponse.json(harvest, { status: 201 });
+    if (!cultivar) {
+      return NextResponse.json(
+        { error: "Cultivar não encontrada" },
+        { status: 404 },
+      );
+    }
+
+    const talhao = await db.talhao.findUnique({
+      where: { id: data.talhaoId },
+      select: { id: true, name: true },
+    });
+
+    if (!talhao) {
+      return NextResponse.json(
+        { error: "Talhão não encontrado" },
+        { status: 404 },
+      );
+    }
+
+    const result = await db.$transaction(async (tx) => {
+      const harvest = await tx.harvest.create({
+        data: {
+          ...data,
+          companyId: session.user.companyId,
+        },
+      });
+
+      // Atualiza o estoque da cultivar
+      await tx.cultivar.update({
+        where: { id: data.cultivarId },
+        data: {
+          stock: {
+            decrement: data.quantityKg,
+          },
+        },
+      });
+
+      return harvest;
+    });
+
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar colheita:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -146,7 +179,7 @@ export async function GET(req: NextRequest) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
       { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -172,7 +205,7 @@ export async function GET(req: NextRequest) {
           },
         },
         cultivar: {
-          select: { id: true, name: true, product: true},
+          select: { id: true, name: true, product: true },
         },
       },
       orderBy: { date: "desc" },

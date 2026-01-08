@@ -86,6 +86,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const customer = await db.customer.findUnique({
+      where: { id: data.customerId },
+      select: { id: true, name: true },
+    });
+
+    if (!customer) {
+      return NextResponse.json(
+        { error: "Cliente não encontrado" },
+        { status: 404 },
+      );
+    }
+
     const result = await db.$transaction(async (tx) => {
       const buy = await tx.buy.create({
         data: {
