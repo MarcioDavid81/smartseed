@@ -1,12 +1,9 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import { SaleDataTable } from "./SaleDataTable";
 import DeleteSaleButton from "./DeleteSaleButton";
 import UpsertSaleButton from "./UpsertSaleButton";
@@ -14,39 +11,18 @@ import { Sale } from "@/types/sale";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DetailSaleButton from "./DetailSaleButton";
 import { AgroLoader } from "@/components/agro-loader";
+import { useSeedSalesByCycle } from "@/queries/seed/use-seed-sale-query";
+import { LoadingData } from "@/components/loading-data";
 
 export function ListSaleTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  async function fetchSales() {
-    if (!selectedCycle?.id) return;
-
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/sales?cycleId=${selectedCycle.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      const filteredData = data.filter(
-        (product: Sale) => product.quantityKg > 0
-      );
-      setSales(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar vendas:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchSales();
-  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
+  
+  const {
+    data: vendas = [],
+    isLoading,
+    isFetching,
+    refetch, 
+  } = useSeedSalesByCycle(selectedCycle?.id || "");
 
   const columns: ColumnDef<Sale>[] = [
     {
@@ -68,13 +44,39 @@ export function ListSaleTable() {
     {
       accessorKey: "cultivar",
       header: "Cultivar",
-      accessorFn: (row) => row.cultivar.name,
-      cell: ({ row: { original } }) => original.cultivar.name,
+      cell: ({ row }) => {
+        const cultivar = row.original.cultivar;
+         if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+           
+        if (!cultivar) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem cultivar
+            </span>
+          );
+        }
+      return <span>{cultivar.name}</span>;
+      },
     },
     {
       accessorKey: "customer",
       header: "Cliente",
-      cell: ({ row: { original: original } }) => original.customer.name,
+      cell: ({ row }) => {
+        const customer = row.original.customer;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!customer) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem cliente
+            </span>
+          );
+        }
+        return <span>{customer.name}</span>;
+      },
     },
     {
       accessorKey: "invoiceNumber",
@@ -120,15 +122,12 @@ export function ListSaleTable() {
           <div className="flex items-center justify-center gap-4">
             <DetailSaleButton
               venda={venda}
-              onUpdated={fetchSales}
             />
             <UpsertSaleButton
               venda={venda}
-              onUpdated={fetchSales}
             />
             <DeleteSaleButton
               venda={venda}
-              onDeleted={fetchSales}
             />
           </div>
         );
@@ -140,14 +139,14 @@ export function ListSaleTable() {
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Vendas</h2>
-        <Button variant={"ghost"} onClick={fetchSales} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <SaleDataTable columns={columns} data={sales} />
+        <SaleDataTable columns={columns} data={vendas} />
       )}
     </Card>
   );

@@ -14,12 +14,10 @@ import { Sale } from "@/types/sale";
 
 interface Props {
   venda: Sale;
-  onUpdated: () => void;
 }
 
-const UpsertSaleButton = ({ venda, onUpdated }: Props) => {
+const UpsertSaleButton = ({ venda }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { fetchCultivars } = useStock();
   return (
     <>
       <TooltipProvider>
@@ -40,9 +38,7 @@ const UpsertSaleButton = ({ venda, onUpdated }: Props) => {
       <UpsertSaleModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onHarvestCreated={fetchCultivars}
         venda={venda}
-        onUpdated={onUpdated}
       />
     </>
   );

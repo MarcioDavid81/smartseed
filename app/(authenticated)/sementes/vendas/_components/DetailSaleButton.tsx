@@ -13,10 +13,9 @@ import { DetailSaleModal } from "./DetailSaleModal";
 
 interface Props {
   venda: Sale;
-  onUpdated: () => void;
 }
 
-const DetailSaleButton = ({ venda, onUpdated }: Props) => {
+const DetailSaleButton = ({ venda }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<Sale | null>(null);
   return (

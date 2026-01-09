@@ -17,69 +17,29 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSale } from "@/contexts/SaleContext";
-import { getToken } from "@/lib/auth-client";
+import { useCycle } from "@/contexts/CycleContext";
+import { useDeleteSeedSale } from "@/queries/seed/use-delete-seed-sale";
 import { Sale } from "@/types/sale";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-
 
 interface Props {
   venda: Sale;
-  onDeleted: () => void;
 }
 
-const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
+const DeleteSaleButton = ({ venda }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchSales } = useSale();
+  const { selectedCycle } = useCycle();
 
-  const handleDelete = async (venda: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 venda recebida:", venda);
+  const { mutate, isPending } = useDeleteSeedSale({
+    cycleId: selectedCycle!.id,
+  });
 
-    if (!venda || !venda.id) {
-      toast.error("ID da venda ausente. Não é possível excluir.");
-      console.warn("❌ venda.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/sales/${venda.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar venda:", errorText);
-        throw new Error(errorText);
-      }
-
-      toast.success("Venda deletada com sucesso!");
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar venda.");
-    } finally {
-      setLoading(false);
-    }
-
-    await fetchSales();
+  const handleConfirmDelete = () => {
+    mutate(venda.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -91,7 +51,7 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
               onClick={() => setIsOpen(true)}
               className="hover:opacity-80 transition"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+              <Trash2Icon size={20} className="text-red" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -113,13 +73,13 @@ const DeleteSaleButton = ({ venda, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(venda)}
-              disabled={loading}
+              onClick={handleConfirmDelete}
+              disabled={isPending}
               variant="ghost"
-              className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
+              className="bg-transparent border border-red text-red hover:text-red"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>
