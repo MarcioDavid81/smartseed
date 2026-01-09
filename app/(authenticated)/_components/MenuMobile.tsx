@@ -11,7 +11,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ChartNoAxesCombined, Menu, Scroll } from "lucide-react";
+import { ChartNoAxesCombined, Cog, Menu, Scroll } from "lucide-react";
 import { FaSeedling } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { PiFarm } from "react-icons/pi";
@@ -93,6 +93,13 @@ const routes = [
     adminRoutes: [
       { path: "/cadastros/empresas", name: "Empresas" },
       { path: "/cadastros/usuarios", name: "Usuários" },
+    ],
+  },
+  {
+    name: "Assinaturas",
+    icon: <Cog size={20} />,
+    subRoutes: [
+      { path: "/assinaturas", name: "Gerenciar" },
     ],
   },
 ];

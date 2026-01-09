@@ -13,7 +13,8 @@ import {
 import { 
   DollarSign, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch, ChartNoAxesCombined, BanknoteArrowUp, BanknoteArrowDown, Home, Building2, User, 
   MapIcon,
-  FuelIcon
+  FuelIcon,
+  Cog
 } from "lucide-react";
 import { TbTransferIn } from "react-icons/tb";
 import Image from "next/image";
@@ -97,5 +98,12 @@ export const routes = [
       { name: "Usuários", path: "/cadastros/usuarios", icon: <User size={16} /> },
     ],
     adminOnly: true,
+  },
+  {
+    name: "Assinaturas",
+    icon: <Cog size={20} />,
+    subRoutes: [
+      { name: "Gerenciar", path: "/assinaturas", icon: <Cog size={16} /> },
+    ],
   },
 ];
