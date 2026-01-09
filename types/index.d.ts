@@ -32,6 +32,7 @@ export * from "./productStock";
 export * from "./rawEntry";
 export * from "./refuel";
 export * from "./saleExit";
+export * from "./sale";
 export * from "./seedAdjustStock";
 export * from "./stock";
 export * from "./talhao";
