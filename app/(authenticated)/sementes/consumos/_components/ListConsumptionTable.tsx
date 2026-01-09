@@ -1,12 +1,9 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import { Consumption } from "@/types/consumption";
 import UpsertConsumptionButton from "./UpsertConsumptionButton";
 import DeleteConsumptionButton from "./DeleteConsumptionButton";
@@ -14,39 +11,18 @@ import { ConsumptionDataTable } from "./ConsumptionDataTable";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DetailConsumptionButton from "./DetailConsumptionButton";
 import { AgroLoader } from "@/components/agro-loader";
+import { useSeedConsumptionsByCycle } from "@/queries/seed/use-seed-consumption.query";
+import { LoadingData } from "@/components/loading-data";
 
 export function ListConsumptionTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
-  const [plantios, setPlantios] = useState<Consumption[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  async function fetchConsumptions() {
-    if (!selectedCycle?.id) return;
-
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/consumption?cycleId=${selectedCycle.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      const filteredData = data.filter(
-        (product: Consumption) => product.quantityKg > 0
-      );
-      setPlantios(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar plantios:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchConsumptions();
-  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
+   const {
+      data: plantios = [],
+      isLoading,
+      isFetching,
+      refetch, 
+    } = useSeedConsumptionsByCycle(selectedCycle?.id || "");
 
   const columns: ColumnDef<Consumption>[] = [
     {
@@ -68,20 +44,57 @@ export function ListConsumptionTable() {
     {
       accessorKey: "cultivar",
       header: "Cultivar",
-      accessorFn: (row) => row.cultivar.name,
-      cell: ({ row: { original } }) => original.cultivar.name,
+      cell: ({ row }) => {
+        const cultivar = row.original.cultivar;
+         if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+         }
+                 
+        if (!cultivar) {
+         return (
+          <span className="text-muted-foreground italic text-sm">
+            Sem cultivar
+          </span>
+         );
+        }
+      return <span>{cultivar.name}</span>;
+      },
     },
     {
       accessorKey: "farm",
       header: "Fazenda",
-      accessorFn: (row) => row.talhaoId,
-      cell: ({ row: { original } }) => original.talhao.farm.name,
+      cell: ({ row }) => {
+        const farm = row.original.talhao?.farm;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!farm) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem fazenda
+            </span>
+          );
+        }
+        return <div className="text-left">{farm.name}</div>;
+      },
     },
     {
       accessorKey: "plot",
       header: "Talhão",
-      accessorFn: (row) => row.talhaoId,
-      cell: ({ row: { original } }) => original.talhao.name,
+      cell: ({ row }) => {
+        const talhao = row.original.talhao;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!talhao) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem talhão
+            </span>
+          );
+        }
+        return <span>{talhao.name}</span>;
+      },
     },
     {
       accessorKey: "quantityKg",
@@ -107,15 +120,13 @@ export function ListConsumptionTable() {
           <div className="flex items-center justify-center gap-4">
             <DetailConsumptionButton
               plantio={plantio}
-              onUpdated={fetchConsumptions}
+              onUpdated={refetch}
             />
             <UpsertConsumptionButton
               plantio={plantio}
-              onUpdated={fetchConsumptions}
             />
             <DeleteConsumptionButton
               plantio={plantio}
-              onDeleted={fetchConsumptions}
             />
           </div>
         );
@@ -129,13 +140,13 @@ export function ListConsumptionTable() {
         <h2 className="font-light">Lista de Plantio</h2>
         <Button
           variant={"ghost"}
-          onClick={fetchConsumptions}
-          disabled={loading}
+          onClick={() => refetch()}
+          disabled={isFetching}
         >
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
         <ConsumptionDataTable columns={columns} data={plantios} />

@@ -17,69 +17,30 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useConsumption } from "@/contexts/ConsumptionContext";
-import { getToken } from "@/lib/auth-client";
+import { useCycle } from "@/contexts/CycleContext";
+import { useDeleteSeedConsumption } from "@/queries/seed/use-delete-seed-consumption";
 import { Consumption } from "@/types/consumption";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 
 interface Props {
   plantio: Consumption;
-  onDeleted: () => void;
 }
 
-const DeleteConsumptionButton = ({ plantio, onDeleted }: Props) => {
+const DeleteConsumptionButton = ({ plantio }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchConsumptions } = useConsumption();
+  const { selectedCycle } = useCycle();
 
-  const handleDelete = async (plantio: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 plantio recebida:", plantio);
+  const { mutate, isPending } = useDeleteSeedConsumption({
+      cycleId: selectedCycle!.id,
+    });
 
-    if (!plantio || !plantio.id) {
-      toast.error("ID da plantio ausente. Não é possível excluir.");
-      console.warn("❌ plantio.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/consumption/${plantio.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar plantio:", errorText);
-        throw new Error(errorText);
-      }
-
-      toast.success("Plantio deletada com sucesso!");
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar plantio.");
-    } finally {
-      setLoading(false);
-    }
-
-    await fetchConsumptions();
+  const handleConfirmDelete = () => {
+    mutate(plantio.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -91,7 +52,7 @@ const DeleteConsumptionButton = ({ plantio, onDeleted }: Props) => {
               onClick={() => setIsOpen(true)}
               className="hover:opacity-80 transition"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+              <Trash2Icon size={20} className="text-red" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -113,13 +74,13 @@ const DeleteConsumptionButton = ({ plantio, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(plantio)}
-              disabled={loading}
+              onClick={handleConfirmDelete}
+              disabled={isPending}
               variant="ghost"
-              className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
+              className="bg-transparent border border-red text-red hover:text-red"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>

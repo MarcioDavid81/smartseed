@@ -1,6 +1,8 @@
 "use client";
 
+import { QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -18,73 +20,41 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
+import { ConsumptionFormData, consumptionSchema } from "@/lib/schemas/seedConsumption";
+import { useUpsertSeedConsumption } from "@/queries/seed/use-upsert-seed-consumption";
 import { Cultivar, Talhao } from "@/types";
 import { Consumption } from "@/types/consumption";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProductType } from "@prisma/client";
-import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
-import { z } from "zod";
 
 interface UpsertConsumptionModalProps {
   plantio?: Consumption;
   isOpen: boolean;
   onClose: () => void;
-  onConsumptionCreated?: () => void;
-  onUpdated?: () => void;
 }
-
-const plantioSchema = z.object({
-  cultivarId: z.string().min(1, "Selecione uma cultivar"),
-  talhaoId: z.string().min(1, "Selecione um talhão"),
-  date: z.string().min(1, "Selecione uma data"),
-  quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),
-  notes: z.string(),
-});
-
-type ConsumptionFormData = z.infer<typeof plantioSchema>;
 
 const UpsertConsumptionModal = ({
   plantio,
   isOpen,
   onClose,
-  onConsumptionCreated,
-  onUpdated,
 }: UpsertConsumptionModalProps) => {
-  const [loading, setLoading] = useState(false);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [talhao, setTalhao] = useState<Talhao[]>([]);
+  const { showToast } = useSmartToast();
 
   const form = useForm<ConsumptionFormData>({
-    resolver: zodResolver(plantioSchema),
+    resolver: zodResolver(consumptionSchema),
     defaultValues: {
       cultivarId: plantio?.cultivarId ?? "",
       talhaoId: plantio?.talhaoId ?? "",
-      date: plantio
-        ? new Date(plantio.date).toISOString().split("T")[0]
-        : format(new Date(), "yyyy-MM-dd"),
-      quantityKg: plantio?.quantityKg ?? 0,
-      notes: plantio?.notes ?? "",
-    },
-  });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<ConsumptionFormData>({
-    resolver: zodResolver(plantioSchema),
-    defaultValues: {
-      cultivarId: plantio?.cultivarId ?? "",
-      talhaoId: plantio?.talhaoId ?? "",
-      date: plantio ? new Date(plantio.date).toISOString().split("T")[0] : "",
+      date: plantio ? new Date(plantio.date) : new Date(),
       quantityKg: plantio?.quantityKg ?? 0,
       notes: plantio?.notes ?? "",
     },
@@ -92,17 +62,17 @@ const UpsertConsumptionModal = ({
 
   useEffect(() => {
     if (plantio) {
-      reset({
+      form.reset({
         cultivarId: plantio.cultivarId,
         talhaoId: plantio.talhaoId,
-        date: new Date(plantio.date).toISOString().split("T")[0],
+        date: new Date(plantio.date),
         quantityKg: plantio.quantityKg,
         notes: plantio.notes || "",
       });
     } else {
-      reset();
+      form.reset();
     }
-  }, [plantio, isOpen, reset]);
+  }, [plantio, isOpen, form.reset]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -134,70 +104,45 @@ const UpsertConsumptionModal = ({
     if (isOpen) fetchData();
   }, [isOpen]);
 
+  const cycle = getCycle();
+
+  const { mutate, isPending } = useUpsertSeedConsumption({ 
+    cycleId: cycle?.id!, 
+    consumptionId: plantio?.id
+  });
+
   const onSubmit = async (data: ConsumptionFormData) => {
-    setLoading(true);
-    const token = getToken();
-    const cycle = getCycle();
-    if (!cycle || !cycle.id) {
-      toast.error("Nenhum ciclo de produção selecionado.");
-      setLoading(false);
-      return;
-    }
-    const cycleId = cycle.id;
-    console.log("Dados enviados para API:", {
-      ...data,
-      cycleId,
+    if (!cycle?.id) {
+    showToast({
+      type: "error",
+      title: "Erro",
+      message: "Nenhum ciclo de produção selecionado.",
     });
-
-    const url = plantio ? `/api/consumption/${plantio.id}` : "/api/consumption";
-    const method = plantio ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    return;
+  }
+    mutate(data, {
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: plantio ? 
+          "Plantio atualizado com sucesso" : 
+          "Plantio cadastrado com sucesso",
+        });
+        onClose();
+        form.reset();
       },
-      body: JSON.stringify({
-        ...data,
-        cycleId,
-      }),
+      onError: (error: Error) => {
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: error.message || `Erro ao ${
+            plantio ? "atualizar" : "criar"
+          } plantio.`,
+        });
+      },
     });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar plantio.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
-      });
-    } else {
-      toast.success(
-        plantio
-          ? "Plantio atualizada com sucesso!"
-          : "Plantio cadastrada com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        }
-      );
-      onClose();
-      reset();
-      if (onConsumptionCreated) onConsumptionCreated();
-    }
-
-    setLoading(false);
   };
-
-  useEffect(() => {
-    if (!isOpen) reset();
-  }, [isOpen, reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -279,7 +224,7 @@ const UpsertConsumptionModal = ({
                     <FormItem>
                       <FormLabel>Data</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DatePicker value={field.value} onChange={field.onChange} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -289,13 +234,7 @@ const UpsertConsumptionModal = ({
                   control={form.control}
                   name="quantityKg"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quantidade (Kg)</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <QuantityInput label="Quantidade" field={field} suffix=" kg" />
                   )}
                 />
               </div>
@@ -307,7 +246,7 @@ const UpsertConsumptionModal = ({
                   <FormItem>
                     <FormLabel>Observações</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Opcional" />
+                      <Input {...field} placeholder="Opcional" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -316,10 +255,10 @@ const UpsertConsumptionModal = ({
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isPending}
                 className="w-full bg-green text-white mt-4"
               >
-                {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
             </div>
           </form>

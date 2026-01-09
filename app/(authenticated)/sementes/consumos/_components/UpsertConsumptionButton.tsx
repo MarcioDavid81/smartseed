@@ -14,12 +14,10 @@ import { Consumption } from "@/types/consumption";
 
 interface Props {
   plantio: Consumption
-  onUpdated: () => void;
 }
 
-const UpsertConsumptionButton = ({ plantio, onUpdated }: Props) => {
+const UpsertConsumptionButton = ({ plantio }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { fetchCultivars } = useStock();
   return (
     <>
       <TooltipProvider>
@@ -40,9 +38,7 @@ const UpsertConsumptionButton = ({ plantio, onUpdated }: Props) => {
       <UpsertConsumptionModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onConsumptionCreated={fetchCultivars}
         plantio={plantio}
-        onUpdated={onUpdated}
       />
     </>
   );
