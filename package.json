@@ -16,6 +16,7 @@
     "@radix-ui/react-alert-dialog": "1.0.5"
   },
   "dependencies": {
+    "@bprogress/next": "^3.2.12",
     "@emailjs/browser": "^4.4.1",
     "@hookform/resolvers": "^5.0.1",
     "@prisma/client": "^5.21.1",

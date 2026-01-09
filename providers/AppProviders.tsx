@@ -25,6 +25,7 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import TanstackProvider from "@/providers/tanstack"
 import { ReactNode } from "react";
 import { AppUser, Company } from "@/types";
+import { ProgressProvider } from "./bprogress";
 
 type Props = {
   children: ReactNode;
@@ -36,6 +37,7 @@ export function AppProviders({ children, user, company }: Props) {
 
   return (
     <TanstackProvider>
+      <ProgressProvider>
       <CompanyProvider name={company}>
         <InsumoStockProvider>
           <StockProvider>
@@ -78,6 +80,7 @@ export function AppProviders({ children, user, company }: Props) {
           </StockProvider>
         </InsumoStockProvider>
       </CompanyProvider>
+      </ProgressProvider>
     </TanstackProvider>
   )
 }
