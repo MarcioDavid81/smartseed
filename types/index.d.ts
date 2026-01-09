@@ -4,6 +4,7 @@ export * from "./beneficiation";
 export * from "./buy";
 export * from "./company";
 export * from "./consumptionExit";
+export * from "./consumption";
 export * from "./cultivar";
 export * from "./customers";
 export * from "./cycles";
