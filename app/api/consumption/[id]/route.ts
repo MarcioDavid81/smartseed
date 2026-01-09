@@ -65,10 +65,7 @@ export async function PUT(
       where: { id },
     });
 
-    if (
-      !existingConsumption ||
-      existingConsumption.companyId !== companyId
-    ) {
+    if (!existingConsumption || existingConsumption.companyId !== companyId) {
       return new NextResponse("Consumo não encontrado ou acesso negado", {
         status: 403,
       });
@@ -163,10 +160,7 @@ export async function DELETE(
       where: { id },
     });
 
-    if (
-      !existingConsumption ||
-      existingConsumption.companyId !== companyId
-    ) {
+    if (!existingConsumption || existingConsumption.companyId !== companyId) {
       return new NextResponse("Consumo não encontrado ou acesso negado", {
         status: 403,
       });
@@ -185,10 +179,23 @@ export async function DELETE(
       );
     });
 
-    return NextResponse.json({ message: "Consumo excluído com sucesso" });
+    return NextResponse.json(
+      { message: "Plantio removido com sucesso" },
+      { status: 200 },
+    );
   } catch (error) {
-    console.error("Erro ao deletar consumo:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+    console.error("Erro ao deletar plantio:", error);
+    return NextResponse.json(
+      {
+        error: {
+          code: "PLANTIO_DELETE_ERROR",
+          title: "Erro ao deletar plantio",
+          message:
+            "Ocorreu um erro inesperado durante a tentativa de remover o plantio.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 
