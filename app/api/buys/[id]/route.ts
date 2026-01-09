@@ -1,4 +1,3 @@
-import { adjustStockWhenDeleteMov } from "@/app/_helpers/adjustStockWhenDeleteMov";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentCondition } from "@prisma/client";
@@ -238,22 +237,25 @@ export async function DELETE(
     }
 
     await db.$transaction(async (tx) => {
-      // Deletar a compra
-      await tx.buy.delete({ where: { id } });
+      // 1️⃣ Reverter estoque da cultivar (decrementar)
+      await tx.cultivar.update({
+        where: { id: existingBuy.cultivarId },
+        data: {
+          stock: {
+            decrement: existingBuy.quantityKg,
+          },
+        },
+      });
 
-      // Ajustar o estoque da cultivar
-      await adjustStockWhenDeleteMov(
-        tx,
-        "Compra",
-        existingBuy.cultivarId,
-        existingBuy.quantityKg,
-      );
-      // Apagar conta vinculada
+      // 2️⃣ Apagar conta vinculada
       if (existingBuy.accountPayable) {
         await tx.accountPayable.delete({
           where: { id: existingBuy.accountPayable.id },
         });
       }
+
+      // 3️⃣ Deletar a compra
+      await tx.buy.delete({ where: { id } });
     });
 
     return NextResponse.json({ message: "Compra excluída com sucesso" });

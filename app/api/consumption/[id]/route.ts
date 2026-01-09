@@ -1,4 +1,3 @@
-import { adjustStockWhenDeleteMov } from "@/app/_helpers/adjustStockWhenDeleteMov";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -158,25 +157,38 @@ export async function DELETE(
     // Buscar o plantio para garantir que pertence à empresa do usuário
     const existingConsumption = await db.consumptionExit.findUnique({
       where: { id },
+      include: {
+        cultivar: true,
+        talhao: true,
+      },
     });
 
     if (!existingConsumption || existingConsumption.companyId !== companyId) {
-      return new NextResponse("Consumo não encontrado ou acesso negado", {
-        status: 403,
-      });
+      return NextResponse.json(
+        {
+          error: {
+            code: "CONSUMPTION_NOT_FOUND",
+            title: "Plantio não encontrado",
+            message:
+              "O plantio não foi localizado ou você não tem permissão para acessá-lo.",
+          },
+        },
+        { status: 403 },
+      );
     }
 
     await db.$transaction(async (tx) => {
-      // Deletar o consumo
+      // 1️⃣ Reverter estoque da cultivar (incrementar)
+      await tx.cultivar.update({
+        where: { id: existingConsumption.cultivarId },
+        data: {
+          stock: {
+            increment: existingConsumption.quantityKg,
+          },
+        },
+      });
+      // 2️⃣ Deletar o consumo
       await tx.consumptionExit.delete({ where: { id } });
-
-      // Ajustar o estoque da cultivar
-      await adjustStockWhenDeleteMov(
-        tx,
-        "Plantio",
-        existingConsumption.cultivarId,
-        existingConsumption.quantityKg,
-      );
     });
 
     return NextResponse.json(

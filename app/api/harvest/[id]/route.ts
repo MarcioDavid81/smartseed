@@ -166,16 +166,17 @@ export async function DELETE(
     }
 
     await db.$transaction(async (tx) => {
-      // Deletar a colheita
+      // 1️⃣ Reverter estoque da cultivar (decrementar)
+      await tx.cultivar.update({
+        where: { id: existingHarvest.cultivarId },
+        data: {
+          stock: {
+            decrement: existingHarvest.quantityKg,
+          },
+        },
+      });
+      // 2️⃣ Deletar a colheita
       await tx.harvest.delete({ where: { id } });
-
-      // Ajustar o estoque
-      await adjustStockWhenDeleteMov(
-        tx,
-        "Colheita",
-        existingHarvest.cultivarId,
-        existingHarvest.quantityKg
-      );
     });
 
     return NextResponse.json({ message: "Colheita excluída com sucesso" });

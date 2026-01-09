@@ -241,22 +241,25 @@ export async function DELETE(
     }
 
     await db.$transaction(async (tx) => {
-      // Deletar a venda
-      await tx.saleExit.delete({ where: { id } });
+      // 1️⃣ Reverter estoque da cultivar (incrementar)
+      await tx.cultivar.update({
+        where: { id: existingSale.cultivarId },
+        data: {
+          stock: {
+            increment: existingSale.quantityKg,
+          },
+        },
+      });
 
-      // Ajustar o estoque
-      await adjustStockWhenDeleteMov(
-        tx,
-        "Venda",
-        existingSale.cultivarId,
-        existingSale.quantityKg,
-      );
-      // Apagar conta vinculada
+      // 2️⃣ Apagar conta vinculada
       if (existingSale.accountReceivable) {
         await tx.accountReceivable.delete({
           where: { id: existingSale.accountReceivable.id },
         });
       }
+      
+      // 3️⃣  Deletar a venda
+      await tx.saleExit.delete({ where: { id } });
     });
 
     return NextResponse.json({ message: "Venda excluída com sucesso" });
