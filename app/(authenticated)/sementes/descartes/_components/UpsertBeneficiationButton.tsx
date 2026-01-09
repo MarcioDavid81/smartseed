@@ -2,7 +2,6 @@
 
 import { SquarePenIcon } from "lucide-react";
 import { useState } from "react";
-import { useStock } from "@/contexts/StockContext";
 import {
   Tooltip,
   TooltipContent,
@@ -14,12 +13,10 @@ import { Beneficiation } from "@/types";
 
 interface Props {
   descarte: Beneficiation;
-  onUpdated: () => void;
 }
 
-const UpsertBeneficiationButton = ({ descarte, onUpdated }: Props) => {
+const UpsertBeneficiationButton = ({ descarte }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { fetchCultivars } = useStock();
   return (
     <>
       <TooltipProvider>

@@ -202,7 +202,7 @@ const UpsertBeneficiationModal = ({
                 control={form.control}
                 name="quantityKg"
                 render={({ field }) => (
-                  <QuantityInput label="Quantidade" field={field} suffix="kg" />
+                  <QuantityInput label="Quantidade" field={field} suffix=" kg" />
                 )}
               />
 
@@ -240,7 +240,7 @@ const UpsertBeneficiationModal = ({
                   <FormItem>
                     <FormLabel>Observações</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Opcional" />
+                      <Input {...field} placeholder="Opcional" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

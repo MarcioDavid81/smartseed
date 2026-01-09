@@ -95,7 +95,6 @@ export function ListBeneficiationTable() {
             />
             <UpsertBeneficiationButton
               descarte={descarte}
-              onUpdated={refetch}
             />
             <DeleteBeneficiationButton
               descarte={descarte}
