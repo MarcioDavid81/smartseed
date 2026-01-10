@@ -1,10 +1,27 @@
+"use client"
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CheckIcon, XIcon } from "lucide-react";
 import AcquirePlanButton from "./AcquirePlanButton";
+import { useEffect, useState } from "react";
 
-const SubscriptionCard = async () => {
-  const hasPremiumPlan = true;
+type CompanyPlan = "BASIC" | "PREMIUM"
+
+const SubscriptionCard = () => {
+  const [plan, setPlan] = useState<CompanyPlan | null>(null)
+  
+  useEffect(() => {
+    async function loadPlan() {
+      const res = await fetch("/api/companies/me")
+      const data = await res.json()
+      setPlan(data.plan)
+    }
+  
+    loadPlan()
+  }, [])
+  
+  const hasPremiumPlan = plan === "PREMIUM"
   return ( 
     <div className="flex gap-6 max-md:flex-col">
           <Card className="w-[450px] max-md:w-full">
@@ -21,25 +38,25 @@ const SubscriptionCard = async () => {
 
             <CardContent className="space-y-6 py-8">
               <div className="flex items-center gap-2">
-                <CheckIcon className="text-primary" />
+                <CheckIcon className="text-green" />
                 <p>
                   Apenas 10 cadastros gerais
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <CheckIcon className="text-primary" />
+                <CheckIcon className="text-green" />
                 <p>
                   Apenas 10 operações
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <CheckIcon className="text-primary" />
+                <CheckIcon className="text-green" />
                 <p>
                   Apenas 1 usuário
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <XIcon />
+                <XIcon className="text-red" />
                 <p>Relatórios de operações</p>
               </div>
             </CardContent>
@@ -64,19 +81,19 @@ const SubscriptionCard = async () => {
 
             <CardContent className="space-y-6 py-8">
               <div className="flex items-center gap-2">
-                <CheckIcon className="text-primary" />
+                <CheckIcon className="text-green" />
                 <p>Cadastros ilimitados</p>
               </div>
               <div className="flex items-center gap-2">
-                <CheckIcon className="text-primary" />
+                <CheckIcon className="text-green" />
                 <p>Operações ilimitadas</p>
               </div>
               <div className="flex items-center gap-2">
-                <CheckIcon className="text-primary" />
+                <CheckIcon className="text-green" />
                 <p>Usuários ilimitados</p>
               </div>
               <div className="flex items-center gap-2">
-                <CheckIcon className="text-primary" />
+                <CheckIcon className="text-green" />
                 <p>Relatórios de operações</p>
               </div>
               <AcquirePlanButton />

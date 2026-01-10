@@ -21,7 +21,7 @@ export default function CheckYourEmailPage() {
     <div className="flex h-screen items-center justify-center">
       <div className="text-center">
         <FuzzyText
-          color="green"
+          color="#63B926"
           fontWeight="bold"
           fontSize={80}
         >
