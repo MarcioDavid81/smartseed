@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CheckIcon, XIcon } from "lucide-react";
 import AcquirePlanButton from "./AcquirePlanButton";
 import { useEffect, useState } from "react";
+import { Plan } from "@prisma/client";
 
-type CompanyPlan = "BASIC" | "PREMIUM"
+type CompanyPlan = Plan
 
 const SubscriptionCard = () => {
   const [plan, setPlan] = useState<CompanyPlan | null>(null)
@@ -15,13 +16,13 @@ const SubscriptionCard = () => {
     async function loadPlan() {
       const res = await fetch("/api/companies/me")
       const data = await res.json()
-      setPlan(data.plan)
+      setPlan(data.plan as CompanyPlan)
     }
   
     loadPlan()
   }, [])
   
-  const hasPremiumPlan = plan === "PREMIUM"
+  const hasPremiumPlan = plan === Plan.PREMIUM
   return ( 
     <div className="flex gap-6 max-md:flex-col">
           <Card className="w-[450px] max-md:w-full">

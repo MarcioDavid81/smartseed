@@ -40,7 +40,7 @@ export async function POST() {
         quantity: 1,
       },
     ],
-    success_url: `${process.env.APP_URL}/assinaturas/success`,
+    success_url: `${process.env.APP_URL}/assinaturas?status=success`,
     cancel_url: `${process.env.APP_URL}/assinaturas`,
     metadata: {
       companyId: company.id,

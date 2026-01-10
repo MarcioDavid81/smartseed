@@ -1,27 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { getJwtSecretKey, verifyToken } from "./lib/auth";
-import { Plan, Role } from "@prisma/client";
+import { getJwtSecretKey } from "./lib/auth";
+import { Role } from "@prisma/client";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get("token")?.value;
-  const payload = await verifyToken(token!);
-  const companyPlan = payload?.sub as Plan;
-
-  const subscriptionSuccessRoutes = ["/assinaturas/success"];
-
-  function isSubscriptionSuccessRoute(pathname: string) {
-    return subscriptionSuccessRoutes.some((route) =>
-      pathname.startsWith(route),
-    );
-  }
-
-  if (isSubscriptionSuccessRoute(pathname)) {
-    if (companyPlan === Plan.PREMIUM) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-  }
 
   // ===============================
   // 🔓 SE USUÁRIO LOGADO REDIRECIONA PRO DASHBOARD

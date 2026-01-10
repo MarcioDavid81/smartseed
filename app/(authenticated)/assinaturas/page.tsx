@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import NavItems from "../_components/NavItems";
 import SubscriptionCard from "./_components/SubscriptionCard";
+import SubscriptionFeedback from "./_components/SubscriptionFeedback";
 
 export const metadata: Metadata = {
   title: "Assinaturas",
@@ -24,6 +25,7 @@ export default async function SubscriptionsPage() {
             <h1 className="text-2xl font-medium mb-4">Assinaturas</h1>
             <NavItems />
           </div>
+          <SubscriptionFeedback />
           <SubscriptionCard />
         </main>
       </div>

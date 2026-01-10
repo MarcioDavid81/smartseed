@@ -4,8 +4,9 @@ import { useEffect, useState } from "react"
 import HoverButton from "@/components/HoverButton"
 import { ShoppingCart } from "lucide-react"
 import Link from "next/link"
+import { Plan } from "@prisma/client"
 
-type CompanyPlan = "BASIC" | "PREMIUM"
+type CompanyPlan = Plan
 
 const AcquirePlanButton = () => {
   const [plan, setPlan] = useState<CompanyPlan | null>(null)
@@ -42,7 +43,7 @@ const AcquirePlanButton = () => {
     )
   }
 
-  const hasPremiumPlan = plan === "PREMIUM"
+  const hasPremiumPlan = plan === Plan.PREMIUM
 
   if (hasPremiumPlan) {
     return (
