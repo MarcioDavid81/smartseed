@@ -105,5 +105,6 @@ export const routes = [
     subRoutes: [
       { name: "Gerenciar", path: "/assinaturas", icon: <Cog size={16} /> },
     ],
+    adminOnly: true,
   },
 ];

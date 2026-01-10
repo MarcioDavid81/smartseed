@@ -64,6 +64,7 @@ export async function middleware(req: NextRequest) {
     const adminRoutes = [
       "/cadastros/usuarios",
       "/cadastros/empresas",
+      "/assinaturas",
     ];
 
     const isAdminRoute = adminRoutes.some((route) =>

@@ -98,7 +98,7 @@ const routes = [
   {
     name: "Assinaturas",
     icon: <Cog size={20} />,
-    subRoutes: [
+    adminRoutes: [
       { path: "/assinaturas", name: "Gerenciar" },
     ],
   },
