@@ -40,7 +40,7 @@ export async function POST() {
         quantity: 1,
       },
     ],
-    success_url: `http://localhost:3000/assinaturas/success`,
+    success_url: `${process.env.APP_URL}/assinaturas/success`,
     cancel_url: `${process.env.APP_URL}/assinaturas`,
     metadata: {
       companyId: company.id,
