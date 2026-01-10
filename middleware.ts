@@ -1,22 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { getJwtSecretKey } from "./lib/auth";
-import { Role } from "@prisma/client";
+import { getJwtSecretKey, verifyToken } from "./lib/auth";
+import { Plan, Role } from "@prisma/client";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get("token")?.value;
+  const payload = await verifyToken(token!);
+  const companyPlan = payload?.sub as Plan;
+
+  const subscriptionSuccessRoutes = ["/assinaturas/success"];
+
+  function isSubscriptionSuccessRoute(pathname: string) {
+    return subscriptionSuccessRoutes.some((route) =>
+      pathname.startsWith(route),
+    );
+  }
+
+  if (isSubscriptionSuccessRoute(pathname)) {
+    if (companyPlan === Plan.PREMIUM) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+  }
 
   // ===============================
   // 🔓 SE USUÁRIO LOGADO REDIRECIONA PRO DASHBOARD
   // ===============================
-  if (pathname === "/"  && token) {
+  if (pathname === "/" && token) {
     try {
       await jwtVerify(token, getJwtSecretKey());
       console.log("[middleware] Token válido, redirecionando para /dashboard");
-      return NextResponse.redirect(
-        new URL("/dashboard", req.url),
-      );
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     } catch {
       return NextResponse.next();
     }
@@ -31,10 +45,10 @@ export async function middleware(req: NextRequest) {
     if (token) {
       try {
         await jwtVerify(token, getJwtSecretKey());
-        console.log("[middleware] Token válido, redirecionando para /dashboard");
-        return NextResponse.redirect(
-          new URL("/dashboard", req.url),
+        console.log(
+          "[middleware] Token válido, redirecionando para /dashboard",
         );
+        return NextResponse.redirect(new URL("/dashboard", req.url));
       } catch {
         return NextResponse.next();
       }
@@ -74,9 +88,7 @@ export async function middleware(req: NextRequest) {
     if (isAdminRoute && role !== Role.ADMIN) {
       console.log("[middleware] Acesso negado por role");
 
-      return NextResponse.redirect(
-        new URL("/unauthorized", req.url),
-      );
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
     return NextResponse.next();
