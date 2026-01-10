@@ -26,7 +26,7 @@ export default async function SuccessPage() {
             <h1 className="text-2xl font-medium mb-4">Sucesso</h1>
             <NavItems />
           </div>
-          <div className="flex flex-col items-center justify-center gap-4">
+          <div className="flex flex-col items-center justify-center">
             <FuzzyText
               color="#63B926"
               fontWeight="bold"
@@ -37,11 +37,9 @@ export default async function SuccessPage() {
             <p className="mt-2 text-muted-foreground">
               Seu plano foi ativado com sucesso.
             </p>
-            <Button asChild variant="link" className="hover:text-green">
-              <Link href="/dashboard" className="hover:no-underline">
-                Voltar para o sistema
-              </Link>
-            </Button>
+            <p className="mt-2">
+              Obrigado por assinar. Agora você é um usuário premium e tem acesso a recursos ilimitados.
+            </p>
           </div>
         </main>
       </div>

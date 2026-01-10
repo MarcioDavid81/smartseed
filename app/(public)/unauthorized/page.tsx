@@ -21,7 +21,7 @@ export default function UnauthorizedPage() {
     <div className="flex h-screen items-center justify-center">
       <div className="text-center">
         <FuzzyText
-          color="green"
+          color="#63B926"
           fontWeight="bold"
           fontSize={80}
         >
@@ -31,7 +31,7 @@ export default function UnauthorizedPage() {
           Você não tem permissão para acessar esta página.
         </p>
         <Button asChild variant="link" className="hover:text-green">
-          <Link href="/dashboard">
+          <Link href="/dashboard" className="hover:no-underline">
             Voltar para o sistema!
           </Link>
         </Button>
