@@ -12,6 +12,9 @@ model Company {
   name                     String
   createdAt                DateTime                  @default(now())
   plan                     Plan?                     @default(BASIC)
+  stripeCustomerId         String?  @unique
+  stripeSubscriptionId     String?  @unique
+  subscriptionStatus       SubscriptionStatus?
   accountsPayable          AccountPayable[]
   accountsReceivable       AccountReceivable[]
   applications             Application[]
@@ -749,3 +752,11 @@ enum MachineType {
   IMPLEMENT
   OTHER
 }
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+}
+
