@@ -1,45 +1,25 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
-import { AccountPayable, AccountReceivable } from "@/types";
+import { AccountReceivable } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
-import { useReceivable } from "@/contexts/ReceivableContext";
+import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { ReceivableStatusButton } from "./EditReceivableStatusButton";
 import { Badge } from "@/components/ui/badge";
 import { ReceivableDataTable } from "./ReceivableDataTable";
 import { AgroLoader } from "@/components/agro-loader";
+import { useAccountReceivables } from "@/queries/financial/use-account-receivable-query";
 
 export function ListReceivableTable() {
-  const [newReceivables, setNewReceivables] = useState<AccountReceivable[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { receivables, isLoading } = useReceivable();
+  
+  const {
+    data: receivables = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useAccountReceivables();
 
-  async function fetchReceivables() {
-    try {
-      const token = getToken();
-      const res = await fetch("/api/financial/receivables", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      setNewReceivables(data);
-    } catch (error) {
-      console.error("Erro ao buscar contas a receber:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchReceivables();
-  }, []);
 
   const columns: ColumnDef<AccountReceivable>[] = [
     {
@@ -142,7 +122,7 @@ export function ListReceivableTable() {
       cell: ({ row }) => {
         const accountReceivable = row.original;
         return (
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-center gap-4">
             <ReceivableStatusButton accountReceivableId={accountReceivable.id} status={accountReceivable.status} />
           </div>
         );
@@ -152,13 +132,16 @@ export function ListReceivableTable() {
 
   return (
     <Card className="p-4 dark:bg-primary font-light">
-      <div className="mb-4">
+      <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Contas à Receber</h2>
+        <Button variant="ghost" onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
+        </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <ReceivableDataTable columns={columns} data={newReceivables} />
+        <ReceivableDataTable columns={columns} data={receivables} />
       )}
     </Card>
   );

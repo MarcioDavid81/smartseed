@@ -1,45 +1,24 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { AccountPayable } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
+import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { PayableDataTable } from "./PayableDataTble";
-import { usePayable } from "@/contexts/PayableContext";
 import { PayableStatusButton } from "./EditPayableStatusButton";
 import { Badge } from "@/components/ui/badge";
 import { AgroLoader } from "@/components/agro-loader";
+import { useAccountPayables } from "@/queries/financial/use-account-payables-query";
 
 export function ListPayableTable() {
-  const [newPayables, setNewPayables] = useState<AccountPayable[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { payables, isLoading } = usePayable();
-
-  async function fetchPayables() {
-    try {
-      const token = getToken();
-      const res = await fetch("/api/financial/payables", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      setNewPayables(data);
-    } catch (error) {
-      console.error("Erro ao buscar contas a pagar:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchPayables();
-  }, []);
+  
+  const {
+    data: payables = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useAccountPayables();
 
   const columns: ColumnDef<AccountPayable>[] = [
     {
@@ -152,10 +131,13 @@ export function ListPayableTable() {
 
   return (
     <Card className="p-4 dark:bg-primary font-light">
-      <div className="mb-4">
+      <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Contas à Pagar</h2>
+        <Button variant="ghost" onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
+        </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
         <PayableDataTable columns={columns} data={payables} />

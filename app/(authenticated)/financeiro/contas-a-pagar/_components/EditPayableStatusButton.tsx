@@ -14,6 +14,7 @@ import {
 import { SquarePenIcon } from "lucide-react";
 import { EditPayableStatusDialog } from "./EditPayableStatusDialog";
 import { AccountStatus } from "@prisma/client";
+import { useState } from "react";
 
 interface Props {
   accountPayableId: string;
@@ -21,9 +22,11 @@ interface Props {
 }
 
 export function PayableStatusButton({ accountPayableId, status }: Props) {
+  const [open, setOpen] = useState(false);
+  
   return (
     <TooltipProvider>
-      <Dialog>
+      <Dialog open={open} onOpenChange={setOpen}>
         <Tooltip>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
@@ -39,6 +42,7 @@ export function PayableStatusButton({ accountPayableId, status }: Props) {
         <EditPayableStatusDialog
           accountPayableId={accountPayableId}
           status={status}
+          onClose={() => setOpen(false)}
         />
       </Dialog>
     </TooltipProvider>

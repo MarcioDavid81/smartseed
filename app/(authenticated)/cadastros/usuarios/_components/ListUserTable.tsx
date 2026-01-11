@@ -1,12 +1,9 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import { AppUser } from "@/types/user";
 import { UsersDataTable } from "./UserDataTable";
 import DeleteUserButton from "./DeleteUserButton";
@@ -17,11 +14,11 @@ import { useUsers } from "@/queries/registrations/use-user-query";
 export function UsersGetTable() {
   
   const {
-        data: usuarios = [],
-        isLoading,
-        isFetching,
-        refetch,
-      } = useUsers();
+    data: usuarios = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useUsers();
 
   const columns: ColumnDef<AppUser>[] = [
     {

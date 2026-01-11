@@ -11,6 +11,7 @@ import {
   Dialog,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useState } from "react";
 import { SquarePenIcon } from "lucide-react";
 import { AccountStatus } from "@prisma/client";
 import { EditReceivableStatusDialog } from "./EditReceivableStatusDialog";
@@ -21,14 +22,16 @@ interface Props {
 }
 
 export function ReceivableStatusButton({ accountReceivableId, status }: Props) {
+  const [open, setOpen] = useState(false);
+
   return (
     <TooltipProvider>
-      <Dialog>
+      <Dialog open={open} onOpenChange={setOpen}>
         <Tooltip>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <SquarePenIcon size={20} className="text-green" />
+              <Button variant="ghost" >
+                <SquarePenIcon className="text-green" />
               </Button>
             </DialogTrigger>
           </TooltipTrigger>
@@ -39,6 +42,7 @@ export function ReceivableStatusButton({ accountReceivableId, status }: Props) {
         <EditReceivableStatusDialog
           accountReceivableId={accountReceivableId}
           status={status}
+          onClose={() => setOpen(false)}
         />
       </Dialog>
     </TooltipProvider>

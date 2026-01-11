@@ -8,22 +8,31 @@ import {
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth-client";
 import { FaSpinner } from "react-icons/fa";
 import { AccountStatus } from "@prisma/client";
+import { useSmartToast } from "@/contexts/ToastContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Props = {
   accountPayableId: string;
   status: AccountStatus;
+  onClose: () => void;
 };
 
-export function EditPayableStatusDialog({ accountPayableId, status }: Props) {
+export function EditPayableStatusDialog({ accountPayableId, status, onClose }: Props) {
   const [newStatus, setNewStatus] = useState(status);
   const [loading, setLoading] = useState(false);
+  const { showToast } = useSmartToast();
+  const queryClient = useQueryClient();
 
-  const handleSubmit = async () => {
+  useEffect(() => {
+    setNewStatus(status);
+  }, [status]);
+
+  const onSubmit = async () => {
     try {
       setLoading(true);
       const token = getToken();
@@ -37,10 +46,24 @@ export function EditPayableStatusDialog({ accountPayableId, status }: Props) {
       });
 
       if (!res.ok) throw new Error("Erro ao atualizar status");
-      toast.success("Status atualizado com sucesso!");
-      window.location.reload(); // ou mutate SWR, dependendo de como carrega os dados
+      
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Status atualizado com sucesso!",
+      });
+
+      onClose();
+      
+      await queryClient.invalidateQueries({
+        queryKey: ["account-payables"],
+      });
     } catch (err) {
-      toast.error("Erro ao atualizar status");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Erro ao atualizar status",
+      });
       console.error(err);
     } finally {
       setLoading(false);
@@ -79,7 +102,12 @@ export function EditPayableStatusDialog({ accountPayableId, status }: Props) {
       </RadioGroup>
 
       <DialogFooter>
-        <Button onClick={handleSubmit} disabled={loading} className="w-full bg-green text-white">
+        <Button
+          type="button"
+          onClick={onSubmit}
+          disabled={loading}
+          className="w-full bg-green text-white"
+        >
           {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
         </Button>
       </DialogFooter>
