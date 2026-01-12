@@ -1,5 +1,6 @@
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
+import { plotSchema } from "@/lib/schemas/plotSchema";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -30,27 +31,83 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-  const { companyId } = auth;
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+
+    const { companyId } = auth;
     const { name, area, farmId } = await req.json();
     const { id } = params;
 
-    const plot = await db.talhao.update({
+    // 1️⃣ Buscar talhão atual
+    const currentPlot = await db.talhao.findUnique({
       where: { id, companyId },
-      data: { name, area, farmId },
+      select: {
+        id: true,
+        area: true,
+        farmId: true,
+      },
     });
 
-    return NextResponse.json(plot, { status: 200 });
+    if (!currentPlot) {
+      return NextResponse.json(
+        {
+          code: "PLOT_NOT_FOUND",
+          title: "Talhão não encontrado",
+          message: "O talhão informado não foi encontrado.",
+        },
+        { status: 404 },
+      );
+    }
+
+    // 2️⃣ Atualizar talhão
+    const updatedPlot = await db.talhao.update({
+      where: { id, companyId },
+      data: {
+        name,
+        area,
+        farmId,
+      },
+    });
+
+    // 3️⃣ Fazendas afetadas
+    const affectedFarmIds = new Set<string>([currentPlot.farmId, farmId]);
+
+    // 4️⃣ Recalcular área das fazendas afetadas
+    Array.from(affectedFarmIds).forEach(async (affectedFarmId) => {
+      const result = await db.talhao.aggregate({
+        where: {
+          farmId: affectedFarmId,
+          companyId,
+        },
+        _sum: {
+          area: true,
+        },
+      });
+
+      await db.farm.update({
+        where: {
+          id: affectedFarmId,
+          companyId,
+        },
+        data: {
+          area: result._sum.area ?? 0,
+        },
+      });
+    });
+
+    return NextResponse.json(updatedPlot, { status: 200 });
   } catch (error) {
     console.error("Erro ao atualizar talhão:", error);
-    return NextResponse.json({ 
-      code: "PLOT_UPDATE_ERROR",
-      title: "Erro ao atualizar talhão",
-      message: "Ocorreu um erro ao atualizar o talhão. Por favor, tente novamente.",
-     }, 
-     { status: 500 });
+    return NextResponse.json(
+      {
+        code: "PLOT_UPDATE_ERROR",
+        title: "Erro ao atualizar talhão",
+        message:
+          "Ocorreu um erro ao atualizar o talhão. Por favor, tente novamente.",
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -84,10 +141,10 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-  const { companyId } = auth;
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
     const { id } = params;
 
     const [activeCycleLinks, totalCycleLinks] = await Promise.all([
@@ -143,23 +200,68 @@ export async function DELETE(
       );
     }
 
-    await db.talhao.delete({ where: { id, companyId } });
+    const finalResult = await db.$transaction(async (tx) => {
+      // 1️⃣ Buscar talhão ANTES de deletar
+      const plot = await tx.talhao.findUnique({
+        where: { id, companyId },
+        select: {
+          id: true,
+          farmId: true,
+        },
+      });
 
-    return NextResponse.json(
-      { 
-        code: "PLOT_DELETED_SUCCESSFULLY",
-        title: "Talhão deletado com sucesso",
-        message: "O talhão foi deletado com sucesso.",
-       },
-      { status: 200 },
-    );
+      if (!plot) {
+        return NextResponse.json(
+          {
+            code: "PLOT_NOT_FOUND",
+            title: "Talhão não encontrado",
+            message: "O talhão informado não foi encontrado.",
+          },
+          { status: 404 },
+        );
+      }
+
+      // 2️⃣ Deletar talhão
+      const deletedPlot = await tx.talhao.delete({
+        where: { id, companyId },
+      });
+
+      // 3️⃣ Recalcular área da fazenda
+      const result = await tx.talhao.aggregate({
+        where: {
+          farmId: plot.farmId,
+          companyId,
+        },
+        _sum: {
+          area: true,
+        },
+      });
+
+      // 4️⃣ Atualizar fazenda (agora com segurança)
+      await tx.farm.update({
+        where: {
+          id: plot.farmId,
+          companyId,
+        },
+        data: {
+          area: result._sum.area ?? 0,
+        },
+      });
+
+      return deletedPlot;
+    });
+
+    return NextResponse.json(finalResult, { status: 200 });
   } catch (error) {
     console.error("Erro ao deletar talhão:", error);
-    return NextResponse.json({ 
-      code: "PLOT_DELETE_ERROR",
-      title: "Erro ao deletar talhão",
-      message: "Ocorreu um erro ao deletar o talhão. Por favor, tente novamente.",
-     }, 
-     { status: 500 });
+    return NextResponse.json(
+      {
+        code: "PLOT_DELETE_ERROR",
+        title: "Erro ao deletar talhão",
+        message:
+          "Ocorreu um erro ao deletar o talhão. Por favor, tente novamente.",
+      },
+      { status: 500 },
+    );
   }
 }

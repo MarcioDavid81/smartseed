@@ -1,5 +1,11 @@
+import {
+  ForbiddenPlanError,
+  PlanLimitReachedError,
+} from "@/core/access-control";
+import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
+import { plotSchema } from "@/lib/schemas/plotSchema";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -30,33 +36,68 @@ import { NextRequest, NextResponse } from "next/server";
  */
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-  const { companyId } = auth;
-
   try {
-    const { name, area, farmId } = await req.json();
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    if (!name || !area || !farmId) {
+    const session = await withAccessControl("CREATE_MASTER_DATA");
+
+    const body = await req.json();
+
+    const parsed = plotSchema.safeParse(body);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Campos obrigatórios faltando" },
+        { error: "Dados inválidos", details: parsed.error.flatten() },
         { status: 400 },
       );
     }
 
-    const plot = await db.talhao.create({
-      data: {
-        name,
-        area,
-        farmId,
-        companyId,
-      },
+    const data = parsed.data;
+
+    const result = await db.$transaction(async (tx) => {
+      // 1️⃣ Cria o talhão
+      const createdPlot = await tx.talhao.create({
+        data: {
+          ...data,
+          companyId: session.user.companyId,
+        },
+      });
+
+      // 2️⃣ Atualiza a área da fazenda
+      await tx.farm.update({
+        where: { id: data.farmId },
+        data: {
+          area: {
+            increment: data.area,
+          },
+        },
+      });
+      return createdPlot;
     });
 
-    return NextResponse.json(plot, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar talhão:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 
