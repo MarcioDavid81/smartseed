@@ -3,7 +3,6 @@ import { deleteFarm, getFarms, upsertFarm } from "@/services/registrations/farm"
 import { Farm } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { deletePlot } from "@/services/registrations/plot";
 
 export function useFarms() {
   return useQuery({

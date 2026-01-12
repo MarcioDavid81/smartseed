@@ -21,6 +21,7 @@ import Image from "next/image";
 import combineIcon from "../../../../public/combine.ico";
 import { GrHostMaintenance } from "react-icons/gr";
 import { GiFuelTank } from "react-icons/gi";
+import { PiFarmLight } from "react-icons/pi";
 
 export const routes = [
   {
@@ -94,7 +95,7 @@ export const routes = [
     name: "Cadastros",
     icon: <Scroll size={20} />,
     subRoutes: [
-      { name: "Empresas", path: "/cadastros/empresas", icon: <Building2 size={16} /> },
+      { name: "Fazendas", path: "/cadastros/fazendas", icon: <PiFarmLight size={16} /> },
       { name: "Usuários", path: "/cadastros/usuarios", icon: <User size={16} /> },
     ],
     adminOnly: true,
