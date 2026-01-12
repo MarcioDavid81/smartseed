@@ -24,6 +24,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -120,24 +121,56 @@ export function IndustryStockStatementDataTable<TData, TValue>({
       </div>
 
       {/* Paginação */}
-      <div className="flex items-center justify-end space-x-2">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Anterior
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Próximo
-        </Button>
-      </div>
+        <div className="flex items-center gap-1 justify-end">
+          {/* Anterior */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="rounded-full hover:bg-green/50"
+          >
+            ‹
+          </Button>
+
+          {getPaginationItems(
+            table.getState().pagination.pageIndex,
+            table.getPageCount()
+          ).map((item, index) =>
+            item === "..." ? (
+              <span
+                key={`ellipsis-${index}`}
+                className="px-2 text-muted-foreground"
+              >
+                …
+              </span>
+            ) : (
+              <Button
+                key={item}
+                size="sm"
+                variant={
+                  item === table.getState().pagination.pageIndex
+                    ? "default"
+                    : "ghost"
+                }
+                className="min-w-8 hover:bg-green/50 rounded-full"
+                onClick={() => table.setPageIndex(item)}
+              >
+                {item + 1}
+              </Button>
+            )
+          )}
+
+          {/* Próximo */}
+          <Button
+            variant="ghost"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="rounded-full hover:bg-green/50"
+          >
+            ›
+          </Button>
+        </div>
     </div>
   );
 }
