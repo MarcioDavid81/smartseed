@@ -10,7 +10,7 @@ export async function getPlots(): Promise<Talhao[]> {
   return data;
 }
 
-type UpsertBeneficiationParams = {
+type UpsertPlotParams = {
   data: PlotFormData;
   plotId?: string;
 };
@@ -18,7 +18,7 @@ type UpsertBeneficiationParams = {
 export function upsertPlot({
   data,
   plotId,
-}: UpsertBeneficiationParams) {
+}: UpsertPlotParams) {
   const url = plotId
     ? `/api/plots/${plotId}`
     : "/api/plots";
