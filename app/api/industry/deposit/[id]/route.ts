@@ -32,7 +32,16 @@ export async function PUT(
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
     console.error("Erro ao atualizar depósito:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json(
+      { 
+        error: {
+          code: "INTERNAL_ERROR",
+          title: "Erro interno",
+          message: "Erro interno no servidor",
+        }
+      },
+      { status: 500 },
+    );
   }
 }
 

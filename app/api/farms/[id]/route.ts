@@ -34,12 +34,21 @@ export async function PUT(
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
-    const { name, area } = await req.json();
+
     const { id } = params;
+    const { name } = await req.json();
+
+    const existing = await db.farm.findUnique({ where: { id } });
+
+    if (!existing || existing.companyId !== companyId) {
+      return new NextResponse("Fazenda não encontrada ou acesso negado", {
+        status: 403,
+      });
+    }
 
     const farm = await db.farm.update({
       where: { id, companyId },
-      data: { name, area },
+      data: { name },
     });
 
     return NextResponse.json(farm, { status: 200 });

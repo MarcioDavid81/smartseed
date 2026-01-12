@@ -1,4 +1,3 @@
-import { verifyToken } from "@/lib/auth";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";

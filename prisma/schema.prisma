@@ -12,8 +12,8 @@ model Company {
   name                     String
   createdAt                DateTime                  @default(now())
   plan                     Plan?                     @default(BASIC)
-  stripeCustomerId         String?  @unique
-  stripeSubscriptionId     String?  @unique
+  stripeCustomerId         String?                   @unique
+  stripeSubscriptionId     String?                   @unique
   subscriptionStatus       SubscriptionStatus?
   accountsPayable          AccountPayable[]
   accountsReceivable       AccountReceivable[]
@@ -52,7 +52,7 @@ model Company {
 model Farm {
   id              String         @id @default(uuid())
   name            String
-  area            Float
+  area            Float          @default(0)
   companyId       String
   createdAt       DateTime       @default(now())
   company         Company        @relation(fields: [companyId], references: [id])
@@ -759,4 +759,3 @@ enum SubscriptionStatus {
   PAST_DUE
   CANCELED
 }
-

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Farm" ALTER COLUMN "area" SET DEFAULT 0;

@@ -1,5 +1,9 @@
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
+import { farmSchema } from "@/lib/schemas/farmSchema";
+import { dataTagErrorSymbol } from "@tanstack/react-query";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -27,16 +31,26 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Fazenda criada com sucesso
  */
 export async function POST(req: NextRequest) {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-  const { companyId } = auth;
-
+  
   try {
-    const { name, area } = await req.json();
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    if (!name || !area) {
+    const session = await withAccessControl('CREATE_MASTER_DATA');
+
+    const body = await req.json();
+    const { name } = farmSchema.parse(body);
+
+    if (!name) {
       return NextResponse.json(
-        { error: "Campos obrigatórios faltando" },
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: "O nome do depósito é obrigatório.",
+          },
+        },
         { status: 400 },
       );
     }
@@ -44,14 +58,26 @@ export async function POST(req: NextRequest) {
     const farm = await db.farm.create({
       data: {
         name,
-        area,
-        companyId,
+        companyId: session.user.companyId,
       },
     });
 
     return NextResponse.json(farm, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar fazenda:", error);
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: 402 }
+      )
+    }
+        
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: 403 }
+      )
+    }
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }
