@@ -49,8 +49,10 @@ export function ListSaleTable() {
       cell: ({ row: { original } }) => original.document,
     },
     {
-      accessorKey: "customer",
+      id: "customer",
       header: "Cliente",
+      accessorFn: (row) => row.customer?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row: { original } }) => <div className="text-left">{original.customer?.name ? (original.customer.name) : <LoadingData />}</div>,
     },
     {
@@ -115,7 +117,7 @@ export function ListSaleTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <SaleDataTable columns={columns} data={industrySales} />
+        <SaleDataTable columns={columns} data={industrySales} sumColumnId="weightLiq" />
       )}
     </Card>
   );

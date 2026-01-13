@@ -37,6 +37,13 @@ export function ListPlotsTable() {
       cell: ({ row: { original } }) => original.name,
     },
     {
+      id: "farm",
+      header: "Fazenda",
+      accessorFn: (row) => row.farm?.name ?? "",
+      filterFn: "includesString",
+      cell: ({ row: { original } }) => <div>{original.farm?.name ? (original.farm.name) : <LoadingData />}</div>,
+    },
+    {
       accessorKey: "area",
       header: "Área (ha)",
       accessorFn: (row) => row.area,
@@ -44,13 +51,6 @@ export function ListPlotsTable() {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(original.area),
-    },
-    {
-      id: "farm",
-      header: "Fazenda",
-      accessorFn: (row) => row.farm?.name ?? "",
-      filterFn: "includesString",
-      cell: ({ row: { original } }) => <div>{original.farm?.name ? (original.farm.name) : <LoadingData />}</div>,
     },
     {
       accessorKey: "actions",
@@ -78,7 +78,7 @@ export function ListPlotsTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <PlotsDataTable columns={columns} data={talhoes} />
+        <PlotsDataTable columns={columns} data={talhoes} sumColumnId="area" />
       )}
     </Card>
   );

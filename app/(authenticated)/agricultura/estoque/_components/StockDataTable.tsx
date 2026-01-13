@@ -16,6 +16,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -33,6 +34,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   pageSize?: number;
   searchFields?: string[];
+  sumColumnId?: string;
 }
 
 export function StockDataTable<TData, TValue>({
@@ -40,6 +42,7 @@ export function StockDataTable<TData, TValue>({
   data,
   pageSize = 8,
   searchFields = [],
+  sumColumnId,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
@@ -69,6 +72,15 @@ export function StockDataTable<TData, TValue>({
       },
     }
   });
+
+  const filteredRows = table.getFilteredRowModel().rows;
+  const totalKg = sumColumnId
+    ? filteredRows.reduce((acc, row) => {
+        const raw = row.getValue(sumColumnId as any);
+        const num = typeof raw === "number" ? raw : Number(raw);
+        return acc + (isNaN(num) ? 0 : num);
+      }, 0)
+    : 0;
 
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
@@ -136,6 +148,23 @@ export function StockDataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={columns.length - 2} className="text-start text-muted-foreground">
+                <h3>Total</h3>
+              </TableCell>
+              <TableCell colSpan={2} className="text-start text-muted-foreground">                
+                {sumColumnId ? (
+                  <div>
+                    {new Intl.NumberFormat("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }).format(totalKg)} Kg
+                  </div>
+                ) : null}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </div>
 

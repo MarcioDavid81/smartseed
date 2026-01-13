@@ -1,14 +1,10 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
-import { IndustrySale, IndustryTransfer } from "@/types";
+import { IndustryTransfer } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
-import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { AgroLoader } from "@/components/agro-loader";
 import { TransferDataTable } from "./TransferDataTable";
 import EditTransferButton from "./EditTransferButton";
@@ -103,7 +99,7 @@ export function ListTransferTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <TransferDataTable columns={columns} data={industryTransfers} />
+        <TransferDataTable columns={columns} data={industryTransfers} sumColumnId="quantity" />
       )}
     </Card>
   );

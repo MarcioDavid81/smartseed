@@ -44,12 +44,12 @@ export function ListStockTable() {
         getProductLabel(stock.industryDeposit.name),
     },
     {
-      accessorKey: "stock",
-      header: () => <div className="text-center">Estoque (kg)</div>,
+      accessorKey: "quantity",
+      header: () => <div className="text-left">Estoque (kg)</div>,
       cell: ({ row }) => {
         const stock = row.original.quantity;
         return (
-          <div className="text-center">
+          <div className="text-left">
             {new Intl.NumberFormat("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -85,7 +85,7 @@ export function ListStockTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <StockDataTable columns={columns} data={stocks}/>
+        <StockDataTable columns={columns} data={stocks} sumColumnId="quantity" />
       )}
     </Card>
   );
