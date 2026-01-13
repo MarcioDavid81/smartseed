@@ -172,11 +172,11 @@ export default function SafraForm({ initialData, isEditing }: SafraFormProps) {
               )}
             />
             <div className="flex justify-end gap-4">
-              <Button type="button" className=" bg-green text-white mt-4" onClick={handleReturn}>
+              <Button type="button" className=" bg-green text-white mt-4 font-light" onClick={handleReturn}>
                 <CornerDownLeft size={20} />
                 Voltar
               </Button>
-              <Button type="submit" className=" bg-green text-white mt-4" disabled={loading}>
+              <Button type="submit" className=" bg-green text-white mt-4 font-light" disabled={loading}>
                 <SaveIcon size={20} />
                 {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>

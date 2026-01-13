@@ -178,7 +178,7 @@ export function TransferDataTable<TData, TValue>({
                     ? "default"
                     : "ghost"
                 }
-                className="min-w-8 hover:bg-green/50 rounded-full"
+                className="h-8 w-8 hover:bg-green/50 rounded-full font-light"
                 onClick={() => table.setPageIndex(item)}
               >
                 {item + 1}

@@ -10,7 +10,7 @@ const NewPlotButton = () => {
 
   return (
     <div>
-      <Button onClick={() => setIsOpen(true)} className=" bg-green text-white" type="button">
+      <Button onClick={() => setIsOpen(true)} className=" bg-green text-white font-light" type="button">
         <PlusIcon size={20} />
           Talhão
         </Button>
