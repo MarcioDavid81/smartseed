@@ -5,7 +5,6 @@ import {
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { verifyToken } from "@/lib/auth";
 import { requireAuth } from "@/lib/auth/require-auth";
-import { canCompanyAddHarvest } from "@/lib/permissions/canCompanyAddHarvest";
 import { db } from "@/lib/prisma";
 import { seedHarvestSchema } from "@/lib/schemas/seedHarvestSchema";
 import { NextRequest, NextResponse } from "next/server";

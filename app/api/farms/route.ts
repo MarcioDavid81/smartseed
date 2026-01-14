@@ -6,7 +6,6 @@ import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { farmSchema } from "@/lib/schemas/farmSchema";
-import { dataTagErrorSymbol } from "@tanstack/react-query";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -37,7 +36,6 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
-    const { companyId } = auth;
 
     const session = await withAccessControl("CREATE_MASTER_DATA");
 
@@ -134,6 +132,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(farms, { status: 200 });
   } catch (error) {
     console.error("Erro ao buscar fazendas:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
