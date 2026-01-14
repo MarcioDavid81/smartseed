@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
 import CreateRainButton from "./_components/CreateRainButton";
+import { ListRainsTable } from "./_components/ListRainTable";
 
 export const metadata: Metadata = {
   title: "Pluviometria",
@@ -23,7 +24,7 @@ export default async function AgricultureCropYieldsPage() {
             <h1 className="text-2xl font-medium mb-4">Pluviometria</h1> 
             <NavItems />
           </div>
-          <CreateRainButton />
+          <ListRainsTable />
         </main>
       </div>
     </div>

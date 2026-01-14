@@ -48,7 +48,7 @@ export default function GenerateStockReportModal() {
     logo.onload = () => {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
-      doc.text("Relatório de Compras", 150, 20, { align: "center" });
+      doc.text("Relatório de Compras", 110, 20, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Produto: ${product || "Todos"}`, 14, 35);

@@ -7,10 +7,10 @@ import { Rain } from "@/types";
 import UpsertRainModal from "./UpsertRainModal";
 
 interface Props {
-  rain?: Rain,
+  chuva?: Rain,
 }
 
-const CreateRainButton = ({ rain }: Props) => {
+const CreateRainButton = ({ chuva }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
@@ -21,7 +21,7 @@ const CreateRainButton = ({ rain }: Props) => {
       <UpsertRainModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        rain={rain}
+        rain={chuva}
       />
     </div>
   );

@@ -14,8 +14,6 @@ import {
   FormLabel, 
   FormMessage 
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -24,11 +22,11 @@ import { Farm, Rain } from "@/types";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { ApiError } from "@/lib/http/api-error";
 import { RainFormData, rainSchema } from "@/lib/schemas/rainSchema";
-import { useUpsertRain } from "@/queries/industry/use-upsert-rain";
 import { getToken } from "@/lib/auth-client";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { QuantityInput } from "@/components/inputs";
+import { useUpsertRain } from "@/queries/industry/use-rain";
 
 interface UpsertRainModalProps {
   rain?: Rain;
@@ -47,18 +45,18 @@ const UpsertRainModal = ({
   const form = useForm<RainFormData>({
     resolver: zodResolver(rainSchema),
     defaultValues: {
-      date: rain?.date ?? new Date(),
-      farmId: rain?.farmId ?? "",
-      quantity: rain?.quantity ?? 0,
+      date: rain ? new Date(rain.date) : new Date(),
+      farmId: rain?.farmId || "",
+      quantity: rain?.quantity || 0,
     },
   });
 
   useEffect(() => {
     if (rain) {
       form.reset({
-        date: rain.date,
-        farmId: rain.farmId,
-        quantity: rain.quantity,
+        date: new Date(rain.date),
+        farmId: rain.farmId || "",
+        quantity: rain.quantity || 0,
       });
     } else {
       form.reset();

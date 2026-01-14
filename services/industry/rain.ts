@@ -2,7 +2,7 @@ import { Rain } from "@/types";
 import { apiFetch } from "../api";
 import { RainFormData } from "@/lib/schemas/rainSchema";
 
-export async function getRain(): Promise<Rain[]> {
+export async function getRains(): Promise<Rain[]> {
   const data = await apiFetch<Rain[]>(
     `/api/industry/rain`,
   );

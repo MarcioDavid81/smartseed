@@ -89,7 +89,7 @@ export default function GenerateTransferReportModal() {
       };
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
-      doc.text("Relatório de Transferências", 150, 20, { align: "center" });
+      doc.text("Relatório de Transferências", 110, 20, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Produto: ${produto || "Todos"}`, 14, 35);

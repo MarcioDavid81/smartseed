@@ -24,9 +24,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import CreatePlotButton from "./CreatePlotButton";
-import { FunnelX, FunnelXIcon } from "lucide-react";
+import { FunnelX } from "lucide-react";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
+import CreateRainButton from "./CreateRainButton";
+import GenerateRainReportModal from "./GenerateRainReportModal";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -36,7 +37,7 @@ interface DataTableProps<TData, TValue> {
   sumColumnId?: string;
 }
 
-export function PlotsDataTable<TData, TValue>({
+export function RainsDataTable<TData, TValue>({
   columns,
   data,
   pageSize = 8,
@@ -73,7 +74,7 @@ export function PlotsDataTable<TData, TValue>({
   });
 
   const filteredRows = table.getFilteredRowModel().rows;
-  const totalArea = sumColumnId
+  const totalChuva = sumColumnId
     ? filteredRows.reduce((acc, row) => {
         const raw = row.getValue(sumColumnId as any);
         const num = typeof raw === "number" ? raw : Number(raw);
@@ -85,14 +86,6 @@ export function PlotsDataTable<TData, TValue>({
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex items-center justify-between py-4">
         <div className="flex items-center gap-2">
-          <Input
-            placeholder="Procure por talhão"
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm bg-gray-50 text-primary"
-          />
           <Input
             placeholder="Procure por fazenda"
             value={(table.getColumn("farm")?.getFilterValue() as string) ?? ""}
@@ -113,7 +106,7 @@ export function PlotsDataTable<TData, TValue>({
             </Button>
           )}
         </div>
-        <CreatePlotButton />
+        <CreateRainButton />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -153,7 +146,7 @@ export function PlotsDataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Nenhum talhão encontrado.
+                  Nenhuma chuva encontrada.
                 </TableCell>
               </TableRow>
             )}
@@ -169,7 +162,7 @@ export function PlotsDataTable<TData, TValue>({
                     {new Intl.NumberFormat("pt-BR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
-                    }).format(totalArea)} Há
+                    }).format(totalChuva)} mm
                   </div>
                 ) : null}
               </TableCell>
@@ -180,6 +173,7 @@ export function PlotsDataTable<TData, TValue>({
 
       {/* Paginação */}
       <div className="flex items-center justify-between space-x-2 dark:text-primary">
+          <GenerateRainReportModal />
         <div className="flex items-center gap-1 justify-end">
           {/* Anterior */}
           <Button
