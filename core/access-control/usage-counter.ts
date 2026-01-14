@@ -25,6 +25,7 @@ export async function getUsageCount(
         db.fuelPurchase.count({ where: { companyId } }),
         db.refuel.count({ where: { companyId } }),
         db.maintenance.count({ where: { companyId } }),
+        db.rain.count({ where: { companyId } }),
       ]).then(r => r.reduce((a, b) => a + b, 0))
 
     case 'CREATE_MASTER_DATA':
