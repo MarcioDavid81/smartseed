@@ -22,6 +22,7 @@ import combineIcon from "../../../../public/combine.ico";
 import { GrHostMaintenance } from "react-icons/gr";
 import { GiFuelTank } from "react-icons/gi";
 import { PiFarmLight } from "react-icons/pi";
+import { IoRainyOutline } from "react-icons/io5";
 
 export const routes = [
   {
@@ -68,6 +69,7 @@ export const routes = [
       { name: "Estoque", path: "/agricultura/estoque", icon: <Warehouse size={16} /> },
       { name: "Talhões", path: "/agricultura/talhoes", icon: <MapIcon size={16} /> },
       { name: "Safras", path: "/agricultura/safras", icon: <ChartNoAxesCombined size={16} /> },
+      { name: "Pluviometria", path: "/agricultura/pluviometria", icon: <IoRainyOutline size={16} /> },
     ],
   },
   {

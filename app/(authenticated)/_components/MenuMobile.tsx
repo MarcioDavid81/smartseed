@@ -64,6 +64,7 @@ const routes = [
       { path: "/agricultura/estoque", name: "Estoques" },
       { path: "/agricultura/talhoes", name: "Talhões" },
       { path: "/agricultura/safras", name: "Safras" },
+      { path: "/agricultura/pluviometria", name: "Pluviometria" },
     ],
   },
   {
