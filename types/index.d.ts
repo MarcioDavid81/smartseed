@@ -29,6 +29,7 @@ export * from "./machine";
 export * from "./maintenance";
 export * from "./plot";
 export * from "./productStock";
+export * from "./rain";
 export * from "./rawEntry";
 export * from "./refuel";
 export * from "./saleExit";

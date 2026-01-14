@@ -47,6 +47,7 @@ model Company {
   transfers                TransferExit[]
   users                    User[]
   Transformation           Transformation[]
+  rains                    Rain[]
 }
 
 model Farm {
@@ -61,6 +62,7 @@ model Farm {
   talhoes         Talhao[]
   destTransfers   TransferExit[] @relation("DestFarm")
   originTransfers TransferExit[] @relation("OriginFarm")
+  rains           Rain[]
 }
 
 model User {
@@ -665,6 +667,18 @@ model Maintenance {
   company          Company          @relation(fields: [companyId], references: [id])
   customer         Customer         @relation(fields: [customerId], references: [id])
   machine          Machine          @relation(fields: [machineId], references: [id])
+}
+
+model Rain {
+  id        String   @id @default(cuid())
+  companyId String
+  date      DateTime @default(now())
+  farmId    String
+  quantity  Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  farm      Farm     @relation(fields: [farmId], references: [id])
 }
 
 enum Plan {
