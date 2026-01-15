@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import MenuMobile from "./MenuMobile";
 import Image from "next/image";
-import Logo from "../../../public/logo.png";
+import Logo from "../../../public/5.png";
+import LogoScroll from "../../../public/4.png";
 import Link from "next/link";
 
 const internalLinks = [
@@ -43,13 +44,23 @@ const Navbar = () => {
         }`}>
         <div className="flex justify-between items-center h-16">
           <Link href="/">
-            <Image
-              src={Logo}
-              alt="Smart Seed"
-              width={200}
-              height={100}
-              className="rounded-full"
-            />
+            {isScrolling ? (
+              <Image
+                src={LogoScroll}
+                alt="Smart Seed"
+                width={200}
+                height={100}
+                className="rounded-full"
+              />
+            ) : (
+              <Image
+                src={Logo}
+                alt="Smart Seed"
+                width={200}
+                height={100}
+                className="rounded-full"
+              />
+            )}
           </Link>
           <ul className={`hidden md:flex space-x-6 text-lg ${isScrolling ? "text-gray-900" : "text-white"}`}>
             {internalLinks.map((link) => (

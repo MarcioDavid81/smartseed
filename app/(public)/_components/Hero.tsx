@@ -1,17 +1,19 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Mouse, UserIcon, UserLock } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { FaArrowRight } from "react-icons/fa";
+import { useUser } from "@/contexts/UserContext";
 
 const HeroSection = () => {
+  const { user } = useUser();
   return (
     <section
       id="#home"
       className="relative flex h-screen flex-col items-center justify-center bg-green bg-cover bg-center px-4 py-20 text-center text-4xl text-white"
-      style={{ backgroundImage: "url('colheita.jpg')" }}
+      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600747476229-ceb7f3493f60?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}
     >
-      <div className="absolute inset-0 z-0 bg-black/50" />
       <motion.div
         className="z-10 mb-8 max-w-3xl"
         initial={{ opacity: 0, y: 100 }}
@@ -36,21 +38,21 @@ const HeroSection = () => {
         exit={{ opacity: 0, x: -100 }}
         transition={{ duration: 0.6 }}
         className="z-10 flex flex-col justify-center gap-4 md:flex-row">
-        <Link
-          href="#planos"
-          className="rounded-full bg-white px-6 py-3 font-semibold text-green hover:bg-gray-100"
-        >
-          Ver Planos
-        </Link>
-        <Link
-          href="/dashboard"
-          className="duration-900 rounded-full border border-green px-6 py-3 font-semibold transition-colors ease-in-out hover:bg-white hover:text-green"
-        >
-          Acesse o sistema
-        </Link>
+          <Link href="#planos">
+            <button className="bg-green hover:bg-green/90 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-primary-500/30 flex items-center justify-center gap-2 group">
+              Ver Planos
+              <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
+            </button>
+            </Link>
+            <Link href={user ? "/dashboard" : "/login"}>
+            <button className="bg-green hover:bg-green/90 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-primary-500/30 flex items-center justify-center gap-2 group">
+              {user ? "Dashboard" : "Login"}
+              <UserLock className="group-hover:translate-x-1 transition-transform" />
+            </button>
+            </Link>
       </motion.div>
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 transform animate-bounce">
-        <ChevronDown className="h-8 w-8 text-green" />
+        <Mouse className="h-8 w-8 text-green" />
       </div>
     </section>
   );
