@@ -4,10 +4,8 @@ import { ChevronDown, Mouse, UserIcon, UserLock } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { FaArrowRight } from "react-icons/fa";
-import { useUser } from "@/contexts/UserContext";
 
 const HeroSection = () => {
-  const { user } = useUser();
   return (
     <section
       id="#home"
@@ -44,9 +42,9 @@ const HeroSection = () => {
               <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
             </button>
             </Link>
-            <Link href={user ? "/dashboard" : "/login"}>
+            <Link href="/dashboard">
             <button className="bg-green hover:bg-green/90 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-primary-500/30 flex items-center justify-center gap-2 group">
-              {user ? "Dashboard" : "Login"}
+              Login
               <UserLock className="group-hover:translate-x-1 transition-transform" />
             </button>
             </Link>
