@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "@/components/ui/card";
-import { Customer, Talhao } from "@/types";
+import { Customer } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { CustomersDataTable } from "./CustomersDataTable";
@@ -10,7 +10,6 @@ import DeleteCustomerButton from "./DeleteCustomerButton";
 import EditCustomerButton from "./EditCustomerButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { useCustomers } from "@/queries/registrations/use-customer";
-import { LoadingData } from "@/components/loading-data";
 
 export function ListCustomersTable() {
 

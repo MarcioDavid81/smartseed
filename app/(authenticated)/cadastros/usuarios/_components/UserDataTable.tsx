@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import CreateUserButton from "./CreateUserButton";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
+import { FunnelX } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -70,8 +71,8 @@ export function UsersDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between py-4 gap-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="flex items-center justify-between py-4">
+        <div className="flex items-center gap-2">
           <Input
             placeholder="Procure por nome"
             value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -80,14 +81,17 @@ export function UsersDataTable<TData, TValue>({
             }
             className="max-w-sm bg-gray-50 text-primary"
           />
-          <Input
-            placeholder="Procure por classe"
-            value={(table.getColumn("class")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("class")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm bg-gray-50 text-primary"
-          />
+          {table.getState().columnFilters.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => table.resetColumnFilters()}
+              className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+            >
+              <FunnelX size={14} />
+                Limpar filtros
+            </Button>
+          )}
         </div>
         <CreateUserButton />
       </div>

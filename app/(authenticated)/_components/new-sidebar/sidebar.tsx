@@ -13,7 +13,7 @@ export default function NewSidebar() {
   return (
     <aside className={`hidden relative z-50 md:flex h-screen ${isOpen ? "w-64" : "w-16"} flex-col bg-found text-text transition-all duration-300`}>
       <div
-        className={`absolute -right-4 top-[50px] cursor-pointer rounded-full bg-background p-1 text-primary dark:bg-primary dark:text-secondary transition-transform duration-300 z-[100] ${
+        className={`absolute -right-4 top-[60px] cursor-pointer rounded-full bg-background p-1 text-primary dark:bg-primary dark:text-secondary transition-transform duration-300 z-[100] ${
           !isOpen && "rotate-180"
         }`}
         onClick={() => setIsOpen(!isOpen)}

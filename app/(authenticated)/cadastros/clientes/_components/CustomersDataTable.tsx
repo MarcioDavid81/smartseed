@@ -74,7 +74,7 @@ export function CustomersDataTable<TData, TValue>({
       <div className="flex items-center justify-between py-4">
         <div className="flex items-center gap-2">
           <Input
-            placeholder="Procure por cliente"
+            placeholder="Procure por nome"
             value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("name")?.setFilterValue(event.target.value)

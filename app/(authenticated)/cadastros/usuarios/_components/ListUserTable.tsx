@@ -10,6 +10,7 @@ import DeleteUserButton from "./DeleteUserButton";
 import EditUserButton from "./EditUserButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { useUsers } from "@/queries/registrations/use-user-query";
+import { LoadingData } from "@/components/loading-data";
 
 export function UsersGetTable() {
   
@@ -36,29 +37,15 @@ export function UsersGetTable() {
     },
     {
       accessorKey: "email",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          className="px-0 text-left"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Email
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: "Email",
+      accessorFn: (row) => row.email,
+      cell: ({ row: { original } }) => original.email,
     },
     {
-      accessorKey: "company.name",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          className="px-0 text-left"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Empresa
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      accessorKey: "company",
+      header: "Empresa",
+      accessorFn: (row) => row.company?.name ?? "",
+      cell: ({ row: { original } }) => <div className="text-left">{original.company?.name ? (original.company.name) : <LoadingData />}</div>,
     },
     {
       accessorKey: "actions",
