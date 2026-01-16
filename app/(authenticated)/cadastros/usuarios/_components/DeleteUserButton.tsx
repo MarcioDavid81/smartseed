@@ -17,14 +17,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useHarvest } from "@/contexts/HarvestContext";
-import { getToken } from "@/lib/auth-client";
 import { useDeleteUser } from "@/queries/registrations/use-delete-user";
 import { AppUser } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 
 interface Props {
@@ -50,7 +47,7 @@ const DeleteUserButton = ({ user }: Props) => {
               onClick={() => setIsOpen(true)}
               className="hover:opacity-80 transition"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+              <Trash2Icon size={20} className="text-red" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -75,7 +72,7 @@ const DeleteUserButton = ({ user }: Props) => {
               onClick={handleConfirmDelete}
               disabled={isPending}
               variant="ghost"
-              className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
+              className="bg-transparent border border-red text-red hover:text-red"
             >
               <span className="relative flex items-center gap-2 z-10">
                 {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}

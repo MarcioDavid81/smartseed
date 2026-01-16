@@ -1,8 +1,8 @@
 import { validateStock } from "@/app/_helpers/validateStock";
 import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
-import { canCompanyAddConsumption } from "@/lib/permissions/canCompanyAddConsumption";
 import { db } from "@/lib/prisma";
 import { consumptionSchema } from "@/lib/schemas/seedConsumption";
 import { NextRequest, NextResponse } from "next/server";
@@ -42,9 +42,13 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
-    const { companyId } = auth;
 
     const session = await withAccessControl("REGISTER_MOVEMENT");
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
+    });
 
     const body = await req.json();
 

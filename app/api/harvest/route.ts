@@ -2,6 +2,7 @@ import {
   ForbiddenPlanError,
   PlanLimitReachedError,
 } from "@/core/access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { verifyToken } from "@/lib/auth";
 import { requireAuth } from "@/lib/auth/require-auth";
@@ -44,9 +45,13 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
-    const { companyId } = auth;
 
     const session = await withAccessControl("REGISTER_MOVEMENT");
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
+    });
 
     const body = await req.json();
 

@@ -1,4 +1,3 @@
-import { canCompanyAddPurchase } from "@/lib/permissions/canCompanyAddPurchase";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentCondition } from "@prisma/client";
@@ -9,6 +8,7 @@ import {
   ForbiddenPlanError,
   PlanLimitReachedError,
 } from "@/core/access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 
 /**
  * @swagger
@@ -54,6 +54,11 @@ export async function POST(req: NextRequest) {
     const { companyId } = auth;
 
     const session = await withAccessControl("REGISTER_MOVEMENT");
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
+    });
 
     const body = await req.json();
 

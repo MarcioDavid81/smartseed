@@ -233,6 +233,20 @@ export async function DELETE(
 
     const { id } = params;
 
+    // Verifica se não é o usuário logado que está sendo deletado
+    if (id === auth.userId) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "FORBIDDEN",
+            title: "Ação proibida",
+            message: "Você não pode excluir seu próprio usuário.",
+          }
+        },
+        { status: 400 },
+      );
+    }
+
     // Busca o usuário atual
     const existing = await db.user.findUnique({
       where: { id },
@@ -258,7 +272,13 @@ export async function DELETE(
   } catch (err) {
     console.error("Erro no DELETE /api/auth/register/[id]:", err);
     return NextResponse.json(
-      { error: "Erro ao excluir usuário" },
+      {
+        error: {
+        code: "INTERNAL_SERVER_ERROR",
+        title: "Erro interno",
+        message: "Ocorreu um erro ao excluir o usuário. Por favor, tente novamente.",
+        }
+      },
       { status: 500 },
     );
   }

@@ -1,18 +1,25 @@
 import { validateSeedStockForOutput } from "@/app/_helpers/validateSeedStockForOutputAdjust";
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import { withAccessControl } from "@/lib/api/with-access-control";
 import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { seedAdjustmentSchema } from "@/lib/schemas/seedAdjustStockSchema";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const session = await withAccessControl("REGISTER_MOVEMENT");
 
-    const { companyId } = payload;
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
+    });
 
     const body = await req.json();
     const parsed = seedAdjustmentSchema.safeParse(body);
@@ -44,7 +51,7 @@ export async function POST(req: NextRequest) {
           date: new Date(data.date),
           quantityKg: data.quantityKg,
           cultivarId: data.cultivarId,
-          companyId,
+          companyId: session.user.companyId,
           notes: data.notes,
         },
       });
@@ -64,7 +71,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(adjusted, { status: 201 });
   } catch (error) {
     console.error("Erro ao ajustar estoque de sementes:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 

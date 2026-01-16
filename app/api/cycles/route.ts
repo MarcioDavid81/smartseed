@@ -1,3 +1,6 @@
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -31,12 +34,18 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Safra criada com sucesso
  */
 
-export async function POST(req: NextRequest) {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-  const { companyId } = auth;
-
+export async function POST(req: NextRequest) {  
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+
+    const session = await withAccessControl("CREATE_MASTER_DATA");
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "CREATE_MASTER_DATA",
+    });
+
     const { name, productType, startDate, endDate, talhoesIds } = await req.json();
 
     if (!name || !productType || !startDate || !endDate) {
@@ -53,7 +62,7 @@ export async function POST(req: NextRequest) {
         productType,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        companyId,
+        companyId: session.user.companyId,
       },
     });
 
@@ -82,7 +91,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(cycleWithTalhoes, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar safra:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 

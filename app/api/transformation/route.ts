@@ -1,29 +1,25 @@
 import { validateStock } from "@/app/_helpers/validateStock";
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import { withAccessControl } from "@/lib/api/with-access-control";
 import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { seedTransformationSchema } from "@/lib/schemas/transformation";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 }
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
-  
+export async function POST(req: NextRequest) {  
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+
+    const session = await withAccessControl("REGISTER_MOVEMENT");
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
+    });
+
     const body = await req.json();
     const parsed = seedTransformationSchema.safeParse(body);
 
@@ -60,7 +56,7 @@ export async function POST(req: NextRequest) {
           quantityKg: data.quantityKg,
           destinationId: data.destinationId,
           notes: data.notes,
-          companyId,
+          companyId: session.user.companyId,
         },
       });
       
@@ -78,7 +74,7 @@ export async function POST(req: NextRequest) {
       if (data.destinationId) {
         const existingIndustryStock = await tx.industryStock.findFirst({
           where: {
-            companyId,
+            companyId: session.user.companyId,
             product: cultivar.product,
             industryDepositId: data.destinationId,
           },
@@ -94,7 +90,7 @@ export async function POST(req: NextRequest) {
         } else {
           await tx.industryStock.create({
             data: {
-              companyId,
+              companyId: session.user.companyId,
               product: cultivar.product,
               industryDepositId: data.destinationId,
               quantity: data.quantityKg,
@@ -109,7 +105,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar transformação:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 
