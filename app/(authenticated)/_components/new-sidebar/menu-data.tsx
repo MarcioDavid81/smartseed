@@ -14,9 +14,10 @@ import {
   DollarSign, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch, ChartNoAxesCombined, BanknoteArrowUp, BanknoteArrowDown, Home, Building2, User, 
   MapIcon,
   FuelIcon,
-  Cog
+  Cog,
+  PersonStanding
 } from "lucide-react";
-import { TbTransferIn } from "react-icons/tb";
+import { TbTransferIn, TbUserStar } from "react-icons/tb";
 import Image from "next/image";
 import combineIcon from "../../../../public/combine.ico";
 import { GrHostMaintenance } from "react-icons/gr";
@@ -99,6 +100,7 @@ export const routes = [
     subRoutes: [
       { name: "Fazendas", path: "/cadastros/fazendas", icon: <PiFarmLight size={16} /> },
       { name: "Usuários", path: "/cadastros/usuarios", icon: <User size={16} /> },
+      { name: "Clientes", path: "/cadastros/clientes", icon: <TbUserStar size={16} /> },
     ],
     adminOnly: true,
   },

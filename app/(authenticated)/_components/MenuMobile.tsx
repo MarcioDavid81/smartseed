@@ -94,6 +94,7 @@ const routes = [
     adminRoutes: [
       { path: "/cadastros/fazendas", name: "Fazendas" },
       { path: "/cadastros/usuarios", name: "Usuários" },
+      { path: "/cadastros/clientes", name: "Clientes" },
     ],
   },
   {
