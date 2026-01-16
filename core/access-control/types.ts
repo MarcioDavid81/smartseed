@@ -1,6 +1,6 @@
 import { CompanyAction } from "./company-actions"
 
-export type PlanName = 'BASIC' | 'PREMIUM'
+export type PlanName = 'TRIAL' | 'BASIC' | 'PREMIUM'
 
 export type PlanRule =
   | boolean
