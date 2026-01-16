@@ -3,6 +3,7 @@ import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
+import { customerSchema } from "@/lib/schemas/customerSchema";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -51,21 +52,20 @@ export async function POST(req: NextRequest) {
       action: "CREATE_MASTER_DATA",
     });
 
-    const { name, email, adress, city, state, phone, cpf_cnpj } = await req.json();
-
-    if (!name || !email || !adress || !city || !state || !phone || !cpf_cnpj) {
-      return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
+    const body = await req.json();
+    const parsed = customerSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Dados inválidos", details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
+
+    const data = parsed.data;
 
     const customer = await db.customer.create({
       data: {
-        name,
-        email,
-        adress,
-        city,
-        state,
-        phone,
-        cpf_cnpj,
+        ...data,
         companyId: session.user.companyId,
       },
     });

@@ -4,14 +4,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { industryTransporterSchema } from "@/lib/schemas/industryTransporter";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 
 export async function POST (req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
-    const { companyId } = auth;
 
     const session = await withAccessControl('CREATE_MASTER_DATA');
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "CREATE_MASTER_DATA",
+    });
 
     const body = await req.json();
     const parsed = industryTransporterSchema.safeParse(body);
