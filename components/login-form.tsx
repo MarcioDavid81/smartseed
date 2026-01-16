@@ -11,6 +11,7 @@ import { FaSpinner } from "react-icons/fa";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useSmartToast } from "@/contexts/ToastContext";
 import Link from "next/link";
+import Image from "next/image";
 
 export function LoginForm({
   className,
@@ -136,10 +137,12 @@ export function LoginForm({
             </div>
           </form>
           <div className="relative hidden bg-muted md:block">
-            <img
-              src="./colheita.jpg"
+            <Image
+              src="https://images.unsplash.com/photo-1600747476229-ceb7f3493f60?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
               alt="Image"
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              width={1932}
+              height={1280}
             />
           </div>
         </CardContent>

@@ -17,6 +17,7 @@ import { CreateUserInput, createUserSchema, UpdateUserInput, updateUserSchema } 
 import { useUpsertUser } from "@/queries/registrations/use-upsert-user";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { UploadAvatar } from "@/app/(public)/_components/UploadAvatar";
+import { ApiError } from "@/lib/http/api-error";
 
 interface UpsertUserModalProps {
   user?: AppUser;
@@ -80,7 +81,15 @@ const UpsertUserModal = ({
           onClose();
           form.reset();
         },
-        onError: (error) => {
+        onError: (error: Error) => {
+          if (error instanceof ApiError) {
+            showToast({
+              type: "info",
+              title: "Limite atingido",
+              message: error.message,
+            });
+            return;
+          }
           showToast({
             type: "error",
             title: "Erro",
