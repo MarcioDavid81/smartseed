@@ -7,6 +7,6 @@ export function useCycles() {
     queryFn: () => getCycles(),
     enabled: true,
     refetchOnWindowFocus: true,
-    staleTime: 1000 * 30, // 30 segundos
+    staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }

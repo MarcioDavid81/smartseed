@@ -25,6 +25,7 @@ export function useUpsertCustomer({ customerId }: Params) {
     mutationFn: (data: CustomerFormData) =>
       upsertCustomer({
         data,
+        customerId,
       }),
 
     onSuccess: (savedCustomer) => {

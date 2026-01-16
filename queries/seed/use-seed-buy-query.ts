@@ -7,6 +7,6 @@ export function useSeedBuysByCycle(cycleId: string) {
     queryFn: () => getBuyByCycle(cycleId),
     enabled: !!cycleId,
     refetchOnWindowFocus: true,
-    staleTime: 1000 * 30, // 30 segundos
+    staleTime: 1000 * 60 * 60, // 1 hora
   });
 }

@@ -7,6 +7,6 @@ export function useIndustryHarvest(harvestId?: string | null) {
     queryFn: () => getHarvestById(harvestId!),
     enabled: true,
     refetchOnWindowFocus: true,
-    staleTime: 1000 * 30, // 30 segundos
+    staleTime: 1000 * 60 * 60, // 1 hora
   });
 }
