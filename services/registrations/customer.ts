@@ -10,7 +10,7 @@ export async function getCustomers(): Promise<Customer[]> {
   return data;
 }
 
-type UpsertFarmParams = {
+type UpsertCustomerParams = {
   data: CustomerFormData;
   customerId?: string;
 };
@@ -18,12 +18,12 @@ type UpsertFarmParams = {
 export function upsertCustomer({
   data,
   customerId,
-}: UpsertFarmParams) {
+}: UpsertCustomerParams) {
   const url = customerId
     ? `/api/customers/${customerId}`
     : "/api/customers";
 
-  const method = customerId ? "PATCH" : "POST";
+  const method = customerId ? "PUT" : "POST";
 
   return apiFetch<Customer>(url, {
     method,

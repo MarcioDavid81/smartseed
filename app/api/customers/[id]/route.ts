@@ -1,52 +1,44 @@
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
+import { customerSchema } from "@/lib/schemas/customerSchema";
 import { NextRequest, NextResponse } from "next/server";
 
-// Atualizar cliente (parcial)
-export async function PATCH(
+
+export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } },
-) {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-  const { companyId } = auth;
-
+) {  
   try {
-    const { name, email, adress, city, state, phone, cpf_cnpj } =
-      await req.json();
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    // Verifica se o cliente pertence à empresa
-    const existing = await db.customer.findFirst({
-      where: { id: params.id, companyId },
-    });
+    const { id } = params;
+    const body = await req.json();
 
-    if (!existing) {
+    const parsed = customerSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Dados inválidos", details: parsed.error.flatten() },
+        { status: 400 },
+      );
+    }
+
+    const data = parsed.data;
+
+    const existing = await db.customer.findUnique({ where: { id } });
+
+    if (!existing || existing.companyId !== companyId) {
       return NextResponse.json(
         { error: "Cliente não encontrado ou não pertence à empresa" },
         { status: 404 },
       );
     }
 
-    // Monta objeto apenas com campos enviados
-    const dataToUpdate: Record<string, string> = {};
-    if (typeof name === "string") dataToUpdate.name = name;
-    if (typeof email === "string") dataToUpdate.email = email;
-    if (typeof adress === "string") dataToUpdate.adress = adress;
-    if (typeof city === "string") dataToUpdate.city = city;
-    if (typeof state === "string") dataToUpdate.state = state;
-    if (typeof phone === "string") dataToUpdate.phone = phone;
-    if (typeof cpf_cnpj === "string") dataToUpdate.cpf_cnpj = cpf_cnpj;
-
-    if (Object.keys(dataToUpdate).length === 0) {
-      return NextResponse.json(
-        { error: "Nenhum campo para atualizar" },
-        { status: 400 },
-      );
-    }
-
     const updated = await db.customer.update({
-      where: { id: params.id },
-      data: dataToUpdate,
+      where: { id },
+      data,
     });
 
     return NextResponse.json(updated, { status: 200 });
@@ -86,6 +78,7 @@ export async function DELETE(
       industrySaleCount, // vendas de grão indústria
       payableCount, // contas a pagar
       receivableCount, // contas a receber
+      purchaseFuellCount, // compras de combustíveis
     ] = await Promise.all([
       db.buy.count({ where: { customerId: params.id, companyId } }),
       db.purchase.count({ where: { customerId: params.id, companyId } }),
@@ -95,6 +88,7 @@ export async function DELETE(
       db.accountReceivable.count({
         where: { customerId: params.id, companyId },
       }),
+      db.fuelPurchase.count({ where: { customerId: params.id, companyId } }),
     ]);
 
     const blockers = [];
@@ -104,6 +98,7 @@ export async function DELETE(
     if (industrySaleCount > 0) blockers.push("vendas de indústria");
     if (payableCount > 0) blockers.push("contas a pagar");
     if (receivableCount > 0) blockers.push("contas a receber");
+    if (purchaseFuellCount > 0) blockers.push("compras de combustíveis");
 
     if (blockers.length > 0) {
       return NextResponse.json(
