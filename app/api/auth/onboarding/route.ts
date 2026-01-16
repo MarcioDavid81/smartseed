@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { Role, Plan } from "@prisma/client";
 import { generateEmailVerificationToken } from "@/lib/auth/generate-email-verification-token";
 import { sendUserVerificationEmail } from "@/lib/send-verification-email";
+import { addDays } from "date-fns";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,10 +46,13 @@ export async function POST(req: NextRequest) {
 
     // 🧠 transaction apenas para persistência
     const createdUser = await db.$transaction(async (tx) => {
+      const now = new Date();
       const companyCreated = await tx.company.create({
         data: {
           name: company.name,
-          plan: Plan.BASIC,
+          plan: Plan.TRIAL,
+          planStartedAt: now,
+          planExpiresAt: addDays(now, 7),
         },
       });
 

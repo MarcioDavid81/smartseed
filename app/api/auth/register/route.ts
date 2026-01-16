@@ -1,3 +1,6 @@
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import { withAccessControl } from "@/lib/api/with-access-control";
 import { getAuthUserOrThrow, requireAdmin, verifyToken } from "@/lib/auth";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { db } from "@/lib/prisma";
@@ -47,6 +50,14 @@ export async function POST(req: NextRequest) {
   try {
     const authUser = await getAuthUserOrThrow();
     requireAdmin(authUser)
+
+    const session = await withAccessControl("CREATE_USER");
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "CREATE_USER",
+    });
+
     const formData = await req.formData();
     const rawData = {
       name: formData.get("name"),
@@ -106,8 +117,22 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error(error);
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
     return NextResponse.json(
-      { error: "Erro interno ao criar usuário" },
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
       { status: 500 },
     );
   }
