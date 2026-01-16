@@ -11,7 +11,9 @@ model Company {
   id                       String                    @id @default(uuid())
   name                     String
   createdAt                DateTime                  @default(now())
-  plan                     Plan?                     @default(BASIC)
+  plan                     Plan?                     @default(TRIAL)
+  planStartedAt            DateTime?                 @default(now())
+  planExpiresAt            DateTime?
   stripeCustomerId         String?                   @unique
   stripeSubscriptionId     String?                   @unique
   subscriptionStatus       SubscriptionStatus?
@@ -682,6 +684,7 @@ model Rain {
 }
 
 enum Plan {
+  TRIAL
   BASIC
   PREMIUM
 }
