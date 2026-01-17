@@ -141,7 +141,7 @@ export async function GET(req: NextRequest) {
       const customer = await db.customer.findMany({
         where: { companyId },
         include: { sales: true, buys: true, purchases: true, industrySales: true, fuelPurchases: true, maintenances: true,accountsPayable: true, accountsReceivable: true},
-        orderBy: { createdAt: "desc" },
+        orderBy: { name: "asc" },
       });
   
       return NextResponse.json(customer, { status: 200 });
