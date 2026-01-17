@@ -44,7 +44,7 @@ const HeroSection = () => {
             </Link>
             <Link href="/dashboard">
             <button className="bg-green hover:bg-green/90 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-primary-500/30 flex items-center justify-center gap-2 group">
-              Login
+              Acessar o Sistema
               <UserLock className="group-hover:translate-x-1 transition-transform" />
             </button>
             </Link>
