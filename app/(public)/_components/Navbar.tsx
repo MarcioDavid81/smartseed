@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import MenuMobile from "./MenuMobile";
 import Image from "next/image";
-import Logo from "../../../public/5.png";
-import LogoScroll from "../../../public/4.png";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import LogoScroll from "../../../public/4.png";
+import Logo from "../../../public/5.png";
+import MenuMobile from "./MenuMobile";
 
 const internalLinks = [
   { name: "Home", href: "/" },
-  { name: "Sobre", href: "#about" },
+  { name: "Como Funciona", href: "#como-funciona" },
   { name: "Planos", href: "#planos" },
-  { name: "Contato", href: "#contact" },
+  { name: "FAQ", href: "#faq" },
+  { name: "Contato", href: "#contato" },
+  { name: "Blog", href: "/blog" },
 ];
 
 const Navbar = () => {

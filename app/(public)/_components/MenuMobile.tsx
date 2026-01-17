@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -8,16 +8,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 
 const internalLinks = [
   { name: "Home", href: "/" },
-  { name: "Sobre", href: "#about" },
+  { name: "Como Funciona", href: "#como-funciona" },
   { name: "Planos", href: "#planos" },
-  { name: "Contato", href: "#contact" },
+  { name: "FAQ", href: "#faq" },
+  { name: "Contato", href: "#contato" },
+  { name: "Blog", href: "/blog" },
 ];
 
 const MenuMobile = () => {

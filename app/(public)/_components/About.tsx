@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 const AboutSection = () => {
   return (
-    <section id="about">
+    <section id="sobre">
       <section className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-16 text-center">
         <motion.h2
           className="mb-12 text-3xl font-bold"
