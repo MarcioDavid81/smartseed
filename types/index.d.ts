@@ -27,6 +27,7 @@ export * from "./industryTransporter";
 export * from "./insumo";
 export * from "./machine";
 export * from "./maintenance";
+export * from "./notice";
 export * from "./plot";
 export * from "./productStock";
 export * from "./rain";

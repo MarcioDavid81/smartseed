@@ -22,6 +22,11 @@ const nextConfig = {
         hostname: "res.cloudinary.com",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "smartseed.api-mdwebdeveloper.com",
+        pathname: "**",
+      },
     ],
   },
   experimental: {
