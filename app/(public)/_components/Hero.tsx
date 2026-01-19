@@ -1,9 +1,10 @@
 "use client";
 
-import { ChevronDown, Mouse, UserIcon, UserLock } from "lucide-react";
-import Link from "next/link";
 import { motion } from "framer-motion";
+import { Mouse, UserLock } from "lucide-react";
+import Link from "next/link";
 import { FaArrowRight } from "react-icons/fa";
+
 
 const HeroSection = () => {
   return (

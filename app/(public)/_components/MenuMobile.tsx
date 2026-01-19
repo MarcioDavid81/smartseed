@@ -27,10 +27,8 @@ const MenuMobile = () => {
   return (
     <div>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <Button variant="ghost" className="p-0">
-            <Menu size={24} className="text-gray-900" />
-          </Button>
+        <SheetTrigger>
+            <Menu size={40} className="text-white" />
         </SheetTrigger>
         <SheetContent side="right" className="w-64">
           <SheetHeader>

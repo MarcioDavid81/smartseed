@@ -6,14 +6,18 @@ import { useEffect, useState } from "react";
 import LogoScroll from "../../../public/4.png";
 import Logo from "../../../public/5.png";
 import MenuMobile from "./MenuMobile";
+import { usePathname } from "next/navigation";
 
 const internalLinks = [
   { name: "Home", href: "/" },
-  { name: "Como Funciona", href: "#como-funciona" },
-  { name: "Planos", href: "#planos" },
-  { name: "FAQ", href: "#faq" },
-  { name: "Contato", href: "#contato" },
-  { name: "Blog", href: "/blog" },
+  { name: "Como Funciona", href: "/#como-funciona" },
+  { name: "Planos", href: "/#planos" },
+  { name: "FAQ", href: "/#faq" },
+  { name: "Contato", href: "/#contato" },
+];
+
+const externalLinks = [
+    { name: "Blog", href: "/blog" },
 ];
 
 const Navbar = () => {
@@ -39,9 +43,11 @@ const Navbar = () => {
     };
   }, []);
 
+  const isPathname = usePathname();
+
   return (
     <header className="flex items-center justify-center">
-      <nav className={`fixed top-4 w-full rounded-2xl z-50 transition-all duration-300 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
+      <nav className={`fixed top-4 w-full max-w-[1500px] rounded-2xl z-50 transition-all duration-300 mx-auto px-4 sm:px-6 lg:px-8 ${
           isScrolling ? "bg-white/20 backdrop-blur-xl shadow-lg" : "bg-transparent"
         }`}>
         <div className="flex justify-between items-center h-16">
@@ -68,6 +74,11 @@ const Navbar = () => {
             {internalLinks.map((link) => (
               <li key={link.name}>
                 <Link href={link.href} className="hover:text-green" aria-label={`Ir para ${link.name}`}>{link.name}</Link>
+              </li>
+            ))}
+            {externalLinks.map((link) => (
+              <li key={link.name}>
+                <Link href={link.href} className={`hover:text-green ${isPathname === link.href ? "text-green" : ""}`} aria-label={`Ir para ${link.name}`}>{link.name}</Link>
               </li>
             ))}
           </ul>
