@@ -11,7 +11,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ChartNoAxesCombined, Cog, Menu, Scroll } from "lucide-react";
+import { ChartNoAxesCombined, Cog, Handshake, Menu, Scroll } from "lucide-react";
 import { FaSeedling } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { PiFarm } from "react-icons/pi";
@@ -65,6 +65,15 @@ const routes = [
       { path: "/agricultura/talhoes", name: "Talhões" },
       { path: "/agricultura/safras", name: "Safras" },
       { path: "/agricultura/pluviometria", name: "Pluviometria" },
+    ],
+  },
+  {
+    name: "Comercial",
+    icon: <Handshake size={20} />,
+    subRoutes: [
+      { path: "/comercial/dashboard", name: "Dashboard" },
+      { path: "/comercial/compras", name: "Compras" },
+      { path: "/comercial/vendas", name: "Vendas" },
     ],
   },
   {

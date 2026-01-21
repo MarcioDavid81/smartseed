@@ -11,11 +11,11 @@ import {
   PiFarm 
 } from "react-icons/pi";
 import { 
-  DollarSign, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch, ChartNoAxesCombined, BanknoteArrowUp, BanknoteArrowDown, Home, Building2, User, 
+  DollarSign, Scroll, ShoppingCart, Trash2, Warehouse, PackageSearch, ChartNoAxesCombined, BanknoteArrowUp, BanknoteArrowDown, Home, User, 
   MapIcon,
   FuelIcon,
   Cog,
-  PersonStanding
+  Handshake
 } from "lucide-react";
 import { TbTransferIn, TbUserStar } from "react-icons/tb";
 import Image from "next/image";
@@ -71,6 +71,15 @@ export const routes = [
       { name: "Talhões", path: "/agricultura/talhoes", icon: <MapIcon size={16} /> },
       { name: "Safras", path: "/agricultura/safras", icon: <ChartNoAxesCombined size={16} /> },
       { name: "Pluviometria", path: "/agricultura/pluviometria", icon: <IoRainyOutline size={16} /> },
+    ],
+  },
+  {
+    name: "Comercial",
+    icon: <Handshake size={20} />,
+    subRoutes: [
+      { name: "Dashboard", path: "/comercial/dashboard", icon: <AiOutlineDashboard size={16} /> },
+      { name: "Compras", path: "/comercial/compras", icon: <ShoppingCart size={16} /> },
+      { name: "Vendas", path: "/comercial/vendas", icon: <DollarSign size={16} /> },
     ],
   },
   {
