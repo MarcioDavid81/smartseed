@@ -40,6 +40,8 @@ export async function getUsageCount(
         db.industryTransporter.count({ where: { companyId } }),
         db.machine.count({ where: { companyId } }),
         db.fuelTank.count({ where: { companyId } }),
+        db.saleContract.count({ where: { companyId } }),
+        db.purchaseOrder.count({ where: { companyId } }),
       ]).then(r => r.reduce((a, b) => a + b, 0))
 
     case 'CREATE_USER':

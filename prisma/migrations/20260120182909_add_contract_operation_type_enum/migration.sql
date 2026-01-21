@@ -1,0 +1,2 @@
+-- CreateEnum
+CREATE TYPE "ContractOperationType" AS ENUM ('SEED_SALE', 'INDUSTRY_SALE', 'SEED_PURCHASE', 'INPUT_PURCHASE');

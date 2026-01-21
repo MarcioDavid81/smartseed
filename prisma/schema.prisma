@@ -50,6 +50,8 @@ model Company {
   users                    User[]
   Transformation           Transformation[]
   rains                    Rain[]
+  saleContracts            SaleContract[]
+  purchaseOrders           PurchaseOrder[]
 }
 
 model Farm {
@@ -112,6 +114,8 @@ model Customer {
   maintenances       Maintenance[]
   purchases          Purchase[]
   sales              SaleExit[]
+  saleContracts      SaleContract[]
+  purchaseOrders     PurchaseOrder[]
 }
 
 model Talhao {
@@ -131,21 +135,23 @@ model Talhao {
 }
 
 model Cultivar {
-  id               String                @id @default(cuid())
-  name             String
-  product          ProductType
-  createdAt        DateTime              @default(now())
-  companyId        String
-  stock            Float                 @default(0)
-  status           CultivarStatus        @default(BENEFICIANDO)
-  beneficiations   Beneficiation[]
-  buys             Buy[]
-  consumptionsExit ConsumptionExit[]
-  company          Company               @relation(fields: [companyId], references: [id])
-  harvests         Harvest[]
-  saleExit         SaleExit[]
-  stockAdjustments SeedStockAdjustment[]
-  Transformation   Transformation[]
+  id                 String                @id @default(cuid())
+  name               String
+  product            ProductType
+  createdAt          DateTime              @default(now())
+  companyId          String
+  stock              Float                 @default(0)
+  status             CultivarStatus        @default(BENEFICIANDO)
+  beneficiations     Beneficiation[]
+  buys               Buy[]
+  consumptionsExit   ConsumptionExit[]
+  company            Company               @relation(fields: [companyId], references: [id])
+  harvests           Harvest[]
+  saleExit           SaleExit[]
+  stockAdjustments   SeedStockAdjustment[]
+  Transformation     Transformation[]
+  saleContractItems  SaleContractItem[]
+  purchaseOrderItems PurchaseOrderItem[]
 }
 
 model Harvest {
@@ -166,27 +172,29 @@ model Harvest {
 }
 
 model Buy {
-  id               String            @id @default(cuid())
-  cultivarId       String
-  date             DateTime
-  quantityKg       Float
-  notes            String?
-  companyId        String
-  createdAt        DateTime          @default(now())
-  customerId       String
-  invoice          String
-  totalPrice       Float
-  unityPrice       Float
-  type             OperationType     @default(Compra)
-  cycleId          String?
-  dueDate          DateTime?
-  paymentCondition PaymentCondition?
-  fileUrl          String?
-  accountPayable   AccountPayable?
-  company          Company           @relation(fields: [companyId], references: [id])
-  cultivar         Cultivar          @relation(fields: [cultivarId], references: [id])
-  customer         Customer          @relation(fields: [customerId], references: [id])
-  cycle            ProductionCycle?  @relation(fields: [cycleId], references: [id])
+  id                  String             @id @default(cuid())
+  cultivarId          String
+  date                DateTime
+  quantityKg          Float
+  notes               String?
+  companyId           String
+  createdAt           DateTime           @default(now())
+  customerId          String
+  invoice             String
+  totalPrice          Float
+  unityPrice          Float
+  type                OperationType      @default(Compra)
+  cycleId             String?
+  dueDate             DateTime?
+  paymentCondition    PaymentCondition?
+  fileUrl             String?
+  accountPayable      AccountPayable?
+  purchaseOrderItemId String?
+  purchaseOrderItem   PurchaseOrderItem? @relation(fields: [purchaseOrderItemId], references: [id])
+  company             Company            @relation(fields: [companyId], references: [id])
+  cultivar            Cultivar           @relation(fields: [cultivarId], references: [id])
+  customer            Customer           @relation(fields: [customerId], references: [id])
+  cycle               ProductionCycle?   @relation(fields: [cycleId], references: [id])
 }
 
 model Beneficiation {
@@ -224,26 +232,28 @@ model ConsumptionExit {
 }
 
 model SaleExit {
-  id                String             @id @default(cuid())
-  cultivarId        String
-  date              DateTime
-  quantityKg        Float
-  customerId        String?
-  invoiceNumber     String?
-  saleValue         Float?
-  notes             String?
-  companyId         String
-  createdAt         DateTime           @default(now())
-  type              OperationType      @default(Venda)
-  cycleId           String?
-  dueDate           DateTime?
-  paymentCondition  PaymentCondition?
-  fileUrl           String?
-  accountReceivable AccountReceivable?
-  company           Company            @relation(fields: [companyId], references: [id])
-  cultivar          Cultivar           @relation(fields: [cultivarId], references: [id])
-  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  cycle             ProductionCycle?   @relation(fields: [cycleId], references: [id])
+  id                 String             @id @default(cuid())
+  cultivarId         String
+  date               DateTime
+  quantityKg         Float
+  customerId         String?
+  invoiceNumber      String?
+  saleValue          Float?
+  notes              String?
+  companyId          String
+  createdAt          DateTime           @default(now())
+  type               OperationType      @default(Venda)
+  cycleId            String?
+  dueDate            DateTime?
+  paymentCondition   PaymentCondition?
+  fileUrl            String?
+  accountReceivable  AccountReceivable?
+  saleContractItemId String?
+  saleContractItem   SaleContractItem?  @relation(fields: [saleContractItemId], references: [id])
+  company            Company            @relation(fields: [companyId], references: [id])
+  cultivar           Cultivar           @relation(fields: [cultivarId], references: [id])
+  customer           Customer?          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  cycle              ProductionCycle?   @relation(fields: [cycleId], references: [id])
 }
 
 model SeedStockAdjustment {
@@ -309,18 +319,19 @@ model CycleTalhao {
 }
 
 model Product {
-  id          String         @id @default(cuid())
-  name        String
-  description String?
-  class       ProductClass
-  unit        Unit
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  companyId   String
-  company     Company        @relation(fields: [companyId], references: [id])
-  stocks      ProductStock[]
-  purchases   Purchase[]
-  transfers   TransferExit[]
+  id                 String              @id @default(cuid())
+  name               String
+  description        String?
+  class              ProductClass
+  unit               Unit
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  companyId          String
+  company            Company             @relation(fields: [companyId], references: [id])
+  stocks             ProductStock[]
+  purchases          Purchase[]
+  transfers          TransferExit[]
+  purchaseOrderItems PurchaseOrderItem[]
 }
 
 model ProductStock {
@@ -340,30 +351,32 @@ model ProductStock {
 }
 
 model Purchase {
-  id               String              @id @default(cuid())
-  productId        String
-  date             DateTime
-  quantity         Float
-  invoiceNumber    String
-  unitPrice        Float
-  totalPrice       Float
-  customerId       String
-  notes            String?
-  companyId        String
-  type             InsumoOperationType @default(COMPRA)
-  cycleId          String?
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-  farmId           String
-  dueDate          DateTime?
-  paymentCondition PaymentCondition?
-  fileUrl          String?
-  accountPayable   AccountPayable?
-  company          Company             @relation(fields: [companyId], references: [id])
-  customer         Customer            @relation(fields: [customerId], references: [id])
-  cycle            ProductionCycle?    @relation(fields: [cycleId], references: [id])
-  farm             Farm                @relation(fields: [farmId], references: [id])
-  product          Product             @relation(fields: [productId], references: [id])
+  id                  String              @id @default(cuid())
+  productId           String
+  date                DateTime
+  quantity            Float
+  invoiceNumber       String
+  unitPrice           Float
+  totalPrice          Float
+  customerId          String
+  notes               String?
+  companyId           String
+  type                InsumoOperationType @default(COMPRA)
+  cycleId             String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  farmId              String
+  dueDate             DateTime?
+  paymentCondition    PaymentCondition?
+  fileUrl             String?
+  accountPayable      AccountPayable?
+  purchaseOrderItemId String?
+  purchaseOrderItem   PurchaseOrderItem?  @relation(fields: [purchaseOrderItemId], references: [id])
+  company             Company             @relation(fields: [companyId], references: [id])
+  customer            Customer            @relation(fields: [customerId], references: [id])
+  cycle               ProductionCycle?    @relation(fields: [cycleId], references: [id])
+  farm                Farm                @relation(fields: [farmId], references: [id])
+  product             Product             @relation(fields: [productId], references: [id])
 }
 
 model TransferExit {
@@ -566,6 +579,8 @@ model IndustrySale {
   createdAt             DateTime             @default(now())
   fileUrl               String?
   accountReceivable     AccountReceivable?
+  saleContractItemId    String?
+  saleContractItem      SaleContractItem?    @relation(fields: [saleContractItemId], references: [id])
   company               Company              @relation(fields: [companyId], references: [id])
   customer              Customer             @relation(fields: [customerId], references: [id])
   cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
@@ -683,6 +698,75 @@ model Rain {
   farm      Farm     @relation(fields: [farmId], references: [id])
 }
 
+model SaleContract {
+  id         String             @id @default(cuid())
+  date       DateTime
+  document   String?
+  customerId String
+  notes      String?
+  status     ComercialStatus    @default(OPEN)
+  items      SaleContractItem[]
+  companyId  String
+  customer   Customer           @relation(fields: [customerId], references: [id])
+  company    Company            @relation(fields: [companyId], references: [id])
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+}
+
+model SaleContractItem {
+  id                String           @id @default(cuid())
+  saleContractId    String
+  saleContract      SaleContract     @relation(fields: [saleContractId], references: [id])
+  type              SaleContractType
+  product           ProductType?
+  cultivarId        String?
+  description       String?
+  quantity          Decimal          @db.Decimal(12, 4)
+  unit              Unit
+  unityPrice        Decimal          @db.Decimal(12, 4)
+  totalPrice        Decimal          @db.Decimal(12, 2)
+  fulfilledQuantity Decimal          @default(0) @db.Decimal(12, 4)
+  seedSales         SaleExit[]
+  industrySales     IndustrySale[]
+  cultivar          Cultivar?        @relation(fields: [cultivarId], references: [id])
+  createdAt         DateTime         @default(now())
+}
+
+model PurchaseOrder {
+  id         String              @id @default(cuid())
+  date       DateTime
+  document   String?
+  customerId String
+  notes      String?
+  status     ComercialStatus     @default(OPEN)
+  items      PurchaseOrderItem[]
+  companyId  String
+  customer   Customer            @relation(fields: [customerId], references: [id])
+  company    Company             @relation(fields: [companyId], references: [id])
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+}
+
+model PurchaseOrderItem {
+  id                String            @id @default(cuid())
+  purchaseOrderId   String
+  purchaseOrder     PurchaseOrder     @relation(fields: [purchaseOrderId], references: [id])
+  type              PurchaseOrderType
+  productId         String?
+  cultivarId        String?
+  description       String?
+  quantity          Decimal           @db.Decimal(12, 4)
+  unit              Unit
+  unityPrice        Decimal           @db.Decimal(12, 4)
+  totalPrice        Decimal           @db.Decimal(12, 2)
+  fulfilledQuantity Decimal           @default(0) @db.Decimal(12, 4)
+  seedPurchases     Buy[]
+  inputsPurchases   Purchase[]
+  product           Product?          @relation(fields: [productId], references: [id])
+  cultivar          Cultivar?         @relation(fields: [cultivarId], references: [id])
+  createdAt         DateTime          @default(now())
+}
+
 enum Plan {
   TRIAL
   BASIC
@@ -775,4 +859,21 @@ enum SubscriptionStatus {
   TRIALING
   PAST_DUE
   CANCELED
+}
+
+enum ComercialStatus {
+  OPEN
+  PARTIAL_FULFILLED
+  FULFILLED
+  CANCELED
+}
+
+enum SaleContractType {
+  SEED_SALE
+  INDUSTRY_SALE
+}
+
+enum PurchaseOrderType {
+  SEED_PURCHASE
+  INPUT_PURCHASE
 }
