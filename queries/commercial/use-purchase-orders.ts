@@ -25,6 +25,7 @@ export function useUpsertPurchaseOrder({ purchaseOrderId }: Params) {
     mutationFn: (data: PurchaseOrderFormData) =>
       upsertPurchaseOrder({
         data,
+        purchaseOrderId,
       }),
 
     onSuccess: (savedPurchaseOrder) => {

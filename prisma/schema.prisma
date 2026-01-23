@@ -700,6 +700,7 @@ model Rain {
 
 model SaleContract {
   id         String             @id @default(cuid())
+  type       SaleContractType
   date       DateTime
   document   String?
   customerId String
@@ -717,7 +718,6 @@ model SaleContractItem {
   id                String           @id @default(cuid())
   saleContractId    String
   saleContract      SaleContract     @relation(fields: [saleContractId], references: [id])
-  type              SaleContractType
   product           ProductType?
   cultivarId        String?
   description       String?
@@ -734,6 +734,7 @@ model SaleContractItem {
 
 model PurchaseOrder {
   id         String              @id @default(cuid())
+  type       PurchaseOrderType
   date       DateTime
   document   String?
   customerId String
@@ -751,7 +752,6 @@ model PurchaseOrderItem {
   id                String            @id @default(cuid())
   purchaseOrderId   String
   purchaseOrder     PurchaseOrder     @relation(fields: [purchaseOrderId], references: [id])
-  type              PurchaseOrderType
   productId         String?
   cultivarId        String?
   description       String?

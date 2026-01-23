@@ -1,7 +1,9 @@
-import { ComercialStatus, ProductClass, PurchaseOrderItem, PurchaseOrderType, Unit } from "@prisma/client";
+import { ComercialStatus, ProductClass, PurchaseOrderType, Unit } from "@prisma/client";
+import { PurchaseOrderItem } from "./purchaseOrderItem";
 
 export interface PurchaseOrder {
   id: string;
+  type: PurchaseOrderType;
   date: Date;
   document?: string;
   customerId: string;
