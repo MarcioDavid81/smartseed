@@ -96,17 +96,16 @@ export async function GET(req: Request) {
         companyId,
       },
       include: {
-        items: true,
-        customer: {
-          select: {
-            id: true,
-            name: true,
+        customer: true,
+        items: {
+          include: {
+            product: true,
+            cultivar: true,
           },
         },
-
       },
     });
-
+    console.log(purchaseOrders)
     return NextResponse.json(purchaseOrders);
   } catch (error) {
     console.error("Erro ao buscar ordens de compra:", error);

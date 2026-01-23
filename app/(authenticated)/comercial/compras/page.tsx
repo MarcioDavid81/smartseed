@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
+import CreatePurchaseOrderButton from "./_components/CreatePurchaseOrderButton";
+import { ListPurchaseOrderTable } from "./_components/ListPurchaseOrderTable";
 
 export const metadata: Metadata = {
   title: "Comercial - Compras",
@@ -23,7 +25,7 @@ export default async function ComprasPage() {
             <h1 className="text-2xl font-medium mb-4">Comercial - Compras</h1>
             <NavItems />
           </div>
-
+          <ListPurchaseOrderTable />
         </main>
       </div>
     </div>

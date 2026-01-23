@@ -1,0 +1,118 @@
+"use client";
+
+import { ColumnDef } from "@tanstack/react-table";
+import { Card } from "@/components/ui/card";
+import { PurchaseOrder } from "@/types";
+import { Button } from "@/components/ui/button";
+import { ArrowUpDown, RefreshCw } from "lucide-react";
+import { AgroLoader } from "@/components/agro-loader";
+import { LoadingData } from "@/components/loading-data";
+import { usePurchaseOrders } from "@/queries/commercial/use-purchase-orders";
+import { PurchaseOrderDataTable } from "./PurchaseOrderDataTable";
+
+export function ListPurchaseOrderTable() {
+
+  const {
+      data: orderPurchase = [],
+      isLoading,
+      isFetching,
+      refetch,
+    } = usePurchaseOrders();
+
+  const columns: ColumnDef<PurchaseOrder>[] = [
+    {
+      accessorKey: "date",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          className="text-left px-0"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Data
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row: { original } }) => new Date(original.date).toLocaleDateString("pt-BR"),
+    },
+    {
+      accessorKey: "document",
+      header: "Documento",
+      accessorFn: (row) => row.document,
+      cell: ({ row: { original } }) => original.document,
+    },
+    {
+      id: "customer",
+      header: "Cliente",
+      accessorFn: (row) => row.customer?.name ?? "",
+      filterFn: "includesString",
+      cell: ({ row: { original } }) => <div className="text-left">{original.customer?.name ? (original.customer.name) : <LoadingData />}</div>,
+    },
+    {
+      id: "product",
+      header: () => <div className="text-left">Itens</div>,
+      cell: ({ row }) => {
+        const { items, type } = row.original;
+
+        if (!items.length) return "-";
+
+        const labels =
+          type === "INPUT_PURCHASE"
+            ? items
+                .map(item => item.product?.name)
+                .filter(Boolean)
+            : items
+                .map(item => item.cultivar?.name)
+                .filter(Boolean);
+
+        return (
+          <div className="text-left">
+            {labels.join(", ")}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "quantity",
+      header: () => <div className="text-left">Quantidade</div>,
+      cell: ({ row }) => {
+        const quantity = row.original.items.reduce((acc, item) => acc + Number(item.quantity), 0);
+        return (
+          <div className="text-left">
+            {new Intl.NumberFormat("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(quantity)}
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: "actions",
+      header: () => <div className="text-center">Ações</div>,
+      cell: ({ row }) => {
+        const compra = row.original;
+        return (
+          <div className="flex items-center justify-center gap-4">
+            Botões
+          </div>
+        );
+      },
+    },
+  ];
+
+  return (
+    <Card className="p-4 dark:bg-primary font-light">
+      <div className="flex items-center gap-2 mb-2">
+        <h2 className="font-light">Lista de Pedidos de Compra</h2>
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
+        </Button>
+      </div>
+      {isLoading ? (
+        <AgroLoader />
+      ) : (
+        <PurchaseOrderDataTable columns={columns} data={orderPurchase} sumColumnId="quantity" />
+      )}
+    </Card>
+  );
+}
