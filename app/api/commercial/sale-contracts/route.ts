@@ -37,7 +37,6 @@ export async function POST(req: Request) {
 
         items: {
           create: items.map((item) => ({
-            type: item.type,
             product: item.product,
             cultivarId: item.cultivarId,
             description: item.description,

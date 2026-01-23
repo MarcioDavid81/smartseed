@@ -6,11 +6,10 @@ import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { purchaseOrderSchema } from "@/lib/schemas/purchaseOrderSchema";
-import { saleContractSchema } from "@/lib/schemas/saleContractSchema";
-import { Prisma } from "@prisma/client";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  console.log("🔥 ROTA PURCHASE-ORDERS ATINGIDA");
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
@@ -20,17 +19,24 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = purchaseOrderSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({
-        error: {
-          code: "INVALID_DATA",
-          title: "Dados inválidos",
-          message: parsed.error.issues[0].message,
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: parsed.error.issues[0].message,
+          },
         },
-      });
+        { status: 400 },
+      );
     }
     const { items, ...purchaseOrderData } = parsed.data;
 
-    const createdPurchaseOrder = await db.purchaseOrder.create({  ////
+    console.log("companyId:", session.user.companyId);
+    console.log("items:", items.length);
+    console.table(purchaseOrderData);
+
+    const createdPurchaseOrder = await db.purchaseOrder.create({
       data: {
         ...purchaseOrderData,
         date: new Date(purchaseOrderData.date),
@@ -38,14 +44,13 @@ export async function POST(req: Request) {
 
         items: {
           create: items.map((item) => ({
-            type: item.type,
             productId: item.productId,
             cultivarId: item.cultivarId,
             description: item.description,
             quantity: item.quantity,
             unit: item.unit,
             unityPrice: item.unityPrice,
-            totalPrice: new Prisma.Decimal(item.quantity * item.unityPrice),
+            totalPrice: item.totalPrice,
           })),
         },
       },

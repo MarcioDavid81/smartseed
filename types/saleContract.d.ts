@@ -1,7 +1,9 @@
-import { ComercialStatus, ProductType, PurchaseOrderType, SaleContractItem, Unit } from "@prisma/client";
+import { ComercialStatus, ProductType, PurchaseOrderType, SaleContractType, Unit } from "@prisma/client";
+import { SaleContractItem } from "./saleContractItem";
 
 export interface SaleContract {
   id: string;
+  type: SaleContractType;
   date: Date;
   document?: string;
   customerId: string;
