@@ -5,12 +5,10 @@ import { deleteCustomer, getCustomers, upsertCustomer } from "@/services/registr
 import { CustomerFormData } from "@/lib/schemas/customerSchema";
 
 export function useCustomers() {
-  return useQuery({
+  return useQuery<Customer[]>({
     queryKey: ["customers"],
     queryFn: () => getCustomers(),
-    enabled: true,
-    refetchOnWindowFocus: true,
-    staleTime: 1000 * 60 * 60, // 1 hora
+    staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }
 

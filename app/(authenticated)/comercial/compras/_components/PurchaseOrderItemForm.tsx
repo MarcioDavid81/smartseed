@@ -1,31 +1,29 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
+import { UNIT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/commercial";
+import { ComboBoxOption } from "@/components/combo-option";
+import { MoneyInput, QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { ComboBoxOption } from "@/components/combo-option";
-import { PurchaseOrderType, Unit } from "@prisma/client";
-import { UseFormReturn } from "react-hook-form";
-import { PurchaseOrderFormData } from "@/lib/schemas/purchaseOrderSchema";
-import { FaTrash } from "react-icons/fa";
-import { useState, useEffect } from "react";
-import { Cultivar, Insumo } from "@/types";
-import { getToken } from "@/lib/auth-client";
-import { MoneyInput, QuantityInput } from "@/components/inputs";
-import { UNIT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/commercial";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PurchaseOrderFormData } from "@/lib/schemas/purchaseOrderSchema";
+import { useInputProductQuery } from "@/queries/input/use-input";
+import { useSeedCultivarQuery } from "@/queries/seed/use-seed-cultivar-query";
+import { PurchaseOrderType } from "@prisma/client";
+import { UseFormReturn } from "react-hook-form";
+import { FaTrash } from "react-icons/fa";
 
 interface PurchaseOrderItemFormProps {
   form: UseFormReturn<PurchaseOrderFormData>;
   index: number;
   onRemove: () => void;
-  isOpen: boolean;
   orderType: PurchaseOrderType;
 }
 
@@ -33,36 +31,15 @@ const PurchaseOrderItemForm = ({
   form,
   index,
   onRemove,
-  isOpen,
   orderType,
 }: PurchaseOrderItemFormProps) => {
-  const [cultivars, setCultivars] = useState<Cultivar[]>([]);
-  const [products, setProducts] = useState<Insumo[]>([]);
-
   const quantity = form.watch(`items.${index}.quantity`);
   const unityPrice = form.watch(`items.${index}.unityPrice`);
   const total = quantity * unityPrice || 0;
   form.setValue(`items.${index}.totalPrice`, total);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
-
-      const [cultivarRes, productRes] = await Promise.all([
-        fetch("/api/cultivars/get", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/insumos/products", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      setCultivars(await cultivarRes.json());
-      setProducts(await productRes.json());
-    };
-
-    if (isOpen) fetchData();
-  }, [isOpen]);
+  const { data: cultivars = [] } = useSeedCultivarQuery();
+  const { data: products = [] } = useInputProductQuery();
 
   return (
     <div className="rounded-lg border p-4 space-y-4">

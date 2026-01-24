@@ -39,6 +39,7 @@ import { useUpsertPurchaseOrder } from "@/queries/commercial/use-purchase-orders
 import PurchaseOrderItemForm from "./PurchaseOrderItemForm";
 import { getCustomers } from "@/services/registrations/customer";
 import { ComboBoxOption } from "@/components/combo-option";
+import { useCustomers } from "@/queries/registrations/use-customer";
 
 interface UpsertPurchaseOrderModalProps {
   compra?: PurchaseOrder;
@@ -51,7 +52,6 @@ const UpsertPurchaseOrderModal = ({
   onClose,
   compra,
 }: UpsertPurchaseOrderModalProps) => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const { showToast } = useSmartToast();
 
   const form = useForm<PurchaseOrderFormData>({
@@ -81,23 +81,8 @@ const UpsertPurchaseOrderModal = ({
 
   const orderType = form.watch("type");
 
-  const { mutate, isPending } = useUpsertPurchaseOrder({
-    purchaseOrderId: compra?.id,
-  });
+  const { data: customers = [] } = useCustomers();
 
-  /* ---------- Load customers ---------- */
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const fetchCustomers = async () => {
-      const response = await getCustomers();
-      setCustomers(response || []);
-    };
-
-    fetchCustomers();
-  }, [isOpen]);
-
-  /* ---------- Reset form (edit / create) ---------- */
   useEffect(() => {
     if (!isOpen) return;
 
@@ -123,7 +108,10 @@ const UpsertPurchaseOrderModal = ({
     }
   }, [isOpen, compra, form]);
 
-  /* ---------- Submit ---------- */
+  const { mutate, isPending } = useUpsertPurchaseOrder({
+    purchaseOrderId: compra?.id,
+  });
+  
   const onSubmit = (data: PurchaseOrderFormData) => {
     console.log(data)
     mutate(data, {
@@ -283,7 +271,6 @@ const UpsertPurchaseOrderModal = ({
                   form={form}
                   index={index}
                   onRemove={() => remove(index)}
-                  isOpen={isOpen}
                   orderType={orderType}
                 />
               ))}

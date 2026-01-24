@@ -1,7 +1,6 @@
 import { db } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { canCompanyAddCultivar } from "@/lib/permissions/canCompanyAddSeed";
 import { ProductType } from "@prisma/client";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
