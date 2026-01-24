@@ -2,6 +2,7 @@ import {
   ForbiddenPlanError,
   PlanLimitReachedError,
 } from "@/core/access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
@@ -9,12 +10,16 @@ import { purchaseOrderSchema } from "@/lib/schemas/purchaseOrderSchema";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  console.log("🔥 ROTA PURCHASE-ORDERS ATINGIDA");
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
 
     const session = await withAccessControl("CREATE_MASTER_DATA");
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "CREATE_MASTER_DATA",
+    });
 
     const body = await req.json();
     const parsed = purchaseOrderSchema.safeParse(body);
@@ -31,10 +36,6 @@ export async function POST(req: NextRequest) {
       );
     }
     const { items, ...purchaseOrderData } = parsed.data;
-
-    console.log("companyId:", session.user.companyId);
-    console.log("items:", items.length);
-    console.table(purchaseOrderData);
 
     const createdPurchaseOrder = await db.purchaseOrder.create({
       data: {

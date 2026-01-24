@@ -6,6 +6,7 @@ import { validateIndustryStock } from "@/app/_helpers/validateIndustryStock";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,6 +15,11 @@ export async function POST(req: NextRequest) {
     const { companyId } = auth;
 
     const session = await withAccessControl('REGISTER_MOVEMENT');
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
+    });
 
     const body = await req.json();
     const parsed = industrySaleSchema.safeParse(body);

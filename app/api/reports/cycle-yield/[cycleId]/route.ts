@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
 import { ProductType } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 /** Peso por saca (kg) para cada produto */
 const KG_PER_SC: Record<ProductType, number> = {
@@ -43,17 +44,15 @@ export async function GET(
 ) {
   try {
     // --- AUTH --------------------------------------------------
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { cycleId } = params;
 
     // --- BUSCA COLHEITAS DE SEMENTE ---------------------------------------
     const harvests = await db.harvest.findMany({
-      where: { cycleId, companyId: payload.companyId },
+      where: { cycleId, companyId },
       include: {
         talhao: {
           select: {
@@ -69,7 +68,7 @@ export async function GET(
 
     // --- BUSCA COLHEITAS DE INDUSTRIA ------------------------------------
     const industryHarvests = await db.industryHarvest.findMany({
-      where: { cycleId, companyId: payload.companyId },
+      where: { cycleId, companyId },
       include: {
         talhao: {
           select: {

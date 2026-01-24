@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   const isValid = await compare(password, user.password);
 
   if (!isValid) {
-    return NextResponse.json({ error: "Senha incorreta" }, { status: 401 });
+    return NextResponse.json({ error: "Dados inválidos, tente novamente." }, { status: 401 });
   }
 
   // 🔐 Gera o token JWT com os dados do usuário

@@ -3,27 +3,21 @@ import { verifyToken } from "@/lib/auth";
 import { fuelPurchaseSchema } from "@/lib/schemas/fuelPurchaseSchema";
 import { db } from "@/lib/prisma";
 import { PaymentCondition } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/require-auth";
+import { withAccessControl } from "@/lib/api/with-access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 
 export async function POST(req: Request) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
-
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+
+    const session = await withAccessControl("REGISTER_MOVEMENT");
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
+    });
     const body = await req.json();
     const parsed = fuelPurchaseSchema.safeParse(body);
 
@@ -71,7 +65,7 @@ export async function POST(req: Request) {
         data: {
           ...data,
           date: new Date(data.date),
-          companyId,
+          companyId: session.user.companyId,
         },
       });
 
@@ -101,7 +95,7 @@ export async function POST(req: Request) {
             description: `Compra de combustível, cfe NF ${document}, de ${customerName}`,
             amount: data.totalValue,
             dueDate: new Date(data.dueDate),
-            companyId,
+            companyId: session.user.companyId,
             customerId: data.customerId,
             fuelPurchaseId: createdPurchase.id,
           },

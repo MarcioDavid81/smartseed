@@ -1,5 +1,7 @@
 import { getOrCreateIndustryStock } from "@/app/_helpers/getOrCreateIndustryStock";
 import { validateIndustryStockForOutput } from "@/app/_helpers/validateIndustryStockForOutput";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { industryAdjustmentSchema } from "@/lib/schemas/industryAdjustStockSchema";
@@ -10,6 +12,13 @@ export async function POST(req: NextRequest) {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
+
+    const session = await withAccessControl("REGISTER_MOVEMENT");
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
+    });
 
     const body = await req.json();
     const parsed = industryAdjustmentSchema.safeParse(body);
