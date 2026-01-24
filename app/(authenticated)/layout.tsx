@@ -6,6 +6,7 @@ import NewSidebar from "./_components/new-sidebar/sidebar";
 import { AppProviders } from "@/providers/AppProviders";
 import { getCompanyFromToken, getUserFromToken } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { TrialUpgradeDialog } from "./_components/TrialUpgradeDialog";
 
 const robotoFont = roboto({
   src: [
@@ -94,6 +95,7 @@ export default async function RootLayout({
         id: company.id,
         name: company.name,
         plan: company.plan ?? undefined,
+        planExpiresAt: company.planExpiresAt ?? null,
       }
     : null;
 
@@ -105,6 +107,7 @@ export default async function RootLayout({
         <AppProviders user={safeUser} company={safeCompany}>
           <NewSidebar />
           <MobileMenu />
+          <TrialUpgradeDialog />
           {children}
         </AppProviders>                                                
       </body>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import FuzzyText from "@/components/fuzzy-text";
 
 export default function VerifyEmailClient() {
   const searchParams = useSearchParams();
@@ -38,9 +39,13 @@ export default function VerifyEmailClient() {
   if (status === "success") {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <h1 className="text-2xl font-bold text-green">
-          E-mail verificado com sucesso!
-        </h1>
+        <FuzzyText
+          color="#63B926"
+          fontWeight="bold"
+          fontSize={80}
+        >
+          Email verificado!
+        </FuzzyText>
 
         <button
           onClick={() => router.push("/login")}

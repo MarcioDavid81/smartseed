@@ -93,6 +93,7 @@ export async function getCompanyFromToken() {
       id: true,
       name: true,
       plan: true,
+      planExpiresAt: true,
     },
   });
 
