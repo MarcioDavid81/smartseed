@@ -34,14 +34,14 @@ export default function GenerateHarvestReportModal() {
     new Set(harvests.map((h) => h.industryDeposit.name)),
   );
   const transportadoresUnicos = Array.from(
-    new Set(harvests.map((h) => h.industryTransporter.name)),
+    new Set(harvests.map((h) => h.industryTransporter?.name || "-")),
   );
   const talhoesUnicos = Array.from(new Set(harvests.map((h) => h.talhao.name)));
 
   const filtered = harvests.filter((h) => {
     const matchProduto = !produto || h.product === produto;
     const matchDeposito = !deposito || h.industryDeposit.name === deposito;
-    const matchTransportador = !transportador || h.industryTransporter.name === transportador;
+    const matchTransportador = !transportador || h.industryTransporter?.name === transportador;
     const matchTalhao = !talhao || h.talhao.name === talhao;
     return matchProduto && matchDeposito && matchTransportador && matchTalhao;
   });

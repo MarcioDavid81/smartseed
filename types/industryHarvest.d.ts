@@ -19,8 +19,8 @@ export interface IndustryHarvest {
     id: string;
     name: string;
   };
-  industryTransporterId: string;
-  industryTransporter: {
+  industryTransporterId?: string;
+  industryTransporter?: {
     id: string;
     name: string;
   };
@@ -42,5 +42,5 @@ export interface IndustryHarvest {
   company: {
     id: string;
     name: string;
-  }
+  };
 }

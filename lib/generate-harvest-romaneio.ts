@@ -106,7 +106,7 @@ export function generateHarvestRomaneio(data: IndustryHarvest) {
   );
   text(
     "Transportador",
-    data.industryTransporter.name,
+    data.industryTransporter?.name ?? "-",
     marginX + 4,
     20,
   );

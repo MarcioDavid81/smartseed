@@ -7,7 +7,7 @@ export const industryHarvestSchema = z.object({
   industryDepositId: z
     .string()
     .min(1, "Depósito de destino da colheita é obrigatório"),
-  industryTransporterId: z.string().optional(),
+  industryTransporterId: z.string().nullable().optional(),
   truckPlate: z.string().optional(),
   truckDriver: z.string().optional(),
   weightBt: z.coerce.number().min(1, "Peso bruto é obrigatório"),

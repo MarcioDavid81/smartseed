@@ -55,7 +55,7 @@ const UpsertSaleModal = ({
       document: venda?.document || "",
       industryDepositId: venda?.industryDepositId || "",
       customerId: venda?.customerId || "",
-      industryTransporterId: venda?.industryTransporterId || "",
+      industryTransporterId: venda?.industryTransporterId || null,
       truckPlate: venda?.truckPlate || "",
       truckDriver: venda?.truckDriver || "",
       weightBt: venda?.weightBt || 0,

@@ -60,7 +60,7 @@ const UpsertHarvestModal = ({
       document: colheita?.document || "",
       talhaoId: colheita?.talhaoId || "",
       industryDepositId: colheita?.industryDepositId || "",
-      industryTransporterId: colheita?.industryTransporterId || "",
+      industryTransporterId: colheita?.industryTransporterId || null,
       truckPlate: colheita?.truckPlate || "",
       truckDriver: colheita?.truckDriver || "",
       weightBt: normalizeNumber(colheita?.weightBt),
