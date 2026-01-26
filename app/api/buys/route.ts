@@ -51,7 +51,6 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
-    const { companyId } = auth;
 
     const session = await withAccessControl("REGISTER_MOVEMENT");
 
@@ -123,25 +122,12 @@ export async function POST(req: NextRequest) {
 
       // Se for a prazo → cria conta a pagar
       if (data.paymentCondition === PaymentCondition.APRAZO && data.dueDate) {
-        const cultivar = await tx.cultivar.findUnique({
-          where: { id: data.cultivarId },
-          select: {
-            name: true,
-          },
-        });
-        const customer = await tx.customer.findUnique({
-          where: { id: data.customerId },
-          select: {
-            name: true,
-          },
-        });
-        // Cria conta a pagar
         await tx.accountPayable.create({
           data: {
             description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${data.invoice ?? "S/NF"}, de ${customer?.name ?? "cliente"}`,
             amount: data.totalPrice,
             dueDate: new Date(data.dueDate),
-            companyId,
+            companyId: session.user.companyId,
             customerId: data.customerId,
             buyId: buy.id,
           },

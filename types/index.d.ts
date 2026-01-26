@@ -30,6 +30,7 @@ export * from "./maintenance";
 export * from "./notice";
 export * from "./plot";
 export * from "./productStock";
+export * from "./purchase";
 export * from "./purchaseOrder";
 export * from "./purchaseOrderItem";
 export * from "./rain";

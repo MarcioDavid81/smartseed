@@ -14,7 +14,7 @@ export const inputPurchaseSchema = z.object({
   date: z.coerce.date(),
   productId: z.string(),
   quantity: z.coerce.number().min(1, "Quantidade inválida"),
-  invoiceNUmber: z.string().min(1, "Número da fatura é obrigatório"),
+  invoiceNumber: z.string().min(1, "Número da fatura é obrigatório"),
   unitPrice: z.coerce.number().min(0.01, "Preço unitário é obrigatório"),
   totalPrice: z.coerce.number().min(0.01, "Preço total é obrigatório"),
   customerId: z.string(),
