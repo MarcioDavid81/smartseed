@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getToken } from "@/lib/auth-client";
+import { useDeleteInputPurchase } from "@/queries/input/use-input-purchase";
 import { Purchase } from "@/types/purchase";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
@@ -27,56 +28,17 @@ import { toast } from "sonner";
 
 interface Props {
   compra: Purchase;
-  onDeleted: () => void;
 }
 
-const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
+const DeleteBuyButton = ({ compra }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const handleDelete = async (compra: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 compra recebida:", compra);
+  const { mutate, isPending } = useDeleteInputPurchase();
 
-    if (!compra || !compra.id) {
-      toast.error("ID da compra ausente. Não é possível excluir.");
-      console.warn("❌ compra.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/insumos/purchases/${compra.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar compra:", errorText);
-        throw new Error(errorText);
-      }
-
-      toast.success("Compra deletada com sucesso!");
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar compra.");
-    } finally {
-      setLoading(false);
-    }
-
+  const handleConfirmDelete = () => {
+    mutate(compra.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -110,13 +72,13 @@ const DeleteBuyButton = ({ compra, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(compra)}
-              disabled={loading}
+              onClick={handleConfirmDelete}
+              disabled={isPending}
               variant="ghost"
               className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>

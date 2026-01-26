@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSmartToast } from "@/contexts/ToastContext";
 
 export function useFarms() {
-  return useQuery({
+  return useQuery<Farm[]>({
     queryKey: ["farms"],
     queryFn: () => getFarms(),
     enabled: true,

@@ -1,6 +1,5 @@
 "use client";
 
-import { formatCurrency } from "@/app/_helpers/currency";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,22 +17,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { getToken } from "@/lib/auth-client";
-import { Insumo } from "@/types/insumo";
 import { Purchase } from "@/types/purchase";
-import { Customer } from "@/types/customers";
-import { Farm } from "@/types/farm";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, setDate } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-import { z } from "zod";
-import { NumericFormat } from "react-number-format";
 import { PaymentCondition } from "@prisma/client";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -42,43 +31,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
+import { MoneyInput, QuantityInput } from "@/components/inputs";
+import { InputPurchaseFormData, inputPurchaseSchema } from "@/lib/schemas/inputSchema";
+import { useUpsertInputPurchase } from "@/queries/input/use-input-purchase";
+import { useSmartToast } from "@/contexts/ToastContext";
+import { ApiError } from "@/lib/http/api-error";
+import { useFarms } from "@/queries/registrations/use-farm";
+import { useInputProductQuery } from "@/queries/input/use-input";
+import { useCustomers } from "@/queries/registrations/use-customer";
+import { PRODUCT_CLASS_OPTIONS } from "@/app/(authenticated)/_constants/insumos";
 
 interface UpsertPurchaseModalProps {
   compra?: Purchase;
   isOpen: boolean;
   onClose: () => void;
-  onUpdated?: () => void;
 }
-
-const purchaseSchema = z.object({
-  date: z.date(),
-  customerId: z.string().min(1, "Selecione um cliente"),
-  productId: z.string().min(1, "Selecione um produto"),
-  invoiceNumber: z.string().min(1, "Informe a nota fiscal"),
-  quantity: z.coerce.number().min(1, "Quantidade é obrigatória"),
-  unitPrice: z.coerce.number().min(1, "Preço unitário é obrigatório"),
-  farmId: z.string().min(1, "Selecione uma fazenda"),
-  notes: z.string(),
-  paymentCondition: z.nativeEnum(PaymentCondition),
-  dueDate: z.date().optional(),
-});
-
-type PurchaseFormData = z.infer<typeof purchaseSchema>;
 
 const UpsertPurchaseModal = ({
   compra,
   isOpen,
   onClose,
-  onUpdated,
 }: UpsertPurchaseModalProps) => {
-  const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState<Insumo[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [farms, setFarms] = useState<Farm[]>([]);
-  const [totalPrice, setTotalPrice] = useState("");
+  const { showToast } = useSmartToast();
 
-  const form = useForm<PurchaseFormData>({
-    resolver: zodResolver(purchaseSchema),
+  const form = useForm<InputPurchaseFormData>({
+    resolver: zodResolver(inputPurchaseSchema),
     defaultValues: {
       date: compra?.date ? new Date(compra.date) : new Date(),
       customerId: compra?.customerId ?? "",
@@ -86,6 +63,7 @@ const UpsertPurchaseModal = ({
       invoiceNumber: compra?.invoiceNumber ?? "",
       quantity: compra?.quantity ?? 0,
       unitPrice: compra?.unitPrice ?? 0,
+      totalPrice: compra?.totalPrice ?? 0,
       farmId: compra?.farmId ?? "",
       notes: compra?.notes ?? "",
       paymentCondition: compra?.paymentCondition ?? PaymentCondition.AVISTA,
@@ -97,12 +75,8 @@ const UpsertPurchaseModal = ({
   const quantity = form.watch("quantity");
 
   useEffect(() => {
-    if (!isNaN(unitPrice) && !isNaN(quantity)) {
-      const total = unitPrice * quantity;
-      setTotalPrice(formatCurrency(total));
-    } else {
-      setTotalPrice("");
-    }
+    const total = unitPrice * quantity;
+    form.setValue("totalPrice", Number.isFinite(total) ? parseFloat(total.toFixed(2)) : 0);
   }, [unitPrice, quantity]);
 
   useEffect(() => {
@@ -124,78 +98,57 @@ const UpsertPurchaseModal = ({
     }
   }, [compra, isOpen, form]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
-      const [productRes, customerRes, farmRes] = await Promise.all([
-        fetch("/api/insumos/products", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/customers", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/farms", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-      setProducts(await productRes.json());
-      setCustomers(await customerRes.json());
-      setFarms(await farmRes.json());
-    };
+  const { data: farms = [] } = useFarms();
+  const { data: products = [] } = useInputProductQuery();
+  const { data: customers = [] } = useCustomers();
 
-    if (isOpen) fetchData();
-  }, [isOpen]);
 
-  const onSubmit = async (data: PurchaseFormData) => {
-    setLoading(true);
-    const token = getToken();
-
-    console.log("Dados enviados para API:", {
-      ...data,
-    });
-
-    const url = compra
-      ? `/api/insumos/purchases/${compra.id}`
-      : "/api/insumos/purchases";
-    const method = compra ? "PUT" : "POST";
-
-    const total = data.unitPrice * data.quantity;
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        ...data,
-        unitPrice: data.unitPrice,
-        quantityKg: data.quantity,
-        totalPrice: total,
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar Compra.", {
-        style: { backgroundColor: "#F0C531", color: "white" },
-        icon: "❌",
-      });
-    } else {
-      toast.success(
-        compra
-          ? "Compra atualizada com sucesso!"
-          : "Compra cadastrada com sucesso!",
-        { style: { backgroundColor: "#63B926", color: "white" }, icon: "✅" },
-      );
-      onClose();
-      form.reset();
-      setTotalPrice("");
-    }
-
-    setLoading(false);
-  };
+   const { mutate, isPending } = useUpsertInputPurchase({
+     purchaseId: compra?.id,
+   });
+ 
+   const onSubmit = async (data: InputPurchaseFormData) => {       
+     mutate(data, {
+       onSuccess: () => {
+         showToast({
+           type: "success",
+           title: "Sucesso",
+           message: compra
+             ? "Compra atualizada com sucesso!"
+             : "Compra cadastrada com sucesso!",
+         });
+       
+         onClose();
+         form.reset();
+       },
+       onError: (error: Error) => {
+         if (error instanceof ApiError) {
+           if (error.status === 402) {
+             showToast({
+               type: "info",
+               title: "Limite atingido",
+               message: error.message,
+             });
+             return;
+           }
+         
+         if (error.status === 401) {
+           showToast({
+             type: "info",
+             title: "Sessão expirada",
+             message: "Faça login novamente",
+           });
+           return;
+         }
+       }
+       showToast({
+         type: "error",
+         title: "Erro",
+         message: error.message,
+       });
+     },
+   });
+   };
 
   useEffect(() => {
     if (!isOpen) form.reset();
@@ -205,7 +158,7 @@ const UpsertPurchaseModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[650px]">
         <DialogHeader>
           <DialogTitle>Compra</DialogTitle>
           <DialogDescription>
@@ -224,17 +177,28 @@ const UpsertPurchaseModal = ({
                     <FormItem>
                       <FormLabel>Produto</FormLabel>
                       <FormControl>
-                        <select
-                          {...field}
-                          className="w-full rounded border px-2 py-1"
-                        >
-                          <option value="" className="text-sm font-light">Selecione</option>
-                          {products.map((p) => (
-                            <option key={p.id} value={p.id} className="text-sm font-light">
-                              {p.name}
-                            </option>
-                          ))}
-                        </select>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma insumo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {products.map((product) => (
+                              <SelectItem key={product.id} value={product.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{product.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {
+                                      PRODUCT_CLASS_OPTIONS.find(
+                                        (option) => option.value === product.class)?.label || product.class
+                                    }
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -248,17 +212,25 @@ const UpsertPurchaseModal = ({
                     <FormItem>
                       <FormLabel>Fornecedor</FormLabel>
                       <FormControl>
-                        <select
-                          {...field}
-                          className="w-full rounded border px-2 py-1"
-                        >
-                          <option value="" className="text-sm font-light">Selecione</option>
-                          {customers.map((c) => (
-                            <option key={c.id} value={c.id} className="text-sm font-light">
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um fornecedor" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {customers.map((customer) => (
+                              <SelectItem key={customer.id} value={customer.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{customer.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {customer.cpf_cnpj}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -303,23 +275,7 @@ const UpsertPurchaseModal = ({
                   control={form.control}
                   name="unitPrice"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preço Unitário</FormLabel>
-                      <FormControl>
-                        <NumericFormat
-                          customInput={Input}
-                          thousandSeparator="."
-                          decimalSeparator=","
-                          prefix="R$ "
-                          allowNegative={false}
-                          value={field.value ?? ""}
-                          onValueChange={(values) =>
-                            field.onChange(values.floatValue ?? 0)
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <MoneyInput label="Preço Unitário" field={field} />
                   )}
                 />
                 {/* Quantidade */}
@@ -327,26 +283,19 @@ const UpsertPurchaseModal = ({
                   control={form.control}
                   name="quantity"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quantidade</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          onChange={(e) => field.onChange(+e.target.value || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <QuantityInput label="Quantidade" field={field} />
                   )}
                 />
               </div>
 
               {/* Valor Total */}
-              <div>
-                <label className="text-sm font-medium">Valor Total</label>
-                <Input type="text" value={totalPrice} disabled />
-              </div>
+                <FormField
+                  control={form.control}
+                  name="totalPrice"
+                  render={({ field }) => (
+                    <MoneyInput label="Preço Total" field={field} readonly />
+                  )}
+                />
 
               {/* Fazenda */}
               <FormField
@@ -356,17 +305,20 @@ const UpsertPurchaseModal = ({
                   <FormItem>
                     <FormLabel>Depósito</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full rounded border px-2 py-1"
-                      >
-                        <option value="" className="text-sm font-light">Selecione</option>
-                        {farms.map((f) => (
-                          <option key={f.id} value={f.id} className="text-sm font-light">
-                            {f.name}
-                          </option>
-                        ))}
-                      </select>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um depósito" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {farms.map((farm) => (
+                              <SelectItem key={farm.id} value={farm.id}>
+                                {farm.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -426,7 +378,7 @@ const UpsertPurchaseModal = ({
                   <FormItem>
                     <FormLabel>Observações</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Opcional" />
+                      <Input {...field} placeholder="Opcional" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -435,11 +387,11 @@ const UpsertPurchaseModal = ({
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isPending}
                 className="mt-4 w-full bg-green text-white hover:bg-green/90"
                 onClick={() => console.log(form.getValues())}
               >
-                {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
             </div>
           </form>

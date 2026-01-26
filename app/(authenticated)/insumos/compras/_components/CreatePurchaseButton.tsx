@@ -8,10 +8,9 @@ import UpsertPurchaseModal from "./UpsertPurchaseModal";
 
 interface Props {
   compra?: Purchase;
-  onUpdated?: () => void;
 }
 
-const CreatePurchaseButton = ({ compra, onUpdated }: Props) => {
+const CreatePurchaseButton = ({ compra }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
@@ -23,7 +22,6 @@ const CreatePurchaseButton = ({ compra, onUpdated }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         compra={compra}
-        onUpdated={onUpdated}
       />
     </div>
   );

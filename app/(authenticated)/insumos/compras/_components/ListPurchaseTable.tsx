@@ -1,49 +1,26 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaSpinner } from "react-icons/fa";
 import { Purchase } from "@/types/purchase";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { getToken } from "@/lib/auth-client";
 import UpsertPurchaseButton from "./UpsertPurchaseButton";
 import DeletePurchaseButton from "./DeletePurchaseButton";
 import { PurchaseDataTable } from "./PurchaseDataTable";
 import DetailPurchaseButton from "./DetailPurchaseButton";
 import { AgroLoader } from "@/components/agro-loader";
+import { useInputPurchaseQuery } from "@/queries/input/use-input-purchase";
+import { LoadingData } from "@/components/loading-data";
 
 export function ListPurchaseTable() {
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  async function fetchPurchases() {
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/insumos/purchases`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      console.log("Api retornou", data);
-      const filteredData = data.filter(
-        (product: Purchase) => product.quantity > 0
-      );
-      setPurchases(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar compras:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchPurchases();
-  }, []);
+  const {
+      data: inputPurchases = [],
+      isLoading,
+      isFetching,
+      refetch,
+    } = useInputPurchaseQuery();
 
   const columns: ColumnDef<Purchase>[] = [
     {
@@ -65,14 +42,40 @@ export function ListPurchaseTable() {
     {
       accessorKey: "product",
       header: "Produto",
-      accessorFn: (row) => row.product.name,
-      cell: ({ row: { original } }) => original.product.name,
+      cell: ({ row }) => {
+        const produto = row.original.product;
+         if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+           
+        if (!produto) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              -
+            </span>
+          );
+        }
+      return <span>{produto.name}</span>;
+      },
     },
     {
       accessorKey: "customer",
       header: "Fornecedor",
-      accessorFn: (row) => row.customer.name,
-      cell: ({ row: { original } }) => original.customer.name,
+      cell: ({ row }) => {
+        const fornecedor = row.original.customer;
+         if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+           
+        if (!fornecedor) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              -
+            </span>
+          );
+        }
+      return <span>{fornecedor.name}</span>;
+      },
     },
     {
       accessorKey: "invoiceNumber",
@@ -84,15 +87,22 @@ export function ListPurchaseTable() {
       header: () => <div className="text-left">Quantidade</div>,
       cell: ({ row }) => {
         const peso = row.original.quantity;
-        return (
-          <div className="text-left">
-            {new Intl.NumberFormat("pt-BR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(peso)}
-            <span>{` ${row.original.product.unit.toLocaleLowerCase()}`}</span>
-          </div>
-        );
+        const unit = row.original.product?.unit;
+         if ((row.original as any)._optimistic) {
+            return <LoadingData />;
+          }
+        
+        if (!unit) {
+          return (
+            <span className="text-muted-foreground text-sm">
+              -
+            </span>
+          );
+        }
+      return <span>{new Intl.NumberFormat("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(peso)} {unit.toLocaleLowerCase()}</span>;
       },
     },
     {
@@ -132,18 +142,9 @@ export function ListPurchaseTable() {
         const compra = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <DetailPurchaseButton
-              compra={compra}
-              onUpdated={fetchPurchases}
-            />
-            <UpsertPurchaseButton
-              compra={compra}
-              onUpdated={fetchPurchases}
-            />
-            <DeletePurchaseButton
-              compra={compra}
-              onDeleted={fetchPurchases}
-            />
+            <DetailPurchaseButton compra={compra} />
+            <UpsertPurchaseButton compra={compra} />
+            <DeletePurchaseButton compra={compra} />
           </div>
         );
       },
@@ -154,14 +155,14 @@ export function ListPurchaseTable() {
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Compras</h2>
-        <Button variant={"ghost"} onClick={fetchPurchases} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <PurchaseDataTable columns={columns} data={purchases} />
+        <PurchaseDataTable columns={columns} data={inputPurchases} />
       )}
     </Card>
   );

@@ -15,10 +15,10 @@ import { Purchase } from "@/types/purchase";
 
 interface Props {
   compra: Purchase;
-  onUpdated: () => void;
+
 }
 
-const DetailPurchaseButton = ({ compra, onUpdated }: Props) => {
+const DetailPurchaseButton = ({ compra }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<Purchase | null>(null);
   return (

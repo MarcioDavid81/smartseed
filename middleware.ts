@@ -98,5 +98,6 @@ export const config = {
     "/agricultura/:path*",
     "/maquinas/:path*",
     "/assinaturas/:path*",
+    "/comercial/:path*",
   ],
 };
