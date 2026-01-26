@@ -7,132 +7,88 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { getToken } from "@/lib/auth-client";
 import {
   PRODUCT_CLASS_OPTIONS,
   PRODUCT_UNIT_OPTIONS,
 } from "../../../_constants/insumos";
-import { Insumo } from "@/types/insumo";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-import { z } from "zod";
+import { useSmartToast } from "@/contexts/ToastContext";
+import { InputProductFormData, inputProductSchema } from "@/lib/schemas/inputSchema";
+import { ProductClass, Unit } from "@prisma/client";
+import { useUpsertInputProduct } from "@/queries/input/use-input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Insumo } from "@/types";
 
 interface UpsertInsumoModalProps {
   product?: Insumo;
   isOpen: boolean;
   onClose: () => void;
-  onUpdated?: () => void;
 }
-
-const insumoSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  description: z.string().optional(),
-  class: z.string().min(1, "Classe é obrigatória"),
-  unit: z.string().min(1, "Unidade é obrigatória"),
-});
-
-type InsumoFormData = z.infer<typeof insumoSchema>;
 
 const UpsertInsumosModal = ({
   product,
   isOpen,
   onClose,
-  onUpdated,
 }: UpsertInsumoModalProps) => {
-  const [loading, setLoading] = useState(false);
+  const { showToast } = useSmartToast();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<InsumoFormData>({
-    resolver: zodResolver(insumoSchema),
+  const form = useForm<InputProductFormData>({
+    resolver: zodResolver(inputProductSchema),
     defaultValues: {
       name: product?.name ?? "",
       description: product?.description ?? "",
-      class: product?.class ?? "",
-      unit: product?.unit ?? "",
+      class: product?.class ?? ProductClass.OUTROS,
+      unit: product?.unit ?? Unit.UN,
     },
   });
 
   useEffect(() => {
     if (product) {
-      reset({
+      form.reset({
         name: product.name,
         description: product.description || "",
         class: product.class,
         unit: product.unit,
       });
     } else {
-      reset();
+      form.reset();
     }
-  }, [product, isOpen, reset]);
+  }, [product, isOpen, form.reset]);
 
-  const onSubmit = async (data: InsumoFormData) => {
-    setLoading(true);
-    const token = getToken();
-    if (!token) {
-      toast.error("Usuário não autenticado.");
-      setLoading(false);
-      return;
-    }
+  const { mutate, isPending } = useUpsertInputProduct({
+    inputProductId: product?.id,
+  })
 
-    const url = product
-      ? `/api/insumos/products/${product.id}`
-      : "/api/insumos/products";
-    const method = product ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+  const onSubmit = async (data: InputProductFormData) => {
+    mutate(data, {
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso!",
+          message: product
+            ? "Insumo atualizado com sucesso!"
+            : "Insumo cadastrado com sucesso!",
+        });
+        onClose();
+        form.reset();
       },
-      body: JSON.stringify({
-        ...data,
-      }),
+      onError: (error) => {
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: error.message || "Ocorreu um erro ao salvar o insumo. Por favor, tente novamente.",
+        });
+      },
     });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar insumo.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
-      });
-    } else {
-      toast.success(
-        product
-          ? "Insumo atualizado com sucesso!"
-          : "Insumo cadastrado com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        },
-      );
-      onClose();
-      reset();
-      if (onUpdated) onUpdated();
-    }
-
-    setLoading(false);
   };
 
   useEffect(() => {
-    if (!isOpen) reset();
-  }, [isOpen, reset]);
+    if (!isOpen) form.reset();
+  }, [isOpen, form.reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -143,61 +99,99 @@ const UpsertInsumosModal = ({
             {product ? "Editar insumo" : "Cadastrar insumo"}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-4">
-              <div>
-                <Label>Nome</Label>
-                <Input {...register("name")} placeholder="Ex: Ópera Ultra" />
-                {errors.name && (
-                  <span className="text-xs text-red-500">
-                    {errors.name.message}
-                  </span>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="grid gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ex: Ópera" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
-              <div>
-                <Label>Descrição</Label>
-                <Textarea
-                  {...register("description")}
-                  placeholder="Ex: Fungicida de ação sistêmica"
-                />
-              </div>
-              <div>
-                <Label>Classe</Label>
-                <select
-                  {...register("class")}
-                  className="w-full rounded border px-2 py-1"
-                >
-                  <option value="" className="font-light">Selecione</option>
-                  {PRODUCT_CLASS_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value} className="font-light">
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <Label>Unidade Comercial</Label>
-                <select
-                  {...register("unit")}
-                  className="w-full rounded border px-2 py-1"
-                >
-                  <option value="" className="font-light">Selecione</option>
-                  {PRODUCT_UNIT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value} className="font-light">
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ex: Fungicida de ação sistêmica" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="class"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Classe</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma classe" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PRODUCT_CLASS_OPTIONS.map((f) => (
+                            <SelectItem key={f.value} value={f.value}>
+                              {f.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Unidade</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma unidade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PRODUCT_UNIT_OPTIONS.map((f) => (
+                            <SelectItem key={f.value} value={f.value}>
+                              {f.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
           </div>
           <Button
             type="submit"
-            disabled={loading}
+            disabled={isPending}
             className="mt-4 w-full bg-green text-white"
           >
-            {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+            {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
           </Button>
         </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

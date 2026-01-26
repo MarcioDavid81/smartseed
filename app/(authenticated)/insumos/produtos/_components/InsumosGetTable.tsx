@@ -12,32 +12,16 @@ import EditInsumosButton from "./EditInsumosButton";
 import DeleteInsumosButton from "./DeleteInsumosButton";
 import { getProductClassLabel, getProductUnitLabel } from "@/app/_helpers/getProductLabel";
 import { AgroLoader } from "@/components/agro-loader";
+import { useInputProductQuery } from "@/queries/input/use-input";
 
 export function InsumosGetTable() {
-  const [insumo, setInsumo] = useState<Insumo[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  async function fetchProducts() {
-    try {
-      const token = getToken();
-      const res = await fetch("/api/insumos/products", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      console.table(data);
-      setInsumo(data);
-    } catch (error) {
-      console.error("Erro ao buscar insumos:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  
+  const {
+      data: insumos = [],
+      isLoading,
+      isFetching,
+      refetch,
+    } = useInputProductQuery();
 
   const columns: ColumnDef<Insumo>[] = [
     {
@@ -70,8 +54,8 @@ export function InsumosGetTable() {
         const product = row.original
         return (
           <div className="flex items-center justify-center gap-4">
-            <EditInsumosButton product={product} onUpdated={fetchProducts} />
-            <DeleteInsumosButton product={product} onDeleted={fetchProducts} />
+            <EditInsumosButton product={product} />
+            <DeleteInsumosButton product={product} />
           </div>
         );
       },
@@ -82,14 +66,14 @@ export function InsumosGetTable() {
     <Card className="p-4 font-light dark:bg-primary">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Lista de Insumos</h2>
-        <Button variant={"ghost"} onClick={fetchProducts} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <InsumosDataTable columns={columns} data={insumo} />
+        <InsumosDataTable columns={columns} data={insumos} />
       )}
     </Card>
   );

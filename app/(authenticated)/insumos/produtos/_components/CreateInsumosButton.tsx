@@ -4,12 +4,13 @@ import HoverButton from "@/components/HoverButton";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import UpsertInsumosModal from "./UpsertInsumosModal";
+import { Insumo } from "@/types";
 
 interface Props {
-  onUpdated?: () => void;
+  product?: Insumo;
 }
 
-const CreateInsumosButton = ({ onUpdated }: Props) => {
+const CreateInsumosButton = ({ product }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
@@ -20,7 +21,7 @@ const CreateInsumosButton = ({ onUpdated }: Props) => {
       <UpsertInsumosModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onUpdated={onUpdated}
+        product={product}
       />
     </div>
   );

@@ -13,10 +13,9 @@ import { Insumo } from "@/types/insumo";
 
 interface Props {
   product: Insumo;
-  onUpdated: () => void;
 }
 
-const EditInsumosButton = ({ product, onUpdated }: Props) => {
+const EditInsumosButton = ({ product }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -39,7 +38,6 @@ const EditInsumosButton = ({ product, onUpdated }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         product={product}
-        onUpdated={onUpdated}
       />
     </>
   );

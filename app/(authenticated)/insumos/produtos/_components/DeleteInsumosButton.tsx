@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useHarvest } from "@/contexts/HarvestContext";
 import { getToken } from "@/lib/auth-client";
+import { useDeleteInputProduct } from "@/queries/input/use-input";
 import { Insumo } from "@/types/insumo";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
@@ -28,59 +29,17 @@ import { toast } from "sonner";
 
 interface Props {
   product: Insumo;
-  onDeleted: () => void;
 }
 
-const DeleteInsumosButton = ({ product, onDeleted }: Props) => {
+const DeleteInsumosButton = ({ product }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { fetchHarvests } = useHarvest();
-
-  const handleDelete = async (product: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 produto recebido:", product);
-
-    if (!product || !product.id) {
-      toast.error("ID do produto ausente. Não é possível excluir.");
-      console.warn("❌ product.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/insumos/products/${product.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+  const { mutate, isPending } = useDeleteInputProduct();
+  
+    const handleConfirmDelete = () => {
+      mutate(product.id, {
+        onSuccess: () => setIsOpen(false),
       });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar produto:", errorText);
-        throw new Error(errorText);
-      }
-
-      toast.success("Produto deletado com sucesso!");
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar produto.");
-    } finally {
-      setLoading(false);
-    }
-
-    await fetchHarvests();
-  };
+    };
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
@@ -113,13 +72,13 @@ const DeleteInsumosButton = ({ product, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(product)}
-              disabled={loading}
+              onClick={() => handleConfirmDelete()}
+              disabled={isPending}
               variant="ghost"
               className="bg-transparent border border-red-500 text-red-500 hover:text-red-500"
             >
               <span className="relative flex items-center gap-2 z-10">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>
