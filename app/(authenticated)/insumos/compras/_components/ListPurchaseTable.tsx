@@ -44,7 +44,7 @@ export function ListPurchaseTable() {
       header: "Produto",
       cell: ({ row }) => {
         const produto = row.original.product;
-         if ((row.original as any)._optimistic) {
+         if ((row.original as any)._optimistic || produto === undefined) {
           return <LoadingData />;
         }
            
@@ -63,7 +63,7 @@ export function ListPurchaseTable() {
       header: "Fornecedor",
       cell: ({ row }) => {
         const fornecedor = row.original.customer;
-         if ((row.original as any)._optimistic) {
+         if ((row.original as any)._optimistic || fornecedor === undefined) {
           return <LoadingData />;
         }
            
@@ -83,26 +83,32 @@ export function ListPurchaseTable() {
       cell: ({ row: { original: original } }) => original.invoiceNumber,
     },
     {
-      accessorKey: "quantity",
+      accessorKey: 'quantity',
       header: () => <div className="text-left">Quantidade</div>,
       cell: ({ row }) => {
         const peso = row.original.quantity;
-        const unit = row.original.product?.unit;
-         if ((row.original as any)._optimistic) {
-            return <LoadingData />;
-          }
-        
+        const product = row.original.product;
+
+        if ((row.original as any)._optimistic || product === undefined) {
+          return <LoadingData />;
+        }
+
+        const unit = product?.unit;
         if (!unit) {
           return (
-            <span className="text-muted-foreground text-sm">
-              -
-            </span>
+            <span className="text-muted-foreground text-sm">-</span>
           );
         }
-      return <span>{new Intl.NumberFormat("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(peso)} {unit.toLocaleLowerCase()}</span>;
+
+        return (
+          <span>
+            {new Intl.NumberFormat('pt-BR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(peso)}{' '}
+            {unit.toLocaleLowerCase()}
+          </span>
+        );
       },
     },
     {
