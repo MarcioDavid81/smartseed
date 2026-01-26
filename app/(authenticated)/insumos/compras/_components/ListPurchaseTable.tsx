@@ -40,8 +40,10 @@ export function ListPurchaseTable() {
       },
     },
     {
-      accessorKey: "product",
+      id: "product",
       header: "Produto",
+      accessorFn: (row) => row.product?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row }) => {
         const produto = row.original.product;
          if ((row.original as any)._optimistic || produto === undefined) {
@@ -59,8 +61,10 @@ export function ListPurchaseTable() {
       },
     },
     {
-      accessorKey: "customer",
+      id: "customer",
       header: "Fornecedor",
+      accessorFn: (row) => row.customer?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row }) => {
         const fornecedor = row.original.customer;
          if ((row.original as any)._optimistic || fornecedor === undefined) {

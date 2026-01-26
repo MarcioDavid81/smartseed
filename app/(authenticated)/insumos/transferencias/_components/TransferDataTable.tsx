@@ -40,7 +40,6 @@ export function TransferDataTable<TData, TValue>({
   pageSize = 8,
   searchFields = [],
 }: DataTableProps<TData, TValue>) {
-  const [modalOpen, setModalOpen] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
   const table = useReactTable({
@@ -84,9 +83,9 @@ export function TransferDataTable<TData, TValue>({
           />
           <Input
             placeholder="Procure por destino"
-            value={(table.getColumn("destino")?.getFilterValue() as string) ?? ""}
+            value={(table.getColumn("destFarm")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("destino")?.setFilterValue(event.target.value)
+              table.getColumn("destFarm")?.setFilterValue(event.target.value)
             }
             className="max-w-sm bg-gray-50 text-primary"
           />

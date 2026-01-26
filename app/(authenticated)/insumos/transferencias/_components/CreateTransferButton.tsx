@@ -8,10 +8,9 @@ import UpsertTransferModal from "./UpsertTransferModal";
 
 interface Props {
   transferencia?: Transfer;
-  onUpdated?: () => void;
 }
 
-const CreateTransferButton = ({ transferencia, onUpdated }: Props) => {
+const CreateTransferButton = ({ transferencia }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
@@ -23,7 +22,6 @@ const CreateTransferButton = ({ transferencia, onUpdated }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         transferencia={transferencia}
-        onUpdated={onUpdated}
       />
     </div>
   );

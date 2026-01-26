@@ -2,50 +2,24 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getToken } from "@/lib/auth-client";
 import { Transfer } from "@/types/transfer";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { FaSpinner } from "react-icons/fa";
 import DeleteTransferButton from "./DeleteTransferButton";
 import { TransferDataTable } from "./TransferDataTable";
 import UpsertTransferButton from "./UpsertTransferButton";
 import { AgroLoader } from "@/components/agro-loader";
+import { useInputTransferQuery } from "@/queries/input/use-input-transfer";
+import { LoadingData } from "@/components/loading-data";
 
 export function ListTransferTable() {
-  const [transferencias, setTransferencias] = useState<Transfer[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  async function fetchTransfers() {
-
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(
-        "/api/insumos/transfers",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const data = await res.json();
-      const filteredData = data.filter(
-        (product: Transfer) => product.quantity > 0,
-      );
-      setTransferencias(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar transferências:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchTransfers();
-  }, []);
+  const {
+      data: inputTransfers = [],
+      isLoading,
+      isFetching,
+      refetch,
+    } = useInputTransferQuery();
 
   const columns: ColumnDef<Transfer>[] = [
     {
@@ -65,38 +39,94 @@ export function ListTransferTable() {
       },
     },
     {
-      accessorKey: "product",
+      id: "product",
       header: "Produto",
-      accessorFn: (row) => row.product.name,
-      cell: ({ row: { original } }) => original.product.name,
+      accessorFn: (row) => row.product?.name ?? "",
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const produto = row.original.product;
+         if ((row.original as any)._optimistic || produto === undefined) {
+          return <LoadingData />;
+        }
+           
+        if (!produto) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              -
+            </span>
+          );
+        }
+      return <span>{produto.name}</span>;
+      },
     },
     {
-      accessorKey: "quantity",
+      accessorKey: 'quantity',
       header: () => <div className="text-left">Quantidade</div>,
       cell: ({ row }) => {
         const peso = row.original.quantity;
+        const product = row.original.product;
+
+        if ((row.original as any)._optimistic || product === undefined) {
+          return <LoadingData />;
+        }
+
+        const unit = product?.unit;
+        if (!unit) {
+          return (
+            <span className="text-muted-foreground text-sm">-</span>
+          );
+        }
+
         return (
-          <div className="text-left">
-            {new Intl.NumberFormat("pt-BR", {
+          <span>
+            {new Intl.NumberFormat('pt-BR', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            }).format(peso)}
-            <span>{` ${row.original.product.unit.toLocaleLowerCase()}`}</span>
-          </div>
+            }).format(peso)}{' '}
+            {unit.toLocaleLowerCase()}
+          </span>
         );
       },
     },
     {
       accessorKey: "origem",
       header: "Depósito de Origem",
-      accessorFn: (row) => row.originFarm.name,
-      cell: ({ row: { original } }) => original.originFarm.name,
+      cell: ({ row }) => {
+        const farm = row.original.originFarm;
+         if ((row.original as any)._optimistic || farm === undefined) {
+          return <LoadingData />;
+        }
+           
+        if (!farm) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              -
+            </span>
+          );
+        }
+      return <span>{farm.name}</span>;
+      },
     },
     {
-      accessorKey: "destino",
+      id: "destFarm",
       header: "Depósito de Destino",
-      accessorFn: (row) => row.destFarm.name,
-      cell: ({ row: { original } }) => original.destFarm.name,
+      accessorFn: (row) => row.destFarm?.name ?? "",
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const farm = row.original.destFarm;
+         if ((row.original as any)._optimistic || farm === undefined) {
+          return <LoadingData />;
+        }
+           
+        if (!farm) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              -
+            </span>
+          );
+        }
+      return <span>{farm.name}</span>;
+      },
     },
     {
       accessorKey: "actions",
@@ -105,14 +135,8 @@ export function ListTransferTable() {
         const transferencias = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <UpsertTransferButton
-              transferencia={transferencias}
-              onUpdated={fetchTransfers}
-            />
-            <DeleteTransferButton
-              transferencia={transferencias}
-              onDeleted={fetchTransfers}
-            />
+            <UpsertTransferButton transferencia={transferencias} />
+            <DeleteTransferButton transferencia={transferencias} />
           </div>
         );
       },
@@ -125,16 +149,16 @@ export function ListTransferTable() {
         <h2 className="font-light">Lista de Transferências</h2>
         <Button
           variant={"ghost"}
-          onClick={fetchTransfers}
-          disabled={loading}
+          onClick={() => refetch()}
+          disabled={isFetching}
         >
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <TransferDataTable columns={columns} data={transferencias} />
+        <TransferDataTable columns={columns} data={inputTransfers} />
       )}
     </Card>
   );

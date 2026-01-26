@@ -17,13 +17,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getToken } from "@/lib/auth-client";
 import { useDeleteInputPurchase } from "@/queries/input/use-input-purchase";
 import { Purchase } from "@/types/purchase";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 
 interface Props {
