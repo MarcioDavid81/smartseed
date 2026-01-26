@@ -2,6 +2,11 @@ import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
+import { withAccessControl } from "@/lib/api/with-access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import { inputTransferSchema } from "@/lib/schemas/inputSchema";
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
 
 /**
  * @swagger
@@ -34,38 +39,32 @@ import { verifyToken } from "@/lib/auth";
  *       201:
  *         description: Transferência de insumo criada com sucesso
  */
-const createTransferSchema = z.object({
-  date: z.coerce.date(),
-  productId: z.string().cuid(),
-  quantity: z.number().positive(),
-  originFarmId: z.string().uuid(),
-  destFarmId: z.string().uuid(),
-});
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: "Token não informado" },
-        { status: 401 },
-      );
-    }
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    const token = authHeader.split(" ")[1];
-    const payload = await verifyToken(token);
+    const session = await withAccessControl('REGISTER_MOVEMENT');
 
-    if (!payload) {
-      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-    }
-
-    const { companyId } = payload;
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
+    });
 
     const body = await req.json();
-    const parsed = createTransferSchema.parse(body);
+    const parsed = inputTransferSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues },
+        { status: 400 },
+      );
+    }
+    const data = parsed.data;
 
     // valida origem ≠ destino
-    if (parsed.originFarmId === parsed.destFarmId) {
+    if (data.originFarmId === data.destFarmId) {
       return NextResponse.json(
         { error: "A fazenda de origem e destino devem ser diferentes." },
         { status: 400 },
@@ -76,8 +75,8 @@ export async function POST(req: NextRequest) {
     const originStock = await db.productStock.findUnique({
       where: {
         productId_farmId: {
-          productId: parsed.productId,
-          farmId: parsed.originFarmId,
+          productId: data.productId,
+          farmId: data.originFarmId,
         },
       },
     });
@@ -89,7 +88,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (originStock.stock < parsed.quantity) {
+    if (originStock.stock < data.quantity) {
       return NextResponse.json(
         { error: "Estoque insuficiente na fazenda de origem." },
         { status: 400 },
@@ -100,8 +99,8 @@ export async function POST(req: NextRequest) {
     let destStock = await db.productStock.findUnique({
       where: {
         productId_farmId: {
-          productId: parsed.productId,
-          farmId: parsed.destFarmId,
+          productId: data.productId,
+          farmId: data.destFarmId,
         },
       },
     });
@@ -109,8 +108,8 @@ export async function POST(req: NextRequest) {
     if (!destStock) {
       destStock = await db.productStock.create({
         data: {
-          productId: parsed.productId,
-          farmId: parsed.destFarmId,
+          productId: data.productId,
+          farmId: data.destFarmId,
           companyId,
           stock: 0,
         },
@@ -128,22 +127,18 @@ export async function POST(req: NextRequest) {
     const transfer = await db.$transaction(async (tx) => {
       await tx.productStock.update({
         where: { id: originStock.id },
-        data: { stock: { decrement: parsed.quantity } },
+        data: { stock: { decrement: data.quantity } },
       });
 
       await tx.productStock.update({
         where: { id: destStock.id },
-        data: { stock: { increment: parsed.quantity } },
+        data: { stock: { increment: data.quantity } },
       });
 
       return tx.transferExit.create({
         data: {
-          date: parsed.date,
-          productId: parsed.productId,
-          quantity: parsed.quantity,
-          originFarmId: parsed.originFarmId,
-          destFarmId: parsed.destFarmId,
-          companyId,
+          ...data,
+          companyId: session.user.companyId,
         },
         include: {
           product: { select: { id: true, name: true, unit: true } },
@@ -156,11 +151,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(transfer, { status: 201 });
   } catch (error) {
     console.error(error);
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+    if (error instanceof PlanLimitReachedError) {
+          return NextResponse.json(
+            { message: error.message },
+            { status: 402 }
+          )
+        }
+    
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: 403 }
+      )
     }
     return NextResponse.json(
-      { error: "Erro interno no servidor" },
+      { 
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          title: "Erro interno no servidor",
+          message: 'Ocorreu um erro ao processar a solicitação, por favor, tente novamente mais tarde.'
+        }
+       },
       { status: 500 },
     );
   }
