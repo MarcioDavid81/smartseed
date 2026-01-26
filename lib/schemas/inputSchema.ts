@@ -42,6 +42,7 @@ export const inputApplicationSchema = z.object({
   quantity: z.coerce.number().positive("Quantidade inválida"),
   talhaoId: z.string(),
   notes: z.string().optional(),
+  cycleId: z.string().optional(),
 })
 
 export type InputApplicationFormData = z.infer<typeof inputApplicationSchema>;

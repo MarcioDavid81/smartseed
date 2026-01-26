@@ -2,6 +2,11 @@ import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyToken } from "@/lib/auth";
+import { inputApplicationSchema } from "@/lib/schemas/inputSchema";
+import { requireAuth } from "@/lib/auth/require-auth";
+import { withAccessControl } from "@/lib/api/with-access-control";
+import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
 
 /**
  * @swagger
@@ -34,46 +39,37 @@ import { verifyToken } from "@/lib/auth";
  *       201:
  *         description: Aplicação de insumo criada com sucesso
  */
-const createApplicationSchema = z.object({
-  productStockId: z.string().cuid(),
-  quantity: z.number().positive(),
-  talhaoId: z.string().cuid(),
-  date: z.coerce.date(),
-  notes: z.string().optional(),
-  companyId: z.string().uuid(),
-  cycleId: z.string().cuid().optional(),
-});
 
 export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
   try {
-    const { productStockId, quantity, talhaoId, date, notes, cycleId } =
-      await req.json();
-    const data = createApplicationSchema.parse({
-      productStockId,
-      quantity,
-      talhaoId,
-      date,
-      notes,
-      cycleId,
-      companyId,
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+
+    const session = await withAccessControl("REGISTER_MOVEMENT");
+
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
     });
+
+    const body = await req.json();
+
+    const parsed = inputApplicationSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: parsed.error.issues[0].message,
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    const data = parsed.data;;
 
     // pega o estoque
     const stock = await db.productStock.findUnique({
@@ -97,16 +93,11 @@ export async function POST(req: NextRequest) {
     }
 
     // transação: cria aplicação e atualiza estoque
-    const [application] = await db.$transaction([
-      db.application.create({
+    const result = await db.$transaction(async (tx) => {
+      const application = await tx.application.create({
         data: {
-          productStockId: data.productStockId,
-          quantity: data.quantity,
-          date: data.date,
-          notes: data.notes,
-          companyId: data.companyId,
-          cycleId: data.cycleId,
-          talhaoId: data.talhaoId,
+          ...data,
+          companyId: session.user.companyId,
         },
         include: {
           productStock: {
@@ -117,18 +108,36 @@ export async function POST(req: NextRequest) {
           },
           talhao: true,
         },
-      }),
-      db.productStock.update({
+      });
+
+      // Atualiza o estoque
+      await tx.productStock.update({
         where: { id: data.productStockId },
         data: { stock: stock.stock - data.quantity },
-      }),
-    ]);
+      });
 
-    return NextResponse.json(application, { status: 201 });
+      return application;
+    });
+
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error(error);
+    console.error("Erro ao criar aplicação:", error);
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
     return NextResponse.json(
-      { error: "Erro ao registrar aplicação." },
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
       { status: 500 },
     );
   }
