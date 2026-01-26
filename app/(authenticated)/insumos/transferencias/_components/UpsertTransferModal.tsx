@@ -1,6 +1,7 @@
 "use client";
 
 import { PRODUCT_CLASS_OPTIONS } from "@/app/(authenticated)/_constants/insumos";
+import { QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -18,23 +19,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
 import { ApiError } from "@/lib/http/api-error";
 import { InputTransferFormData, inputTransferSchema } from "@/lib/schemas/inputSchema";
 import { useInputProductQuery } from "@/queries/input/use-input";
 import { useUpsertInputTransfer } from "@/queries/input/use-input-transfer";
 import { useFarms } from "@/queries/registrations/use-farm";
-import { Farm, Insumo } from "@/types";
 import { Transfer } from "@/types/transfer";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-import { z } from "zod";
 
 interface UpsertTransferModalProps {
   transferencia?: Transfer;
@@ -246,13 +242,7 @@ const UpsertTransferModal = ({
                   control={form.control}
                   name="quantity"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quantidade (Kg)</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <QuantityInput label="Quantidade" field={field} />
                   )}
                 />
               </div>
