@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
       // Atualiza o estoque
       await tx.productStock.update({
         where: { id: data.productStockId },
-        data: { stock: stock.stock - data.quantity },
+        data: { stock: { decrement: data.quantity } },
       });
 
       return application;

@@ -29,7 +29,7 @@ export function useUpsertInputApplication({ cycleId, applicationId }: Params) {
         applicationId,
       }),
 
-    onSuccess: (savedApplication) => {
+    onSuccess: async (savedApplication) => {
       queryClient.setQueryData<Application[]>(
         ["input-applications", cycleId],
         (old) => {
@@ -44,10 +44,14 @@ export function useUpsertInputApplication({ cycleId, applicationId }: Params) {
           return [savedApplication, ...old];
         },
       );
-
-      queryClient.invalidateQueries({
-        queryKey: ["input-applications", cycleId],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["input-applications", cycleId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["input-stock"],
+        }),
+      ]);
     },
   });
 }
@@ -59,16 +63,20 @@ export function useDeleteInputApplication({ cycleId }: Params) {
   return useMutation({
     mutationFn: (applicationId: string) => deleteInputApplication(applicationId),
     mutationKey: ["input-applications", cycleId],
-    onSuccess: () => {
+    onSuccess: async () => {
       showToast({
         type: "success",
         title: "Sucesso",
         message: "Aplicação excluída com sucesso!",
       });
-
-      queryClient.invalidateQueries({
-        queryKey: ["input-applications", cycleId],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["input-applications", cycleId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["input-stock"],
+        }),
+      ]);
     },
 
     onError: (error: Error) => {

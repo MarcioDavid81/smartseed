@@ -3,46 +3,21 @@
 import { getProductClassLabel } from "@/app/_helpers/getProductLabel";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useInsumoStock } from "@/contexts/InsumoStockContext";
-import { getToken } from "@/lib/auth-client";
 import { ProductStock } from "@/types/productStock";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, SquarePenIcon, Trash2Icon, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { FaSpinner } from "react-icons/fa";
 import { InsumosDataTable } from "./InsumosDataTable";
 import { AgroLoader } from "@/components/agro-loader";
+import { useInputStockQuery } from "@/queries/input/use-input-stock";
 
 export function InsumosStockTable() {
-  const [products, setProducts] = useState<ProductStock[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { insumos } = useInsumoStock();
 
-  async function fetchProducts() {
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch("/api/insumos/stock", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      const filteredData = data.filter(
-        (product: ProductStock) => product.stock > 0,
-      );
-      setProducts(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar cultivares:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const {
+    data: insumos = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useInputStockQuery();
 
   const columns: ColumnDef<ProductStock>[] = [
     {
@@ -93,14 +68,15 @@ export function InsumosStockTable() {
     {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
-      cell: ({ row: { original: insumo } }) => {
+      cell: ({ row }) => {
+        const insumo = row.original;
         return (
           <div className="flex items-center justify-center gap-1">
             <Button
               size="sm"
               variant="ghost"
               onClick={() => {
-                alert("Editar ação");
+                alert(`Editar ${insumo.product.name}`);
               }}
             >
               <SquarePenIcon size={20} className="text-green" />
@@ -109,7 +85,7 @@ export function InsumosStockTable() {
               size="sm"
               variant="ghost"
               onClick={() => {
-                alert("Excluir ação");
+                alert(`Excluir ${insumo.product.name}`);
               }}
             >
               <Trash2Icon size={20} className="text-red-500" />
@@ -124,11 +100,11 @@ export function InsumosStockTable() {
     <Card className="p-4 font-light dark:bg-primary">
       <div className="flex items-center gap-2 mb-2">
         <h2 className="font-light">Estoque de Insumos</h2>
-        <Button variant={"ghost"} onClick={fetchProducts} disabled={loading}>
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
         <InsumosDataTable columns={columns} data={insumos} />

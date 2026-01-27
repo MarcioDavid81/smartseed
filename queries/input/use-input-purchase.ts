@@ -28,7 +28,7 @@ export function useUpsertInputPurchase({ purchaseId }: Params) {
 
 
 
-    onSuccess: (savedInputPurchase) => {
+    onSuccess: async (savedInputPurchase) => {
       queryClient.setQueryData<Purchase[]>(
         ["input-purchase"],
         (old) => {
@@ -43,9 +43,14 @@ export function useUpsertInputPurchase({ purchaseId }: Params) {
           return [savedInputPurchase, ...old];
         },
       );
-      queryClient.invalidateQueries({
-        queryKey: ["input-purchase"],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["input-purchase"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["input-stock"],
+        }),
+      ]);
     },
   });
 }
@@ -57,16 +62,20 @@ export function useDeleteInputPurchase() {
   return useMutation({
     mutationFn: (purchaseId: string) => deleteInputPurchase(purchaseId),
     mutationKey: ["input-purchase"],
-    onSuccess: () => {
+    onSuccess: async () => {
       showToast({
         type: "success",
         title: "Sucesso",
         message: "Compra de insumo excluída com sucesso!",
       });
-
-      queryClient.invalidateQueries({
-        queryKey: ["input-purchase"],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["input-purchase"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["input-stock"],
+        }),
+      ]);
     },
 
     onError: (error: Error) => {
