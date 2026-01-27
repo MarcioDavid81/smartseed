@@ -3,52 +3,25 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
-import { getToken } from "@/lib/auth-client";
 import { Application } from "@/types/application";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { FaSpinner } from "react-icons/fa";
 import { ApplicationDataTable } from "./ApplicationDataTable";
 import DeleteApplicationButton from "./DeleteApplicationButton";
 import UpsertApplicationButton from "./UpsertApplicationButton";
 import { AgroLoader } from "@/components/agro-loader";
+import { useInputApplicationsQuery } from "@/queries/input/use-input-application";
+import { LoadingData } from "@/components/loading-data";
 
 export function ListApplicationTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
-  const [aplicacoes, setAplicacoes] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  async function fetchApplications() {
-    if (!selectedCycle?.id) return;
-
-    setLoading(true);
-    try {
-      const token = getToken();
-      const res = await fetch(
-        `/api/insumos/applications?cycleId=${selectedCycle.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const data = await res.json();
-      const filteredData = data.filter(
-        (product: Application) => product.quantity > 0,
-      );
-      setAplicacoes(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar aplicações:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchApplications();
-  }, [selectedCycle?.id]); // 👈 atualiza quando a safra muda
+  const {
+    data: aplicacoes = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useInputApplicationsQuery(selectedCycle?.id);
 
   const columns: ColumnDef<Application>[] = [
     {
@@ -68,10 +41,25 @@ export function ListApplicationTable() {
       },
     },
     {
-      accessorKey: "product",
+      id: "product",
       header: "Produto",
-      accessorFn: (row) => row.productStock.product.name,
-      cell: ({ row: { original } }) => original.productStock.product.name,
+      accessorFn: (row) => row.productStock.product.name ?? "",
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const produto = row.original.productStock.product;
+         if ((row.original as any)._optimistic || produto === undefined) {
+          return <LoadingData />;
+        }
+           
+        if (!produto) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              -
+            </span>
+          );
+        }
+      return <span>{produto.name}</span>;
+      },
     },
     {
       accessorKey: "quantity",
@@ -90,10 +78,25 @@ export function ListApplicationTable() {
       },
     },
     {
-      accessorKey: "talhao",
+      id: "talhao",
       header: "Destino",
-      accessorFn: (row) => row.talhao.name,
-      cell: ({ row: { original } }) => original.talhao.name,
+      accessorFn: (row) => row.talhao.name ?? "",
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const talhao = row.original.talhao;
+         if ((row.original as any)._optimistic || talhao === undefined) {
+          return <LoadingData />;
+        }
+           
+        if (!talhao) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              -
+            </span>
+          );
+        }
+      return <span>{talhao.name}</span>;
+      },
     },
     {
       accessorKey: "area",
@@ -117,14 +120,8 @@ export function ListApplicationTable() {
         const aplicacao = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <UpsertApplicationButton
-              aplicacao={aplicacao}
-              onUpdated={fetchApplications}
-            />
-            <DeleteApplicationButton
-              aplicacao={aplicacao}
-              onDeleted={fetchApplications}
-            />
+            <UpsertApplicationButton aplicacao={aplicacao} />
+            <DeleteApplicationButton aplicacao={aplicacao} />
           </div>
         );
       },
@@ -137,13 +134,13 @@ export function ListApplicationTable() {
         <h2 className="font-light">Lista de Aplicações</h2>
         <Button
           variant={"ghost"}
-          onClick={fetchApplications}
-          disabled={loading}
+          onClick={() => refetch()}
+          disabled={isFetching}
         >
-          <RefreshCw size={16} className={`${loading ? "animate-spin" : ""}`} />
+          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <AgroLoader />
       ) : (
         <ApplicationDataTable columns={columns} data={aplicacoes} />

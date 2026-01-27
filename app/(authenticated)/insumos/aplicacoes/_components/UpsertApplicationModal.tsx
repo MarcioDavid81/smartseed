@@ -1,5 +1,6 @@
 "use client";
 
+import { QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -18,71 +19,39 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { getToken } from "@/lib/auth-client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { getCycle } from "@/lib/cycle";
-import { Farm, ProductStock, Talhao } from "@/types";
+import { ApiError } from "@/lib/http/api-error";
+import { InputApplicationFormData, inputApplicationSchema } from "@/lib/schemas/inputSchema";
+import { useUpsertInputApplication } from "@/queries/input/use-input-application";
+import { useInputStockQuery } from "@/queries/input/use-input-stock";
+import { usePlots } from "@/queries/registrations/use-plot-query";
 import { Application } from "@/types/application";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-import { z } from "zod";
 
 interface UpsertApplicationModalProps {
   aplicacao?: Application;
   isOpen: boolean;
   onClose: () => void;
-  onApplicationCreated?: () => void;
-  onUpdated?: () => void;
 }
-
-const aplicacaoSchema = z.object({
-  productStockId: z.string().min(1, "Selecione um insumo"),
-  quantity: z.coerce.number().min(1, "Quantidade é obrigatória"),
-  talhaoId: z.string().min(1, "Selecione um talhão"),
-  date: z.date(),
-  notes: z.string(),
-});
-
-type ApplicationFormData = z.infer<typeof aplicacaoSchema>;
 
 const UpsertApplicationModal = ({
   aplicacao,
   isOpen,
   onClose,
-  onApplicationCreated,
-  onUpdated,
 }: UpsertApplicationModalProps) => {
-  const [loading, setLoading] = useState(false);
-  const [productStocks, setProductStocks] = useState<ProductStock[]>([]);
-  const [farms, setFarms] = useState<Farm[]>([]);
-  const [talhao, setTalhao] = useState<Talhao[]>([]);
+    const { showToast } = useSmartToast();
 
-  const form = useForm<ApplicationFormData>({
-    resolver: zodResolver(aplicacaoSchema),
+  const form = useForm<InputApplicationFormData>({
+    resolver: zodResolver(inputApplicationSchema),
     defaultValues: {
+      date: aplicacao ? new Date(aplicacao.date) : new Date(),
       productStockId: aplicacao?.productStockId ?? "",
       talhaoId: aplicacao?.talhaoId ?? "",
-      date: aplicacao ? new Date(aplicacao.date) : new Date(),
-      quantity: aplicacao?.quantity ?? 0,
-      notes: aplicacao?.notes ?? "",
-    },
-  });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<ApplicationFormData>({
-    resolver: zodResolver(aplicacaoSchema),
-    defaultValues: {
-      productStockId: aplicacao?.productStockId ?? "",
-      talhaoId: aplicacao?.talhaoId ?? "",
-      date: aplicacao ? new Date(aplicacao.date) : new Date(),
       quantity: aplicacao?.quantity ?? 0,
       notes: aplicacao?.notes ?? "",
     },
@@ -90,110 +59,83 @@ const UpsertApplicationModal = ({
 
   useEffect(() => {
     if (aplicacao) {
-      reset({
+      form.reset({
+        date: new Date(aplicacao.date),
         productStockId: aplicacao.productStockId,
         talhaoId: aplicacao.talhaoId,
-        date: new Date(aplicacao.date),
         quantity: aplicacao.quantity,
         notes: aplicacao?.notes || "",
       });
     } else {
-      reset();
+      form.reset();
     }
-  }, [aplicacao, isOpen, reset]);
+  }, [aplicacao, isOpen, form]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
+  const { data: talhoes = [] } = usePlots();
+  const { data: inputStocks = [] } = useInputStockQuery();
 
-      const [talhaoRes, farmRes, productStockRes] = await Promise.all([
-        fetch("/api/plots", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/farms", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/insumos/stock", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+  const cycle = getCycle();
 
-      const talhaoData = await talhaoRes.json();
-      const farmData = await farmRes.json();
-      const productStockData = await productStockRes.json();
+  const { mutate, isPending } = useUpsertInputApplication({
+    applicationId: aplicacao?.id,
+    cycleId: cycle?.id!,
+  });
 
-      setTalhao(talhaoData);
-      setFarms(farmData);
-      setProductStocks(productStockData);
-    };
-
-    if (isOpen) fetchData();
-  }, [isOpen]);
-
-  const onSubmit = async (data: ApplicationFormData) => {
-    setLoading(true);
-    const token = getToken();
-    const cycle = getCycle();
-    if (!cycle || !cycle.id) {
-      toast.error("Nenhum ciclo de produção selecionado.");
-      setLoading(false);
-      return;
-    }
-    const cycleId = cycle.id;
-    console.log("Dados enviados para API:", {
-      ...data,
-      cycleId,
+  const onSubmit = async (data: InputApplicationFormData) => {
+  if (!cycle?.id) {
+    showToast({
+      type: "error",
+      title: "Erro",
+      message: "Nenhum ciclo de produção selecionado.",
     });
+    return;
+  }
 
-    const url = aplicacao ? `/api/insumos/applications/${aplicacao.id}` : "/api/insumos/applications";
-    const method = aplicacao ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        ...data,
-        cycleId,
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      toast.warning(result.error || "Erro ao salvar plantio.", {
-        style: {
-          backgroundColor: "#F0C531",
-          color: "white",
-        },
-        icon: "❌",
-      });
-    } else {
-      toast.success(
-        aplicacao
-          ? "Aplicação atualizada com sucesso!"
-          : "Aplicação cadastrada com sucesso!",
-        {
-          style: {
-            backgroundColor: "#63B926",
-            color: "white",
-          },
-          icon: "✅",
-        }
-      );
-      onClose();
-      reset();
-      if (onApplicationCreated) onApplicationCreated();
-    }
-
-    setLoading(false);
+     mutate(data, {
+       onSuccess: () => {
+         showToast({
+           type: "success",
+           title: "Sucesso",
+           message: aplicacao
+             ? "Aplicação atualizada com sucesso!"
+             : "Aplicação cadastrada com sucesso!",
+         });
+       
+         onClose();
+         form.reset();
+       },
+       onError: (error: Error) => {
+         if (error instanceof ApiError) {
+           if (error.status === 402) {
+             showToast({
+               type: "info",
+               title: "Limite atingido",
+               message: error.message,
+             });
+             return;
+           }
+         
+         if (error.status === 401) {
+           showToast({
+             type: "info",
+             title: "Sessão expirada",
+             message: "Faça login novamente",
+           });
+           return;
+         }
+       }
+       showToast({
+         type: "error",
+         title: "Erro",
+         message: error.message,
+       });
+     },
+   });
   };
 
   useEffect(() => {
-    if (!isOpen) reset();
-  }, [isOpen, reset]);
+    if (!isOpen) form.reset();
+  }, [isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -214,17 +156,28 @@ const UpsertApplicationModal = ({
                   <FormItem>
                     <FormLabel>Produto</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full border rounded px-2 py-1"
-                      >
-                        <option value="" className="text-sm font-light">Selecione</option>
-                        {productStocks.map((c) => (
-                          <option key={c.id} value={c.id} className="text-sm font-light">
-                            {c.product.name}
-                          </option>
-                        ))}
-                      </select>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma insumo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {inputStocks.map((stock) => (
+                              <SelectItem key={stock.id} value={stock.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{stock.product.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Intl.NumberFormat("pt-BR", {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    }).format(stock.stock)}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -237,17 +190,20 @@ const UpsertApplicationModal = ({
                   <FormItem>
                     <FormLabel>Depósito</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full border rounded px-2 py-1"
-                      >
-                        <option value="" className="text-sm font-light">Selecione</option>
-                        {productStocks.map((c) => (
-                          <option key={c.id} value={c.id} className="text-sm font-light">
-                            {c.farm.name}
-                          </option>
-                        ))}
-                      </select>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um depósito de origem" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {inputStocks.map((stock) => (
+                              <SelectItem key={stock.id} value={stock.id}>
+                                {stock.farm.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -272,13 +228,7 @@ const UpsertApplicationModal = ({
                   control={form.control}
                   name="quantity"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quantidade (Kg)</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <QuantityInput label="Quantidade" field={field} />
                   )}
                 />
               </div>
@@ -290,17 +240,20 @@ const UpsertApplicationModal = ({
                   <FormItem>
                     <FormLabel>Talhão da Aplicação</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="w-full border rounded px-2 py-1"
-                      >
-                        <option value="" className="text-sm font-light">Selecione</option>
-                        {talhao.map((c) => (
-                          <option key={c.id} value={c.id} className="text-sm font-light">
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um depósito de destino" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {talhoes.map((talhao) => (
+                              <SelectItem key={talhao.id} value={talhao.id}>
+                                {talhao.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -314,7 +267,7 @@ const UpsertApplicationModal = ({
                   <FormItem>
                     <FormLabel>Observações</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Opcional" />
+                      <Input {...field} placeholder="Opcional" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -323,10 +276,10 @@ const UpsertApplicationModal = ({
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isPending}
                 className="w-full bg-green text-white mt-4"
               >
-                {loading ? <FaSpinner className="animate-spin" /> : "Salvar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
             </div>
           </form>

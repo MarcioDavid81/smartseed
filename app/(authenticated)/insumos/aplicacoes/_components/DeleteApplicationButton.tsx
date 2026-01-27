@@ -17,64 +17,29 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getToken } from "@/lib/auth-client";
+import { useCycle } from "@/contexts/CycleContext";
+import { useDeleteInputApplication } from "@/queries/input/use-input-application";
 import { Application } from "@/types/application";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 interface Props {
   aplicacao: Application;
-  onDeleted: () => void;
 }
 
-const DeleteApplicationButton = ({ aplicacao, onDeleted }: Props) => {
+const DeleteApplicationButton = ({ aplicacao }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { selectedCycle } = useCycle();
 
-  const handleDelete = async (aplicacao: { id: string }) => {
-    console.log("🔁 handleDelete chamado");
-    console.log("📦 aplicação recebida:", aplicacao);
+  const { mutate, isPending } = useDeleteInputApplication({
+    cycleId: selectedCycle!.id,
+  });
 
-    if (!aplicacao || !aplicacao.id) {
-      toast.error("ID da aplicação ausente. Não é possível excluir.");
-      console.warn("❌ aplicação.id ausente ou inválido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const token = getToken();
-      const url = `/api/insumos/applications/${aplicacao.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("📥 Resposta da API:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Erro ao deletar aplicação:", errorText);
-        throw new Error(errorText);
-      }
-
-      toast.success("Aplicação deletada com sucesso!");
-      onDeleted();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar aplicação.");
-    } finally {
-      setLoading(false);
-    }
+  const handleConfirmDelete = () => {
+    mutate(aplicacao.id, {
+      onSuccess: () => setIsOpen(false),
+    });
   };
 
   return (
@@ -109,13 +74,13 @@ const DeleteApplicationButton = ({ aplicacao, onDeleted }: Props) => {
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              onClick={() => handleDelete(aplicacao)}
-              disabled={loading}
+              onClick={handleConfirmDelete}
+              disabled={isPending}
               variant="ghost"
               className="border border-red-500 bg-transparent text-red-500 hover:text-red-500"
             >
               <span className="relative z-10 flex items-center gap-2">
-                {loading ? <FaSpinner className="animate-spin" /> : "Confirmar"}
+                {isPending ? <FaSpinner className="animate-spin" /> : "Confirmar"}
               </span>
             </Button>
           </AlertDialogAction>

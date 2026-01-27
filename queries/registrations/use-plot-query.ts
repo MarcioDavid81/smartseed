@@ -1,8 +1,9 @@
 import { getPlots } from "@/services/registrations/plot";
+import { Talhao } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 export function usePlots() {
-  return useQuery({
+  return useQuery<Talhao[]>({
     queryKey: ["plots"],
     queryFn: () => getPlots(),
     enabled: true,

@@ -13,10 +13,9 @@ import UpsertApplicationModal from "./UpsertApplicationModal";
 
 interface Props {
   aplicacao: Application;
-  onUpdated: () => void;
 }
 
-const UpsertApplicationButton = ({ aplicacao, onUpdated }: Props) => {
+const UpsertApplicationButton = ({ aplicacao }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -39,7 +38,6 @@ const UpsertApplicationButton = ({ aplicacao, onUpdated }: Props) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         aplicacao={aplicacao}
-        onUpdated={onUpdated}
       />
     </>
   );

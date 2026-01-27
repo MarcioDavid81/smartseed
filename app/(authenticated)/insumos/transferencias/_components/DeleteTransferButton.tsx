@@ -17,13 +17,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getToken } from "@/lib/auth-client";
 import { useDeleteInputTransfer } from "@/queries/input/use-input-transfer";
 import { Transfer } from "@/types/transfer";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 interface Props {
   transferencia: Transfer;
