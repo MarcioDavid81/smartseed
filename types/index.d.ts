@@ -25,6 +25,7 @@ export * from "./industryStock";
 export * from "./industryStockStatement";
 export * from "./industryTransfer";
 export * from "./industryTransporter";
+export * from "./inputStockStatement";
 export * from "./insumo";
 export * from "./machine";
 export * from "./maintenance";

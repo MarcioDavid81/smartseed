@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
 import { ProductType } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
+    const { searchParams } = new URL(req.url);
     const product = searchParams.get("product");
     const depositId = searchParams.get("depositId");
 
@@ -21,6 +25,7 @@ export async function GET(req: NextRequest) {
     // ✅ 1. COLHEITAS (ENTRADA)
     const harvests = await db.industryHarvest.findMany({
       where: {
+        companyId,
         product: product as ProductType,
         industryDepositId: depositId,
       },
@@ -29,6 +34,7 @@ export async function GET(req: NextRequest) {
     // ✅ 2. DESCARTES (ENTRADA)
     const discards = await db.beneficiation.findMany({
       where: {
+        companyId,
         cultivar: {
           product: product as ProductType,
         },
@@ -39,6 +45,7 @@ export async function GET(req: NextRequest) {
     // ✅ 3. VENDAS (SAÍDA)
     const sales = await db.industrySale.findMany({
       where: {
+        companyId,
         product: product as ProductType,
         industryDepositId: depositId,
       },
@@ -50,6 +57,7 @@ export async function GET(req: NextRequest) {
     // ✅ 4. TRANSFERÊNCIAS (SAÍDA)
     const transfersOut = await db.industryTransfer.findMany({
       where: {
+        companyId,
         product: product as ProductType,
         fromDepositId: depositId,
       },
@@ -61,6 +69,7 @@ export async function GET(req: NextRequest) {
     // ✅ 5. TRANSFERÊNCIAS (ENTRADA)
     const transfersIn = await db.industryTransfer.findMany({
       where: {
+        companyId,
         product: product as ProductType,
         toDepositId: depositId,
       },
@@ -72,6 +81,7 @@ export async function GET(req: NextRequest) {
     // ✅ 6. AJUSTES DE ESTOQUE (ENTRADA E SAÍDA)
     const adjustments = await db.industryStockAdjustment.findMany({
       where: {
+        companyId,
         product: product as ProductType,
         industryDepositId: depositId,
       },
@@ -80,6 +90,7 @@ export async function GET(req: NextRequest) {
     // ✅ 6. TRANSFORMAÇÕES (ENTRADA)
     const transformations = await db.transformation.findMany({
       where: {
+        companyId,
         cultivar: {
           product: product as ProductType,
         },
