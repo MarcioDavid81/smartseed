@@ -12,39 +12,36 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+
 import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import GenerateStockReportModal from "./GenerateStockReportModal";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
-import { FunnelX } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageSize?: number;
   searchFields?: string[];
-  sumColumnId?: string;
 }
 
-export function InsumosDataTable<TData, TValue>({
+export function InputStockStatementDataTable<TData, TValue>({
   columns,
   data,
-  pageSize = 8,
+  pageSize = 10,
   searchFields = [],
-  sumColumnId,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>([]);
+
   const table = useReactTable({
     data,
     columns,
@@ -56,9 +53,11 @@ export function InsumosDataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     filterFns: {
       fuzzy: (row, _, search) => {
-        const data = row.original;
-        return searchFields.some(field => data[field].includes(search));
-      }
+        const data = row.original as any;
+        return searchFields.some((field) =>
+          String(data[field]).toLowerCase().includes(String(search).toLowerCase())
+        );
+      },
     },
     globalFilterFn: "fuzzy" as FilterFnOption<TData>,
     state: {
@@ -67,61 +66,13 @@ export function InsumosDataTable<TData, TValue>({
     },
     initialState: {
       pagination: {
-        pageSize: pageSize,
+        pageSize,
       },
-    }
+    },
   });
-
-  const filteredRows = table.getFilteredRowModel().rows;
-  const totalInsumos = sumColumnId
-    ? filteredRows.reduce((acc, row) => {
-        const raw = row.getValue(sumColumnId as any);
-        const num = typeof raw === "number" ? raw : Number(raw);
-        return acc + (isNaN(num) ? 0 : num);
-      }, 0)
-    : 0;
 
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
-      <div className="flex items-center justify-between py-4">
-        <div className="flex gap-4">
-          <Input
-            placeholder="Procure por produto"
-            value={(table.getColumn("product")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("product")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm bg-gray-50 text-primary"
-          />
-          <Input
-            placeholder="Procure por classe"
-            value={(table.getColumn("class")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("class")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm bg-gray-50 text-primary"
-          />
-          <Input
-            placeholder="Procure por depósito"
-            value={(table.getColumn("farm")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("farm")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm bg-gray-50 text-primary"
-          />
-                    {table.getState().columnFilters.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => table.resetColumnFilters()}
-            className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
-          >
-            <FunnelX size={14} />
-              Limpar filtros
-          </Button>
-        )}
-        </div>
-      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -140,12 +91,13 @@ export function InsumosDataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
+
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-2 py-0">
+                    <TableCell key={cell.id} className="px-2 py-1">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -160,34 +112,15 @@ export function InsumosDataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Nenhum produto encontrado em estoque.
+                  Nenhuma movimentação encontrada.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={columns.length - 3} className="text-start text-muted-foreground">
-                <h3>Total</h3>
-              </TableCell>
-              <TableCell colSpan={2} className="text-start text-muted-foreground">                
-                {sumColumnId ? (
-                  <div>
-                    {new Intl.NumberFormat("pt-BR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }).format(totalInsumos)}
-                  </div>
-                ) : null}
-              </TableCell>
-            </TableRow>
-          </TableFooter>
         </Table>
       </div>
 
       {/* Paginação */}
-      <div className="flex items-center justify-between space-x-2 dark:text-primary">
-        <GenerateStockReportModal />
         <div className="flex items-center gap-1 justify-end">
           {/* Anterior */}
           <Button
@@ -238,7 +171,6 @@ export function InsumosDataTable<TData, TValue>({
             ›
           </Button>
         </div>
-      </div>
     </div>
   );
 }

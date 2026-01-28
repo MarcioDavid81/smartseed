@@ -9,6 +9,7 @@ import { ArrowUpDown, SquarePenIcon, Trash2Icon, RefreshCw } from "lucide-react"
 import { InsumosDataTable } from "./InsumosDataTable";
 import { AgroLoader } from "@/components/agro-loader";
 import { useInputStockQuery } from "@/queries/input/use-input-stock";
+import { InputExtractButton } from "./InputExtractButton";
 
 export function InsumosStockTable() {
 
@@ -53,14 +54,15 @@ export function InsumosStockTable() {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }).format(stock)}
-            <span>{` ${row.original.product.unit.toLocaleLowerCase()}`}</span>
           </div>
         );
       },
     },
     {
-      accessorKey: "farm",
+      id: "farm",
       header: () => <div className="text-left">Depósito</div>,
+      accessorFn: (row) => row.farm?.name ?? "-",
+      filterFn: "includesString",
       cell: ({ row: { original: insumo } }) => {
         return <div className="text-left">{insumo.farm?.name}</div>;
       },
@@ -71,25 +73,8 @@ export function InsumosStockTable() {
       cell: ({ row }) => {
         const insumo = row.original;
         return (
-          <div className="flex items-center justify-center gap-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                alert(`Editar ${insumo.product.name}`);
-              }}
-            >
-              <SquarePenIcon size={20} className="text-green" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                alert(`Excluir ${insumo.product.name}`);
-              }}
-            >
-              <Trash2Icon size={20} className="text-red-500" />
-            </Button>
+          <div className="flex items-center justify-center">
+            <InputExtractButton productId={insumo.product.id} farmId={insumo.farm.id} />
           </div>
         );
       },
@@ -107,7 +92,7 @@ export function InsumosStockTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <InsumosDataTable columns={columns} data={insumos} />
+        <InsumosDataTable columns={columns} data={insumos} sumColumnId="stock" />
       )}
     </Card>
   );
