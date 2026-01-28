@@ -24,11 +24,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import CreateHarvestButton from "./CreateHarvestButton";
-import GenerateHarvestReportModal from "./GenerateHarvestReportModal";
 import { FunnelX } from "lucide-react";
-import { HarvestDetailsModal } from "./HarvestDetailModal";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
+import CreateSaleContractButton from "./CreateSaleContractButton";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -38,7 +36,7 @@ interface DataTableProps<TData, TValue> {
   sumColumnId?: string;
 }
 
-export function HarvestDataTable<TData, TValue>({
+export function SaleContractDataTable<TData, TValue>({
   columns,
   data,
   pageSize = 8,
@@ -47,8 +45,6 @@ export function HarvestDataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
-  const [selectedHarvestId, setSelectedHarvestId] = useState<string | null>(null)
-  const [openDetailsModal, setOpenDetailsModal] = useState(false)
   const table = useReactTable({
     data,
     columns,
@@ -77,7 +73,7 @@ export function HarvestDataTable<TData, TValue>({
   });
 
   const filteredRows = table.getFilteredRowModel().rows;
-  const totalKg = sumColumnId
+  const total = sumColumnId
     ? filteredRows.reduce((acc, row) => {
         const raw = row.getValue(sumColumnId as any);
         const num = typeof raw === "number" ? raw : Number(raw);
@@ -90,42 +86,26 @@ export function HarvestDataTable<TData, TValue>({
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between py-4">
         <div className="flex items-center gap-2">
           <Input
-            placeholder="Procure por fazenda"
-            value={(table.getColumn("farm")?.getFilterValue() as string) ?? ""}
+            placeholder="Procure por cliente"
+            value={(table.getColumn("customer")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("farm")?.setFilterValue(event.target.value)
+              table.getColumn("customer")?.setFilterValue(event.target.value)
             }
-            className="max-w-sm bg-gray-50 text-primary"
+            className="w-full md:max-w-sm bg-gray-50 text-primary"
           />
-          <Input
-            placeholder="Procure por talhão"
-            value={(table.getColumn("talhao")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("talhao")?.setFilterValue(event.target.value)
-            }
-              className="max-w-sm bg-gray-50 text-primary"
-            />
-          <Input
-            placeholder="Procure por depósito"
-            value={(table.getColumn("industryDeposit")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("industryDeposit")?.setFilterValue(event.target.value)
-            }
-              className="max-w-sm bg-gray-50 text-primary"
-            />
-            {table.getState().columnFilters.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => table.resetColumnFilters()}
-                className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
-              >
-                <FunnelX size={14} />
-                Limpar filtros
-              </Button>
-            )}
+          {table.getState().columnFilters.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => table.resetColumnFilters()}
+                  className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+                >
+                  <FunnelX size={14} />
+                  Limpar filtros
+                </Button>
+              )}
         </div>
-        <CreateHarvestButton />
+        <CreateSaleContractButton />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -148,15 +128,7 @@ export function HarvestDataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow 
-                  key={row.id}
-                  onClick={() => {
-                    const harvestId = (row.original as any).id
-                    setSelectedHarvestId(harvestId)
-                    setOpenDetailsModal(true)
-                  }}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -189,7 +161,7 @@ export function HarvestDataTable<TData, TValue>({
                     {new Intl.NumberFormat("pt-BR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
-                    }).format(totalKg)} Kg
+                    }).format(total)}
                   </div>
                 ) : null}
               </TableCell>
@@ -200,7 +172,7 @@ export function HarvestDataTable<TData, TValue>({
 
       {/* Paginação */}
       <div className="flex items-center justify-between space-x-2 dark:text-primary">
-        <GenerateHarvestReportModal  />
+        {/* <GenerateSaleReportModal  /> */}
         <div className="flex items-center gap-1 justify-end">
           {/* Anterior */}
           <Button
@@ -212,7 +184,7 @@ export function HarvestDataTable<TData, TValue>({
           >
             ‹
           </Button>
-
+        
           {getPaginationItems(
             table.getState().pagination.pageIndex,
             table.getPageCount()
@@ -240,7 +212,7 @@ export function HarvestDataTable<TData, TValue>({
               </Button>
             )
           )}
-
+        
           {/* Próximo */}
           <Button
             variant="ghost"
@@ -252,11 +224,6 @@ export function HarvestDataTable<TData, TValue>({
           </Button>
         </div>
       </div>
-      <HarvestDetailsModal
-        harvestId={selectedHarvestId}
-        open={openDetailsModal}
-        onOpenChange={setOpenDetailsModal}
-      />
     </div>
   );
 }

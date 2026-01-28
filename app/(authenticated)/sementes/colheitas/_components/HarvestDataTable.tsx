@@ -124,7 +124,7 @@ export function HarvestDataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Nenhuma colheita encontrada.
+                  Nenhum registro encontrado.
                 </TableCell>
               </TableRow>
             )}

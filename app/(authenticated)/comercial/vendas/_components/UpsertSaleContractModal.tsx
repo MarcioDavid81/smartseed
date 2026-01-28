@@ -29,41 +29,44 @@ import {
   purchaseOrderSchema,
   PurchaseOrderFormData,
 } from "@/lib/schemas/purchaseOrderSchema";
-import { PurchaseOrder } from "@/types";
+import { Customer, PurchaseOrder, SaleContract } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PurchaseOrderType, Unit } from "@prisma/client";
-import { useEffect } from "react";
+import { PurchaseOrderType, SaleContractType, Unit } from "@prisma/client";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { useUpsertPurchaseOrder } from "@/queries/commercial/use-purchase-orders";
-import PurchaseOrderItemForm from "./PurchaseOrderItemForm";
+import SaleContractItemForm from "./SaleContractItemForm";
+import { getCustomers } from "@/services/registrations/customer";
 import { ComboBoxOption } from "@/components/combo-option";
 import { useCustomers } from "@/queries/registrations/use-customer";
+import { SaleContractFormData, saleContractSchema } from "@/lib/schemas/saleContractSchema";
+import { useUpsertSaleContract } from "@/queries/commercial/use-sale-contracts";
 
-interface UpsertPurchaseOrderModalProps {
-  compra?: PurchaseOrder;
+interface UpsertSaleContractModalProps {
+  venda?: SaleContract;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const UpsertPurchaseOrderModal = ({
+const UpsertSaleContractModal = ({
   isOpen,
   onClose,
-  compra,
-}: UpsertPurchaseOrderModalProps) => {
+  venda,
+}: UpsertSaleContractModalProps) => {
   const { showToast } = useSmartToast();
 
-  const form = useForm<PurchaseOrderFormData>({
-    resolver: zodResolver(purchaseOrderSchema),
+  const form = useForm<SaleContractFormData>({
+    resolver: zodResolver(saleContractSchema),
     defaultValues: {
-      type: compra?.type || PurchaseOrderType.INPUT_PURCHASE,
-      date: compra ? new Date(compra.date) : new Date(),
-      customerId: compra?.customerId || "",
-      document: compra?.document || "",
-      notes: compra?.notes || "",   
-      items: compra?.items.map((item) => ({
-        productId: item.productId ?? undefined,
-        cultivarId: item.cultivarId ?? undefined,
+      type: venda?.type || SaleContractType.INDUSTRY_SALE,
+      date: venda ? new Date(venda.date) : new Date(),
+      customerId: venda?.customerId || "",
+      document: venda?.document || "",
+      notes: venda?.notes || "",   
+      items: venda?.items.map((item) => ({
+        productId: item.product ?? undefined,
+        cultivarId: item.cultivar?.id ?? undefined,
         description: item.description ?? "",
         quantity: Number(item.quantity),
         unit: item.unit,
@@ -85,16 +88,16 @@ const UpsertPurchaseOrderModal = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    if (compra) {
+    if (venda) {
       form.reset({
-        type: compra.type,
-        date: new Date(compra.date),
-        customerId: compra.customerId,
-        document: compra.document ?? "",
-        notes: compra.notes ?? "",
-        items: compra.items.map((item) => ({
-          productId: item.productId ?? undefined,
-          cultivarId: item.cultivarId ?? undefined,
+        type: venda.type,
+        date: new Date(venda.date),
+        customerId: venda.customerId,
+        document: venda.document ?? "",
+        notes: venda.notes ?? "",
+        items: venda.items.map((item) => ({
+          productId: item.product ?? undefined,
+          cultivarId: item.cultivar?.id ?? undefined,
           description: item.description ?? "",
           quantity: Number(item.quantity),
           unit: item.unit,
@@ -105,22 +108,22 @@ const UpsertPurchaseOrderModal = ({
     } else {
       form.reset();
     }
-  }, [isOpen, compra, form]);
+  }, [isOpen, venda, form]);
 
-  const { mutate, isPending } = useUpsertPurchaseOrder({
-    purchaseOrderId: compra?.id,
+  const { mutate, isPending } = useUpsertSaleContract({
+    saleContractId: venda?.id,
   });
   
-  const onSubmit = (data: PurchaseOrderFormData) => {
+  const onSubmit = (data: SaleContractFormData) => {
     console.log(data)
     mutate(data, {
       onSuccess: () => {
         showToast({
           type: "success",
           title: "Sucesso",
-          message: compra
-            ? "Pedido de compra atualizado com sucesso!"
-            : "Pedido de compra cadastrado com sucesso!",
+          message: venda
+            ? "Venda atualizada com sucesso!"
+            : "Venda cadastrada com sucesso!",
         });
         onClose();
         form.reset();
@@ -139,9 +142,9 @@ const UpsertPurchaseOrderModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[900px]">
         <DialogHeader>
-          <DialogTitle>Pedido de Compra</DialogTitle>
+          <DialogTitle>Contrato de Venda</DialogTitle>
           <DialogDescription>
-            {compra ? "Editar pedido de compra" : "Novo pedido de compra"}
+            {venda ? "Editar venda" : "Nova venda"}
           </DialogDescription>
         </DialogHeader>
 
@@ -197,11 +200,11 @@ const UpsertPurchaseOrderModal = ({
                           <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={PurchaseOrderType.INPUT_PURCHASE}>
-                            Compra de Insumos
+                          <SelectItem value={SaleContractType.INDUSTRY_SALE}>
+                            Venda de Grão
                           </SelectItem>
-                          <SelectItem value={PurchaseOrderType.SEED_PURCHASE}>
-                            Compra de Sementes
+                          <SelectItem value={SaleContractType.SEED_SALE}>
+                            Venda de Sementes
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -265,7 +268,7 @@ const UpsertPurchaseOrderModal = ({
               </div>
 
               {fields.map((_, index) => (
-                <PurchaseOrderItemForm
+                <SaleContractItemForm
                   key={index}
                   form={form}
                   index={index}
@@ -289,4 +292,4 @@ const UpsertPurchaseOrderModal = ({
   );
 };
 
-export default UpsertPurchaseOrderModal;
+export default UpsertSaleContractModal;

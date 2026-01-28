@@ -2,24 +2,24 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "@/components/ui/card";
-import { PurchaseOrder } from "@/types";
+import { PurchaseOrder, SaleContract } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { AgroLoader } from "@/components/agro-loader";
 import { LoadingData } from "@/components/loading-data";
-import { usePurchaseOrders } from "@/queries/commercial/use-purchase-orders";
-import { PurchaseOrderDataTable } from "./PurchaseOrderDataTable";
+import { useSaleContracts } from "@/queries/commercial/use-sale-contracts";
+import { SaleContractDataTable } from "./SaleContractDataTable";
 
-export function ListPurchaseOrderTable() {
+export function ListSaleContractTable() {
 
   const {
-      data: orderPurchase = [],
+      data: saleContracts = [],
       isLoading,
       isFetching,
       refetch,
-    } = usePurchaseOrders();
+    } = useSaleContracts();
 
-  const columns: ColumnDef<PurchaseOrder>[] = [
+  const columns: ColumnDef<SaleContract>[] = [
     {
       accessorKey: "date",
       header: ({ column }) => (
@@ -56,9 +56,9 @@ export function ListPurchaseOrderTable() {
         if (!items.length) return "-";
 
         const labels =
-          type === "INPUT_PURCHASE"
+          type === "INDUSTRY_SALE"
             ? items
-                .map(item => item.product?.name)
+                .map(item => item.product)
                 .filter(Boolean)
             : items
                 .map(item => item.cultivar?.name)
@@ -105,7 +105,7 @@ export function ListPurchaseOrderTable() {
   return (
     <Card className="p-4 dark:bg-primary font-light">
       <div className="flex items-center gap-2 mb-2">
-        <h2 className="font-light">Lista de Pedidos de Compra</h2>
+        <h2 className="font-light">Lista de Contratos de Venda</h2>
         <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
         </Button>
@@ -113,7 +113,7 @@ export function ListPurchaseOrderTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <PurchaseOrderDataTable columns={columns} data={orderPurchase} sumColumnId="quantity" />
+        <SaleContractDataTable columns={columns} data={saleContracts} sumColumnId="quantity" />
       )}
     </Card>
   );
