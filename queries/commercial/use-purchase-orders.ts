@@ -8,8 +8,6 @@ export function usePurchaseOrders() {
   return useQuery({
     queryKey: ["purchase-orders"],
     queryFn: () => getPurchaseOrders(),
-    enabled: true,
-    refetchOnWindowFocus: true,
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }

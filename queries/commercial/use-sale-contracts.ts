@@ -8,8 +8,6 @@ export function useSaleContracts() {
   return useQuery({
     queryKey: ["sale-contracts"],
     queryFn: () => getSaleContracts(),
-    enabled: true,
-    refetchOnWindowFocus: true,
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }
@@ -25,6 +23,7 @@ export function useUpsertSaleContract({ saleContractId }: Params) {
     mutationFn: (data: SaleContractFormData) =>
       upsertSaleContract({
         data,
+        saleContractId,
       }),
 
     onSuccess: (savedSaleContract) => {
