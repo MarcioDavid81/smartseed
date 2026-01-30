@@ -4,7 +4,6 @@ import { UNIT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/commercial";
 import { PRODUCT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/products";
 import { ComboBoxOption } from "@/components/combo-option";
 import { MoneyInput, QuantityInput } from "@/components/inputs";
-import { Button } from "@/components/ui/button";
 import {
   FormControl,
   FormField,
@@ -14,13 +13,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PurchaseOrderFormData } from "@/lib/schemas/purchaseOrderSchema";
 import { SaleContractFormData } from "@/lib/schemas/saleContractSchema";
-import { useInputProductQuery } from "@/queries/input/use-input";
 import { useSeedCultivarQuery } from "@/queries/seed/use-seed-cultivar-query";
-import { PurchaseOrderType, SaleContractType } from "@prisma/client";
+import { SaleContractType } from "@prisma/client";
+import { Trash2Icon } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
-import { FaTrash } from "react-icons/fa";
 
 interface SaleContractItemFormProps {
   form: UseFormReturn<SaleContractFormData>;
@@ -44,7 +41,7 @@ const SaleContractItemForm = ({
 
   return (
     <div className="rounded-lg border p-4 space-y-4">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         {/* Produto ou Cultivar conforme o tipo da ordem */}
         {orderType === SaleContractType.INDUSTRY_SALE ? (
           <FormField
@@ -89,20 +86,6 @@ const SaleContractItemForm = ({
             )}
           />
         )}
-
-        {/* Descrição */}
-        <FormField
-          control={form.control}
-          name={`items.${index}.description`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
 
         {/* Quantidade */}
         <FormField
@@ -149,9 +132,8 @@ const SaleContractItemForm = ({
             <MoneyInput label="Preço Unitário" field={field} />
           )}
         />
-      </div>
 
-      <div className="flex items-center justify-between">
+        {/* Preço total */}
         <FormField
           control={form.control}
           name={`items.${index}.totalPrice`}
@@ -159,14 +141,36 @@ const SaleContractItemForm = ({
             <MoneyInput label="Preço Total" field={field} readonly />
           )}
         />
+      </div>
 
-        <Button
-          type="button"
-          variant="destructive"
-          onClick={onRemove}
-        >
-          <FaTrash />
-        </Button>
+      <div className="grid grid-cols-10 gap-4 items-end">
+
+        {/* Descrição */}
+        <div className="col-span-9">
+          <FormField
+            control={form.control}
+            name={`items.${index}.description`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Descrição</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Lixeira */}
+        <div className="flex items-center mb-2 justify-center">
+          <button
+            type="button"
+            onClick={onRemove}
+            className="transition hover:opacity-80"
+          >
+            <Trash2Icon size={20} className="text-red-500" />
+          </button>
+        </div>
       </div>
     </div>
   );

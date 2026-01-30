@@ -9,6 +9,8 @@ import { AgroLoader } from "@/components/agro-loader";
 import { LoadingData } from "@/components/loading-data";
 import { useSaleContracts } from "@/queries/commercial/use-sale-contracts";
 import { SaleContractDataTable } from "./SaleContractDataTable";
+import EditSaleContractButton from "./EditSaleContractButton";
+import DeleteSaleContractButton from "./DeleteSaleContractButton";
 
 export function ListSaleContractTable() {
 
@@ -92,10 +94,11 @@ export function ListSaleContractTable() {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
-        const compra = row.original;
+        const venda = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            Botões
+            <EditSaleContractButton venda={venda} />
+            <DeleteSaleContractButton venda={venda} />
           </div>
         );
       },

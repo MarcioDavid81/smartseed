@@ -25,23 +25,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSmartToast } from "@/contexts/ToastContext";
-import {
-  purchaseOrderSchema,
-  PurchaseOrderFormData,
-} from "@/lib/schemas/purchaseOrderSchema";
-import { Customer, PurchaseOrder, SaleContract } from "@/types";
+import { SaleContract } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PurchaseOrderType, SaleContractType, Unit } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { SaleContractType, Unit } from "@prisma/client";
+import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { useUpsertPurchaseOrder } from "@/queries/commercial/use-purchase-orders";
 import SaleContractItemForm from "./SaleContractItemForm";
-import { getCustomers } from "@/services/registrations/customer";
 import { ComboBoxOption } from "@/components/combo-option";
 import { useCustomers } from "@/queries/registrations/use-customer";
 import { SaleContractFormData, saleContractSchema } from "@/lib/schemas/saleContractSchema";
 import { useUpsertSaleContract } from "@/queries/commercial/use-sale-contracts";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface UpsertSaleContractModalProps {
   venda?: SaleContract;
@@ -64,14 +59,16 @@ const UpsertSaleContractModal = ({
       customerId: venda?.customerId || "",
       document: venda?.document || "",
       notes: venda?.notes || "",   
-      items: venda?.items.map((item) => ({
-        productId: item.product ?? undefined,
-        cultivarId: item.cultivar?.id ?? undefined,
-        description: item.description ?? "",
-        quantity: Number(item.quantity),
-        unit: item.unit,
-        unityPrice: Number(item.unityPrice),
-        totalPrice: Number(item.totalPrice),
+      items: 
+        venda?.items.map((item) => ({
+          id: item.id,
+          product: item.product ?? undefined,
+          cultivarId: item.cultivar?.id ?? undefined,
+          description: item.description ?? "",
+          quantity: Number(item.quantity),
+          unit: item.unit,
+          unityPrice: Number(item.unityPrice),
+          totalPrice: Number(item.totalPrice),
       })) || [],      
     },
   });
@@ -96,7 +93,8 @@ const UpsertSaleContractModal = ({
         document: venda.document ?? "",
         notes: venda.notes ?? "",
         items: venda.items.map((item) => ({
-          productId: item.product ?? undefined,
+          id: item.id,
+          product: item.product ?? undefined,
           cultivarId: item.cultivar?.id ?? undefined,
           description: item.description ?? "",
           quantity: Number(item.quantity),
@@ -115,7 +113,6 @@ const UpsertSaleContractModal = ({
   });
   
   const onSubmit = (data: SaleContractFormData) => {
-    console.log(data)
     mutate(data, {
       onSuccess: () => {
         showToast({
@@ -140,7 +137,7 @@ const UpsertSaleContractModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[900px]">
+      <DialogContent className="max-h-[95vh] sm:max-w-[900px] flex flex-col">
         <DialogHeader>
           <DialogTitle>Contrato de Venda</DialogTitle>
           <DialogDescription>
@@ -248,7 +245,7 @@ const UpsertSaleContractModal = ({
             />
 
             {/* ---------- Itens ---------- */}
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4 flex-1">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg">Itens</h3>
                 <Button
@@ -266,16 +263,19 @@ const UpsertSaleContractModal = ({
                   + Adicionar item
                 </Button>
               </div>
-
-              {fields.map((_, index) => (
-                <SaleContractItemForm
-                  key={index}
-                  form={form}
-                  index={index}
-                  onRemove={() => remove(index)}
-                  orderType={orderType}
-                />
-              ))}
+              <ScrollArea className="h-[250px]">
+                <div className="space-y-4">
+                  {fields.map((_, index) => (
+                    <SaleContractItemForm
+                      key={index}
+                      form={form}
+                      index={index}
+                      onRemove={() => remove(index)}
+                      orderType={orderType}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
 
             <Button

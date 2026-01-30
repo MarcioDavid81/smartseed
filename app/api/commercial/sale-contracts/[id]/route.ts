@@ -1,44 +1,106 @@
+import { SaleContractDomainService } from "@/core/domain/sale-contract/sale-contract-domain.service";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
+import { saleContractSchema } from "@/lib/schemas/saleContractSchema";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PUT (
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+type Params = {
+  params: {
+    id: string;
+  };
+};
+
+export async function PUT(req: NextRequest, { params }: Params) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
 
-    const { id } = params;
-    const data = await req.json();
+    const body = await req.json();
 
-    const existing = await db.saleContract.findUnique({
-      where: { id },
-    });
-
-    if (!existing || existing.companyId !== companyId) {
+    const parsed = saleContractSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
         {
           error: {
-            code: "NOT_FOUND",
-            title: "Recurso não encontrado",
-            message:
-              "Contrato de venda não encontrada ou não pertence à empresa do usuário",
+            code: "INVALID_DATA",
+            message: parsed.error.issues[0].message,
           },
         },
-        { status: 403 },
+        { status: 400 },
       );
     }
 
-    const updated = await db.saleContract.update({
-      where: { id },
-      data,
+    const { items, ...contractData } = parsed.data;
+
+    const saleContract = await db.saleContract.findUnique({
+      where: {
+        id: params.id,
+        companyId,
+      },
+      include: {
+        items: true,
+      },
     });
 
-    return NextResponse.json(updated, { status: 200 });
+    if (!saleContract) {
+      return NextResponse.json(
+        { error: "Contrato de venda não encontrado" },
+        { status: 404 },
+      );
+    }
+
+    await db.$transaction(async (tx) => {
+      // 🟢 atualiza cabeçalho
+      await tx.saleContract.update({
+        where: { id: saleContract.id },
+        data: contractData,
+      });
+
+      // 🟢 remove itens antigos
+      await tx.saleContractItem.deleteMany({
+        where: { saleContractId: saleContract.id },
+      });
+
+      
+      // 🟢 recria itens
+      for (const item of items) {
+        await SaleContractDomainService.validateItemCreate(
+          tx,
+          saleContract.id,
+          item.quantity,
+        );
+        await tx.saleContractItem.create({
+          data: {
+            ...item,
+            saleContractId: saleContract.id,
+          },
+        });
+      }
+    });
+
+    return NextResponse.json(
+      { message: "Contrato de venda atualizado com sucesso" },
+      { status: 200 },
+    );
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message ===
+        "Quantidade insuficiente em estoque para o item do contrato de venda"
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "CANNOT_UPDATE",
+            title: "Atualização não permitida",
+            message:
+              "A quantidade solicitada para o item do contrato de venda excede a disponível em estoque. Por favor, revise a quantidade e tente novamente.",
+          },
+        },
+        { status: 409 },
+      );
+    }
     console.error("Erro ao atualizar venda:", error);
     return NextResponse.json(
       {
@@ -54,7 +116,7 @@ export async function PUT (
   }
 }
 
-export async function DELETE (
+export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
@@ -65,30 +127,68 @@ export async function DELETE (
 
     const { id } = params;
 
-    const existing = await db.saleContract.findUnique({
+    const saleContract = await db.saleContract.findUnique({
       where: { id },
+      select: { id: true, companyId: true },
     });
 
-    if (!existing || existing.companyId !== companyId) {
+    if (!saleContract || saleContract.companyId !== companyId) {
       return NextResponse.json(
         {
           error: {
             code: "NOT_FOUND",
             title: "Recurso não encontrado",
             message:
-              "Contrato de venda não encontrada ou não pertence à empresa do usuário",
+              "Contrato de venda não encontrado ou não pertence à empresa do usuário",
           },
         },
-        { status: 403 },
+        { status: 404 },
       );
     }
 
-    await db.saleContract.delete({
-      where: { id },
+    await db.$transaction(async (tx) => {
+      const canDelete = await SaleContractDomainService.canDeleteContract(tx, id);
+
+      if (!canDelete) {
+        throw new Error(
+          "Contrato de venda possui movimentações e não pode ser excluído",
+        );
+      }
+
+      // 1️⃣ remove os itens primeiro
+      await tx.saleContractItem.deleteMany({
+        where: { saleContractId: id },
+      });
+
+      // 2️⃣ agora remove o contrato
+      await tx.saleContract.delete({
+        where: { id },
+      });
     });
 
-    return NextResponse.json({ message: "Contrato de venda excluído com sucesso" }, { status: 200 });
-    } catch (error) {
+    return NextResponse.json(
+      { message: "Contrato de venda excluído com sucesso" },
+      { status: 200 },
+    );
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message ===
+        "Contrato de venda possui movimentações e não pode ser excluído"
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "CANNOT_DELETE",
+            title: "Exclusão não permitida",
+            message:
+              "Não é possível excluir o contrato de venda pois existem movimentações vinculadas",
+          },
+        },
+        { status: 409 },
+      );
+    }
+
     console.error("Erro ao excluir contrato de venda:", error);
     return NextResponse.json(
       {

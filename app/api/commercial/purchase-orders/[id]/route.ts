@@ -84,6 +84,23 @@ export async function PUT(req: NextRequest, { params }: Params) {
       { status: 200 },
     );
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message ===
+        "Quantidade insuficiente em estoque para o item da ordem de compra"
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "CANNOT_UPDATE",
+            title: "Atualização não permitida",
+            message:
+              "A quantidade solicitada para o item da ordem de compra excede a disponível em estoque. Por favor, revise a quantidade e tente novamente.",
+          },
+        },
+        { status: 409 },
+      );
+    }
     console.error("Erro ao atualizar ordem de compra:", error);
     return NextResponse.json(
       { error: "Erro interno do servidor" },
