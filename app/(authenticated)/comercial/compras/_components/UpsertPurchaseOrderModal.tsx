@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSmartToast } from "@/contexts/ToastContext";
 import {
   purchaseOrderSchema,
@@ -60,16 +61,18 @@ const UpsertPurchaseOrderModal = ({
       date: compra ? new Date(compra.date) : new Date(),
       customerId: compra?.customerId || "",
       document: compra?.document || "",
-      notes: compra?.notes || "",   
-      items: compra?.items.map((item) => ({
-        productId: item.productId ?? undefined,
-        cultivarId: item.cultivarId ?? undefined,
-        description: item.description ?? "",
-        quantity: Number(item.quantity),
-        unit: item.unit,
-        unityPrice: Number(item.unityPrice),
-        totalPrice: Number(item.totalPrice),
-      })) || [],      
+      notes: compra?.notes || "",
+      items:
+        compra?.items.map((item) => ({
+          id: item.id,
+          productId: item.productId ?? undefined,
+          cultivarId: item.cultivarId ?? undefined,
+          description: item.description ?? "",
+          quantity: Number(item.quantity),
+          unit: item.unit,
+          unityPrice: Number(item.unityPrice),
+          totalPrice: Number(item.totalPrice),
+        })) || [],
     },
   });
 
@@ -79,7 +82,6 @@ const UpsertPurchaseOrderModal = ({
   });
 
   const orderType = form.watch("type");
-
   const { data: customers = [] } = useCustomers();
 
   useEffect(() => {
@@ -93,6 +95,7 @@ const UpsertPurchaseOrderModal = ({
         document: compra.document ?? "",
         notes: compra.notes ?? "",
         items: compra.items.map((item) => ({
+          id: item.id,
           productId: item.productId ?? undefined,
           cultivarId: item.cultivarId ?? undefined,
           description: item.description ?? "",
@@ -110,9 +113,8 @@ const UpsertPurchaseOrderModal = ({
   const { mutate, isPending } = useUpsertPurchaseOrder({
     purchaseOrderId: compra?.id,
   });
-  
+
   const onSubmit = (data: PurchaseOrderFormData) => {
-    console.log(data)
     mutate(data, {
       onSuccess: () => {
         showToast({
@@ -137,7 +139,8 @@ const UpsertPurchaseOrderModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[900px]">
+      <DialogContent className="max-h-[95vh] sm:max-w-[900px] flex flex-col">
+        {/* ---------- Header ---------- */}
         <DialogHeader>
           <DialogTitle>Pedido de Compra</DialogTitle>
           <DialogDescription>
@@ -145,32 +148,102 @@ const UpsertPurchaseOrderModal = ({
           </DialogDescription>
         </DialogHeader>
 
+        {/* ---------- Form ---------- */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* ---------- Cabeçalho ---------- */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col flex-1 gap-6"
+          >
+            {/* ---------- Dados principais ---------- */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="document"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Documento</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo do pedido</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={fields.length > 0}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={PurchaseOrderType.INPUT_PURCHASE}>
+                              Compra de Insumos
+                            </SelectItem>
+                            <SelectItem value={PurchaseOrderType.SEED_PURCHASE}>
+                              Compra de Sementes
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="customerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cliente</FormLabel>
+                      <FormControl>
+                        <ComboBoxOption
+                          value={field.value}
+                          onChange={field.onChange}
+                          options={customers.map((customer) => ({
+                            label: customer.name,
+                            value: customer.id,
+                          }))}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
-                name="document"
+                name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Documento</FormLabel>
+                    <FormLabel>Observações</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -179,73 +252,8 @@ const UpsertPurchaseOrderModal = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              {/* Tipo do pedido */}
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo do pedido</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={fields.length > 0}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={PurchaseOrderType.INPUT_PURCHASE}>
-                            Compra de Insumos
-                          </SelectItem>
-                          <SelectItem value={PurchaseOrderType.SEED_PURCHASE}>
-                            Compra de Sementes
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="customerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cliente</FormLabel>
-                    <FormControl>
-                      <ComboBoxOption
-                        value={field.value}
-                        onChange={field.onChange}
-                        options={customers.map((customer) => ({
-                          label: customer.name,
-                          value: customer.id,
-                        }))}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observações</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            {/* ---------- Itens ---------- */}
-            <div className="space-y-4">
+            {/* ---------- Itens (SCROLL) ---------- */}
+            <div className="flex flex-col gap-4 flex-1">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg">Itens</h3>
                 <Button
@@ -264,17 +272,22 @@ const UpsertPurchaseOrderModal = ({
                 </Button>
               </div>
 
-              {fields.map((_, index) => (
-                <PurchaseOrderItemForm
-                  key={index}
-                  form={form}
-                  index={index}
-                  onRemove={() => remove(index)}
-                  orderType={orderType}
-                />
-              ))}
+              <ScrollArea className="h-[250px]">
+                <div className="space-y-4">
+                  {fields.map((_, index) => (
+                    <PurchaseOrderItemForm
+                      key={index}
+                      form={form}
+                      index={index}
+                      onRemove={() => remove(index)}
+                      orderType={orderType}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
 
+            {/* ---------- Footer ---------- */}
             <Button
               type="submit"
               disabled={isPending}

@@ -9,6 +9,8 @@ import { AgroLoader } from "@/components/agro-loader";
 import { LoadingData } from "@/components/loading-data";
 import { usePurchaseOrders } from "@/queries/commercial/use-purchase-orders";
 import { PurchaseOrderDataTable } from "./PurchaseOrderDataTable";
+import EditPurchaseOrderButton from "./EditPurchaseOrderButton";
+import DeletePurchaseOrderButton from "./DeletePurchaseOrderButton";
 
 export function ListPurchaseOrderTable() {
 
@@ -95,7 +97,8 @@ export function ListPurchaseOrderTable() {
         const compra = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            Botões
+            <EditPurchaseOrderButton compra={compra} />
+            <DeletePurchaseOrderButton compra={compra} />
           </div>
         );
       },
