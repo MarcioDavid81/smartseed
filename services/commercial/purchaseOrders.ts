@@ -10,6 +10,15 @@ export async function getPurchaseOrders(): Promise<PurchaseOrder[]> {
   return data;
 }
 
+export async function getPurchaseOrderById(
+  purchaseOrderId: string,
+): Promise<PurchaseOrder> {
+  const data = await apiFetch<PurchaseOrder>(
+    `/api/commercial/purchase-orders/${purchaseOrderId}`,
+  );
+  return data;
+}
+
 type UpsertPurchaseOrderParams = {
   data: PurchaseOrderFormData;
   purchaseOrderId?: string;

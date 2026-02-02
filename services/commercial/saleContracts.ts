@@ -10,6 +10,15 @@ export async function getSaleContracts(): Promise<SaleContract[]> {
   return data;
 }
 
+export async function getSaleContractById(
+  saleContractId: string,
+): Promise<SaleContract> {
+  const data = await apiFetch<SaleContract>(
+    `/api/commercial/sale-contracts/${saleContractId}`,
+  );
+  return data;
+}
+
 type UpsertSaleContractParams = {
   data: SaleContractFormData;
   saleContractId?: string;
