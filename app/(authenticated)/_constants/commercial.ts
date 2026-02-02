@@ -1,4 +1,4 @@
-import { PurchaseOrderType, SaleContractType, Unit } from "@prisma/client";
+import { ComercialStatus, PurchaseOrderType, SaleContractType, Unit } from "@prisma/client";
 
 export const PURCHASE_TYPE_LABELS = {
   SEED_PURCHASE: "Compra de Semente",
@@ -75,5 +75,31 @@ export const UNIT_TYPE_OPTIONS = [
   {
     value: Unit.TN,
     label: UNIT_TYPE_LABELS.TN,
+  },
+]
+
+export const COMMERCIAL_STATUS_TYPE_LABELS = {
+  OPEN: "ABERTO",
+  PARTIAL_FULFILLED: "PARCIALMENTE ENTREGUE",
+  FULFILLED: "ENTREGUE",
+  CANCELED: "CANCELADO",
+}
+
+export const COMMERCIAL_STATUS_TYPE_OPTIONS = [
+  {
+    value: ComercialStatus.OPEN,
+    label: COMMERCIAL_STATUS_TYPE_LABELS.OPEN,
+  },
+  {
+    value: ComercialStatus.PARTIAL_FULFILLED,
+    label: COMMERCIAL_STATUS_TYPE_LABELS.PARTIAL_FULFILLED,
+  },
+  {
+    value: ComercialStatus.FULFILLED,
+    label: COMMERCIAL_STATUS_TYPE_LABELS.FULFILLED,
+  },
+  {
+    value: ComercialStatus.CANCELED,
+    label: COMMERCIAL_STATUS_TYPE_LABELS.CANCELED,
   },
 ]

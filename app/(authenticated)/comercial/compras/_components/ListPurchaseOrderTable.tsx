@@ -11,6 +11,9 @@ import { usePurchaseOrders } from "@/queries/commercial/use-purchase-orders";
 import { PurchaseOrderDataTable } from "./PurchaseOrderDataTable";
 import EditPurchaseOrderButton from "./EditPurchaseOrderButton";
 import DeletePurchaseOrderButton from "./DeletePurchaseOrderButton";
+import { COMMERCIAL_STATUS_TYPE_LABELS } from "@/app/(authenticated)/_constants/commercial";
+import { Badge } from "@/components/ui/badge";
+import { CommercialStatusBadge } from "@/app/(authenticated)/_components/CommercialStatusBadge";
 
 export function ListPurchaseOrderTable() {
 
@@ -88,6 +91,13 @@ export function ListPurchaseOrderTable() {
             }).format(quantity)}
           </div>
         );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row: { original } }) => {
+        return <CommercialStatusBadge status={original.status} />
       },
     },
     {
