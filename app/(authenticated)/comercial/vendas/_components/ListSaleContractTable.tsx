@@ -11,6 +11,7 @@ import { useSaleContracts } from "@/queries/commercial/use-sale-contracts";
 import { SaleContractDataTable } from "./SaleContractDataTable";
 import EditSaleContractButton from "./EditSaleContractButton";
 import DeleteSaleContractButton from "./DeleteSaleContractButton";
+import { CommercialStatusBadge } from "@/app/(authenticated)/_components/CommercialStatusBadge";
 
 export function ListSaleContractTable() {
 
@@ -88,6 +89,13 @@ export function ListSaleContractTable() {
             }).format(quantity)}
           </div>
         );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row: { original } }) => {
+        return <CommercialStatusBadge status={original.status} />
       },
     },
     {

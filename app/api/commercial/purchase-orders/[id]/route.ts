@@ -197,3 +197,51 @@ export async function DELETE(
     );
   }
 }
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+    
+    const { id } = params;
+
+    const purchaseOrder = await db.purchaseOrder.findUnique({
+      where: { id },
+      include: {
+        items: true,
+      },
+    });
+
+    if (!purchaseOrder || purchaseOrder.companyId !== companyId) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "NOT_FOUND",
+            title: "Recurso não encontrado",
+            message:
+              "Ordem de compra não encontrada ou não pertence à empresa do usuário",
+          },
+        },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(purchaseOrder, { status: 200 });
+  } catch (error) {
+    console.error("Erro ao buscar ordem de compra:", error);
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_ERROR",
+          title: "Erro interno",
+          message: "Erro interno no servidor",
+        }
+      },
+      { status: 500 },
+    );
+  }
+}
