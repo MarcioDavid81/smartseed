@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { generateHarvestRomaneio } from '@/lib/generate-harvest-romaneio'
-import { HarvestRomaneioPDF, IndustryHarvest } from '@/types'
+import { IndustryHarvest } from '@/types'
 import React from 'react'
 
 type Props = {

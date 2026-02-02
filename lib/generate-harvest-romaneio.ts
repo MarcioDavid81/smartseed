@@ -199,6 +199,46 @@ export function generateHarvestRomaneio(data: IndustryHarvest) {
   });
 
   /* =========================
+     RODAPÉ
+  ========================= */
+
+  const now = new Date();
+  const formattedDate = now.toLocaleString("pt-BR");
+
+  const getTotalPages = () => {
+    const internal = (doc as any).internal;
+    if (internal?.getNumberOfPages) return internal.getNumberOfPages() as number;
+    if ((doc as any).getNumberOfPages) return (doc as any).getNumberOfPages() as number;
+    return 1;
+  };
+
+  const totalPages = getTotalPages();
+
+  for (let page = 1; page <= totalPages; page++) {
+    (doc as any).setPage?.(page);
+
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const footerY = pageHeight - 10;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+
+    doc.text(
+      `Romaneio gerado em ${formattedDate}`,
+      marginX,
+      footerY,
+    );
+
+    const centerText = "Sistema Smart Seed";
+    const centerTextWidth = doc.getTextWidth(centerText);
+    doc.text(centerText, pageWidth / 2 - centerTextWidth / 2, footerY);
+
+    doc.text(`${page}/${totalPages}`, pageWidth - marginX, footerY, {
+      align: "right",
+    });
+  }
+
+  /* =========================
      FINALIZA
   ========================= */
 
