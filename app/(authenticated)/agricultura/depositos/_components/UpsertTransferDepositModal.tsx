@@ -23,14 +23,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
 import { ApiError } from "@/lib/http/api-error";
 import { CreateIndustryTransferFormData, createIndustryTransferSchema } from "@/lib/schemas/industryTransferSchema";
+import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
 import { useUpsertIndustryTransfer } from "@/queries/industry/use-upsert-industry-transfer";
-import { IndustryDeposit, IndustryTransfer } from "@/types";
+import { IndustryTransfer } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProductType } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 
@@ -46,7 +46,6 @@ const UpsertTransferDepositModal = ({
   isOpen,
   onClose,
 }: UpsertTransferDepositModalProps) => {
-  const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const { showToast } = useSmartToast();
 
   const form = useForm<CreateIndustryTransferFormData>({
@@ -78,21 +77,7 @@ const UpsertTransferDepositModal = ({
     }
   }, [transferencia, isOpen, form]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
-
-      const depositRes = await fetch("/api/industry/deposit", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const depositData = await depositRes.json();
-
-      setDeposits(depositData);
-    };
-
-    if (isOpen) fetchData();
-  }, [isOpen]);
+  const { data: deposits = [] } = useIndustryDeposits();
 
   const { mutate, isPending } = useUpsertIndustryTransfer({
     transferId: transferencia?.id,

@@ -12,14 +12,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useCycle } from "@/contexts/CycleContext";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { IndustryHarvestFormData, industryHarvestSchema } from "@/lib/schemas/industryHarvest";
 import {
-  IndustryDeposit,
-  IndustryHarvest,
-  IndustryTransporter
-} from "@/types";
+  IndustryHarvest} from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -29,6 +25,8 @@ import { ComboBoxOption } from "@/components/combo-option";
 import { normalizeNumber } from "@/app/_helpers/normalize-number";
 import { useUpsertIndustryHarvest } from "@/queries/industry/use-upsert-industry-harvest";
 import { ApiError } from "@/lib/http/api-error";
+import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
+import { useIndustryTransporters } from "@/queries/industry/use-transporter-query";
 
 interface UpsertHarvestModalProps {
   colheita?: IndustryHarvest;
@@ -47,8 +45,6 @@ const UpsertHarvestModal = ({
   isOpen,
   onClose,
 }: UpsertHarvestModalProps) => {
-  const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
-  const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
   const [talhoes, setTalhoes] = useState<TalhaoOption[]>([]);
   const { selectedCycle } = useCycle();
   const { showToast } = useSmartToast();
@@ -134,27 +130,8 @@ const UpsertHarvestModal = ({
     }
   }, [colheita, isOpen, form]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
-
-      const [depositoRes, transporterRes] = await Promise.all([
-        fetch("/api/industry/deposit", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/industry/transporter", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-      
-      const depositoData = await depositoRes.json();
-      const transporterData = await transporterRes.json();
-      setDeposits(depositoData);
-      setTransporters(transporterData);
-    };
-
-    if (isOpen) fetchData();
-  }, [isOpen]);
+  const { data: deposits = [] } = useIndustryDeposits();
+  const { data: transporters = [] } = useIndustryTransporters();
 
   useEffect(() => {
     if (selectedCycle?.talhoes?.length) {

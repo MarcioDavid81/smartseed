@@ -12,22 +12,19 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCycle } from "@/contexts/CycleContext";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { ApiError } from "@/lib/http/api-error";
 import { IndustrySaleFormData, industrySaleSchema } from "@/lib/schemas/industrySale";
+import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
+import { useIndustryTransporters } from "@/queries/industry/use-transporter-query";
 import { useUpsertIndustrySale } from "@/queries/industry/use-upsert-industry-sale";
+import { useCustomers } from "@/queries/registrations/use-customer";
 import {
-  IndustryDeposit,
-  IndustrySale,
-  IndustryTransporter,
-  Customer
-} from "@/types";
+  IndustrySale} from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PaymentCondition } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 
@@ -42,10 +39,6 @@ const UpsertSaleModal = ({
   isOpen,
   onClose,
 }: UpsertSaleModalProps) => {
-  const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
-  const [transporters, setTransporters] = useState<IndustryTransporter[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const { selectedCycle } = useCycle();
   const { showToast } = useSmartToast();
 
   const form = useForm<IndustrySaleFormData>({
@@ -114,32 +107,9 @@ const UpsertSaleModal = ({
     }
   }, [venda, isOpen, form]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
-
-      const [depositoRes, transporterRes, customerRes] = await Promise.all([
-        fetch("/api/industry/deposit", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/industry/transporter", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/customers", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-      ]);
-      
-      const depositoData = await depositoRes.json();
-      const transporterData = await transporterRes.json();
-      const customerData = await customerRes.json();
-      setDeposits(depositoData);
-      setTransporters(transporterData);
-      setCustomers(customerData);
-    };
-
-    if (isOpen) fetchData();
-  }, [isOpen]);
+  const { data: deposits = [] } = useIndustryDeposits();
+  const { data: transporters = [] } = useIndustryTransporters();
+  const { data: customers = [] } = useCustomers();
 
   const cycle = getCycle();
   

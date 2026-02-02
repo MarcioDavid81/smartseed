@@ -15,18 +15,18 @@ import {
   FormMessage 
 } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { Farm, Rain } from "@/types";
+import { Rain } from "@/types";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { ApiError } from "@/lib/http/api-error";
 import { RainFormData, rainSchema } from "@/lib/schemas/rainSchema";
-import { getToken } from "@/lib/auth-client";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { QuantityInput } from "@/components/inputs";
 import { useUpsertRain } from "@/queries/industry/use-rain";
+import { useFarms } from "@/queries/registrations/use-farm";
 
 interface UpsertRainModalProps {
   rain?: Rain;
@@ -40,7 +40,6 @@ const UpsertRainModal = ({
   onClose,
 }: UpsertRainModalProps) => {
   const { showToast } = useSmartToast();
-  const [farms, setFarms] = useState<Farm[]>([]);
 
   const form = useForm<RainFormData>({
     resolver: zodResolver(rainSchema),
@@ -63,19 +62,7 @@ const UpsertRainModal = ({
     }
   }, [rain, isOpen, form]);
 
-  useEffect(() => {
-    const fetchFarms = async () => {
-      const token = getToken();
-      const res = await fetch("/api/farms", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setFarms(data);
-    };
-
-    if (isOpen) fetchFarms();
-  
-  }, [isOpen]);
+  const { data: farms = [] } = useFarms();
 
   const { mutate, isPending } = useUpsertRain({
       rainId: rain?.id,

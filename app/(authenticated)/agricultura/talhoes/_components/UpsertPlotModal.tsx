@@ -32,6 +32,7 @@ import { useSmartToast } from "@/contexts/ToastContext";
 import { PlotFormData, plotSchema } from "@/lib/schemas/plotSchema";
 import { useUpsertPlot } from "@/queries/registrations/use-upsert-plot";
 import { QuantityInput } from "@/components/inputs";
+import { ApiError } from "@/lib/http/api-error";
 
 interface UpsertPlotModalProps {
   talhao?: Talhao;
@@ -100,10 +101,31 @@ const UpsertPlotModal = ({
         form.reset();
       },
       onError: (error) => {
+        if (error instanceof ApiError) {
+          if (error.status === 402) {
+            showToast({
+              type: "info",
+              title: "Limite atingido",
+              message: error.message,
+            });
+            return;
+          }
+
+          if (error.status === 401) {
+            showToast({
+              type: "info",
+              title: "Sessão expirada",
+              message: "Faça login novamente",
+            });
+            return;
+          }
+        }
         showToast({
           type: "error",
           title: "Erro",
-          message: error.message || "Ocorreu um erro ao salvar o talhão. Por favor, tente novamente.",
+          message: error.message || `Erro ao ${
+            talhao ? "atualizar" : "criar"
+          } talhão.`,
         });
       },
     });

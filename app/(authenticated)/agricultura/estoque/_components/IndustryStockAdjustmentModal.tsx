@@ -14,14 +14,11 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
 import { industryAdjustmentSchema, IndustryAdjustStockFormData } from "@/lib/schemas/industryAdjustStockSchema";
 import { useCreateStockAdjust } from "@/queries/industry/use-create-stock-adjust";
-import {
-  IndustryDeposit
-} from "@/types";
+import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 
@@ -34,28 +31,14 @@ const IndustryStockAdjustmentModal = ({
   isOpen,
   onClose,
 }: IndustryStockAdjustmentModalProps) => {
-  const [deposits, setDeposits] = useState<IndustryDeposit[]>([]);
   const { showToast } = useSmartToast();
 
   const form = useForm<IndustryAdjustStockFormData>({
     resolver: zodResolver(industryAdjustmentSchema)
   });
+ 
+  const { data: deposits = [] } = useIndustryDeposits();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
-
-      const res = await fetch("/api/industry/deposit", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      
-      const depositData = await res.json();
-      setDeposits(depositData);
-    };
-
-    if (isOpen) fetchData();
-  }, [isOpen]);
-  
   const { mutate, isPending } = useCreateStockAdjust();
   
   const onSubmit = (data: IndustryAdjustStockFormData) => {
