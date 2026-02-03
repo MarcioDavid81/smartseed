@@ -14,6 +14,12 @@ export interface PurchaseOrder {
   notes?: string;
   status: ComercialStatus;
   items: PurchaseOrderItem[];
+  deliveries: Array<{
+    id: string;
+    date: string;
+    quantity: number;
+    unit: Unit;
+  }>;
   companyId: string;
   createdAt: Date;
   updatedAt: Date;

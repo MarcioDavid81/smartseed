@@ -18,16 +18,17 @@ export interface PurchaseOrderItem {
   product?: {
     id: string,
     name: string,
-  }
+  } | null,
   cultivarId?: string,
   cultivar?: {
     id: string,
     name: string
-  },
-  description?: string,
+  } | null,
+  description?: string | null,
   quantity: number,
   unit: Unit,
   unityPrice: number,
   totalPrice: number,
   fulfilledQuantity: number,
+  remainingQuantity: number,
 }

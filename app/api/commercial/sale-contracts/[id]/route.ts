@@ -2,6 +2,7 @@ import { SaleContractDomainService } from "@/core/domain/sale-contract/sale-cont
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { saleContractSchema } from "@/lib/schemas/saleContractSchema";
+import { ProductType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 type Params = {
@@ -218,7 +219,13 @@ export async function GET(
     const saleContract = await db.saleContract.findUnique({
       where: { id },
       include: {
-        items: true,
+        items: {
+          include: {
+            industrySales: true,
+            seedSales: true,
+            cultivar: true,
+          }
+        }
       },
     });
 
