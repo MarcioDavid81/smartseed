@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { PurchaseOrderDetails } from "@/types";
 import { PurchaseOrderItemActions } from "./PurchaseOrderItemsAction";
+import { Separator } from "@/components/ui/separator";
 
 type Props = {
   purchaseOrder: PurchaseOrderDetails;
@@ -20,12 +21,8 @@ export function PurchaseOrderItems({ purchaseOrder }: Props) {
   const items = purchaseOrder.items ?? [];
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Itens</CardTitle>
-      </CardHeader>
-
-      <CardContent>
+      <>
+        <Separator className="mt-4 mb-10" />
         {items.length === 0 ? (
           <div className="text-sm text-muted-foreground">
             Nenhum item informado.
@@ -97,7 +94,6 @@ export function PurchaseOrderItems({ purchaseOrder }: Props) {
             </TableBody>
           </Table>
         )}
-      </CardContent>
-    </Card>
+      </>
   );
 }

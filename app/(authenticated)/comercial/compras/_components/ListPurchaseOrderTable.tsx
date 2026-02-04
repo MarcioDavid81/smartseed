@@ -11,9 +11,8 @@ import { usePurchaseOrders } from "@/queries/commercial/use-purchase-orders";
 import { PurchaseOrderDataTable } from "./PurchaseOrderDataTable";
 import EditPurchaseOrderButton from "./EditPurchaseOrderButton";
 import DeletePurchaseOrderButton from "./DeletePurchaseOrderButton";
-import { COMMERCIAL_STATUS_TYPE_LABELS } from "@/app/(authenticated)/_constants/commercial";
-import { Badge } from "@/components/ui/badge";
 import { CommercialStatusBadge } from "@/app/(authenticated)/_components/CommercialStatusBadge";
+import { DetailPurchaseOrderButton } from "./DetailPurchaseOrderButton";
 
 export function ListPurchaseOrderTable() {
 
@@ -107,6 +106,7 @@ export function ListPurchaseOrderTable() {
         const compra = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
+            <DetailPurchaseOrderButton compra={compra} />
             <EditPurchaseOrderButton compra={compra} />
             <DeletePurchaseOrderButton compra={compra} />
           </div>
