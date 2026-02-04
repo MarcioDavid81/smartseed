@@ -1,8 +1,8 @@
 import { ComercialStatus, PurchaseOrderType, SaleContractType, Unit } from "@prisma/client";
 
 export const PURCHASE_TYPE_LABELS = {
-  SEED_PURCHASE: "Compra de Semente",
-  INPUT_PURCHASE: "Compra de Insumo",
+  SEED_PURCHASE: "Compra de Sementes",
+  INPUT_PURCHASE: "Compra de Insumos",
 };
 
 export const PURCHASE_TYPE_OPTIONS = [
@@ -17,7 +17,7 @@ export const PURCHASE_TYPE_OPTIONS = [
 ]
 
 export const SALE_TYPE_LABELS = {
-  SEED_SALE: "Venda de Semente",
+  SEED_SALE: "Venda de Sementes",
   INDUSTRY_SALE: "Venda de Indústria",
 }
 

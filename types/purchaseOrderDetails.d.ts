@@ -3,6 +3,7 @@ import {
   PurchaseOrderType,
   Unit,
 } from "@prisma/client";
+import { PurchaseOrderItemDelivery } from "./purchaseOrderItemDelivery";
 
 export type PurchaseOrderDetails = {
   id: string;
@@ -24,16 +25,20 @@ export type PurchaseOrderDetails = {
     fulfilledQuantity: number;
     remainingQuantity: number;
     unit: Unit;
+    unityPrice: number;
+    totalPrice: number;
 
-    product?: {
+    product: {
       id: string;
       name: string;
     } | null;
 
-    cultivar?: {
+    cultivar: {
       id: string;
       name: string;
     } | null;
+
+    deliveries: PurchaseOrderItemDelivery[];
   }>;
 
   deliveries: Array<{

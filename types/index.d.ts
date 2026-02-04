@@ -35,6 +35,8 @@ export * from "./productStock";
 export * from "./purchase";
 export * from "./purchaseOrder";
 export * from "./purchaseOrderItem";
+export * from "./purchaseOrderItemDelivery";
+export * from "./purchaseOrderItemDetail";
 export * from "./purchaseOrderDetails";
 export * from "./rain";
 export * from "./rawEntry";

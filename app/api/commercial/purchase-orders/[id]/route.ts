@@ -1,4 +1,3 @@
-import { PurchaseOrderDetailsService } from "@/core/domain/purchase-order/purchase-order-detail-service";
 import { PurchaseOrderDomainService } from "@/core/domain/purchase-order/purchase-order-domain.service";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
@@ -238,6 +237,56 @@ export async function GET(
       );
     }
 
+    const items = purchaseOrder.items.map((item) => {
+      const deliveries = [
+        ...item.seedPurchases.map((buy) => ({
+          id: buy.id,
+          date:
+            buy.date instanceof Date ? buy.date.toISOString() : String(buy.date),
+          quantity: Number(buy.quantityKg),
+          unit: item.unit,
+        })),
+        ...item.inputsPurchases.map((purchase) => ({
+          id: purchase.id,
+          date:
+            purchase.date instanceof Date
+              ? purchase.date.toISOString()
+              : String(purchase.date),
+          quantity: Number(purchase.quantity),
+          unit: item.unit,
+        })),
+      ].sort(
+        (a, b) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+
+      return {
+        id: item.id,
+        description: item.description,
+        quantity: Number(item.quantity),
+        fulfilledQuantity: Number(item.fulfilledQuantity),
+        remainingQuantity:
+          Number(item.quantity) - Number(item.fulfilledQuantity),
+        unit: item.unit,
+        unityPrice: Number(item.unityPrice),
+        totalPrice: Number(item.totalPrice),
+        product: item.product
+          ? { id: item.product.id, name: item.product.name }
+          : null,
+        cultivar: item.cultivar
+          ? { id: item.cultivar.id, name: item.cultivar.name }
+          : null,
+        deliveries,
+      };
+    });
+
+    const deliveries = items
+      .flatMap((item) => item.deliveries)
+      .sort(
+        (a, b) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+
     return NextResponse.json({
       id: purchaseOrder.id,
       type: purchaseOrder.type,
@@ -251,23 +300,8 @@ export async function GET(
         name: purchaseOrder.customer.name,
       },
 
-      items: purchaseOrder.items.map((item) => ({
-        id: item.id,
-        description: item.description,
-        quantity: Number(item.quantity),
-        fulfilledQuantity: Number(item.fulfilledQuantity),
-        remainingQuantity:
-          Number(item.quantity) - Number(item.fulfilledQuantity),
-        unit: item.unit,
-        product: item.product
-          ? { id: item.product.id, name: item.product.name }
-          : null,
-        cultivar: item.cultivar
-          ? { id: item.cultivar.id, name: item.cultivar.name }
-          : null,
-      })),
-
-      deliveries: [],
+      items,
+      deliveries,
     });
   } catch (error) {
     console.error("Erro ao buscar ordem de compra:", error);
