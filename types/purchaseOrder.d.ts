@@ -17,8 +17,10 @@ export interface PurchaseOrder {
   deliveries: Array<{
     id: string;
     date: string;
+    invoice: string;
     quantity: number;
     unit: Unit;
+    totalPrice: number;
   }>;
   companyId: string;
   createdAt: Date;

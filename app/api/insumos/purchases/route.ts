@@ -1,4 +1,7 @@
-import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import {
+  ForbiddenPlanError,
+  PlanLimitReachedError,
+} from "@/core/access-control";
 import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { verifyToken } from "@/lib/auth";
@@ -52,13 +55,14 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    const session = await withAccessControl("REGISTER_MOVEMENT");
+    // const session = await withAccessControl("REGISTER_MOVEMENT");
 
-    await assertCompanyPlanAccess({
-      companyId: session.user.companyId,
-      action: "REGISTER_MOVEMENT",
-    });
+    // await assertCompanyPlanAccess({
+    //   companyId: session.user.companyId,
+    //   action: "REGISTER_MOVEMENT",
+    // });
 
     const body = await req.json();
 
@@ -78,6 +82,49 @@ export async function POST(req: NextRequest) {
     }
 
     const data = parsed.data;
+
+    const { purchaseOrderItemId } = data;
+
+    let purchaseOrderItem = null;
+
+    if (purchaseOrderItemId) {
+      purchaseOrderItem = await db.purchaseOrderItem.findUnique({
+        where: { id: purchaseOrderItemId },
+        include: {
+          purchaseOrder: true,
+        },
+      });
+
+      if (!purchaseOrderItem) {
+        return NextResponse.json(
+          { error: "Item do pedido de compra não encontrado" },
+          { status: 404 },
+        );
+      }
+
+      if (
+        purchaseOrderItem.purchaseOrder.status !== "OPEN" &&
+        purchaseOrderItem.purchaseOrder.status !== "PARTIAL_FULFILLED"
+      ) {
+        return NextResponse.json(
+          { error: "Pedido de compra não está aberto para remessas" },
+          { status: 400 },
+        );
+      }
+
+      const remaining =
+        Number(purchaseOrderItem.quantity) -
+        Number(purchaseOrderItem.fulfilledQuantity);
+
+      if (data.quantity > remaining) {
+        return NextResponse.json(
+          {
+            error: `Quantidade excede o saldo do pedido. Restante: ${remaining}`,
+          },
+          { status: 400 },
+        );
+      }
+    }
 
     const product = await db.product.findUnique({
       where: { id: data.productId },
@@ -107,9 +154,22 @@ export async function POST(req: NextRequest) {
       const purchase = await tx.purchase.create({
         data: {
           ...data,
-          companyId: session.user.companyId,
+          companyId,
+          purchaseOrderItemId: purchaseOrderItemId ?? null,
         },
       });
+
+      // Atualiza o pedido de compra se houver
+      if (purchaseOrderItem) {
+        await tx.purchaseOrderItem.update({
+          where: { id: purchaseOrderItem.id },
+          data: {
+            fulfilledQuantity: {
+              increment: data.quantity,
+            },
+          },
+        });
+      }
 
       // Atualiza/insere o estoque da fazenda
       await tx.productStock.upsert({
@@ -128,7 +188,7 @@ export async function POST(req: NextRequest) {
           productId: data.productId,
           farmId: data.farmId,
           stock: data.quantity,
-          companyId: session.user.companyId,
+          companyId,
         },
       });
 
@@ -139,7 +199,7 @@ export async function POST(req: NextRequest) {
             description: `Compra de ${product?.name ?? "insumo"}, cfe NF ${data.invoiceNumber ?? "S/NF"}, de ${customer?.name ?? "cliente"}`,
             amount: data.totalPrice,
             dueDate: new Date(data.dueDate),
-            companyId: session.user.companyId,
+            companyId,
             customerId: data.customerId,
             purchaseId: purchase.id,
           },

@@ -1,11 +1,11 @@
-import { PurchaseOrder } from "@/types";
+import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { deletePurchaseOrder, getPurchaseOrderById, getPurchaseOrders, upsertPurchaseOrder } from "@/services/commercial/purchaseOrders";
 import { PurchaseOrderFormData } from "@/lib/schemas/purchaseOrderSchema";
 
 export function usePurchaseOrders() {
-  return useQuery({
+  return useQuery<PurchaseOrderDetails[]>({
     queryKey: ["purchase-orders"],
     queryFn: () => getPurchaseOrders(),
     staleTime: 1000 * 60 * 60 * 24, // 1 dia

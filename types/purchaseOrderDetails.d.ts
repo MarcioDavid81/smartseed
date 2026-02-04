@@ -12,7 +12,7 @@ export type PurchaseOrderDetails = {
   document: string | null;
   status: ComercialStatus;
   notes: string | null;
-
+  customerId: string;
   customer: {
     id: string;
     name: string;
@@ -27,12 +27,12 @@ export type PurchaseOrderDetails = {
     unit: Unit;
     unityPrice: number;
     totalPrice: number;
-
+    productId: string | null;
     product: {
       id: string;
       name: string;
-    } | null;
-
+    } | null;    
+    cultivarId: string | null;
     cultivar: {
       id: string;
       name: string;
@@ -44,7 +44,9 @@ export type PurchaseOrderDetails = {
   deliveries: Array<{
     id: string;
     date: string;
+    invoice: string;
     quantity: number;
     unit: Unit;
+    totalPrice: number;
   }>;
 };

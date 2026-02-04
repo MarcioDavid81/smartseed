@@ -1,9 +1,9 @@
-import { PurchaseOrder } from "@/types";
+import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
 import { apiFetch } from "../api";
 import { PurchaseOrderFormData } from "@/lib/schemas/purchaseOrderSchema";
 
-export async function getPurchaseOrders(): Promise<PurchaseOrder[]> {
-  const data = await apiFetch<PurchaseOrder[]>(
+export async function getPurchaseOrders(): Promise<PurchaseOrderDetails[]> {
+  const data = await apiFetch<PurchaseOrderDetails[]>(
     `/api/commercial/purchase-orders`
   );
 

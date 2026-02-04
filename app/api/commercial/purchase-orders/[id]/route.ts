@@ -241,23 +241,22 @@ export async function GET(
       const deliveries = [
         ...item.seedPurchases.map((buy) => ({
           id: buy.id,
-          date:
-            buy.date instanceof Date ? buy.date.toISOString() : String(buy.date),
+          date: buy.date instanceof Date ? buy.date.toISOString() : String(buy.date),
+          invoice: String(buy.invoice ?? ""),
           quantity: Number(buy.quantityKg),
           unit: item.unit,
+          totalPrice: Number(buy.totalPrice),
         })),
         ...item.inputsPurchases.map((purchase) => ({
           id: purchase.id,
-          date:
-            purchase.date instanceof Date
-              ? purchase.date.toISOString()
-              : String(purchase.date),
+          date: purchase.date instanceof Date ? purchase.date.toISOString() : String(purchase.date),
+          invoice: String(purchase.invoiceNumber ?? ""),
           quantity: Number(purchase.quantity),
           unit: item.unit,
+          totalPrice: Number(purchase.totalPrice),
         })),
       ].sort(
-        (a, b) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime(),
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
       );
 
       return {
@@ -265,17 +264,12 @@ export async function GET(
         description: item.description,
         quantity: Number(item.quantity),
         fulfilledQuantity: Number(item.fulfilledQuantity),
-        remainingQuantity:
-          Number(item.quantity) - Number(item.fulfilledQuantity),
+        remainingQuantity: Number(item.quantity) - Number(item.fulfilledQuantity),
         unit: item.unit,
         unityPrice: Number(item.unityPrice),
         totalPrice: Number(item.totalPrice),
-        product: item.product
-          ? { id: item.product.id, name: item.product.name }
-          : null,
-        cultivar: item.cultivar
-          ? { id: item.cultivar.id, name: item.cultivar.name }
-          : null,
+        product: item.product ? { id: item.product.id, name: item.product.name } : null,
+        cultivar: item.cultivar ? { id: item.cultivar.id, name: item.cultivar.name } : null,
         deliveries,
       };
     });

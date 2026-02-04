@@ -22,6 +22,7 @@ export const inputPurchaseSchema = z.object({
   farmId: z.string(),
   paymentCondition: z.nativeEnum(PaymentCondition).optional(),
   dueDate: z.coerce.date().optional(),
+  purchaseOrderItemId: z.string().optional(),
 })
 
 export type InputPurchaseFormData = z.infer<typeof inputPurchaseSchema>;
