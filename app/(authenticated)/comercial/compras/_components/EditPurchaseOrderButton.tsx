@@ -8,11 +8,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { PurchaseOrder } from "@/types";
+import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
 import UpsertPurchaseOrderModal from "./UpsertPurchaseOrderModal";
 
 interface Props {
-  compra: PurchaseOrder;
+  compra: PurchaseOrderDetails;
 }
 
 const EditPurchaseOrderButton = ({ compra }: Props) => {

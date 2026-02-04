@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "@/components/ui/card";
-import { PurchaseOrder } from "@/types";
+import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { AgroLoader } from "@/components/agro-loader";
@@ -23,21 +23,7 @@ export function ListPurchaseOrderTable() {
       refetch,
     } = usePurchaseOrders();
 
-  const columns: ColumnDef<PurchaseOrder>[] = [
-    {
-      accessorKey: "date",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          className="text-left px-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Data
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row: { original } }) => new Date(original.date).toLocaleDateString("pt-BR"),
-    },
+  const columns: ColumnDef<PurchaseOrderDetails>[] = [
     {
       accessorKey: "document",
       header: "Documento",
@@ -54,6 +40,8 @@ export function ListPurchaseOrderTable() {
     {
       id: "product",
       header: () => <div className="text-left">Itens</div>,
+      accessorFn: (row) => row.items.map(item => item.product?.name ?? item.cultivar?.name ?? "").join(", "),
+      filterFn: "includesString",
       cell: ({ row }) => {
         const { items, type } = row.original;
 
@@ -93,10 +81,37 @@ export function ListPurchaseOrderTable() {
       },
     },
     {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row: { original } }) => {
-        return <CommercialStatusBadge status={original.status} />
+      id: "fulfilledQuantity",
+      header: () => <div className="text-left">Entregas</div>,
+      accessorFn: (row) =>
+        row.items.reduce((acc, item) => acc + Number(item.fulfilledQuantity), 0),
+      cell: ({ row }) => {
+        const fulfilledQuantity = Number(row.getValue("fulfilledQuantity"));
+        return (
+          <div className="text-left">
+            {new Intl.NumberFormat("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(fulfilledQuantity)}
+          </div>
+        );
+      },
+    },
+    {
+      id: "remainingQuantity",
+      header: () => <div className="text-left">Saldo</div>,
+      accessorFn: (row) =>
+        row.items.reduce((acc, item) => acc + Number(item.quantity) - Number(item.fulfilledQuantity), 0),
+      cell: ({ row }) => {
+        const remainingQuantity = Number(row.getValue("remainingQuantity"));
+        return (
+          <div className="text-left">
+            {new Intl.NumberFormat("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(remainingQuantity)}
+          </div>
+        );
       },
     },
     {

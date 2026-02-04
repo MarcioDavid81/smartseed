@@ -30,7 +30,7 @@ import {
   purchaseOrderSchema,
   PurchaseOrderFormData,
 } from "@/lib/schemas/purchaseOrderSchema";
-import { PurchaseOrder } from "@/types";
+import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PurchaseOrderType, Unit } from "@prisma/client";
 import { useEffect } from "react";
@@ -42,7 +42,7 @@ import { ComboBoxOption } from "@/components/combo-option";
 import { useCustomers } from "@/queries/registrations/use-customer";
 
 interface UpsertPurchaseOrderModalProps {
-  compra?: PurchaseOrder;
+  compra?: PurchaseOrderDetails;
   isOpen: boolean;
   onClose: () => void;
 }

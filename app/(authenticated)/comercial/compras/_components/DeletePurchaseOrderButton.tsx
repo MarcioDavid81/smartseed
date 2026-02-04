@@ -18,14 +18,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useDeletePurchaseOrder } from "@/queries/commercial/use-purchase-orders";
-import { PurchaseOrder } from "@/types";
+import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 
 
 interface Props {
-  compra: PurchaseOrder;
+  compra: PurchaseOrderDetails;
 }
 
 const DeletePurchaseOrderButton = ({ compra }: Props) => {

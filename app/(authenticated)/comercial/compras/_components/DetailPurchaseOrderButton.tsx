@@ -1,12 +1,12 @@
 "use client";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PurchaseOrder } from "@/types";
+import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
 import { Search } from "lucide-react";
 import Link from "next/link";
 
 interface Props {
-  compra: PurchaseOrder;
+  compra: PurchaseOrderDetails;
 }
 
 export function DetailPurchaseOrderButton({ compra }: Props) {

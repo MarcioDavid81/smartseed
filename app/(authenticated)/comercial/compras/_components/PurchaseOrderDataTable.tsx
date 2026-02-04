@@ -93,6 +93,14 @@ export function PurchaseOrderDataTable<TData, TValue>({
             }
             className="w-full md:max-w-sm bg-gray-50 text-primary"
           />
+          <Input
+            placeholder="Procure por produto"
+            value={(table.getColumn("product")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("product")?.setFilterValue(event.target.value)
+            }
+            className="w-full md:max-w-sm bg-gray-50 text-primary"
+          />
           {table.getState().columnFilters.length > 0 && (
                 <Button
                   variant="ghost"
@@ -152,10 +160,10 @@ export function PurchaseOrderDataTable<TData, TValue>({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={columns.length - 3} className="text-start text-muted-foreground">
+              <TableCell colSpan={columns.length - 4} className="text-start text-muted-foreground">
                 <h3>Total</h3>
               </TableCell>
-              <TableCell colSpan={3} className="text-start text-muted-foreground">                
+              <TableCell colSpan={4} className="text-start text-muted-foreground">                
                 {sumColumnId ? (
                   <div>
                     {new Intl.NumberFormat("pt-BR", {

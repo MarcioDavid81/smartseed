@@ -1,12 +1,24 @@
 "use client";
 
+import { formatCurrency } from "@/app/_helpers/currency";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PurchaseOrderItemDetail } from "@/types/purchaseOrderItemDetail";
+import { ChevronRight } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -20,14 +32,13 @@ export function PurchaseOrderItemDeliveries({
   item,
 }: Props) {
   const deliveries = item.deliveries ?? [];
+  const title = item.product?.name ?? item.cultivar?.name ?? "Remessas";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl">
         <DialogHeader>
-          <DialogTitle>
-            Remessas — {item.product?.name ?? item.cultivar?.name}
-          </DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
         {deliveries.length === 0 ? (
@@ -35,16 +46,65 @@ export function PurchaseOrderItemDeliveries({
             Nenhuma remessa registrada para este item.
           </div>
         ) : (
-          <div className="space-y-3">
-            {deliveries.map((delivery) => (
-              <div
-                key={delivery.id}
-                className="flex justify-between rounded-md border p-3"
-              >
-                <span>{delivery.quantity}</span>
-                <span>{delivery.date}</span>
-              </div>
-            ))}
+          <div className="h-[70vh] max-h-[80vh] overflow-y-auto pr-2">
+            <Table>
+              <TableHeader className="sticky top-0 z-10">
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Documento</TableHead>
+                  <TableHead className="text-right">
+                    Quantidade ({deliveries[0]?.unit ?? ""})
+                  </TableHead>
+                  <TableHead className="text-right">Valor total (R$)</TableHead>
+                  <TableHead className="text-right" />
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {deliveries.map((delivery) => (
+                  <TableRow key={delivery.id}>
+                    <TableCell>
+                      {new Date(delivery.date).toLocaleDateString("pt-BR")}
+                    </TableCell>
+                    <TableCell>{delivery.invoice || "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {Number(delivery.quantity).toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatCurrency(delivery.totalPrice)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        className="rounded-full border-green text-green hover:bg-emerald-50 hover:text-green"
+                      >
+                        Nota Fiscal
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={-3} className="text-start">
+                    Total
+                  </TableCell>
+                  <TableCell colSpan={3} className="text-right tabular-nums">
+                    {formatCurrency(
+                      deliveries.reduce(
+                        (acc, cur) => acc + cur.totalPrice,
+                        0,
+                      ),
+                    )}
+                  </TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableFooter>
+            </Table>
           </div>
         )}
       </DialogContent>

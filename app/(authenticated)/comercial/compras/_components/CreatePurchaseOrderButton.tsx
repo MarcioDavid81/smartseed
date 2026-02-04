@@ -3,11 +3,11 @@
 import HoverButton from "@/components/HoverButton";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { PurchaseOrder } from "@/types";
+import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
 import UpsertPurchaseOrderModal from "./UpsertPurchaseOrderModal";
 
 interface Props {
-  compra?: PurchaseOrder;
+  compra?: PurchaseOrderDetails;
 }
 
 const CreatePurchaseOrderButton = ({ compra }: Props) => {
