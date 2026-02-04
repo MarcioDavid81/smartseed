@@ -1,10 +1,9 @@
 import { formatCurrency } from "@/app/_helpers/currency";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -19,6 +18,10 @@ type Props = {
 
 export function PurchaseOrderItems({ purchaseOrder }: Props) {
   const items = purchaseOrder.items ?? [];
+  const totalValue = items.reduce(
+    (acc, item) => acc + Number(item.totalPrice ?? 0),
+    0,
+  );
 
   return (
       <>
@@ -51,47 +54,57 @@ export function PurchaseOrderItems({ purchaseOrder }: Props) {
                   "—";
 
                 const remaining = Number(item.remainingQuantity);
-                const unityPrice = (item.unityPrice)
-                const totalPrice = (item.totalPrice)
+                const unityPrice = item.unityPrice;
+                const totalPrice = item.totalPrice;
 
                 return (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">{label}</TableCell>
-                    <TableCell className="text-right">{item.unit}</TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="font-light">{label}</TableCell>
+                    <TableCell className="text-right font-light">{item.unit}</TableCell>
+                    <TableCell className="text-right tabular-nums font-light">
                       {Number(item.quantity).toLocaleString("pt-BR", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="text-right tabular-nums font-light">
                       {Number(item.fulfilledQuantity).toLocaleString("pt-BR", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="text-right tabular-nums font-light">
                       {remaining.toLocaleString("pt-BR", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
                     </TableCell>
 
-                    <TableCell className="text-right">
+                    <TableCell className="text-right tabular-nums font-light">
                       {formatCurrency(unityPrice)}
                     </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(totalPrice)} 
+                    <TableCell className="text-right tabular-nums font-light">
+                      {formatCurrency(totalPrice)}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <PurchaseOrderItemActions
-                        item={item}
-                      />
+                    <TableCell className="text-right font-light">
+                      <PurchaseOrderItemActions item={item} />
                     </TableCell>
                   </TableRow>
                 );
               })}
             </TableBody>
+
+            <TableFooter>
+              <TableRow>
+                <TableCell className="text-left font-medium">
+                  Total
+                </TableCell>
+                <TableCell className="text-right font-medium tabular-nums" colSpan={6}>
+                  {formatCurrency(totalValue)}
+                </TableCell>
+                <TableCell />
+              </TableRow>
+            </TableFooter>
           </Table>
         )}
       </>
