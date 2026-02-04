@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
-import CreatePurchaseOrderButton from "./_components/CreatePurchaseOrderButton";
 import { ListPurchaseOrderTable } from "./_components/ListPurchaseOrderTable";
 
 export const metadata: Metadata = {
