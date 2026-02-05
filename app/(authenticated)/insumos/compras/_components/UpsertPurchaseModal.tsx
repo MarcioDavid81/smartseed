@@ -45,38 +45,62 @@ interface UpsertPurchaseModalProps {
   compra?: Purchase;
   isOpen: boolean;
   onClose: () => void;
+
+  /** 🆕 contexto de atendimento */
+  purchaseOrderItemId?: string;
+  productId?: string;
+  customerId?: string;
+  customerName?: string;
+  unitPrice?: number;
+  maxQuantityKg?: number;
+  initialQuantity?: number;
 }
 
 const UpsertPurchaseModal = ({
   compra,
   isOpen,
   onClose,
+  purchaseOrderItemId,
+  productId,
+  customerId,
+  customerName,
+  unitPrice: unitPriceFromOrder,
+  maxQuantityKg,
+  initialQuantity,
 }: UpsertPurchaseModalProps) => {
   const { showToast } = useSmartToast();
+
+  const suggestedQuantity = initialQuantity ?? maxQuantityKg ?? undefined;
+  const customerPlaceholder = customerName ?? "Selecione um fornecedor";
 
   const form = useForm<InputPurchaseFormData>({
     resolver: zodResolver(inputPurchaseSchema),
     defaultValues: {
       date: compra?.date ? new Date(compra.date) : new Date(),
-      customerId: compra?.customerId ?? "",
-      productId: compra?.productId ?? "",
+      customerId: compra?.customerId ?? customerId ?? "",
+      productId: compra?.productId ?? productId ?? "",
       invoiceNumber: compra?.invoiceNumber ?? "",
-      quantity: compra?.quantity ?? 0,
-      unitPrice: compra?.unitPrice ?? 0,
+      quantity: compra?.quantity ?? suggestedQuantity ?? 0,
+      unitPrice: compra?.unitPrice ?? unitPriceFromOrder ?? 0,
       totalPrice: compra?.totalPrice ?? 0,
       farmId: compra?.farmId ?? "",
       notes: compra?.notes ?? "",
       paymentCondition: compra?.paymentCondition ?? PaymentCondition.AVISTA,
       dueDate: compra?.dueDate ? new Date(compra.dueDate) : undefined,
+      purchaseOrderItemId: purchaseOrderItemId ?? undefined,
     },
   });
 
   const unitPrice = form.watch("unitPrice");
   const quantity = form.watch("quantity");
+  const paymentCondition = form.watch("paymentCondition");
 
   useEffect(() => {
     const total = unitPrice * quantity;
-    form.setValue("totalPrice", Number.isFinite(total) ? parseFloat(total.toFixed(2)) : 0);
+    form.setValue(
+      "totalPrice",
+      Number.isFinite(total) ? parseFloat(total.toFixed(2)) : 0
+    );
   }, [unitPrice, quantity]);
 
   useEffect(() => {
@@ -92,11 +116,27 @@ const UpsertPurchaseModal = ({
         notes: compra.notes || "",
         paymentCondition: compra.paymentCondition ?? PaymentCondition.AVISTA,
         dueDate: compra?.dueDate ? new Date(compra.dueDate) : undefined,
+        purchaseOrderItemId: purchaseOrderItemId ?? undefined,
       });
     } else {
-      form.reset();
+      form.reset({
+        purchaseOrderItemId: purchaseOrderItemId ?? undefined,
+        productId: productId ?? "",
+        customerId: customerId ?? "",
+        unitPrice: unitPriceFromOrder ?? 0,
+        quantity: suggestedQuantity ?? 0,
+      });
     }
-  }, [compra, isOpen, form]);
+  }, [
+    compra,
+    isOpen,
+    purchaseOrderItemId,
+    productId,
+    customerId,
+    unitPriceFromOrder,
+    suggestedQuantity,
+    form,
+  ]);
 
   const { data: farms = [] } = useFarms();
   const { data: products = [] } = useInputProductQuery();
@@ -105,10 +145,26 @@ const UpsertPurchaseModal = ({
 
    const { mutate, isPending } = useUpsertInputPurchase({
      purchaseId: compra?.id,
+     purchaseOrderItemId: purchaseOrderItemId ?? undefined,
    });
  
-   const onSubmit = async (data: InputPurchaseFormData) => {       
-     mutate(data, {
+   const onSubmit = async (data: InputPurchaseFormData) => {  
+    if (
+      purchaseOrderItemId &&
+      maxQuantityKg &&
+      data.quantity > maxQuantityKg
+    ) {
+      showToast({
+        type: "error",
+        title: "Quantidade inválida",
+        message: "A quantidade excede o saldo disponível do pedido.",
+      });
+      return;
+    }         
+     mutate({
+      ...data,
+      purchaseOrderItemId: purchaseOrderItemId ?? undefined,      
+     }, {
        onSuccess: () => {
          showToast({
            type: "success",
@@ -154,13 +210,39 @@ const UpsertPurchaseModal = ({
     if (!isOpen) form.reset();
   }, [isOpen, form]);
 
-  const paymentCondition = form.watch("paymentCondition");
+  useEffect(() => {
+    if (productId) {
+      form.setValue("productId", productId, { shouldValidate: true });
+    }
+
+    if (customerId) {
+      form.setValue("customerId", customerId, { shouldValidate: true });
+    }
+
+    if (typeof unitPriceFromOrder === "number") {
+      form.setValue("unitPrice", unitPriceFromOrder, {
+        shouldValidate: true,
+      });
+    }
+
+    if (typeof suggestedQuantity === "number") {
+      form.setValue("quantity", suggestedQuantity, { shouldValidate: true });
+    }
+  }, [productId, customerId, unitPriceFromOrder, suggestedQuantity, form]);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[650px]">
+      <DialogContent className="sm:max-w-[750px]">
         <DialogHeader>
-          <DialogTitle>Compra</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Compra
+            {purchaseOrderItemId && (
+              <span className="text-xs bg-green/10 text-green px-2 py-1 rounded">
+                Atendimento de Pedido
+              </span>
+            )}
+          </DialogTitle>
           <DialogDescription>
             {compra ? "Editar compra" : "Cadastrar compra"}
           </DialogDescription>
@@ -177,7 +259,11 @@ const UpsertPurchaseModal = ({
                     <FormItem>
                       <FormLabel>Produto</FormLabel>
                       <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          value={field.value}
+                          disabled={!!purchaseOrderItemId}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione uma insumo" />
@@ -212,10 +298,14 @@ const UpsertPurchaseModal = ({
                     <FormItem>
                       <FormLabel>Fornecedor</FormLabel>
                       <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={!!purchaseOrderItemId}
+                        >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione um fornecedor" />
+                              <SelectValue placeholder={customerPlaceholder} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -269,25 +359,31 @@ const UpsertPurchaseModal = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {/* Preço Unitário */}
-                <FormField
-                  control={form.control}
-                  name="unitPrice"
-                  render={({ field }) => (
-                    <MoneyInput label="Preço Unitário" field={field} />
-                  )}
-                />
+              <div className="grid grid-cols-3 gap-4">
                 {/* Quantidade */}
                 <FormField
                   control={form.control}
                   name="quantity"
                   render={({ field }) => (
-                    <QuantityInput label="Quantidade" field={field} />
+                    <QuantityInput
+                      label="Quantidade"
+                      field={field}
+                      max={maxQuantityKg}
+                    />
+                  )}
+                />               
+                {/* Preço Unitário */}
+                <FormField
+                  control={form.control}
+                  name="unitPrice"
+                  render={({ field }) => (
+                    <MoneyInput 
+                      label="Preço Unitário" 
+                      field={field} 
+                      readonly={!!purchaseOrderItemId} 
+                    />
                   )}
                 />
-              </div>
-
               {/* Valor Total */}
                 <FormField
                   control={form.control}
@@ -296,6 +392,8 @@ const UpsertPurchaseModal = ({
                     <MoneyInput label="Preço Total" field={field} readonly />
                   )}
                 />
+              </div>
+
 
               {/* Fazenda */}
               <FormField
@@ -332,6 +430,7 @@ const UpsertPurchaseModal = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Condição de Pagamento</FormLabel>
+                      <FormControl>
                       <Select
                         onValueChange={(value: PaymentCondition) =>
                           field.onChange(value)
@@ -346,6 +445,8 @@ const UpsertPurchaseModal = ({
                           <SelectItem value={PaymentCondition.APRAZO}>À Prazo</SelectItem>
                         </SelectContent>
                       </Select>
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />

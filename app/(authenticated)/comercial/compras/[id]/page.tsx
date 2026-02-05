@@ -1,10 +1,7 @@
 import NavItems from "@/app/(authenticated)/_components/NavItems";
 import { Metadata } from "next";
-import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
-import { PurchaseOrderDetails } from "@/types";
-import { PurchaseOrderItems } from "./_components/PurchaseOrderItems";
 import { PurchaseOrderOverview } from "./_components/PurchaseOrderOverview";
+import { getPurchaseOrderByIdServerSide } from "@/services/commercial/purchaseOrder";
 
 export const metadata: Metadata = {
   title: "Comercial - Compras",
@@ -19,40 +16,12 @@ export const metadata: Metadata = {
   ],
 };
 
-type PageProps = {
-  params: {
-    id: string;
-  };
-};
-
-async function getPurchaseOrderById(id: string): Promise<PurchaseOrderDetails> {
-  const token = cookies().get("token")?.value;
-  if (!token) throw new Error("UNAUTHORIZED");
-
-  const h = headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  const proto = h.get("x-forwarded-proto") ?? "http";
-
-  if (!host) throw new Error("HOST_NOT_FOUND");
-
-  const res = await fetch(
-    `${proto}://${host}/api/commercial/purchase-orders/${id}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      cache: "no-store",
-    },
-  );
-
-  if (res.status === 404) notFound();
-  if (!res.ok) throw new Error("FAILED_TO_FETCH_PURCHASE_ORDER");
-
-  return (await res.json()) as PurchaseOrderDetails;
-}
-
-export default async function PurchaseDetailsPage({ params: { id } }: PageProps) {
-  const purchaseOrder = await getPurchaseOrderById(id);
+export default async function PurchaseDetailsPage({
+  params: { id },
+}: {
+  params: { id: string };
+}) {
+  const purchaseOrder = await getPurchaseOrderByIdServerSide(id);
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-found">

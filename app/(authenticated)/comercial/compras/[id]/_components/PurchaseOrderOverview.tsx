@@ -1,22 +1,49 @@
-// _components/purchase-order-overview.tsx
+"use client";
+
 import { CommercialStatusBadge } from "@/app/(authenticated)/_components/CommercialStatusBadge";
 import { PURCHASE_TYPE_LABELS } from "@/app/(authenticated)/_constants/commercial";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PurchaseOrderDetails } from "@/types";
 import { PurchaseOrderItems } from "./PurchaseOrderItems";
+import { CornerDownLeft, RefreshCcw } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 type Props = {
   purchaseOrder: PurchaseOrderDetails;
 };
 
 export function PurchaseOrderOverview({ purchaseOrder }: Props) {
-  const items = purchaseOrder.items ?? [];
+    const router = useRouter();
+
+  const handleRefreshPage = () => {
+    window.location.reload();
+  };
+
+  const handleReturn = () => {
+    router.push("/comercial/compras");
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          Pedido {purchaseOrder.document}
+          <div className="flex items-center gap-4">
+            Pedido {purchaseOrder.document}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={handleRefreshPage} className="text-sm text-primary">
+                    <RefreshCcw className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Atualizar página</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <CommercialStatusBadge status={purchaseOrder.status} />
         </CardTitle>
       </CardHeader>
@@ -47,6 +74,10 @@ export function PurchaseOrderOverview({ purchaseOrder }: Props) {
         <div>
           <PurchaseOrderItems purchaseOrder={purchaseOrder} />
         </div>
+        <Button type="button" className="max-w-[100px] bg-green text-white mt-4 font-light" onClick={handleReturn}>
+          <CornerDownLeft size={20} />
+            Voltar
+        </Button>
       </CardContent>
     </Card>
   );

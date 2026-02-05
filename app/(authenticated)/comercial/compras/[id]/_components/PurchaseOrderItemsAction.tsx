@@ -22,9 +22,15 @@ import { Separator } from "@/components/ui/separator";
 
 type Props = {
   item: PurchaseOrderItemDetail;
+  customerId: string;
+  customerName: string;
 };
 
-export function PurchaseOrderItemActions({ item }: Props) {
+export function PurchaseOrderItemActions({
+  item,
+  customerId,
+  customerName,
+}: Props) {
   const [openDeliveries, setOpenDeliveries] = useState(false);
   const [openAttend, setOpenAttend] = useState(false);
 
@@ -68,6 +74,8 @@ export function PurchaseOrderItemActions({ item }: Props) {
           open={openAttend}
           onOpenChange={setOpenAttend}
           item={item}
+          customerId={customerId}
+          customerName={customerName}
         />
 
         <PurchaseOrderItemDeliveries

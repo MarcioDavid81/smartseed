@@ -87,7 +87,11 @@ export function PurchaseOrderItems({ purchaseOrder }: Props) {
                       {formatCurrency(totalPrice)}
                     </TableCell>
                     <TableCell className="text-right font-light">
-                      <PurchaseOrderItemActions item={item} />
+                      <PurchaseOrderItemActions
+                        item={item}
+                        customerId={purchaseOrder.customerId}
+                        customerName={purchaseOrder.customer.name}
+                      />
                     </TableCell>
                   </TableRow>
                 );
