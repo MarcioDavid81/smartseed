@@ -78,6 +78,49 @@ export async function POST(req: NextRequest) {
 
     const data = parsed.data;
 
+    const { purchaseOrderItemId } = data;
+
+    let purchaseOrderItem = null;
+
+    if (purchaseOrderItemId) {
+      purchaseOrderItem = await db.purchaseOrderItem.findUnique({
+        where: { id: purchaseOrderItemId },
+        include: {
+          purchaseOrder: true,
+        },
+      });
+
+      if (!purchaseOrderItem) {
+        return NextResponse.json(
+          { error: "Item do pedido de compra não encontrado" },
+          { status: 404 },
+        );
+      }
+
+      if (
+        purchaseOrderItem.purchaseOrder.status !== "OPEN" &&
+        purchaseOrderItem.purchaseOrder.status !== "PARTIAL_FULFILLED"
+      ) {
+        return NextResponse.json(
+          { error: "Pedido de compra não está aberto para remessas" },
+          { status: 400 },
+        );
+      }
+
+      const remaining =
+        Number(purchaseOrderItem.quantity) -
+        Number(purchaseOrderItem.fulfilledQuantity);
+
+      if (data.quantityKg > remaining) {
+        return NextResponse.json(
+          {
+            error: `Quantidade excede o saldo do pedido. Restante: ${remaining}`,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     const cultivar = await db.cultivar.findUnique({
       where: { id: data.cultivarId },
       select: { id: true, name: true, product: true },
@@ -107,8 +150,21 @@ export async function POST(req: NextRequest) {
         data: {
           ...data,
           companyId: session.user.companyId,
+          purchaseOrderItemId: purchaseOrderItemId ?? null,
         },
       });
+
+      // Atualiza o pedido de compra se houver
+      if (purchaseOrderItem) {
+        await tx.purchaseOrderItem.update({
+          where: { id: purchaseOrderItem.id },
+          data: {
+            fulfilledQuantity: {
+              increment: data.quantityKg,
+            },
+          },
+        });
+      }
 
       // Atualiza o estoque da cultivar
       await tx.cultivar.update({

@@ -55,14 +55,13 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
-    const { companyId } = auth;
 
-    // const session = await withAccessControl("REGISTER_MOVEMENT");
+    const session = await withAccessControl("REGISTER_MOVEMENT");
 
-    // await assertCompanyPlanAccess({
-    //   companyId: session.user.companyId,
-    //   action: "REGISTER_MOVEMENT",
-    // });
+    await assertCompanyPlanAccess({
+      companyId: session.user.companyId,
+      action: "REGISTER_MOVEMENT",
+    });
 
     const body = await req.json();
 
@@ -154,7 +153,7 @@ export async function POST(req: NextRequest) {
       const purchase = await tx.purchase.create({
         data: {
           ...data,
-          companyId,
+          companyId: session.user.companyId,
           purchaseOrderItemId: purchaseOrderItemId ?? null,
         },
       });
@@ -188,7 +187,7 @@ export async function POST(req: NextRequest) {
           productId: data.productId,
           farmId: data.farmId,
           stock: data.quantity,
-          companyId,
+          companyId: session.user.companyId,
         },
       });
 
@@ -199,7 +198,7 @@ export async function POST(req: NextRequest) {
             description: `Compra de ${product?.name ?? "insumo"}, cfe NF ${data.invoiceNumber ?? "S/NF"}, de ${customer?.name ?? "cliente"}`,
             amount: data.totalPrice,
             dueDate: new Date(data.dueDate),
-            companyId,
+            companyId: session.user.companyId,
             customerId: data.customerId,
             purchaseId: purchase.id,
           },
