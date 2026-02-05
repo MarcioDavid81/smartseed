@@ -113,7 +113,7 @@ const UpsertBuyModal = ({
       }
 
       const [cultivarRes, customerRes] = await Promise.all([
-        fetch(`/api/cultivars/available-for-harvest?productType=${cycle.productType as ProductType}`, {
+        fetch("/api/cultivars/get", {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch("/api/customers", {
