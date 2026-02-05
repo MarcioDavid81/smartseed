@@ -59,13 +59,15 @@ interface QuantityInputProps<T extends FieldValues> {
   suffix?: string;
   readonly?: boolean;
   value?: number;
+  max?: number;
 }
 
 export function QuantityInput<T extends FieldValues>({
   label,
   field,
   readonly = false,
-  suffix
+  suffix,
+  max,
 }: QuantityInputProps<T>) {
   return (
     <FormItem>
@@ -81,6 +83,7 @@ export function QuantityInput<T extends FieldValues>({
           fixedDecimalScale
           allowNegative={true}
           suffix={suffix}
+          max={max}
           inputMode="numeric"
           valueIsNumericString
           className="font-light"

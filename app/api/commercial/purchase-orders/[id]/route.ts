@@ -288,6 +288,7 @@ export async function GET(
       document: purchaseOrder.document,
       status: purchaseOrder.status,
       notes: purchaseOrder.notes,
+      customerId: purchaseOrder.customerId,
 
       customer: {
         id: purchaseOrder.customer.id,

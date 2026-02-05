@@ -17,12 +17,14 @@ type UpsertBuyParams = {
   data: BuyFormData;
   cycleId: string;
   buyId?: string;
+  purchaseOrderItemId?: string;
 };
 
 export function upsertBuy({
   data,
   cycleId,
   buyId,
+  purchaseOrderItemId,
 }: UpsertBuyParams) {
   const url = buyId
     ? `/api/buys/${buyId}`
@@ -35,6 +37,7 @@ export function upsertBuy({
     body: JSON.stringify({
       ...data,
       cycleId,
+      purchaseOrderItemId,
     }),
   });
 }

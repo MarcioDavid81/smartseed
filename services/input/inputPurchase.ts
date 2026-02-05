@@ -13,11 +13,13 @@ export async function getInputPurchase(): Promise<Purchase[]> {
 type UpsertInputPurchaseParams = {
   data: InputPurchaseFormData;
   purchaseId?: string;
+  purchaseOrderItemId?: string;
 };
 
 export function upsertInputPurchase({
   data,
   purchaseId,
+  purchaseOrderItemId,
 }: UpsertInputPurchaseParams) {
   const url = purchaseId
     ? `/api/insumos/purchases/${purchaseId}`
@@ -29,6 +31,7 @@ export function upsertInputPurchase({
     method,
     body: JSON.stringify({
       ...data,
+      purchaseOrderItemId,
     }),
   });
 }

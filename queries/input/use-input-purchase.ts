@@ -14,9 +14,10 @@ export function useInputPurchaseQuery() {
 
 type Params = {
   purchaseId?: string;
+  purchaseOrderItemId?: string;
 };
 
-export function useUpsertInputPurchase({ purchaseId }: Params) {
+export function useUpsertInputPurchase({ purchaseId, purchaseOrderItemId }: Params) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -24,10 +25,8 @@ export function useUpsertInputPurchase({ purchaseId }: Params) {
       upsertInputPurchase({
         data,
         purchaseId,
+        purchaseOrderItemId,
       }),
-
-
-
     onSuccess: async (savedInputPurchase) => {
       queryClient.setQueryData<Purchase[]>(
         ["input-purchase"],
