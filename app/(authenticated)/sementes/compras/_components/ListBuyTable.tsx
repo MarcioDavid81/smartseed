@@ -135,15 +135,9 @@ export function ListBuyTable() {
         const compra = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <DetailBuyButton
-              compra={compra}
-            />
-            <UpsertBuyButton
-              compra={compra}
-            />
-            <DeleteBuyButton
-              compra={compra}
-            />
+            <DetailBuyButton compra={compra} />
+            <UpsertBuyButton compra={compra} />
+            <DeleteBuyButton compra={compra} />
           </div>
         );
       },

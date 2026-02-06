@@ -170,7 +170,7 @@ export function InsumosDataTable<TData, TValue>({
               <TableCell colSpan={columns.length - 3} className="text-start text-muted-foreground">
                 <h3>Total</h3>
               </TableCell>
-              <TableCell colSpan={2} className="text-start text-muted-foreground">                
+              <TableCell colSpan={3} className="text-start text-muted-foreground">                
                 {sumColumnId ? (
                   <div>
                     {new Intl.NumberFormat("pt-BR", {

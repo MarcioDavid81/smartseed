@@ -48,7 +48,7 @@ const DeleteBuyButton = ({ compra }: Props) => {
               onClick={() => setIsOpen(true)}
               className="hover:opacity-80 transition"
             >
-              <Trash2Icon size={20} className="text-red-500" />
+              <Trash2Icon size={20} className="text-red" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
