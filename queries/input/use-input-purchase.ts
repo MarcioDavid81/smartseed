@@ -74,6 +74,9 @@ export function useDeleteInputPurchase() {
         queryClient.invalidateQueries({
           queryKey: ["input-stock"],
         }),
+        queryClient.invalidateQueries({
+          queryKey: ["purchase-orders"],
+        }),
       ]);
     },
 

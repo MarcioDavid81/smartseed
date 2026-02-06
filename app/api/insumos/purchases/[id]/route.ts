@@ -2,6 +2,7 @@ import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentCondition } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 /**
  * @swagger
@@ -61,11 +62,9 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
     const {
@@ -87,7 +86,7 @@ export async function PUT(
       where: { id },
       include: { accountPayable: true },
     });
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existing || existing.companyId !== companyId) {
       return new NextResponse("Compra não encontrada ou acesso negado", {
         status: 403,
       });
@@ -131,7 +130,7 @@ export async function PUT(
           create: {
             productId,
             farmId,
-            companyId: payload.companyId,
+            companyId,
             stock: quantity,
           },
         });
@@ -187,7 +186,7 @@ export async function PUT(
             description: `Compra de ${product?.name ?? "insumo"}, cfe NF ${invoiceNumber}, de ${customer?.name ?? "cliente"}`,
             amount: totalPrice,
             dueDate: new Date(dueDate),
-            companyId: payload.companyId,
+            companyId,
             customerId,
             purchaseId: updated.id,
           },
@@ -242,11 +241,9 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
@@ -255,14 +252,14 @@ export async function DELETE(
       where: { id },
       include: { accountPayable: true },
     });
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existing || existing.companyId !== companyId) {
       return new NextResponse("Compra não encontrada ou acesso negado", {
         status: 403,
       });
     }
 
     const deleted = await db.$transaction(async (tx) => {
-      // 2. Ajustar estoque
+      // 1. Reverter estoque do insumo (decrementar)
       await tx.productStock.update({
         where: {
           productId_farmId: {
@@ -277,17 +274,39 @@ export async function DELETE(
         },
       });
 
-      // 3. Excluir compra
+      // 2. Apagar conta vinculada
+      if (existing.accountPayable) {
+        await db.accountPayable.delete({
+          where: { id: existing.accountPayable.id },
+        });
+      }
+
+      // 3. Se for atendimento de pedido de compra, reverter a quantidade entregue
+      if (existing.purchaseOrderItemId) {
+        const item = await tx.purchaseOrderItem.findUnique({
+          where: { id: existing.purchaseOrderItemId },
+          select: { fulfilledQuantity: true },
+        });
+
+      if (!item || Number(item.fulfilledQuantity) < existing.quantity) {
+        throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
+      }
+
+        await tx.purchaseOrderItem.update({
+          where: { id: existing.purchaseOrderItemId },
+          data: {
+            fulfilledQuantity: {
+              decrement: existing.quantity,
+            },
+          },
+        });
+      }
+
+      // 4. Excluir compra
       return await tx.purchase.delete({ where: { id } });
     });
-    // 4. Sincronizar accountPayable
-    if (existing.accountPayable) {
-      await db.accountPayable.delete({
-        where: { id: existing.accountPayable.id },
-      });
-    }
 
-    return NextResponse.json(deleted);
+    return NextResponse.json(deleted, { status: 200 });
   } catch (error) {
     console.error("Erro ao deletar compra:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });

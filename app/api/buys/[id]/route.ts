@@ -236,7 +236,7 @@ export async function DELETE(
       });
     }
 
-    await db.$transaction(async (tx) => {
+    const deleted = await db.$transaction(async (tx) => {
       // 1️⃣ Reverter estoque da cultivar (decrementar)
       await tx.cultivar.update({
         where: { id: existingBuy.cultivarId },
@@ -276,10 +276,10 @@ export async function DELETE(
       }
 
       // 4️⃣ Deletar a compra
-      await tx.buy.delete({ where: { id } });
+      return await tx.buy.delete({ where: { id } });
     });
 
-    return NextResponse.json({ message: "Compra excluída com sucesso" });
+    return NextResponse.json(deleted, { status: 200 });
   } catch (error) {
     console.error("Erro ao deletar compra:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });
