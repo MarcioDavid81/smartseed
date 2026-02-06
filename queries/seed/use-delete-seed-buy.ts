@@ -23,6 +23,9 @@ export function useDeleteSeedBuy({ cycleId }: Params) {
       queryClient.invalidateQueries({
         queryKey: ["seed-buy", cycleId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase-orders"],
+      });
     },
 
     onError: (error: Error) => {

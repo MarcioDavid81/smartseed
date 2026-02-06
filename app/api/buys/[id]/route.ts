@@ -254,7 +254,28 @@ export async function DELETE(
         });
       }
 
-      // 3️⃣ Deletar a compra
+      // 3️⃣ Se for atendimento de pedido de compra, reverter a quantidade entregue
+      if (existingBuy.purchaseOrderItemId) {
+        const item = await tx.purchaseOrderItem.findUnique({
+          where: { id: existingBuy.purchaseOrderItemId },
+          select: { fulfilledQuantity: true },
+        });
+
+        if (!item || Number(item.fulfilledQuantity) < existingBuy.quantityKg) {
+          throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
+        }
+
+        await tx.purchaseOrderItem.update({
+          where: { id: existingBuy.purchaseOrderItemId },
+          data: {
+            fulfilledQuantity: {
+              decrement: existingBuy.quantityKg,
+            },
+          },
+        });
+      }
+
+      // 4️⃣ Deletar a compra
       await tx.buy.delete({ where: { id } });
     });
 
