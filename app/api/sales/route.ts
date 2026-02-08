@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
-    const { companyId } = auth;
 
     const session = await withAccessControl("REGISTER_MOVEMENT");
 
@@ -116,7 +115,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 2️⃣ Atualiza o estoque da cultivar (decrementa)
+      // 3️⃣ Atualiza o estoque da cultivar (decrementa)
       await tx.cultivar.update({
         where: { id: data.cultivarId },
         data: {
@@ -124,14 +123,14 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 3️⃣ Se for a prazo → cria conta a receber
+      // 4️⃣ Se for a prazo → cria conta a receber
       if (data.paymentCondition === PaymentCondition.APRAZO && data.dueDate) {
         await tx.accountReceivable.create({
           data: {
             description: `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${data.invoiceNumber ?? "S/NF"}, para ${customer?.name ?? "cliente"}`,
             amount: data.saleValue,
             dueDate: new Date(data.dueDate),
-            companyId,
+            companyId: session.user.companyId,
             customerId: data.customerId,
             saleExitId: sale.id,
           },
