@@ -17,7 +17,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useCycle } from "@/contexts/CycleContext";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { useDeleteIndustrySale } from "@/queries/industry/use-delete-industry-sale";
 import { IndustrySale } from "@/types";
@@ -33,12 +32,9 @@ interface Props {
 
 const DeleteSaleButton = ({ venda, disabled = false }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { selectedCycle } = useCycle();
   const { showToast } = useSmartToast();
 
-  const { mutate, isPending } = useDeleteIndustrySale({
-      cycleId: selectedCycle!.id,
-    });
+  const { mutate, isPending } = useDeleteIndustrySale();
   
     const handleConfirmDelete = () => {
       if (disabled) {

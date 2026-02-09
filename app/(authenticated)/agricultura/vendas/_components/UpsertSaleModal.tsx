@@ -1,3 +1,4 @@
+import { PRODUCT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/products";
 import { ComboBoxOption } from "@/components/combo-option";
 import { MoneyInput, QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { getCycle } from "@/lib/cycle";
 import { ApiError } from "@/lib/http/api-error";
 import { IndustrySaleFormData, industrySaleSchema } from "@/lib/schemas/industrySale";
 import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
@@ -46,6 +46,7 @@ const UpsertSaleModal = ({
     defaultValues: {
       date: venda ? new Date(venda.date) : new Date(),
       document: venda?.document || "",
+      product: venda?.product || undefined,
       industryDepositId: venda?.industryDepositId || "",
       customerId: venda?.customerId || "",
       industryTransporterId: venda?.industryTransporterId || null,
@@ -86,6 +87,7 @@ const UpsertSaleModal = ({
       form.reset({
         date: new Date(venda.date),
         document: venda.document || "",
+        product: venda.product || undefined,
         industryDepositId: venda.industryDepositId,
         customerId: venda.customerId,
         industryTransporterId: venda.industryTransporterId || "",
@@ -110,24 +112,12 @@ const UpsertSaleModal = ({
   const { data: deposits = [] } = useIndustryDeposits();
   const { data: transporters = [] } = useIndustryTransporters();
   const { data: customers = [] } = useCustomers();
-
-  const cycle = getCycle();
   
   const { mutate, isPending } = useUpsertIndustrySale({
-    cycleId: cycle?.id!,
     saleId: venda?.id,
   });
   
-  const onSubmit = (data: IndustrySaleFormData) => {
-    if (!cycle?.id) {
-      showToast({
-        type: "error",
-        title: "Erro",
-        message: "Nenhum ciclo de produção selecionado.",
-      });
-      return;
-    }
-  
+  const onSubmit = (data: IndustrySaleFormData) => {  
     mutate(data, {
       onSuccess: () => {
         showToast({
@@ -176,7 +166,7 @@ const UpsertSaleModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[750px]">
         <DialogHeader>
           <DialogTitle>Venda</DialogTitle>
           <DialogDescription>
@@ -243,8 +233,35 @@ const UpsertSaleModal = ({
                 </div>
               </div>
 
-              {/* Depósito e Transportador */}
+              {/* Produto e Depósito */}
               <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="product"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Produto</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um produto" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PRODUCT_TYPE_OPTIONS.map((p) => (
+                                <SelectItem key={p.value} value={p.value}>
+                                  {p.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 <FormField
                   control={form.control}
                   name="industryDepositId"
@@ -266,31 +283,33 @@ const UpsertSaleModal = ({
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="industryTransporterId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Transportador</FormLabel>
-                      <FormControl>
-                        <ComboBoxOption
-                          options={transporters.map((t) => ({
-                            label: t.name,
-                            value: t.id,
-                          }))}
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="Selecione um transportador"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
 
-              {/* Veículo */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Transportador, Placa e Motorista */}
+              <div className="grid grid-cols-4 gap-4">
+                <div className="col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="industryTransporterId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Transportador</FormLabel>
+                        <FormControl>
+                          <ComboBoxOption
+                            options={transporters.map((t) => ({
+                              label: t.name,
+                              value: t.id,
+                            }))}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Selecione um transportador"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="truckPlate"

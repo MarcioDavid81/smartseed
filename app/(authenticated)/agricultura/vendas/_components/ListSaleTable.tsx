@@ -6,7 +6,6 @@ import { IndustrySale } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { SaleDataTable } from "./SaleDataTable";
-import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import { AgroLoader } from "@/components/agro-loader";
 import DeleteSaleButton from "./DeleteSaleButton";
 import EditSaleButton from "./EditSaleButton";
@@ -14,9 +13,9 @@ import { useUser } from "@/contexts/UserContext";
 import { canUser } from "@/lib/permissions/canUser";
 import { useIndustrySales } from "@/queries/industry/use-sale-query";
 import { LoadingData } from "@/components/loading-data";
+import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
 
 export function ListSaleTable() {
-  const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
   const { user } = useUser();
   const canDelete = canUser(user.role, "sale:delete");
 
@@ -25,7 +24,7 @@ export function ListSaleTable() {
       isLoading,
       isFetching,
       refetch,
-    } = useIndustrySales(selectedCycle?.id);
+    } = useIndustrySales();
 
   const columns: ColumnDef<IndustrySale>[] = [
     {
@@ -47,6 +46,13 @@ export function ListSaleTable() {
       header: "Documento",
       accessorFn: (row) => row.document,
       cell: ({ row: { original } }) => original.document,
+    },
+    {
+      accessorKey: "product",
+      header: "Produto",
+      accessorFn: (row) => row.product ?? "",
+      filterFn: "includesString",
+      cell: ({ row: { original } }) => <div className="text-left">{PRODUCT_TYPE_LABELS[original.product ?? ""] || original.product || <LoadingData />}</div>,
     },
     {
       id: "customer",
