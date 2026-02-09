@@ -5,9 +5,10 @@ import { IndustrySale } from "@/types";
 
 type Params = {
   saleId?: string;
+  depositId?: string;
 };
 
-export function useUpsertIndustrySale({ saleId }: Params) {
+export function useUpsertIndustrySale({ saleId, depositId }: Params) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -35,6 +36,12 @@ export function useUpsertIndustrySale({ saleId }: Params) {
       
       queryClient.invalidateQueries({
         queryKey: ["industrySales"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["industry-deposit", depositId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["industry-stock"],
       });
     },
   });

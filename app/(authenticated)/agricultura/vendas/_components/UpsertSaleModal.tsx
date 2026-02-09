@@ -1,4 +1,4 @@
-import { PRODUCT_TYPE_OPTIONS } from "@/app/(authenticated)/_constants/products";
+import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
 import { ComboBoxOption } from "@/components/combo-option";
 import { MoneyInput, QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSmartToast } from "@/contexts/ToastContext";
 import { ApiError } from "@/lib/http/api-error";
 import { IndustrySaleFormData, industrySaleSchema } from "@/lib/schemas/industrySale";
-import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
+import { useIndustryDepositById, useIndustryDeposits } from "@/queries/industry/use-deposits-query";
 import { useIndustryTransporters } from "@/queries/industry/use-transporter-query";
 import { useUpsertIndustrySale } from "@/queries/industry/use-upsert-industry-sale";
 import { useCustomers } from "@/queries/registrations/use-customer";
@@ -65,6 +65,8 @@ const UpsertSaleModal = ({
     },
   });
 
+  const depositId = form.watch("industryDepositId");
+
   // Cálculos automáticos para manter consistência com o schema e envio
   const weightBt = Number(form.watch("weightBt") ?? 0);
   const weightTr = Number(form.watch("weightTr") ?? 0);
@@ -112,6 +114,15 @@ const UpsertSaleModal = ({
   const { data: deposits = [] } = useIndustryDeposits();
   const { data: transporters = [] } = useIndustryTransporters();
   const { data: customers = [] } = useCustomers();
+  const { data: deposit, isLoading } = useIndustryDepositById(depositId);
+
+  const availableProducts = deposit?.industryStocks
+  ?.filter((s) => s.quantity > 0) ?? [];
+
+  useEffect(() => {
+    form.setValue("product", availableProducts[0]?.product || undefined);
+    }, [depositId]);
+
   
   const { mutate, isPending } = useUpsertIndustrySale({
     saleId: venda?.id,
@@ -235,33 +246,6 @@ const UpsertSaleModal = ({
 
               {/* Produto e Depósito */}
               <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="product"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Produto</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um produto" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {PRODUCT_TYPE_OPTIONS.map((p) => (
-                                <SelectItem key={p.value} value={p.value}>
-                                  {p.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 <FormField
                   control={form.control}
                   name="industryDepositId"
@@ -278,6 +262,48 @@ const UpsertSaleModal = ({
                           onChange={field.onChange}
                           placeholder="Selecione um depósito"
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />                
+                <FormField
+                  control={form.control}
+                  name="product"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Produto</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={!depositId || isLoading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={
+                                !depositId
+                                  ? "Selecione um depósito primeiro"
+                                  : availableProducts.length === 0
+                                  ? "Depósito sem estoque"
+                                  : "Selecione um produto"
+                              }
+                            />
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            {availableProducts.map((stock) => (
+                              <SelectItem key={stock.product} value={stock.product}>
+                                <div className="flex justify-between w-full gap-6">
+                                  <span>{PRODUCT_TYPE_LABELS[stock.product]}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {stock.quantity.toLocaleString("pt-BR")} kg
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
