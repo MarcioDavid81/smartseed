@@ -3,11 +3,11 @@
 import HoverButton from "@/components/HoverButton";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { SaleContract } from "@/types";
+import { SaleContractDetails } from "@/types";
 import UpsertSaleContractModal from "./UpsertSaleContractModal";
 
 interface Props {
-  venda?: SaleContract;
+  venda?: SaleContractDetails;
 }
 
 const CreateSaleContractButton = ({ venda }: Props) => {

@@ -8,11 +8,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { SaleContract } from "@/types";
+import { SaleContractDetails } from "@/types";
 import UpsertSaleContractModal from "./UpsertSaleContractModal";
 
 interface Props {
-  venda: SaleContract;
+  venda: SaleContractDetails;
 }
 
 const EditSaleContractButton = ({ venda }: Props) => {

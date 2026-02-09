@@ -18,14 +18,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useDeleteSaleContract } from "@/queries/commercial/use-sale-contracts";
-import { SaleContract } from "@/types";
+import { SaleContractDetails } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 
 
 interface Props {
-  venda: SaleContract;
+  venda: SaleContractDetails;
 }
 
 const DeleteSaleContractButton = ({ venda }: Props) => {

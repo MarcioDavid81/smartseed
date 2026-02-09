@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { SaleContract } from "@/types";
+import { SaleContract, SaleContractDetails } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SaleContractType, Unit } from "@prisma/client";
 import { useEffect } from "react";
@@ -39,7 +39,7 @@ import { useUpsertSaleContract } from "@/queries/commercial/use-sale-contracts";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface UpsertSaleContractModalProps {
-  venda?: SaleContract;
+  venda?: SaleContractDetails;
   isOpen: boolean;
   onClose: () => void;
 }
