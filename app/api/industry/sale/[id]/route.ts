@@ -151,7 +151,6 @@ export async function GET(
         industryDeposit: true,
         industryTransporter: true,
         accountReceivable: true,
-        cycle: true,
       },
     });
 

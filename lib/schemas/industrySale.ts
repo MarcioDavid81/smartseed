@@ -1,9 +1,10 @@
-import { PaymentCondition } from "@prisma/client";
+import { PaymentCondition, ProductType } from "@prisma/client";
 import z from "zod";
 
 export const industrySaleSchema = z.object({
   date: z.coerce.date(),
   document: z.string().optional(),
+  product: z.nativeEnum(ProductType),
   industryDepositId: z
     .string()
     .min(1, "Depósito de destino da venda é obrigatório"),

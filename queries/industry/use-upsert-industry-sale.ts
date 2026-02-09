@@ -4,24 +4,22 @@ import { upsertIndustrySale } from "@/services/industry/industrySale";
 import { IndustrySale } from "@/types";
 
 type Params = {
-  cycleId: string;
   saleId?: string;
 };
 
-export function useUpsertIndustrySale({ cycleId, saleId }: Params) {
+export function useUpsertIndustrySale({ saleId }: Params) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: IndustrySaleFormData) =>
       upsertIndustrySale({
         data,
-        cycleId,
         saleId,
       }),
 
     onSuccess: (savedSale) => {
       queryClient.setQueryData<IndustrySale[]>(
-        ["industrySales", cycleId],
+        ["industrySales"],
         (old) => {
           if (!old) return [savedSale];
 
@@ -36,7 +34,7 @@ export function useUpsertIndustrySale({ cycleId, saleId }: Params) {
       );
       
       queryClient.invalidateQueries({
-        queryKey: ["industrySales", cycleId],
+        queryKey: ["industrySales"],
       });
     },
   });

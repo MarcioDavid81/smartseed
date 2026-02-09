@@ -2,17 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { deleteIndustrySale } from "@/services/industry/industrySale";
 
-type Params = {
-  cycleId: string;
-};
-
-export function useDeleteIndustrySale({ cycleId }: Params) {
+export function useDeleteIndustrySale() {
   const queryClient = useQueryClient();
   const { showToast } = useSmartToast();
 
   return useMutation({
     mutationFn: (saleId: string) => deleteIndustrySale(saleId),
-    mutationKey: ["industrySales", cycleId],
+    mutationKey: ["industrySales"],
     onSuccess: () => {
       showToast({
         type: "success",
@@ -21,7 +17,7 @@ export function useDeleteIndustrySale({ cycleId }: Params) {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["industrySales", cycleId],
+        queryKey: ["industrySales"],
       });
     },
 

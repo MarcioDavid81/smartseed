@@ -34,5 +34,5 @@ export interface IndustrySale {
   dueDate?: Date
   accountReceivable?: AccountReceivable | null
   companyId: string
-  cycleId: string
+  cycleId?: string | null
 }

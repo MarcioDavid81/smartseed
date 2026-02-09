@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
-    const { companyId } = auth;
 
     const session = await withAccessControl('REGISTER_MOVEMENT');
 
@@ -34,31 +33,10 @@ export async function POST(req: NextRequest) {
     }
     const data = parsed.data;
 
-    const cycle = await db.productionCycle.findFirst({
-      where: {
-        id: data.cycleId,
-        companyId,
-      },
-      select: {
-        productType: true,
-      },
-    });
-
-    if (!cycle) {
-      return NextResponse.json({
-        error: {
-          code: "NOT_FOUND",
-          title: "Ciclo não encontrado",
-          message:
-            "O ciclo de produção não foi encontrado ou não pertence à empresa.",
-        },
-      });
-    }
-
     // 🔎 Busca o estoque industrial correspondente
     const industryStock = await db.industryStock.findFirst({
       where: {
-        product: cycle.productType as ProductType,
+        product: data.product,
         industryDepositId: data.industryDepositId,
       },
       select: { id: true },
@@ -84,22 +62,13 @@ export async function POST(req: NextRequest) {
 
     // 💾 Transação principal
     const industrySale = await db.$transaction(async (tx) => {
-      const cycle = await tx.productionCycle.findFirst({
-        where: { id: data.cycleId, companyId },
-        select: { productType: true },
-      });
-
-      if (!cycle) {
-        throw new Error("Ciclo não encontrado ou não pertence à empresa");
-      }
-
       // 🔹 Cria a venda
       const createdSale = await tx.industrySale.create({
         data: {
           ...data,
           date: new Date(data.date),
           companyId: session.user.companyId,
-          product: cycle.productType as ProductType,
+          product: data.product,
           industryTransporterId: data.industryTransporterId || null,
         },
       });
@@ -108,7 +77,7 @@ export async function POST(req: NextRequest) {
       await tx.industryStock.update({
         where: {
           product_industryDepositId: {
-            product: cycle.productType as ProductType,
+            product: data.product,
             industryDepositId: data.industryDepositId,
           },
         },
@@ -126,8 +95,8 @@ export async function POST(req: NextRequest) {
           select: { name: true },
         });
 
-        const productLabel = cycle
-          .productType!.toString()
+        const productLabel = data.product
+          .toString()
           .replace("_", " ")
           .toLowerCase()
           .replace(/\b\w/g, (l) => l.toUpperCase());
@@ -139,7 +108,7 @@ export async function POST(req: NextRequest) {
             description: `Venda de ${productLabel}, cfe NF ${document}, para ${customerName}`,
             amount: data.totalPrice,
             dueDate: new Date(data.dueDate),
-            companyId,
+            companyId: session.user.companyId,
             customerId: data.customerId,
             industrySaleId: createdSale.id,
           },
@@ -180,14 +149,13 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  try {
   const auth = await requireAuth(req);
   if (!auth.ok) return auth.response;
   const { companyId } = auth;
-  const cycleId = req.nextUrl.searchParams.get("cycleId");
 
-  try {
     const industrySales = await db.industrySale.findMany({
-      where: { companyId, ...(cycleId && { cycleId }) },
+      where: { companyId },
       include: {
         customer: {
           select: { id: true, name: true },
