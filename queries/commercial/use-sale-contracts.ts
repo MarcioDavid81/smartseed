@@ -1,11 +1,11 @@
-import { SaleContract } from "@/types";
+import { SaleContract, SaleContractDetails } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { deleteSaleContract, getSaleContractById, getSaleContracts, upsertSaleContract } from "@/services/commercial/saleContracts";
 import { SaleContractFormData } from "@/lib/schemas/saleContractSchema";
 
 export function useSaleContracts() {
-  return useQuery({
+  return useQuery<SaleContractDetails[]>({
     queryKey: ["sale-contracts"],
     queryFn: () => getSaleContracts(),
     staleTime: 1000 * 60 * 60 * 24, // 1 dia

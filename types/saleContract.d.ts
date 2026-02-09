@@ -14,6 +14,14 @@ export interface SaleContract {
   notes?: string;
   status: ComercialStatus;
   items: SaleContractItem[];
+  deliveries: Array<{
+    id: string;
+    date: string;
+    invoice: string;
+    quantity: number;
+    unit: Unit;
+    totalPrice: number;
+  }>;
   companyId: string;
   createdAt: Date;
   updatedAt: Date;

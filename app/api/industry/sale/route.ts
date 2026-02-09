@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
     });
 
     const body = await req.json();
+
     const parsed = industrySaleSchema.safeParse(body);
+
     if (!parsed.success) {
       return NextResponse.json({
         error: {
@@ -32,6 +34,49 @@ export async function POST(req: NextRequest) {
       });
     }
     const data = parsed.data;
+
+    const { saleContractItemId } = data;
+
+    let saleContractItem = null;
+
+    if (saleContractItemId) {
+      saleContractItem = await db.saleContractItem.findUnique({
+        where: { id: saleContractItemId },
+        include: {
+          saleContract: true,
+        },
+      });
+
+      if (!saleContractItem) {
+        return NextResponse.json(
+          { error: "Item do contrato de venda não encontrado" },
+          { status: 404 },
+        );
+      }
+
+      if (
+        saleContractItem.saleContract.status !== "OPEN" &&
+        saleContractItem.saleContract.status !== "PARTIAL_FULFILLED"
+      ) {
+        return NextResponse.json(
+          { error: "Contrato de venda não está aberto para remessas" },
+          { status: 400 },
+        );
+      }
+
+      const remaining =
+        Number(saleContractItem.quantity) -
+        Number(saleContractItem.fulfilledQuantity);
+
+      if (data.weightLiq > remaining) {
+        return NextResponse.json(
+          {
+            error: `Quantidade excede o saldo do pedido. Restante: ${remaining}`,
+          },
+          { status: 400 },
+        );
+      }
+    }
 
     // 🔎 Busca o estoque industrial correspondente
     const industryStock = await db.industryStock.findFirst({

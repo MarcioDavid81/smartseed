@@ -11,6 +11,7 @@ export const seedSaleSchema = z.object({
   notes: z.string().optional(),
   paymentCondition: z.nativeEnum(PaymentCondition),
   dueDate: z.coerce.date(),
+  saleContractItemId: z.string().optional(),
   cycleId: z.string().optional(),
 });
 

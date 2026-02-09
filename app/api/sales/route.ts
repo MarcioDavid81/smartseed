@@ -75,6 +75,49 @@ export async function POST(req: NextRequest) {
 
     const data = parsed.data;
 
+    const { saleContractItemId } = data;
+
+    let saleContractItem = null;
+
+    if (saleContractItemId) {
+      saleContractItem = await db.saleContractItem.findUnique({
+        where: { id: saleContractItemId },
+        include: {
+          saleContract: true,
+        },
+      });
+
+      if (!saleContractItem) {
+        return NextResponse.json(
+          { error: "Item do contrato de venda não encontrado" },
+          { status: 404 },
+        );
+      }
+
+      if (
+        saleContractItem.saleContract.status !== "OPEN" &&
+        saleContractItem.saleContract.status !== "PARTIAL_FULFILLED"
+      ) {
+        return NextResponse.json(
+          { error: "Contrato de venda não está aberto para remessas" },
+          { status: 400 },
+        );
+      }
+
+      const remaining =
+        Number(saleContractItem.quantity) -
+        Number(saleContractItem.fulfilledQuantity);
+
+      if (data.quantityKg > remaining) {
+        return NextResponse.json(
+          {
+            error: `Quantidade excede o saldo do pedido. Restante: ${remaining}`,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     const stockValidation = await validateStock(
       data.cultivarId,
       data.quantityKg,
@@ -112,8 +155,21 @@ export async function POST(req: NextRequest) {
         data: {
           ...data,
           companyId: session.user.companyId,
+          saleContractItemId: saleContractItemId ?? null,
         },
       });
+
+      // 2️⃣ Atualiza o contrato de venda se houver
+      if (saleContractItem) {
+        await tx.saleContractItem.update({
+          where: { id: saleContractItem.id },
+          data: {
+            fulfilledQuantity: {
+              increment: data.quantityKg,
+            },
+          },
+        });
+      }
 
       // 3️⃣ Atualiza o estoque da cultivar (decrementa)
       await tx.cultivar.update({

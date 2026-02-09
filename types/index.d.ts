@@ -45,6 +45,8 @@ export * from "./saleExit";
 export * from "./sale";
 export * from "./saleContract";
 export * from "./saleContractItem";
+export * from "./saleContractItemDelivery";
+export * from "./saleContractDetails";
 export * from "./seedAdjustStock";
 export * from "./stock";
 export * from "./talhao";

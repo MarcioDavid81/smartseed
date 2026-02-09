@@ -1,9 +1,9 @@
-import { SaleContract } from "@/types";
+import { SaleContract, SaleContractDetails } from "@/types";
 import { apiFetch } from "../api";
 import { SaleContractFormData } from "@/lib/schemas/saleContractSchema";
 
-export async function getSaleContracts(): Promise<SaleContract[]> {
-  const data = await apiFetch<SaleContract[]>(
+export async function getSaleContracts(): Promise<SaleContractDetails[]> {
+  const data = await apiFetch<SaleContractDetails[]>(
     `/api/commercial/sale-contracts`
   );
 

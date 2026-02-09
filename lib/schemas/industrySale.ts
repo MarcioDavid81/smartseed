@@ -22,6 +22,7 @@ export const industrySaleSchema = z.object({
   notes: z.string().optional(),
   paymentCondition: z.nativeEnum(PaymentCondition).optional(),
   dueDate: z.coerce.date().optional(),
+  saleContractItemId: z.string().optional(),
   cycleId: z.string().optional(),
 });
 
