@@ -31,26 +31,44 @@ import { Cultivar } from "@/types";
 import { Customer } from "@/types/customers";
 import { Sale } from "@/types/sale";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PaymentCondition, ProductType } from "@prisma/client";
+import { PaymentCondition } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 interface UpsertSaleModalProps {
   venda?: Sale;
   isOpen: boolean;
   onClose: () => void;
+
+  /** 🆕 contexto de atendimento */
+  saleContractItemId?: string;
+  cultivarId?: string;
+  customerId?: string;
+  customerName?: string;
+  saleValue?: number;
+  maxQuantityKg?: number;
+  initialQuantityKg?: number;
 }
 
 const UpsertSaleModal = ({
   venda,
   isOpen,
   onClose,
+  saleContractItemId,
+  cultivarId,
+  customerId,
+  customerName,
+  saleValue,
+  maxQuantityKg,
+  initialQuantityKg,
 }: UpsertSaleModalProps) => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const { showToast } = useSmartToast();
+
+  const suggestedQuantityKg =
+    initialQuantityKg ?? maxQuantityKg ?? undefined;
 
   const form = useForm<SeedSaleFormData>({
     resolver: zodResolver(seedSaleSchema),
@@ -63,9 +81,8 @@ const UpsertSaleModal = ({
       quantityKg: venda?.quantityKg ?? 0,
       notes: venda?.notes ?? "",
       paymentCondition: venda?.paymentCondition ?? PaymentCondition.AVISTA,
-      dueDate: venda?.dueDate
-        ? new Date(venda.dueDate)
-        : new Date(),
+      dueDate: venda?.dueDate ? new Date(venda.dueDate) : new Date(),
+      saleContractItemId: saleContractItemId ?? undefined,
     },
   });
 
@@ -80,27 +97,36 @@ const UpsertSaleModal = ({
         quantityKg: venda.quantityKg,
         notes: venda.notes || "",
         paymentCondition: venda.paymentCondition ?? PaymentCondition.AVISTA,
-        dueDate: venda?.dueDate
-          ? new Date(venda.dueDate)
-          : new Date(),
+        dueDate: venda?.dueDate ? new Date(venda.dueDate) : new Date(),
+        saleContractItemId: saleContractItemId ?? undefined,
       });
     } else {
-      form.reset();
+      form.reset({
+        saleContractItemId: saleContractItemId ?? undefined,
+        cultivarId: cultivarId ?? "",
+        customerId: customerId ?? "",
+        saleValue: saleValue ?? 0,
+        quantityKg: suggestedQuantityKg ?? 0,
+      });
     }
-  }, [venda, isOpen, form.reset]);
+  }, [
+    venda,
+    isOpen,
+    saleContractItemId,
+    cultivarId,
+    customerId,
+    saleValue,
+    isOpen,
+    suggestedQuantityKg,
+    form
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const cycle = getCycle();
-      if (!cycle || !cycle.productType) {
-        toast.error("Nenhum tipo de produto selecionado.");
-        return;
-      }
-
       const token = getToken();
 
       const [cultivarRes, customerRes] = await Promise.all([
-        fetch(`/api/cultivars/available-for-sale?productType=${cycle.productType as ProductType}`, {
+        fetch(`/api/cultivars/available-for-sale`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch("/api/customers", {
@@ -123,6 +149,7 @@ const UpsertSaleModal = ({
   const { mutate, isPending } = useUpsertSeedSale({
     cycleId: cycle?.id!,
     saleId: venda?.id,
+    saleContractItemId: saleContractItemId ?? undefined,
   });
 
   const onSubmit = async (data: SeedSaleFormData) => {
@@ -135,7 +162,25 @@ const UpsertSaleModal = ({
       return;
     }
 
-    mutate(data, {
+    if (
+      saleContractItemId &&
+      maxQuantityKg &&
+      data.quantityKg > maxQuantityKg
+    ) {
+      showToast({
+        type: "error",
+        title: "Quantidade inválida",
+        message: "A quantidade excede o saldo disponível do pedido.",
+      });
+      return;
+    }
+
+    mutate(
+      {
+        ...data,
+        saleContractItemId: saleContractItemId ?? undefined,
+      },
+      {
       onSuccess: () => {
         showToast({
           type: "success",
@@ -177,12 +222,40 @@ const UpsertSaleModal = ({
     });
   };
 
+  useEffect(() => {
+    if (cultivarId) {
+      form.setValue("cultivarId", cultivarId, { shouldValidate: true });
+    }
+
+    if (customerId) {
+      form.setValue("customerId", customerId, { shouldValidate: true });
+    }
+
+    if (typeof saleValue === "number") {
+      form.setValue("saleValue", saleValue, {
+        shouldValidate: true,
+      });
+    }
+
+    if (typeof suggestedQuantityKg === "number") {
+      form.setValue("quantityKg", suggestedQuantityKg, {
+        shouldValidate: true,
+      });
+    }
+  }, [cultivarId, customerId, saleValue, suggestedQuantityKg, form])
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[650px]">
         <DialogHeader>
-          <DialogTitle>Venda</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Venda
+            {saleContractItemId && (
+              <span className="text-xs bg-green/10 text-green px-2 py-1 rounded">
+                Atendimento de Contrato
+              </span>
+            )}
+          </DialogTitle>
           <DialogDescription>
             {venda ? "Editar venda" : "Cadastrar venda"}
           </DialogDescription>
@@ -198,7 +271,11 @@ const UpsertSaleModal = ({
                     <FormItem>
                       <FormLabel>Cultivar</FormLabel>
                       <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          value={field.value}
+                          disabled={!!saleContractItemId}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione um cultivar" />
                           </SelectTrigger>
@@ -227,7 +304,11 @@ const UpsertSaleModal = ({
                     <FormItem>
                       <FormLabel>Destino</FormLabel>
                       <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          value={field.value}
+                          disabled={!!saleContractItemId}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione um cliente" />
                           </SelectTrigger>

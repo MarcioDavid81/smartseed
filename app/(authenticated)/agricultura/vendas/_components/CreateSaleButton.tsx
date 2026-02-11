@@ -3,7 +3,7 @@
 import HoverButton from "@/components/HoverButton";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
-import UpsertSaleModal from "./UpsertSaleModal";
+import UpsertIndustrySaleModal from "./UpsertSaleModal";
 import { IndustrySale } from "@/types";
 
 interface Props {
@@ -18,7 +18,7 @@ const CreateSaleButton = ({ venda }: Props) => {
         <PlusIcon size={20} />
         Venda
       </HoverButton>
-      <UpsertSaleModal
+      <UpsertIndustrySaleModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         venda={venda}

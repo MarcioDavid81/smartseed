@@ -11,7 +11,6 @@ import { useSaleContracts } from "@/queries/commercial/use-sale-contracts";
 import { SaleContractDataTable } from "./SaleContractDataTable";
 import EditSaleContractButton from "./EditSaleContractButton";
 import DeleteSaleContractButton from "./DeleteSaleContractButton";
-import { CommercialStatusBadge } from "@/app/(authenticated)/_components/CommercialStatusBadge";
 import { DetailSaleContractButton } from "./DetailSaleContractButton";
 import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
 
@@ -41,6 +40,8 @@ export function ListSaleContractTable() {
     {
       id: "product",
       header: () => <div className="text-left">Itens</div>,
+      accessorFn: (row) => row.items.map(item => item.product ?? item.cultivar?.name ?? "").join(", "),
+      filterFn: "includesString",
       cell: ({ row }) => {
         const { items, type } = row.original;
 
@@ -49,7 +50,7 @@ export function ListSaleContractTable() {
         const labels =
           type === "INDUSTRY_SALE"
             ? items
-                .map(item => PRODUCT_TYPE_LABELS[item.product ?? "SOJA"])
+                .map(item => PRODUCT_TYPE_LABELS[item.product ?? "TRIGO"])
                 .filter(Boolean)
             : items
                 .map(item => item.cultivar?.name)

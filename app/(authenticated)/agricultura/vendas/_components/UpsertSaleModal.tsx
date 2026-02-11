@@ -23,7 +23,7 @@ import { useCustomers } from "@/queries/registrations/use-customer";
 import {
   IndustrySale} from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PaymentCondition } from "@prisma/client";
+import { PaymentCondition, ProductType } from "@prisma/client";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
@@ -32,14 +32,31 @@ interface UpsertSaleModalProps {
   venda?: IndustrySale;
   isOpen: boolean;
   onClose: () => void;
+
+  /** 🆕 contexto de atendimento */
+  saleContractItemId?: string;
+  product?: ProductType;
+  customerId?: string;
+  customerName?: string;
+  unitPrice?: number;
+  maxQuantityKg?: number;
+  initialQuantity?: number;
 }
 
-const UpsertSaleModal = ({
+const UpsertIndustrySaleModal = ({
   venda,
   isOpen,
   onClose,
+  saleContractItemId,
+  product,
+  customerId,
+  unitPrice: unitPriceFromSale,
+  maxQuantityKg,
+  initialQuantity,
 }: UpsertSaleModalProps) => {
   const { showToast } = useSmartToast();
+
+  const suggestedQuantity = initialQuantity ?? maxQuantityKg ?? undefined;
 
   const form = useForm<IndustrySaleFormData>({
     resolver: zodResolver(industrySaleSchema),
@@ -57,11 +74,12 @@ const UpsertSaleModal = ({
       weightSubLiq: venda?.weightSubLiq || 0,
       discountsKg: venda?.discountsKg || 0,
       weightLiq: venda?.weightLiq || 0,
-      unitPrice: venda?.unitPrice || 0,
+      unitPrice: venda?.unitPrice ?? unitPriceFromSale ?? 0,
       totalPrice: venda?.totalPrice || 0,
       notes: venda?.notes || "",
       paymentCondition: venda?.paymentCondition || PaymentCondition.AVISTA,
       dueDate: venda?.dueDate ? new Date(venda.dueDate) : undefined,
+      saleContractItemId: saleContractItemId ?? undefined,
     },
   });
 
@@ -105,11 +123,28 @@ const UpsertSaleModal = ({
         notes: venda.notes || "",
         paymentCondition: venda.paymentCondition ?? PaymentCondition.AVISTA,
         dueDate: venda.dueDate ? new Date(venda.dueDate) : undefined,
+        saleContractItemId: saleContractItemId ?? undefined,
       });
     } else {
-      form.reset();
+      form.reset({
+        saleContractItemId: saleContractItemId ?? undefined,
+        product: product ?? undefined,
+        industryDepositId: depositId ?? "",
+        customerId: customerId ?? "",
+        unitPrice: unitPriceFromSale ?? 0,
+        weightLiq: suggestedQuantity ?? 0,
+      });
     }
-  }, [venda, isOpen, form]);
+  }, [
+    venda,
+    isOpen,
+    saleContractItemId,
+    product,
+    customerId,
+    unitPriceFromSale,
+    suggestedQuantity,
+    form
+  ]);
 
   const { data: deposits = [] } = useIndustryDeposits();
   const { data: transporters = [] } = useIndustryTransporters();
@@ -126,10 +161,26 @@ const UpsertSaleModal = ({
   
   const { mutate, isPending } = useUpsertIndustrySale({
     saleId: venda?.id,
+    saleContractItemId: saleContractItemId ?? undefined,
   });
   
   const onSubmit = (data: IndustrySaleFormData) => {  
-    mutate(data, {
+    if (
+      saleContractItemId &&
+      maxQuantityKg &&
+      data.weightLiq > maxQuantityKg
+    ) {
+      showToast({
+        type: "error",
+        title: "Quantidade inválida",
+        message: "A quantidade excede o saldo disponível do contrato.",
+      });
+      return;
+    }
+    mutate({
+      ...data,
+      saleContractItemId: saleContractItemId ?? undefined,
+    }, {
       onSuccess: () => {
         showToast({
           type: "success",
@@ -175,11 +226,38 @@ const UpsertSaleModal = ({
     if (!isOpen) form.reset();
   }, [isOpen, form]);
 
+    useEffect(() => {
+      if (product) {
+        form.setValue("product", product, { shouldValidate: true });
+      }
+  
+      if (customerId) {
+        form.setValue("customerId", customerId, { shouldValidate: true });
+      }
+  
+      if (typeof unitPriceFromSale === "number") {
+        form.setValue("unitPrice", unitPriceFromSale, {
+          shouldValidate: true,
+        });
+      }
+  
+      if (typeof suggestedQuantity === "number") {
+        form.setValue("weightLiq", suggestedQuantity, { shouldValidate: true });
+      }
+    }, [product, customerId, unitPriceFromSale, suggestedQuantity, form]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[750px]">
         <DialogHeader>
-          <DialogTitle>Venda</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Venda
+            {saleContractItemId && (
+              <span className="text-xs bg-green/10 text-green px-2 py-1 rounded">
+                Atendimento de Contrato
+              </span>
+            )}
+          </DialogTitle>
           <DialogDescription>
             {venda ? "Editar venda" : "Cadastrar venda"}
           </DialogDescription>
@@ -493,4 +571,4 @@ const UpsertSaleModal = ({
   );
 };
 
-export default UpsertSaleModal;
+export default UpsertIndustrySaleModal;

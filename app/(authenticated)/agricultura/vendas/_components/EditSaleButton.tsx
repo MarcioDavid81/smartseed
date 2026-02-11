@@ -2,7 +2,7 @@
 
 import { SquarePenIcon } from "lucide-react";
 import { useState } from "react";
-import UpsertSaleModal from "./UpsertSaleModal";
+import UpsertIndustrySaleModal from "./UpsertSaleModal";
 import {
   Tooltip,
   TooltipContent,
@@ -34,7 +34,7 @@ const EditSaleButton = ({ venda }: Props) => {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <UpsertSaleModal
+      <UpsertIndustrySaleModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         venda={venda}
