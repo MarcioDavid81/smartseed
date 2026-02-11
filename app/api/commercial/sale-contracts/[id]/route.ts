@@ -243,23 +243,45 @@ export async function GET(
     }
 
     const items = saleContract.items.map((item) => {
+      const unitPrice = Number(item.unityPrice);
+
       const deliveries = [
-        ...item.industrySales.map((sale) => ({
-          id: sale.id,
-          date: sale.date instanceof Date ? sale.date.toISOString() : String(sale.date),
-          invoice: String(sale.document ?? ""),
-          quantity: Number(sale.weightLiq),
-          unit: item.unit,
-          totalPrice: Number(item.totalPrice),
-        })),
-        ...item.seedSales.map((sale) => ({
-          id: sale.id,
-          date: sale.date instanceof Date ? sale.date.toISOString() : String(sale.date),
-          invoice: String(sale.invoiceNumber ?? ""),
-          quantity: Number(sale.quantityKg),
-          unit: item.unit,
-          totalPrice: Number(item.totalPrice),
-        })),
+        ...item.industrySales.map((sale) => {
+          const quantity = Number(sale.weightLiq);
+          const totalPrice = unitPrice * quantity;
+
+          return {
+            id: sale.id,
+            date:
+              sale.date instanceof Date
+                ? sale.date.toISOString()
+                : String(sale.date),
+            invoice: String(sale.document ?? ""),
+            quantity,
+            unit: item.unit,
+            totalPrice: Number.isFinite(totalPrice)
+              ? Number(totalPrice.toFixed(2))
+              : 0,
+          };
+        }),
+        ...item.seedSales.map((sale) => {
+          const quantity = Number(sale.quantityKg);
+          const totalPrice = unitPrice * quantity;
+
+          return {
+            id: sale.id,
+            date:
+              sale.date instanceof Date
+                ? sale.date.toISOString()
+                : String(sale.date),
+            invoice: String(sale.invoiceNumber ?? ""),
+            quantity,
+            unit: item.unit,
+            totalPrice: Number.isFinite(totalPrice)
+              ? Number(totalPrice.toFixed(2))
+              : 0,
+          };
+        }),
       ].sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
       );
@@ -270,10 +292,12 @@ export async function GET(
         fulfilledQuantity: Number(item.fulfilledQuantity),
         remainingQuantity: Number(item.quantity) - Number(item.fulfilledQuantity),
         unit: item.unit,
-        unityPrice: Number(item.unityPrice),
+        unityPrice: unitPrice,
         totalPrice: Number(item.totalPrice),
         product: item.product ? item.product : null,
-        cultivar: item.cultivar ? { id: item.cultivar.id, name: item.cultivar.name } : null,
+        cultivar: item.cultivar
+          ? { id: item.cultivar.id, name: item.cultivar.name }
+          : null,
         deliveries,
       };
     });
