@@ -6,9 +6,10 @@ import { IndustrySale } from "@/types";
 type Params = {
   saleId?: string;
   depositId?: string;
+  saleContractItemId?: string;
 };
 
-export function useUpsertIndustrySale({ saleId, depositId }: Params) {
+export function useUpsertIndustrySale({ saleId, depositId, saleContractItemId }: Params) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -16,6 +17,7 @@ export function useUpsertIndustrySale({ saleId, depositId }: Params) {
       upsertIndustrySale({
         data,
         saleId,
+        saleContractItemId,
       }),
 
     onSuccess: (savedSale) => {

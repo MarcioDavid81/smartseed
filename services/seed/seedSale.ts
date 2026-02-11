@@ -17,12 +17,14 @@ type UpsertSaleParams = {
   data: SeedSaleFormData;
   cycleId: string;
   saleId?: string;
+  saleContractItemId?: string;
 };
 
 export function upsertSeedSale({
   data,
   cycleId,
   saleId,
+  saleContractItemId,
 }: UpsertSaleParams) {
   const url = saleId
     ? `/api/sales/${saleId}`
@@ -35,6 +37,7 @@ export function upsertSeedSale({
     body: JSON.stringify({
       ...data,
       cycleId,
+      saleContractItemId,
     }),
   });
 }

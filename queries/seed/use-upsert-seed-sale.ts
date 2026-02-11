@@ -6,9 +6,10 @@ import { upsertSeedSale } from "@/services/seed/seedSale";
 type Params = {
   cycleId: string;
   saleId?: string;
+  saleContractItemId?: string;
 };
 
-export function useUpsertSeedSale({ cycleId, saleId }: Params) {
+export function useUpsertSeedSale({ cycleId, saleId, saleContractItemId }: Params) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -17,6 +18,7 @@ export function useUpsertSeedSale({ cycleId, saleId }: Params) {
         data,
         cycleId,
         saleId,
+        saleContractItemId,
       }),
     onSuccess: (savedSale) => {
       queryClient.setQueryData<Sale[]>(

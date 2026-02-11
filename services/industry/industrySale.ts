@@ -14,11 +14,13 @@ export async function getIndustrySalesByCycle(
 type UpsertSaleParams = {
   data: IndustrySaleFormData;
   saleId?: string;
+  saleContractItemId?: string;
 };
 
 export function upsertIndustrySale({
   data,
   saleId,
+  saleContractItemId,
 }: UpsertSaleParams) {
   const url = saleId
     ? `/api/industry/sale/${saleId}`
@@ -30,6 +32,7 @@ export function upsertIndustrySale({
     method,
     body: JSON.stringify({
       ...data,
+      saleContractItemId,
     }),
   });
 }

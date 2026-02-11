@@ -18,7 +18,7 @@ export const PURCHASE_TYPE_OPTIONS = [
 
 export const SALE_TYPE_LABELS = {
   SEED_SALE: "Venda de Sementes",
-  INDUSTRY_SALE: "Venda de Indústria",
+  INDUSTRY_SALE: "Venda de Grãos",
 }
 
 export const SALE_TYPE_OPTIONS = [
