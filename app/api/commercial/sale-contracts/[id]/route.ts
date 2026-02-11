@@ -2,7 +2,6 @@ import { SaleContractDomainService } from "@/core/domain/sale-contract/sale-cont
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { saleContractSchema } from "@/lib/schemas/saleContractSchema";
-import { ProductType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 type Params = {
@@ -62,7 +61,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
       await tx.saleContractItem.deleteMany({
         where: { saleContractId: saleContract.id },
       });
-
       
       // 🟢 recria itens
       for (const item of items) {
@@ -219,6 +217,7 @@ export async function GET(
     const saleContract = await db.saleContract.findUnique({
       where: { id },
       include: {
+        customer: true,
         items: {
           include: {
             industrySales: true,
@@ -243,7 +242,69 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(saleContract, { status: 200 });
+    const items = saleContract.items.map((item) => {
+      const deliveries = [
+        ...item.industrySales.map((sale) => ({
+          id: sale.id,
+          date: sale.date instanceof Date ? sale.date.toISOString() : String(sale.date),
+          invoice: String(sale.document ?? ""),
+          quantity: Number(sale.weightLiq),
+          unit: item.unit,
+          totalPrice: Number(item.totalPrice),
+        })),
+        ...item.seedSales.map((sale) => ({
+          id: sale.id,
+          date: sale.date instanceof Date ? sale.date.toISOString() : String(sale.date),
+          invoice: String(sale.invoiceNumber ?? ""),
+          quantity: Number(sale.quantityKg),
+          unit: item.unit,
+          totalPrice: Number(item.totalPrice),
+        })),
+      ].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+      return {
+        id: item.id,
+        description: item.description,
+        quantity: Number(item.quantity),
+        fulfilledQuantity: Number(item.fulfilledQuantity),
+        remainingQuantity: Number(item.quantity) - Number(item.fulfilledQuantity),
+        unit: item.unit,
+        unityPrice: Number(item.unityPrice),
+        totalPrice: Number(item.totalPrice),
+        product: item.product ? item.product : null,
+        cultivar: item.cultivar ? { id: item.cultivar.id, name: item.cultivar.name } : null,
+        deliveries,
+      };
+    });
+
+    const deliveries = items
+      .flatMap((item) => item.deliveries)
+      .sort(
+        (a, b) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+
+    return NextResponse.json(
+      {
+        id: saleContract.id,
+        type: saleContract.type,
+        date: saleContract.date,
+        document: saleContract.document,
+        status: saleContract.status,
+        notes: saleContract.notes,
+        customerId: saleContract.customerId,
+
+        customer: {
+          id: saleContract.customer.id,
+          name: saleContract.customer.name,
+        },
+
+        items,
+        deliveries,
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Erro ao buscar contrato de venda:", error);
     return NextResponse.json(

@@ -106,17 +106,30 @@ export async function POST(req: NextRequest) {
     if (stockError) return stockError;
 
     // 💾 Transação principal
-    const industrySale = await db.$transaction(async (tx) => {
+    const result = await db.$transaction(async (tx) => {
       // 🔹 Cria a venda
-      const createdSale = await tx.industrySale.create({
+      const sale = await tx.industrySale.create({
         data: {
           ...data,
           date: new Date(data.date),
           companyId: session.user.companyId,
           product: data.product,
           industryTransporterId: data.industryTransporterId || null,
+          saleContractItemId: saleContractItemId || null,
         },
       });
+
+      // 🔹 Atualiza o contrato de venda se houver
+      if (saleContractItem) {
+        await tx.saleContractItem.update({
+          where: { id: saleContractItem.id },
+          data: {
+            fulfilledQuantity: {
+              increment: data.weightLiq,
+            },
+          },
+        });
+      }
 
       // 🔹 Atualiza o estoque
       await tx.industryStock.update({
@@ -155,15 +168,15 @@ export async function POST(req: NextRequest) {
             dueDate: new Date(data.dueDate),
             companyId: session.user.companyId,
             customerId: data.customerId,
-            industrySaleId: createdSale.id,
+            industrySaleId: sale.id,
           },
         });
       }
 
-      return createdSale;
+      return sale;
     });
 
-    return NextResponse.json(industrySale, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar venda industrial:", error);
     if (error instanceof PlanLimitReachedError) {

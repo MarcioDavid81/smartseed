@@ -116,8 +116,8 @@ export async function DELETE(
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
-
     const { companyId } = auth;
+
     const { id } = params;
 
     const purchaseOrder = await db.purchaseOrder.findUnique({
@@ -297,7 +297,9 @@ export async function GET(
 
       items,
       deliveries,
-    });
+    },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Erro ao buscar ordem de compra:", error);
     return NextResponse.json(

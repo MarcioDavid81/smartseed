@@ -1,7 +1,7 @@
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { PaymentCondition } from "@prisma/client";
+import { AccountStatus, PaymentCondition } from "@prisma/client";
 import { requireAuth } from "@/lib/auth/require-auth";
 
 /**
@@ -258,6 +258,21 @@ export async function DELETE(
       });
     }
 
+    // 🚫 Impede exclusão de compra com conta já paga
+    if (existing.accountPayable?.status === AccountStatus.PAID) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "PURCHASE_ALREADY_PAID",
+            title: "Ação não permitida",
+            message:
+              "Não é possível excluir uma compra que já possui pagamento confirmado.",
+          },
+        },
+        { status: 400 },
+      );
+    }
+
     const deleted = await db.$transaction(async (tx) => {
       // 1. Reverter estoque do insumo (decrementar)
       await tx.productStock.update({
@@ -288,9 +303,9 @@ export async function DELETE(
           select: { fulfilledQuantity: true },
         });
 
-      if (!item || Number(item.fulfilledQuantity) < existing.quantity) {
-        throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
-      }
+        if (!item || Number(item.fulfilledQuantity) < existing.quantity) {
+          throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
+        }
 
         await tx.purchaseOrderItem.update({
           where: { id: existing.purchaseOrderItemId },
@@ -312,7 +327,6 @@ export async function DELETE(
     return new NextResponse("Erro interno no servidor", { status: 500 });
   }
 }
-
 
 export async function GET(
   req: NextRequest,

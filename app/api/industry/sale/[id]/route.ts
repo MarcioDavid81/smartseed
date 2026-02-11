@@ -216,7 +216,7 @@ export async function DELETE(
       );
     }
 
-    await db.$transaction(async (tx) => {
+    const deleted =await db.$transaction(async (tx) => {
       // 🔁 1. Reverte o estoque
       await tx.industryStock.updateMany({
         where: {
@@ -235,16 +235,34 @@ export async function DELETE(
         });
       }
 
-      // 🧾 3. Exclui a venda
+      // 3. Se for atendimento de contrato de compra, reverter a quantidade entregue
+      if (existing.saleContractItemId) {
+        const item = await tx.saleContractItem.findUnique({
+          where: { id: existing.saleContractItemId },
+          select: { fulfilledQuantity: true },
+        });
+
+        if (!item || (item.fulfilledQuantity) < existing.weightLiq) {
+          throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
+        }
+
+        await tx.saleContractItem.update({
+          where: { id: existing.saleContractItemId },
+          data: {
+            fulfilledQuantity: {
+              decrement: existing.weightLiq,
+            },
+          },
+        });
+      }
+
+      // 🧾 4. Exclui a venda
       await tx.industrySale.delete({
         where: { id: existing.id },
       });
     });
 
-    return NextResponse.json(
-      { message: "Venda removida com sucesso" },
-      { status: 200 },
-    );
+    return NextResponse.json(deleted, { status: 200 });
   } catch (error) {
     console.error("Erro ao remover venda:", error);
     return NextResponse.json(

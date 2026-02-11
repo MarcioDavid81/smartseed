@@ -95,14 +95,13 @@ export async function GET(req: Request) {
         companyId,
       },
       include: {
-        items: true,
-        customer: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        customer: true,
+        items: {
+          include: {
+            cultivar: true,
 
+          }
+        }
       },
     });
 

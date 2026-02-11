@@ -1,5 +1,6 @@
 import { adjustStockWhenDeleteMov } from "@/app/_helpers/adjustStockWhenDeleteMov";
 import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { PaymentCondition } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -232,7 +233,10 @@ export async function DELETE(
     const { id } = params;
 
     // Buscar o venda para garantir que pertence à empresa do usuário
-    const existingSale = await db.saleExit.findUnique({ where: { id }, include: { accountReceivable: true } });
+    const existingSale = await db.saleExit.findUnique({
+      where: { id },
+      include: { accountReceivable: true },
+    });
 
     if (!existingSale || existingSale.companyId !== payload.companyId) {
       return new NextResponse("Venda não encontrado ou acesso negado", {
@@ -240,7 +244,7 @@ export async function DELETE(
       });
     }
 
-    await db.$transaction(async (tx) => {
+    const deleted = await db.$transaction(async (tx) => {
       // 1️⃣ Reverter estoque da cultivar (incrementar)
       await tx.cultivar.update({
         where: { id: existingSale.cultivarId },
@@ -257,12 +261,33 @@ export async function DELETE(
           where: { id: existingSale.accountReceivable.id },
         });
       }
-      
-      // 3️⃣  Deletar a venda
+
+      // 3️⃣ Se for atendimento de contrato de venda, reverter a quantidade entregue
+      if (existingSale.saleContractItemId) {
+        const item = await tx.saleContractItem.findUnique({
+          where: { id: existingSale.saleContractItemId },
+          select: { fulfilledQuantity: true },
+        });
+
+        if (!item || Number(item.fulfilledQuantity) < existingSale.quantityKg) {
+          throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
+        }
+
+        await tx.saleContractItem.update({
+          where: { id: existingSale.saleContractItemId },
+          data: {
+            fulfilledQuantity: {
+              decrement: existingSale.quantityKg,
+            },
+          },
+        });
+      }
+
+      // 4️⃣  Deletar a venda
       await tx.saleExit.delete({ where: { id } });
     });
 
-    return NextResponse.json({ message: "Venda excluída com sucesso" });
+    return NextResponse.json(deleted, { status: 200 });
   } catch (error) {
     console.error("Erro ao deletar venda:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });
@@ -275,24 +300,25 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
     // Buscar o venda para garantir que pertence à empresa do usuário
-    const existingSale = await db.saleExit.findUnique({ where: { id } });
+    const venda = await db.saleExit.findUnique({
+      where: { id },
+      include: { accountReceivable: true },
+    });
 
-    if (!existingSale || existingSale.companyId !== payload.companyId) {
+    if (!venda || venda.companyId !== companyId) {
       return new NextResponse("Venda não encontrado ou acesso negado", {
         status: 403,
       });
     }
 
-    return NextResponse.json(existingSale);
+    return NextResponse.json(venda);
   } catch (error) {
     console.error("Erro ao buscar venda:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });

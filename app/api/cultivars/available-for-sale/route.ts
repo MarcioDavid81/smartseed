@@ -11,20 +11,9 @@ export async function GET(req: Request) {
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
 
-    const { searchParams } = new URL(req.url);
-    const productType = searchParams.get("productType");
-
-    if (!productType) {
-      return NextResponse.json(
-        { error: "Tipo de produto não informado" },
-        { status: 400 }
-      );
-    }
-
     const cultivars = await db.cultivar.findMany({
       where: {
         companyId,
-        product: productType as ProductType,
         stock: {
           gt: 0,
         },

@@ -299,7 +299,10 @@ export async function GET(
     const { id } = params;
 
     // Buscar o compra para garantir que pertence à empresa do usuário
-    const compra = await db.buy.findUnique({ where: { id } });
+    const compra = await db.buy.findUnique({ 
+      where: { id },
+      include: { accountPayable: true },
+    });
 
     if (!compra || compra.companyId !== companyId) {
       return new NextResponse("Compra não encontrada ou acesso negado", {

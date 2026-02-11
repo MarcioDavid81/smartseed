@@ -106,7 +106,7 @@ export async function GET(req: Request) {
         },
       },
     });
-    console.log(purchaseOrders)
+    
     return NextResponse.json(purchaseOrders);
   } catch (error) {
     console.error("Erro ao buscar ordens de compra:", error);
