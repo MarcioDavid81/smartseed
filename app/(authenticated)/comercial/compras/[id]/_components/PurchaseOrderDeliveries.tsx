@@ -93,7 +93,16 @@ export function PurchaseOrderItemDeliveries({
                   <TableCell colSpan={-3} className="text-start">
                     Total
                   </TableCell>
-                  <TableCell colSpan={3} className="text-right tabular-nums">
+                  <TableCell colSpan={2} className="text-right tabular-nums">
+                    {deliveries.reduce(
+                      (acc, cur) => acc + Number(cur.quantity),
+                      0,
+                    ).toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </TableCell>
+                  <TableCell colSpan={1} className="text-right tabular-nums">
                     {formatCurrency(
                       deliveries.reduce(
                         (acc, cur) => acc + cur.totalPrice,
