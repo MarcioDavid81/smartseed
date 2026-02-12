@@ -121,6 +121,7 @@ const UpsertBuyModal = ({
       });
     } else {
       form.reset({
+        date: new Date(),
         purchaseOrderItemId: purchaseOrderItemId ?? undefined,
         cultivarId: cultivarId ?? "",
         customerId: customerId ?? "",

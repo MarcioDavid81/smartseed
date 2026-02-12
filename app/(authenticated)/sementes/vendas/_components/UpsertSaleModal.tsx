@@ -102,6 +102,7 @@ const UpsertSaleModal = ({
       });
     } else {
       form.reset({
+        date: new Date(),
         saleContractItemId: saleContractItemId ?? undefined,
         cultivarId: cultivarId ?? "",
         customerId: customerId ?? "",

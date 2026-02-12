@@ -127,6 +127,7 @@ const UpsertIndustrySaleModal = ({
       });
     } else {
       form.reset({
+        date: new Date(),
         saleContractItemId: saleContractItemId ?? undefined,
         product: product ?? undefined,
         industryDepositId: depositId ?? "",
