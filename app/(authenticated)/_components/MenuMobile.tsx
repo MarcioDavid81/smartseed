@@ -71,7 +71,6 @@ const routes = [
     name: "Comercial",
     icon: <Handshake size={20} />,
     subRoutes: [
-      { path: "/comercial/dashboard", name: "Dashboard" },
       { path: "/comercial/compras", name: "Compras" },
       { path: "/comercial/vendas", name: "Vendas" },
     ],

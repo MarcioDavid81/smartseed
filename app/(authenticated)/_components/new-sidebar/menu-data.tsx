@@ -77,7 +77,6 @@ export const routes = [
     name: "Comercial",
     icon: <Handshake size={20} />,
     subRoutes: [
-      { name: "Dashboard", path: "/comercial/dashboard", icon: <AiOutlineDashboard size={16} /> },
       { name: "Compras", path: "/comercial/compras", icon: <ShoppingCart size={16} /> },
       { name: "Vendas", path: "/comercial/vendas", icon: <DollarSign size={16} /> },
     ],
