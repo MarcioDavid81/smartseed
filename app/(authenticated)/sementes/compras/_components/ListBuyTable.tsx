@@ -22,7 +22,7 @@ export function ListBuyTable() {
       isLoading,
       isFetching,
       refetch, 
-    } = useSeedBuysByCycle(selectedCycle?.id || "");
+    } = useSeedBuysByCycle();
 
   const columns: ColumnDef<Buy>[] = [
     {
@@ -42,8 +42,10 @@ export function ListBuyTable() {
       },
     },
     {
-      accessorKey: "cultivar",
+      id: "cultivar",
       header: "Cultivar",
+      accessorFn: (row) => row.cultivar.name,
+      filterFn: "includesString",
       cell: ({ row }) => {
         const cultivar = row.original.cultivar;
          if ((row.original as any)._optimistic) {
@@ -61,8 +63,10 @@ export function ListBuyTable() {
       },
     },
     {
-      accessorKey: "customer",
+      id: "customer",
       header: "Fornecedor",
+      accessorFn: (row) => row.customer.name,
+      filterFn: "includesString",
       cell: ({ row }) => {
         const customer = row.original.customer;
         if ((row.original as any)._optimistic) {
@@ -155,7 +159,7 @@ export function ListBuyTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <BuyDataTable columns={columns} data={compras} />
+        <BuyDataTable columns={columns} data={compras} sumColumnId="quantityKg" />
       )}
     </Card>
   );

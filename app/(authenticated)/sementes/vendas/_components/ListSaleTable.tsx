@@ -22,7 +22,7 @@ export function ListSaleTable() {
     isLoading,
     isFetching,
     refetch, 
-  } = useSeedSalesByCycle(selectedCycle?.id || "");
+  } = useSeedSalesByCycle();
 
   const columns: ColumnDef<Sale>[] = [
     {
@@ -42,8 +42,10 @@ export function ListSaleTable() {
       },
     },
     {
-      accessorKey: "cultivar",
+      id: "cultivar",
       header: "Cultivar",
+      accessorFn: (row) => row.cultivar.name,
+      filterFn: "includesString",
       cell: ({ row }) => {
         const cultivar = row.original.cultivar;
          if ((row.original as any)._optimistic) {
@@ -61,8 +63,10 @@ export function ListSaleTable() {
       },
     },
     {
-      accessorKey: "customer",
+      id: "customer",
       header: "Cliente",
+      accessorFn: (row) => row.customer.name,
+      filterFn: "includesString",
       cell: ({ row }) => {
         const customer = row.original.customer;
         if ((row.original as any)._optimistic) {
@@ -146,7 +150,7 @@ export function ListSaleTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <SaleDataTable columns={columns} data={vendas} />
+        <SaleDataTable columns={columns} data={vendas} sumColumnId="quantityKg" />
       )}
     </Card>
   );
