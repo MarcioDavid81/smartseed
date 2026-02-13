@@ -1,6 +1,8 @@
 import { Metadata } from "next";
-import DashboardContent from "./_components/DashboardContent";
 import NavItems from "../_components/NavItems";
+import { OverviewCards } from "./_components/OverviewCards";
+import { getDashboardOverview } from "../_features/dashboard/services/get-dashboard-overview";
+import { getCycle } from "@/lib/cycle";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -15,7 +17,15 @@ export const metadata: Metadata = {
   ],
 };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { cycleId?: string };
+}) {
+  const ciclo = searchParams?.cycleId ?? getCycle();
+  const data = await getDashboardOverview({
+    cycleId: ciclo,
+  });
   return (
     <div className="flex flex-col w-full min-h-screen bg-found">
       <div className="min-h-screen w-full flex bg-background">
@@ -24,7 +34,7 @@ export default async function DashboardPage() {
             <h1 className="text-2xl font-medium mb-4">Dashboard</h1>
             <NavItems />
           </div>
-          <DashboardContent />
+          <OverviewCards data={data} />
         </main>
       </div>
     </div>
