@@ -5,10 +5,12 @@ import HeroSection from "./_components/Hero";
 import HowItWorks from "./_components/HowItWorks";
 import Navbar from "./_components/Navbar";
 import Pricing from "./_components/Pricing";
+import Preloader from "./_components/Preloader"
 
 export default function Home() {
   return (
     <main className="min-h-screen w-full">
+      <Preloader />
       <Navbar />
       <HeroSection />
       <HowItWorks />
