@@ -3,9 +3,14 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { routes } from "./menu-data";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useUser } from "@/contexts/UserContext";
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,22 +20,53 @@ interface SidebarMenuProps {
   isOpen: boolean;
 }
 
+function isRouteActive(pathname: string, href?: string) {
+  if (!href) return false;
+
+  if (href === "/dashboard") {
+    return pathname === "/dashboard";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function SidebarMenu({ isOpen }: SidebarMenuProps) {
   const { user } = useUser();
   const pathname = usePathname();
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  const currentRoute = useMemo(() => {
+    return routes.find((route) => {
+      // rota simples
+      if (route.path && isRouteActive(pathname, route.path)) {
+        return true;
+      }
+
+      // subrotas
+      if (route.subRoutes) {
+        return route.subRoutes.some((sub) =>
+          isRouteActive(pathname, sub.path)
+        );
+      }
+
+      return false;
+    });
+  }, [pathname]);
+
+  // módulo ativo vem da URL
+  const activeMenu = currentRoute?.name ?? null;
+
+  // estado apenas visual (abrir/fechar painel)
+  const [openedMenu, setOpenedMenu] = useState<string | null>(null);
 
   return (
     <div className="relative h-full">
       {/* Ícones principais */}
-      <div className={`flex flex-col gap-2 pt-4 ${!isOpen ? 'items-center' : 'px-3'}`}>
+      <div className={`flex flex-col gap-2 pt-4 ${!isOpen ? "items-center" : "px-3"}`}>
         {routes.map((route) => {
           if (route.adminOnly && user?.role !== "ADMIN") return null;
 
           const hasSubRoutes = !!route.subRoutes;
-          const isActive = hasSubRoutes 
-            ? activeMenu === route.name 
-            : pathname === route.path;
+          const isActive = route.name === activeMenu;
 
           return (
             <TooltipProvider key={route.name} delayDuration={100}>
@@ -39,21 +75,19 @@ export function SidebarMenu({ isOpen }: SidebarMenuProps) {
                   <div>
                     {hasSubRoutes ? (
                       <button
-                        onClick={() => setActiveMenu(activeMenu === route.name ? null : route.name)}
+                        onClick={() =>
+                          setOpenedMenu(openedMenu === route.name ? null : route.name)
+                        }
                         className={`flex items-center text-white rounded-lg px-1 py-2 transition-all duration-200 ${
                           !isOpen ? "justify-center h-12 w-12" : "w-full px-3"
                         } ${
-                          isActive 
-                            ? "bg-green shadow-lg" 
+                          isActive
+                            ? "bg-green shadow-lg"
                             : "hover:bg-green"
                         }`}
                       >
                         {route.icon}
-                        <span 
-                          className={`ml-3 text-sm font-thin ${
-                            !isOpen ? "hidden" : ""
-                          }`}
-                        >
+                        <span className={`ml-3 text-sm font-thin ${!isOpen ? "hidden" : ""}`}>
                           {route.name}
                         </span>
                       </button>
@@ -63,23 +97,20 @@ export function SidebarMenu({ isOpen }: SidebarMenuProps) {
                         className={`flex items-center text-white rounded-lg px-1 py-2 transition-all duration-200 ${
                           !isOpen ? "justify-center h-12 w-12" : "w-full px-3"
                         } ${
-                          isActive 
-                            ? "bg-green shadow-lg" 
+                          isActive
+                            ? "bg-green shadow-lg"
                             : "hover:bg-green"
                         }`}
                       >
                         {route.icon}
-                        <span 
-                          className={`ml-3 text-sm font-thin ${
-                            !isOpen ? "hidden" : ""
-                          }`}
-                        >
+                        <span className={`ml-3 text-sm font-thin ${!isOpen ? "hidden" : ""}`}>
                           {route.name}
                         </span>
                       </Link>
                     )}
                   </div>
                 </TooltipTrigger>
+
                 {!isOpen && (
                   <TooltipContent side="right">
                     {route.name}
@@ -93,73 +124,69 @@ export function SidebarMenu({ isOpen }: SidebarMenuProps) {
 
       {/* Painel lateral flutuante */}
       <AnimatePresence>
-        {activeMenu && (
+        {openedMenu && (
           <motion.div
             key="submenu"
             initial={{ x: -5000 }}
-            animate={{ x: 0 }}            
+            animate={{ x: 0 }}
             exit={{ x: -5000 }}
             transition={{ duration: 0.5 }}
-            className={`fixed ${isOpen ? "left-[223px]" : "left-[62px]"} top-[76px] h-[calc(100%-76px)] ${isOpen ? "w-[calc(100%-225px)]" : "w-[calc(100%-64px)]"} bg-found z-[99] rounded-r-3xl`}
+            className={`fixed ${
+              isOpen ? "left-[223px]" : "left-[62px]"
+            } top-[76px] h-[calc(100%-76px)] ${
+              isOpen ? "w-[calc(100%-225px)]" : "w-[calc(100%-64px)]"
+            } bg-found z-[99] rounded-r-3xl`}
           >
-            {/* Header do submenu */}
+            {/* Header */}
             <div className="flex items-center justify-between p-6">
               <div className="flex items-center gap-4">
-                <h3 className="text-2xl text-green">
-                  {activeMenu}
-                </h3>
+                <h3 className="text-2xl text-green">{openedMenu}</h3>
                 <ArrowRight size={24} className="text-green" />
               </div>
+
               <Button
                 variant="ghost"
-                onClick={() => setActiveMenu(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-white hover:bg-white/20 transition-colors"
+                onClick={() => setOpenedMenu(null)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-white hover:bg-white/20"
               >
                 <X size={16} />
               </Button>
             </div>
+
             <Separator />
-            {/* Conteúdo do submenu */}
+
+            {/* Subrotas */}
             <div className="p-6">
-              <div className="space-y-3">
-                {/* Seções organizadas */}
-                <div className="grid grid-cols-3 gap-3">
-                  {routes
-                    .find((r) => r.name === activeMenu)
-                    ?.subRoutes?.map((sub) => (
+              <div className="grid grid-cols-3 gap-3">
+                {routes
+                  .find((r) => r.name === openedMenu)
+                  ?.subRoutes?.map((sub) => {
+                    const subActive = isRouteActive(pathname, sub.path);
+
+                    return (
                       <Link
                         key={sub.path}
                         href={sub.path}
-                        onClick={() => setActiveMenu(null)}
-                        className={`group hover:text-green flex items-center gap-1 transition-all duration-200 ${
-                          pathname === sub.path 
-                            ? "text-green" 
-                            : "bg-found text-white"
+                        onClick={() => setOpenedMenu(null)}
+                        className={`group flex items-center gap-2 transition-all duration-200 ${
+                          subActive ? "text-green" : "text-white hover:text-green"
                         }`}
                       >
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                          pathname === sub.path 
-                            ? "bg-found" 
-                            : "bg-found"
-                        }`}>
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-lg transition ${
+                            subActive ? "bg-green/20" : "bg-found"
+                          }`}
+                        >
                           {sub.icon}
                         </div>
+
                         <span className="font-light">{sub.name}</span>
                       </Link>
-                    ))}
-                </div>
+                    );
+                  })}
               </div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Overlay para fechar o menu */}
-      <AnimatePresence>
-        {activeMenu && (
-          <motion.div
-            onClick={() => setActiveMenu(null)}
-          />
         )}
       </AnimatePresence>
     </div>
