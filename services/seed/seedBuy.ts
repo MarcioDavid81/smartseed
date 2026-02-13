@@ -3,10 +3,9 @@ import { apiFetch } from "../api";
 import { BuyFormData } from "@/lib/schemas/seedBuyScheema";
 
 export async function getBuyByCycle(
-  cycleId: string
 ): Promise<Buy[]> {
   const data = await apiFetch<Buy[]>(
-    `/api/buys?cycleId=${cycleId}`
+    `/api/buys`
   );
 
   return data.filter((buy) => buy.quantityKg > 0);

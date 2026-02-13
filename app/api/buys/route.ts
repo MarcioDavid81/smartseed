@@ -261,11 +261,10 @@ export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);
   if (!auth.ok) return auth.response;
   const { companyId } = auth;
-  const cycleId = req.nextUrl.searchParams.get("cycleId");
 
   try {
     const buys = await db.buy.findMany({
-      where: { companyId, ...(cycleId && { cycleId }) },
+      where: { companyId },
       include: {
         cultivar: {
           select: { id: true, name: true },
