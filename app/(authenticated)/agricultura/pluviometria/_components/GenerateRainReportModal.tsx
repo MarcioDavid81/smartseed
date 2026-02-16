@@ -24,14 +24,15 @@ import HoverButton from "@/components/HoverButton";
 import { useUser } from "@/contexts/UserContext";
 import { Input } from "@/components/ui/input";
 import { useRains } from "@/queries/industry/use-rain";
+import { DatePicker } from "@/components/ui/date-picker";
 
 export default function GenerateRainReportModal() {
   const { user } = useUser();
   const { data: rains = [], isLoading } = useRains();
 
   const [farmId, setFarmId] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState<string | null>(null);
-  const [endDate, setEndDate] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -226,19 +227,17 @@ export default function GenerateRainReportModal() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Data inicial</label>
-            <Input
-              type="date"
-              value={startDate ?? ""}
-              onChange={(e) => setStartDate(e.target.value || null)}
+            <DatePicker
+              value={startDate}
+              onChange={setStartDate}
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Data final</label>
-            <Input
-              type="date"
-              value={endDate ?? ""}
-              onChange={(e) => setEndDate(e.target.value || null)}
+            <DatePicker
+              value={endDate}
+              onChange={setEndDate}
             />
           </div>
         </div>
