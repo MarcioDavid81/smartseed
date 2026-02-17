@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { AccountStatus } from "@prisma/client";

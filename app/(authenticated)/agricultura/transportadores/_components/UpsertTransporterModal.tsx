@@ -8,15 +8,18 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { IndustryTransporter } from "@/types";
 import { industryTransporterSchema, IndustryTransporterFormData } from "@/lib/schemas/industryTransporter";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { useUpsertIndustryTransporter } from "@/queries/industry/use-upsert-industry-transporter";
 import { ApiError } from "@/lib/http/api-error";
+import InputMask from "react-input-mask";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface UpsertIndustryTransporterModalProps {
   industryTransporter?: IndustryTransporter;
@@ -24,11 +27,25 @@ interface UpsertIndustryTransporterModalProps {
   onClose: () => void;
 }
 
+interface StateUF {
+  id: number;
+  sigla: string;
+  nome: string;
+}
+
+interface City {
+  id: number;
+  nome: string;
+}
+
 const UpsertIndustryTransporterModal = ({
   industryTransporter,
   isOpen,
   onClose,
 }: UpsertIndustryTransporterModalProps) => {
+  const [statesList, setStatesList] = useState<StateUF[]>([]);
+  const [citiesList, setCitiesList] = useState<City[]>([]);
+  const [personType, setPersonType] = useState<"fisica" | "juridica">("fisica");
   const { showToast } = useSmartToast();
 
   const form = useForm<IndustryTransporterFormData>({
@@ -57,10 +74,57 @@ const UpsertIndustryTransporterModal = ({
         phone: industryTransporter.phone,
         email: industryTransporter.email,
       });
+
+      const onlyNumbers = industryTransporter.cpf_cnpj?.replace(/\D/g, "") || "";
+
+      setPersonType(onlyNumbers.length === 14 ? "juridica" : "fisica");
     } else {
       form.reset();
+      setPersonType("fisica");
     }
   }, [industryTransporter, isOpen, form]);
+
+  const currentState = form.watch("state");
+
+  useEffect(() => {
+    if (isOpen) {
+      fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados")
+        .then((res) => res.json())
+        .then((data: StateUF[]) => {
+          const sorted = data.sort((a, b) => a.nome.localeCompare(b.nome));
+          setStatesList(sorted);
+        })
+        .catch(() => showToast({
+          type: "error",
+          title: "Erro",
+          message: "Erro ao carregar estados",
+        }));
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (currentState) {
+      fetch(
+        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${currentState}/municipios`,
+      )
+        .then((res) => res.json())
+        .then((data: City[]) => {
+          const sorted = data.sort((a, b) => a.nome.localeCompare(b.nome));
+          setCitiesList(sorted);
+        })
+        .catch(() => showToast({
+          type: "error",
+          title: "Erro",
+          message: "Erro ao carregar cidades",
+        }));
+    } else {
+      setCitiesList([]);
+    }
+  }, [currentState]);
+
+  useEffect(() => {
+    form.setValue("city", "");
+  }, [currentState]);
 
   const { mutate, isPending } = useUpsertIndustryTransporter ({
     transporterId: industryTransporter?.id
@@ -116,7 +180,7 @@ const UpsertIndustryTransporterModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Transportadores</DialogTitle>
           <DialogDescription>
@@ -152,18 +216,64 @@ const UpsertIndustryTransporterModal = ({
                   )}
                 />
               </div>
+              <div>
+              <FormItem>
+                <FormLabel>Tipo de pessoa</FormLabel>
+                <RadioGroup
+                  value={personType}
+                  onValueChange={(value) => {
+                    setPersonType(value as "fisica" | "juridica");
+                    form.setValue("cpf_cnpj", ""); // limpa ao trocar
+                  }}
+                  className="flex gap-4"
+                >
+                  <FormItem className="flex items-center gap-2">
+                    <RadioGroupItem value="fisica" id="fisica" />
+                    <FormLabel htmlFor="fisica">Pessoa Física</FormLabel>
+                  </FormItem>
+
+                  <FormItem className="flex items-center gap-2">
+                    <RadioGroupItem value="juridica" id="juridica" />
+                    <FormLabel htmlFor="juridica">Pessoa Jurídica</FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormItem>
+              </div>
+              <div>
               <FormField
                 control={form.control}
                 name="cpf_cnpj"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>CPF/CNPJ</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ex: 12345678900" />
-                    </FormControl>
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const isJuridica = personType === "juridica";
+
+                  return (
+                    <FormItem>
+                      <FormLabel>{isJuridica ? "CNPJ" : "CPF"}</FormLabel>
+                      <FormControl>
+                        <InputMask
+                          mask={
+                            isJuridica
+                              ? "99.999.999/9999-99"
+                              : "999.999.999-99"
+                          }
+                          value={field.value}
+                          onChange={field.onChange}
+                        >
+                          {(inputProps: any) => (
+                            <Input
+                              {...inputProps}
+                              placeholder={isJuridica ? "CNPJ" : "CPF"}
+                              type="text"
+                            />
+                          )}
+                        </InputMask>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
+            </div>
               <FormField
                 control={form.control}
                 name="adress"
@@ -176,32 +286,63 @@ const UpsertIndustryTransporterModal = ({
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cidade</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: São Paulo" />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estado</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ex: SP" />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statesList.map((state) => (
+                            <SelectItem key={state.id} value={state.sigla}>
+                              {state.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cidade</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={!currentState}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma cidade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {citiesList.map((city) => (
+                            <SelectItem key={city.id} value={city.nome}>
+                              {city.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -210,7 +351,19 @@ const UpsertIndustryTransporterModal = ({
                     <FormItem>
                       <FormLabel>Telefone</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Ex: (11) 91234-5678" />
+                      <InputMask
+                        mask="(99) 99999-9999"
+                        value={field.value}
+                        onChange={field.onChange}
+                      >
+                        {(inputProps: any) => (
+                          <Input
+                            {...inputProps}
+                            placeholder="Telefone"
+                            type="text"
+                          />
+                        )}
+                      </InputMask>
                       </FormControl>
                     </FormItem>
                   )}

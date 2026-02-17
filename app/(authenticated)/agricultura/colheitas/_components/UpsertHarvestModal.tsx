@@ -318,7 +318,7 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                     <FormControl>
                       <ComboBoxOption
                         options={transporters.map((t) => ({
-                          label: t.name,
+                          label: t.fantasyName || t.name,
                           value: t.id,
                         }))}
                         value={field.value}
