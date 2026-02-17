@@ -26,6 +26,7 @@ import { useUpsertCustomer } from "@/queries/registrations/use-customer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import InputMask from "react-input-mask";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useAddress } from "@/queries/adress/use-adress";
 
 interface UpsertCustomerModalProps {
   customer?: Customer;
@@ -33,24 +34,11 @@ interface UpsertCustomerModalProps {
   onClose: () => void;
 }
 
-interface StateUF {
-  id: number;
-  sigla: string;
-  nome: string;
-}
-
-interface City {
-  id: number;
-  nome: string;
-}
-
 const UpsertCustomerModal = ({
   customer,
   isOpen,
   onClose,
 }: UpsertCustomerModalProps) => {
-  const [statesList, setStatesList] = useState<StateUF[]>([]);
-  const [citiesList, setCitiesList] = useState<City[]>([]);
   const [personType, setPersonType] = useState<"fisica" | "juridica">("fisica");
   const { showToast } = useSmartToast();
 
@@ -88,48 +76,12 @@ useEffect(() => {
   }
 }, [customer, isOpen]);
 
-
-  const currentState = form.watch("state");
-
-  useEffect(() => {
-    if (isOpen) {
-      fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados")
-        .then((res) => res.json())
-        .then((data: StateUF[]) => {
-          const sorted = data.sort((a, b) => a.nome.localeCompare(b.nome));
-          setStatesList(sorted);
-        })
-        .catch(() => showToast({
-          type: "error",
-          title: "Erro",
-          message: "Erro ao carregar estados",
-        }));
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (currentState) {
-      fetch(
-        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${currentState}/municipios`,
-      )
-        .then((res) => res.json())
-        .then((data: City[]) => {
-          const sorted = data.sort((a, b) => a.nome.localeCompare(b.nome));
-          setCitiesList(sorted);
-        })
-        .catch(() => showToast({
-          type: "error",
-          title: "Erro",
-          message: "Erro ao carregar cidades",
-        }));
-    } else {
-      setCitiesList([]);
-    }
-  }, [currentState]);
-
-  useEffect(() => {
-    form.setValue("city", "");
-  }, [currentState]);
+const { states, cities, isLoadingCities } = useAddress({
+  isOpen,
+  form,
+  stateField: "state",
+  cityField: "city",
+});
 
   const { mutate, isPending } = useUpsertCustomer({
     customerId: customer?.id,
@@ -226,14 +178,14 @@ useEffect(() => {
                     <FormLabel>Estado</FormLabel>
                     <FormControl>
                       <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
+                        value={form.watch("state")}
+                        onValueChange={(value) => form.setValue("state", value)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione um estado" />
                         </SelectTrigger>
                         <SelectContent>
-                          {statesList.map((state) => (
+                          {states.map((state) => (
                             <SelectItem key={state.id} value={state.sigla}>
                               {state.nome}
                             </SelectItem>
@@ -253,15 +205,15 @@ useEffect(() => {
                     <FormLabel>Cidade</FormLabel>
                     <FormControl>
                       <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={!currentState}
+                        value={form.watch("city")}
+                        onValueChange={(value) => form.setValue("city", value)}
+                        disabled={!form.watch("state") || isLoadingCities}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione uma cidade" />
                         </SelectTrigger>
                         <SelectContent>
-                          {citiesList.map((city) => (
+                          {cities.map((city) => (
                             <SelectItem key={city.id} value={city.nome}>
                               {city.nome}
                             </SelectItem>
