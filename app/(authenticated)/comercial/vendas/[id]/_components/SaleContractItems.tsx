@@ -31,19 +31,20 @@ export function SaleContractItems({ saleContract }: Props) {
             Nenhum item informado.
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead className="text-right">Unid.</TableHead>
-                <TableHead className="text-right">Quantidade</TableHead>
-                <TableHead className="text-right">Atendido</TableHead>
-                <TableHead className="text-right">Restante</TableHead>
-                <TableHead className="text-right">Preço Unitário (R$)</TableHead>
-                <TableHead className="text-right">Preço Total (R$)</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="[&>div]:overflow-x-auto [&>div]:overflow-y-hidden [&>div]:scrollbar-hide">
+            <Table className="min-w-[980px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead className="text-right">Unid.</TableHead>
+                  <TableHead className="text-right">Quantidade</TableHead>
+                  <TableHead className="text-right">Atendido</TableHead>
+                  <TableHead className="text-right">Restante</TableHead>
+                  <TableHead className="text-right">Preço Unitário (R$)</TableHead>
+                  <TableHead className="text-right">Preço Total (R$)</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
 
             <TableBody>
               {items.map((item) => {
@@ -109,7 +110,8 @@ export function SaleContractItems({ saleContract }: Props) {
                 <TableCell />
               </TableRow>
             </TableFooter>
-          </Table>
+            </Table>
+          </div>
         )}
       </>
   );

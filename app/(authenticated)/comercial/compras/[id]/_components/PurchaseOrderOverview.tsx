@@ -26,7 +26,7 @@ export function PurchaseOrderOverview({ purchaseOrder }: Props) {
   }
 
   return (
-    <Card>
+    <Card className="overflow-x-auto overflow-y-hidden scrollbar-hide">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -49,7 +49,7 @@ export function PurchaseOrderOverview({ purchaseOrder }: Props) {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4 text-sm">
-        <div className="w-full flex items-center justify-between">
+        <div className="w-full flex flex-col md:flex-row items-start md:items-center justify-between">
           <div className="flex flex-col gap-6 w-[50%]">
             <div>
               <span className="text-muted-foreground">Fornecedor</span>
