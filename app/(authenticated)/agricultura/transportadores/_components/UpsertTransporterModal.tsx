@@ -46,7 +46,7 @@ const UpsertIndustryTransporterModal = ({
       city: industryTransporter?.city ?? "",
       state: industryTransporter?.state ?? "",
       phone: industryTransporter?.phone ?? "",
-      email: industryTransporter?.email ?? "",
+      email: industryTransporter?.email ?? undefined,
     },
   });
 
