@@ -6,6 +6,7 @@ import HowItWorks from "./_components/HowItWorks";
 import Navbar from "./_components/Navbar";
 import Pricing from "./_components/Pricing";
 import Preloader from "./_components/Preloader"
+import WeatherForecast from "./_components/WeatherForecast";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <HowItWorks />
       <Pricing />
       <FAQ />
+      <WeatherForecast />
       <CTA />
       <Footer />
     </main>
