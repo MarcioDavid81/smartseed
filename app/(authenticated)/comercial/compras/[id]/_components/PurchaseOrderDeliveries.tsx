@@ -90,7 +90,7 @@ export function PurchaseOrderItemDeliveries({
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={-3} className="text-start">
+                  <TableCell colSpan={2} className="text-start">
                     Total
                   </TableCell>
                   <TableCell colSpan={2} className="text-right tabular-nums">

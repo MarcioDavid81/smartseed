@@ -4,8 +4,8 @@ import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useIndustrySale } from "@/queries/industry/use-sale-query";
-import { IndustrySaleDetails } from "@/types";
+import { useSeedSale } from "@/queries/seed/use-seed-sale-query";
+import { SaleDetails } from "@/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CornerDownLeft } from "lucide-react";
@@ -28,22 +28,20 @@ function Field({
   );
 }
 
-function MainDataSection({ data }: { data: IndustrySaleDetails }) {
+function MainDataSection({ data }: { data: SaleDetails }) {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Dados</span> Principais</h2>
 
-      <div className="grid md:grid-cols-4 gap-6">
-        <Field label="Produto" value={data.product} />
-        <Field label="Depósito" value={data.industryDeposit.name} />
-        <Field label="Transportador" value={data.industryTransporter?.name ?? "Sem transportador"} />
-        <Field label="Placa do caminhão" value={data.truckPlate} />
+      <div className="grid md:grid-cols-2 gap-6">
+        <Field label="Produto" value={data.cultivar.product} />
+        <Field label="Cultivar" value={data.cultivar.name} />
       </div>
     </section>
   );
 }
 
-function CustomerSection({ data }: { data: IndustrySaleDetails }) {
+function CustomerSection({ data }: { data: SaleDetails }) {
   const c = data.customer;
 
   return (
@@ -62,29 +60,25 @@ function CustomerSection({ data }: { data: IndustrySaleDetails }) {
   );
 }
 
-function WeightSection({ data }: { data: IndustrySaleDetails }) {
+function WeightSection({ data }: { data: SaleDetails }) {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Pesa</span>gem</h2>
 
-      <div className="grid md:grid-cols-4 gap-6">
-        <Field label="Peso bruto (kg)" value={data.weightBt} />
-        <Field label="Tara (kg)" value={data.weightTr} />
-        <Field label="Peso líquido (kg)" value={data.weightLiq} />
-        <Field label="Descontos (kg)" value={data.discountsKg ?? 0} />
+      <div className="grid md:grid-cols-2 gap-6">
+        <Field label="Peso bruto (kg)" value={data.quantityKg} />
       </div>
     </section>
   );
 }
 
-function FinancialSection({ data }: { data: IndustrySaleDetails }) {
+function FinancialSection({ data }: { data: SaleDetails }) {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Finan</span>ceiro</h2>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        <Field label="Preço unitário" value={`R$ ${data.unitPrice.toFixed(3)}`} />
-        <Field label="Valor total" value={`R$ ${data.totalPrice.toFixed(2)}`} />
+      <div className="grid md:grid-cols-2 gap-6">
+        <Field label="Valor total" value={`R$ ${data.saleValue.toFixed(2)}`} />
         <Field
           label="Vencimento"
           value={
@@ -103,11 +97,11 @@ type Props = {
   id: string;
 };
 
-export function IndustrySaleDetailsView({ id }: Props) {
-  const { data, isLoading } = useIndustrySale(id);
+export function SeedSaleDetailsView({ id }: Props) {
+  const { data, isLoading } = useSeedSale(id);
   const router = useRouter();
   const handleReturn = () => {
-    router.push("/agricultura/vendas");
+    router.push("/sementes/vendas");
   }
 
   if (isLoading) return <AgroLoader />;
@@ -118,7 +112,7 @@ export function IndustrySaleDetailsView({ id }: Props) {
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="text-xl font-medium">
-            Nota de Venda - NF {data.document}
+            Nota de Venda - NF {data.invoiceNumber}
           </CardTitle>
 
           <p className="text-xs font-light text-muted-foreground">

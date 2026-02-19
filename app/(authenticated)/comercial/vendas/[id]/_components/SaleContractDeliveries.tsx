@@ -35,6 +35,15 @@ export function SaleContracItemDeliveries({
   const deliveries = item.deliveries ?? [];
   const title = item.product ?? item.cultivar?.name ?? "Remessas";
 
+  // Função para determinar o link baseado no tipo de item
+  const getDeliveryLink = (deliveryId: string) => {
+    if (item.cultivar) {
+      return `/sementes/vendas/${deliveryId}`;
+    }
+    // Se for product ou qualquer outro caso
+    return `/agricultura/vendas/${deliveryId}`;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl">
@@ -78,7 +87,7 @@ export function SaleContracItemDeliveries({
                       {formatCurrency(delivery.totalPrice)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/agricultura/vendas/${delivery.id}`}>
+                      <Link href={getDeliveryLink(delivery.id)}>
                         <Button
                           variant="outline"
                           className="rounded-full border-green text-green hover:bg-emerald-50 hover:text-green"
@@ -93,10 +102,10 @@ export function SaleContracItemDeliveries({
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={-3} className="text-start">
+                  <TableCell colSpan={2} className="text-start">
                     Total
                   </TableCell>
-                  <TableCell colSpan={2} className="text-right tabular-nums">
+                  <TableCell className="text-right tabular-nums">
                     {deliveries.reduce(
                       (acc, cur) => acc + Number(cur.quantity),
                       0,
@@ -105,7 +114,7 @@ export function SaleContracItemDeliveries({
                       maximumFractionDigits: 2,
                     })}
                   </TableCell>
-                  <TableCell colSpan={1} className="text-right tabular-nums">
+                  <TableCell className="text-right tabular-nums">
                     {formatCurrency(
                       deliveries.reduce(
                         (acc, cur) => acc + cur.totalPrice,

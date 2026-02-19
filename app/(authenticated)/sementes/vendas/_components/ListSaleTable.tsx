@@ -8,14 +8,13 @@ import { SaleDataTable } from "./SaleDataTable";
 import DeleteSaleButton from "./DeleteSaleButton";
 import UpsertSaleButton from "./UpsertSaleButton";
 import { Sale } from "@/types/sale";
-import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DetailSaleButton from "./DetailSaleButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { useSeedSalesByCycle } from "@/queries/seed/use-seed-sale-query";
 import { LoadingData } from "@/components/loading-data";
+import { SeedSaleDetailButton } from "./SeedSaleDetailButton";
 
 export function ListSaleTable() {
-  const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
   
   const {
     data: vendas = [],
@@ -124,15 +123,9 @@ export function ListSaleTable() {
         const venda = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <DetailSaleButton
-              venda={venda}
-            />
-            <UpsertSaleButton
-              venda={venda}
-            />
-            <DeleteSaleButton
-              venda={venda}
-            />
+            <SeedSaleDetailButton id={venda.id}/>            
+            <UpsertSaleButton venda={venda}/>
+            <DeleteSaleButton venda={venda}/>
           </div>
         );
       },
