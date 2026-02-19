@@ -42,7 +42,7 @@ export * from "./purchaseOrderDetails";
 export * from "./rain";
 export * from "./rawEntry";
 export * from "./refuel";
-export * from "./saleExit";
+export * from "./saleDetails";
 export * from "./sale";
 export * from "./saleContract";
 export * from "./saleContractItem";

@@ -309,7 +309,11 @@ export async function GET(
     // Buscar o venda para garantir que pertence à empresa do usuário
     const venda = await db.saleExit.findUnique({
       where: { id },
-      include: { accountReceivable: true },
+      include: { 
+        customer: true,
+        cultivar: true,        
+        accountReceivable: true 
+      },
     });
 
     if (!venda || venda.companyId !== companyId) {

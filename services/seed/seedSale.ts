@@ -1,4 +1,4 @@
-import { Sale } from "@/types";
+import { Sale, SaleDetails } from "@/types";
 import { apiFetch } from "../api";
 import { SeedSaleFormData } from "@/lib/schemas/seedSaleSchema";
 
@@ -9,6 +9,16 @@ export async function getSeedSalesByCycle(
   );
 
   return data.filter((sale) => sale.quantityKg > 0);
+}
+
+export async function getSeedSaleById(
+  saleId: string,
+): Promise<SaleDetails> {
+  const data = await apiFetch<SaleDetails>(
+    `/api/sales/${saleId}`
+  );
+
+  return data;
 }
 
 
