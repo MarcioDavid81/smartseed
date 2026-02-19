@@ -1,4 +1,4 @@
-import { IndustrySale } from "@/types";
+import { IndustrySale, IndustrySaleDetails } from "@/types";
 import { apiFetch } from "../api";
 import { IndustrySaleFormData } from "@/lib/schemas/industrySale";
 
@@ -9,6 +9,16 @@ export async function getIndustrySalesByCycle(
   );
 
   return data.filter((industrySale) => industrySale.weightLiq > 0 );
+}
+
+export async function getIndustrySaleById(
+  saleId: string,
+): Promise<IndustrySaleDetails> {
+  const data = await apiFetch<IndustrySaleDetails>(
+    `/api/industry/sale/${saleId}`
+  );
+
+  return data;
 }
 
 type UpsertSaleParams = {

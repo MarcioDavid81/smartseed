@@ -19,6 +19,12 @@ export function useDeleteIndustrySale() {
       queryClient.invalidateQueries({
         queryKey: ["industrySales"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["industrySale"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["industry-stock"],
+      });
     },
 
     onError: (error: Error) => {

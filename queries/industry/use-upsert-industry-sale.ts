@@ -40,6 +40,9 @@ export function useUpsertIndustrySale({ saleId, depositId, saleContractItemId }:
         queryKey: ["industrySales"],
       });
       queryClient.invalidateQueries({
+        queryKey: ["industrySale", savedSale.id],
+      });
+      queryClient.invalidateQueries({
         queryKey: ["industry-deposit", depositId],
       });
       queryClient.invalidateQueries({

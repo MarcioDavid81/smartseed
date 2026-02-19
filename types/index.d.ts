@@ -21,6 +21,7 @@ export * from "./industryDeposit";
 export * from "./industryHarvest";
 export * from "./industryProduct";
 export * from "./industrySale";
+export * from "./industrySaleDetails";
 export * from "./industryStock";
 export * from "./industryStockStatement";
 export * from "./industryTransfer";
