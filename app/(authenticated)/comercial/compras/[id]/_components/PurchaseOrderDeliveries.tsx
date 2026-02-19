@@ -93,7 +93,7 @@ export function PurchaseOrderItemDeliveries({
                   <TableCell colSpan={2} className="text-start">
                     Total
                   </TableCell>
-                  <TableCell colSpan={2} className="text-right tabular-nums">
+                  <TableCell className="text-right tabular-nums">
                     {deliveries.reduce(
                       (acc, cur) => acc + Number(cur.quantity),
                       0,
