@@ -17,9 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PurchaseOrderItemDetail } from "@/types/purchaseOrderItemDetail";
 import { SaleContractItemDetail } from "@/types/saleContractItemDetail";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 type Props = {
   open: boolean;
@@ -78,13 +78,15 @@ export function SaleContracItemDeliveries({
                       {formatCurrency(delivery.totalPrice)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        className="rounded-full border-green text-green hover:bg-emerald-50 hover:text-green"
-                      >
-                        Nota Fiscal
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
+                      <Link href={`/agricultura/vendas/${delivery.id}`}>
+                        <Button
+                          variant="outline"
+                          className="rounded-full border-green text-green hover:bg-emerald-50 hover:text-green"
+                        >
+                          Nota Fiscal
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}

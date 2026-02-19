@@ -14,6 +14,7 @@ import { canUser } from "@/lib/permissions/canUser";
 import { useIndustrySales } from "@/queries/industry/use-sale-query";
 import { LoadingData } from "@/components/loading-data";
 import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
+import { SaleDetailButton } from "./SaleDetailButton";
 
 export function ListSaleTable() {
   const { user } = useUser();
@@ -104,6 +105,7 @@ export function ListSaleTable() {
         const venda = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
+            <SaleDetailButton id={venda.id} />
             <EditSaleButton venda={venda} />
             <DeleteSaleButton venda={venda} disabled={!canDelete} />
           </div>
