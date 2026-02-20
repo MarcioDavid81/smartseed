@@ -53,7 +53,7 @@ const UpsertPlotModal = ({
     defaultValues: {
       name: talhao?.name ?? "",
       area: talhao?.area ?? 0,
-      farmId: talhao?.farmId ?? "",
+      farmId: talhao?.farm.id ?? "",
     },
   });
 
@@ -62,7 +62,7 @@ const UpsertPlotModal = ({
       form.reset({
         name: talhao.name,
         area: talhao.area,
-        farmId: talhao.farmId,
+        farmId: talhao.farm.id,
       });
     } else {
       form.reset();
