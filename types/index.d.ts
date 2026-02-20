@@ -10,7 +10,7 @@ export * from "./consumption";
 export * from "./cultivar";
 export * from "./customers";
 export * from "./cycles";
-export * from "./cycleDetails";
+export {CycleDetails} from "./cycleDetails";
 export * from "./farm";
 export * from "./finalStock";
 export * from "./fuelPurchase";

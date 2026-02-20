@@ -12,6 +12,7 @@ import EditCycleButton from "./EditCycleButton";
 import DeleteCycleButton from "./DeleteCycleButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { useCycles } from "@/queries/registrations/use-cycles-query";
+import { CycleDetailButton } from "./CycleDetailButton";
 
 export function CycleGetTable() {
 
@@ -75,7 +76,7 @@ export function CycleGetTable() {
         const cycle = row.original
         return (
           <div className="flex items-center justify-center gap-4">
-            <DetailCycleButton safra={cycle} onUpdated={refetch} />
+            <CycleDetailButton id={cycle.id} />
             <EditCycleButton safraId={cycle.id} />
             <DeleteCycleButton  />
           </div>
