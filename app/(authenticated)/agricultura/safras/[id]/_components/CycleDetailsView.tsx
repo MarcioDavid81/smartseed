@@ -5,11 +5,19 @@ import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useCycleById } from "@/queries/registrations/use-cycles-query";
 import { CycleDetails } from "@/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CornerDownLeft } from "lucide-react";
+import { CornerDownLeft, CornerDownRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 function Field({
@@ -66,11 +74,43 @@ function MainDataSection({ data }: { data: CycleDetails }) {
 }
 
 function PlotsSection({ data }: { data: CycleDetails }) {
+  type CycleTalhaoItem = CycleDetails["talhoes"][number];
+
   const talhoes = data.talhoes ?? [];
+
+  const formatHa = (value: number) =>
+    value.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
   const totalArea = talhoes.reduce(
     (acc, t) => acc + Number(t.talhao?.area ?? 0),
     0,
   );
+
+  const grouped = talhoes.reduce<
+    Record<string, { farmId: string; farmName: string; items: CycleTalhaoItem[] }>
+  >((acc, item) => {
+    const farmId = item.talhao?.farm?.id ?? "NO_FARM";
+    const farmName = item.talhao?.farm?.name ?? "Sem fazenda";
+
+    if (!acc[farmId]) {
+      acc[farmId] = { farmId, farmName, items: [] };
+    }
+
+    acc[farmId].items.push(item);
+    return acc;
+  }, {});
+
+  const farms = Object.values(grouped)
+    .map((g) => ({
+      ...g,
+      items: [...g.items].sort((a, b) =>
+        a.talhao.name.localeCompare(b.talhao.name, "pt-BR"),
+      ),
+    }))
+    .sort((a, b) => a.farmName.localeCompare(b.farmName, "pt-BR"));
 
   return (
     <section className="space-y-4">
@@ -79,32 +119,59 @@ function PlotsSection({ data }: { data: CycleDetails }) {
       </h2>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <Field label="Área total (ha)" value={totalArea.toFixed(2)} />
+        <Field label="Área total (ha)" value={formatHa(totalArea)} />
         <Field label="Quantidade" value={talhoes.length} />
       </div>
 
       {talhoes.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhum talhão associado.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {talhoes.map((t) => (
-            <div
-              key={t.id}
-              className="rounded-lg border bg-muted/20 p-4 space-y-2"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="font-medium truncate">{t.talhao.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {t.talhao.farm?.name ?? "-"}
-                  </p>
-                </div>
-                <p className="text-sm font-medium tabular-nums whitespace-nowrap">
-                  {Number(t.talhao.area ?? 0).toFixed(2)} ha
-                </p>
-              </div>
-            </div>
-          ))}
+        <div className="rounded-md border">
+          <div className="overflow-x-auto scrollbar-hide">
+            <Table className="min-w-[640px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead className="text-right">Área (ha)</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {farms.flatMap((farm) => {
+                  const farmArea = farm.items.reduce(
+                    (acc, t) => acc + Number(t.talhao.area ?? 0),
+                    0,
+                  );
+
+                  return [
+                    (
+                      <TableRow key={`${farm.farmId}__header`} className="bg-muted/30">
+                        <TableCell className="font-medium">
+                          <span className="inline-flex items-center gap-2">
+                            <CornerDownRight className="h-4 w-4 text-muted-foreground" />
+                            {farm.farmName}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right font-medium tabular-nums">
+                          {formatHa(farmArea)}
+                        </TableCell>
+                      </TableRow>
+                    ),
+                    ...farm.items.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell className="pl-10 font-light">
+                          {t.talhao.name}
+                        </TableCell>
+                        <TableCell className="text-right font-light tabular-nums">
+                          {formatHa(Number(t.talhao.area ?? 0))}
+                        </TableCell>
+                      </TableRow>
+                    )),
+                  ];
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
     </section>
