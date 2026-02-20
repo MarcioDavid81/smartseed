@@ -1,5 +1,6 @@
 "use client";
 
+import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
 import { formatCurrency, formatNumber } from "@/app/_helpers/currency";
 import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ function MainDataSection({ data }: { data: BuyDetails }) {
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Dados</span> Principais</h2>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <Field label="Produto" value={data.cultivar.product} />
+        <Field label="Produto" value={PRODUCT_TYPE_LABELS[data.cultivar.product]} />
         <Field label="Cultivar" value={data.cultivar.name} />
       </div>
     </section>

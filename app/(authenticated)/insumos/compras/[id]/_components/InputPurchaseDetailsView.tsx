@@ -1,5 +1,6 @@
 "use client";
 
+import { PRODUCT_CLASS_LABELS } from "@/app/(authenticated)/_constants/insumos";
 import { formatCurrency, formatNumber } from "@/app/_helpers/currency";
 import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,7 @@ function MainDataSection({ data }: { data: PurchaseDetails }) {
 
       <div className="grid md:grid-cols-2 gap-6">
         <Field label="Produto" value={data.product.name} />
-        <Field label="Classe" value={data.product.class} />
+        <Field label="Classe" value={PRODUCT_CLASS_LABELS[data.product.class]} />
       </div>
     </section>
   );

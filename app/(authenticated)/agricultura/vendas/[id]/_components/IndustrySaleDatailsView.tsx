@@ -1,5 +1,6 @@
 "use client";
 
+import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
 import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,9 +35,9 @@ function MainDataSection({ data }: { data: IndustrySaleDetails }) {
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Dados</span> Principais</h2>
 
       <div className="grid md:grid-cols-4 gap-6">
-        <Field label="Produto" value={data.product} />
+        <Field label="Produto" value={PRODUCT_TYPE_LABELS[data.product]} />
         <Field label="Depósito" value={data.industryDeposit.name} />
-        <Field label="Transportador" value={data.industryTransporter?.name ?? "Sem transportador"} />
+        <Field label="Transportador" value={data.industryTransporter?.name ?? "Sem transport"} />
         <Field label="Placa do caminhão" value={data.truckPlate} />
       </div>
     </section>

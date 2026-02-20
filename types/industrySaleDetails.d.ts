@@ -1,10 +1,10 @@
-import { AccountStatus, PaymentCondition } from "@prisma/client";
+import { AccountStatus, PaymentCondition, ProductType } from "@prisma/client";
 
 export type IndustrySaleDetails = {
   id: string;
   date: string;
   document: string;
-  product: string;
+  product: ProductType;
   truckPlate: string;
   truckDriver: string;
   weightBt: string;
