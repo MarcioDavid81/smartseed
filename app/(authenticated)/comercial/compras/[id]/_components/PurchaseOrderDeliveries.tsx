@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { PurchaseOrderItemDetail } from "@/types/purchaseOrderItemDetail";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 type Props = {
   open: boolean;
@@ -33,6 +34,15 @@ export function PurchaseOrderItemDeliveries({
 }: Props) {
   const deliveries = item.deliveries ?? [];
   const title = item.product?.name ?? item.cultivar?.name ?? "Remessas";
+
+  // Função para determinar o link baseado no tipo de item
+  const getDeliveryLink = (deliveryId: string) => {
+    if (item.cultivar) {
+      return `/sementes/compras/${deliveryId}`;
+    }
+    // Se for product ou qualquer outro caso
+    return `/insumos/compras/${deliveryId}`;
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,13 +87,15 @@ export function PurchaseOrderItemDeliveries({
                       {formatCurrency(delivery.totalPrice)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        className="rounded-full border-green text-green hover:bg-emerald-50 hover:text-green"
-                      >
-                        Nota Fiscal
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
+                      <Link href={getDeliveryLink(delivery.id)}>
+                        <Button
+                          variant="outline"
+                          className="rounded-full border-green text-green hover:bg-emerald-50 hover:text-green"
+                        >
+                          Nota Fiscal
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}

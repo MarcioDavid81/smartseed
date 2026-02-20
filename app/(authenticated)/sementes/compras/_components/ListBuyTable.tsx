@@ -7,15 +7,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpDown, RefreshCw } from "lucide-react";
 import UpsertBuyButton from "./UpsertBuyButton";
 import { BuyDataTable } from "./BuyDataTable";
-import { useCycle } from "@/contexts/CycleContext"; // 👈 aqui
 import DeleteBuyButton from "./DeleteBuyButton";
 import DetailBuyButton from "./DetailBuyButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { useSeedBuysByCycle } from "@/queries/seed/use-seed-buy-query";
 import { LoadingData } from "@/components/loading-data";
+import { SeedBuyDetailButton } from "./SeedBuyDetailButton";
 
 export function ListBuyTable() {
-  const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
 
   const {
       data: compras = [],
@@ -139,7 +138,7 @@ export function ListBuyTable() {
         const compra = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <DetailBuyButton compra={compra} />
+            <SeedBuyDetailButton id={compra.id} />
             <UpsertBuyButton compra={compra} />
             <DeleteBuyButton compra={compra} />
           </div>
