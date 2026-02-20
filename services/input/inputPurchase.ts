@@ -1,10 +1,18 @@
-import { Purchase } from "@/types";
+import { Purchase, PurchaseDetails } from "@/types";
 import { apiFetch } from "../api";
 import { InputPurchaseFormData } from "@/lib/schemas/inputSchema";
 
-export async function getInputPurchase(): Promise<Purchase[]> {
+export async function getInputPurchases(): Promise<Purchase[]> {
   const data = await apiFetch<Purchase[]>(
     "/api/insumos/purchases"
+  );
+
+  return data;
+}
+
+export async function getInputPurchaseById(purchaseId: string): Promise<PurchaseDetails> {
+  const data = await apiFetch<PurchaseDetails>(
+    `/api/insumos/purchases/${purchaseId}`
   );
 
   return data;

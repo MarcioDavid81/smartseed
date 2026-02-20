@@ -5,8 +5,8 @@ import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useSeedBuy } from "@/queries/seed/use-seed-buy-query";
-import { BuyDetails, SaleDetails } from "@/types";
+import { useInputPurchase } from "@/queries/input/use-input-purchase";
+import { PurchaseDetails } from "@/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CornerDownLeft } from "lucide-react";
@@ -29,20 +29,20 @@ function Field({
   );
 }
 
-function MainDataSection({ data }: { data: BuyDetails }) {
+function MainDataSection({ data }: { data: PurchaseDetails }) {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Dados</span> Principais</h2>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <Field label="Produto" value={data.cultivar.product} />
-        <Field label="Cultivar" value={data.cultivar.name} />
+        <Field label="Produto" value={data.product.name} />
+        <Field label="Classe" value={data.product.class} />
       </div>
     </section>
   );
 }
 
-function CustomerSection({ data }: { data: BuyDetails }) {
+function CustomerSection({ data }: { data: PurchaseDetails }) {
   const c = data.customer;
 
   return (
@@ -61,24 +61,24 @@ function CustomerSection({ data }: { data: BuyDetails }) {
   );
 }
 
-function WeightSection({ data }: { data: BuyDetails }) {
+function WeightSection({ data }: { data: PurchaseDetails }) {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Pesa</span>gem</h2>
       <div className="grid md:grid-cols-2 gap-6">
-        <Field label="Peso (kg)" value={formatNumber(data.quantityKg)} />
+        <Field label="Quantidade" value={formatNumber(data.quantity) + " " + data.product.unit} />
       </div>
     </section>
   );
 }
 
-function FinancialSection({ data }: { data: BuyDetails }) {
+function FinancialSection({ data }: { data: PurchaseDetails }) {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Finan</span>ceiro</h2>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <Field label="Preço unitário" value={formatCurrency(data.unityPrice)} />
+        <Field label="Preço unitário" value={formatCurrency(data.unitPrice)} />
         <Field label="Valor total" value={formatCurrency(data.totalPrice)} />
         <Field
           label="Vencimento"
@@ -98,11 +98,11 @@ type Props = {
   id: string;
 };
 
-export function SeedBuyDetailsView({ id }: Props) {
-  const { data, isLoading } = useSeedBuy(id);
+export function InputPurchaseDetailsView({ id }: Props) {
+  const { data, isLoading } = useInputPurchase(id);
   const router = useRouter();
   const handleReturn = () => {
-    router.push("/sementes/compras");
+    router.push("/insumos/compras");
   }
 
   if (isLoading) return <AgroLoader />;
@@ -113,7 +113,7 @@ export function SeedBuyDetailsView({ id }: Props) {
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="text-xl font-medium">
-            Nota de Compra - NF {data.invoice}
+            Nota de Compra - NF {data.invoiceNumber}
           </CardTitle>
 
           <p className="text-xs font-light text-muted-foreground">

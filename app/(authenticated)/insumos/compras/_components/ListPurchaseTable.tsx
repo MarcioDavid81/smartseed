@@ -8,10 +8,10 @@ import { ArrowUpDown, RefreshCw } from "lucide-react";
 import UpsertPurchaseButton from "./UpsertPurchaseButton";
 import DeletePurchaseButton from "./DeletePurchaseButton";
 import { PurchaseDataTable } from "./PurchaseDataTable";
-import DetailPurchaseButton from "./DetailPurchaseButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { useInputPurchaseQuery } from "@/queries/input/use-input-purchase";
 import { LoadingData } from "@/components/loading-data";
+import { InputPurchaseDetailButton } from "./InputPurchaseDetailButton";
 
 export function ListPurchaseTable() {
 
@@ -152,7 +152,7 @@ export function ListPurchaseTable() {
         const compra = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            <DetailPurchaseButton compra={compra} />
+            <InputPurchaseDetailButton id={compra.id} />
             <UpsertPurchaseButton compra={compra} />
             <DeletePurchaseButton compra={compra} />
           </div>

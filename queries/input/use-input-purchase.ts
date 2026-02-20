@@ -1,13 +1,23 @@
 import { useSmartToast } from "@/contexts/ToastContext";
 import { InputPurchaseFormData } from "@/lib/schemas/inputSchema";
-import { deleteInputPurchase, getInputPurchase, upsertInputPurchase } from "@/services/input/inputPurchase";
-import { Purchase } from "@/types";
+import { deleteInputPurchase, getInputPurchaseById, getInputPurchases, upsertInputPurchase } from "@/services/input/inputPurchase";
+import { Purchase, PurchaseDetails } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useInputPurchaseQuery() {
   return useQuery<Purchase[]>({
     queryKey: ["input-purchase"],
-    queryFn: () => getInputPurchase(),
+    queryFn: () => getInputPurchases(),
+    staleTime: 1000 * 60 * 60 * 24, // 1 dia
+  });
+}
+
+export function useInputPurchase(
+  purchaseId: string,
+) {
+  return useQuery<PurchaseDetails>({
+    queryKey: ["input-purchase", purchaseId],
+    queryFn: () => getInputPurchaseById(purchaseId),
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }
