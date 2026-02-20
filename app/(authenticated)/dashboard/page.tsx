@@ -1,8 +1,8 @@
+import { getCycle } from "@/lib/cycle";
 import { Metadata } from "next";
 import NavItems from "../_components/NavItems";
-import { OverviewCards } from "./_components/OverviewCards";
 import { getDashboardOverview } from "../_features/dashboard/services/get-dashboard-overview";
-import { getCycle } from "@/lib/cycle";
+import { OverviewCards } from "./_components/OverviewCards";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
 };
 

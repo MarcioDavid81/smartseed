@@ -125,4 +125,4 @@ LinkedIn: https://www.linkedin.com/in/marcio-david-a8152733/
 
 Instagram: [@o_marciodavid](https://www.instagram.com/o_marciodavid/)
 
-Desenvolvido por [MD - Web Developer](https://md-webdeveloper.vercel.app/) 🤝
+Desenvolvido por [MD - Web Developer](https://www.marciodavid.dev.br/) 🤝

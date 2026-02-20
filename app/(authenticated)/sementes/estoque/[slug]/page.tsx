@@ -1,14 +1,13 @@
-import React from "react";
-import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
-import HoverButton from "@/components/HoverButton";
-import Link from "next/link";
 import { getBaseUrl } from "@/app/_helpers/getBaseUrl";
-import GenerateExtractReportModal from "./_components/GenerateExtractReportModal";
-import NavItems from "../../../_components/NavItems";
-import { ListStockDetailTable } from "./_components/ListStockDetailTable";
-import { Metadata } from "next";
 import { extractIdFromSlug } from "@/app/_helpers/slug";
+import HoverButton from "@/components/HoverButton";
+import { Metadata } from "next";
+import { cookies } from "next/headers";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import NavItems from "../../../_components/NavItems";
+import GenerateExtractReportModal from "./_components/GenerateExtractReportModal";
+import { ListStockDetailTable } from "./_components/ListStockDetailTable";
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const id = extractIdFromSlug(params.slug);
@@ -37,7 +36,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     ],
     description: "O seu sistema de gestão de produção de sementes",
     authors: [
-      { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+      { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
     ],
   };
 }

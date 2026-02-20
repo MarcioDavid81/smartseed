@@ -1,7 +1,7 @@
+import { db } from "@/lib/prisma";
 import { Metadata } from "next";
 import NavItems from "../../../../_components/NavItems";
 import CycleForm from "../../new/_components/NewCycleForm";
-import { db } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Editar Safra",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
 };
 

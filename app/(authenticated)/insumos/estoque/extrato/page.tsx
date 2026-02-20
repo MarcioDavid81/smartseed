@@ -1,6 +1,6 @@
 import NavItems from "@/app/(authenticated)/_components/NavItems";
-import { Metadata } from "next";
 import HoverButton from "@/components/HoverButton";
+import { Metadata } from "next";
 import Link from "next/link";
 import { ListInputStockStatementTable } from "./_components/ListInputStockStatementTable";
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
 };
 

@@ -1,5 +1,5 @@
-import { Metadata } from "next";
 import { NewCompanyForm } from "@/components/new-company-form";
+import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
 };
 

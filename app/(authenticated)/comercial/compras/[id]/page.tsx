@@ -1,7 +1,7 @@
 import NavItems from "@/app/(authenticated)/_components/NavItems";
+import { getPurchaseOrderByIdServerSide } from "@/services/commercial/purchaseOrder";
 import { Metadata } from "next";
 import { PurchaseOrderOverview } from "./_components/PurchaseOrderOverview";
-import { getPurchaseOrderByIdServerSide } from "@/services/commercial/purchaseOrder";
 
 export const metadata: Metadata = {
   title: "Comercial - Compras",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
 };
 

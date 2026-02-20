@@ -1,11 +1,11 @@
+import { getCompanyFromToken, getUserFromToken } from "@/lib/auth";
+import { AppProviders } from "@/providers/AppProviders";
 import type { Metadata } from "next";
-import "../globals.css";
 import roboto from "next/font/local";
+import { redirect } from "next/navigation";
+import "../globals.css";
 import { MobileMenu } from "./_components/MenuMobile";
 import NewSidebar from "./_components/new-sidebar/sidebar";
-import { AppProviders } from "@/providers/AppProviders";
-import { getCompanyFromToken, getUserFromToken } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { TrialUpgradeDialog } from "./_components/TrialUpgradeDialog";
 
 const robotoFont = roboto({
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
   verification: {
     google: "iujCtqRV2IM9SBkAlFhc6qixIgiTU5gOhbi__yUjCmI",

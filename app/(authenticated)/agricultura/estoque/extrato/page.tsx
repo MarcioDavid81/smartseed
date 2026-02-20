@@ -1,9 +1,9 @@
 import NavItems from "@/app/(authenticated)/_components/NavItems";
-import { Metadata } from "next";
-import { ListIndustryStockStatementTable } from "./_components/ListIndustryStockStatementTable";
 import HoverButton from "@/components/HoverButton";
-import Link from "next/link";
 import { ProductType } from "@prisma/client";
+import { Metadata } from "next";
+import Link from "next/link";
+import { ListIndustryStockStatementTable } from "./_components/ListIndustryStockStatementTable";
 
 export const metadata: Metadata = {
   title: "Extrato de Estoque",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
 };
 

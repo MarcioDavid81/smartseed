@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
-import CreateRainButton from "./_components/CreateRainButton";
 import { ListRainsTable } from "./_components/ListRainTable";
 
 export const metadata: Metadata = {
@@ -12,7 +11,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
 };
 export default async function AgricultureCropYieldsPage() {

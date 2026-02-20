@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import { ListSaleTable } from "./_components/ListSaleTable";
 import NavItems from "../../_components/NavItems";
+import { ListSaleTable } from "./_components/ListSaleTable";
 
 export const metadata: Metadata = {
   title: "Vendas",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
 };
 

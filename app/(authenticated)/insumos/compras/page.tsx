@@ -1,6 +1,6 @@
 import { Metadata } from "next";
+import NavItems from "../../_components/NavItems";
 import { ListPurchaseTable } from "./_components/ListPurchaseTable";
-import NavItems from "../../_components/NavItems"
 
 export const metadata: Metadata = {
   title: "Compra de Insumos",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
 };
 

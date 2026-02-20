@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "../globals.css";
-import { Toaster } from "sonner";
 import CookieConsent from "@/components/cookie-consent";
-import { BackToTop } from "./_components/BackToTop";
 import { ToastProvider } from "@/contexts/ToastContext";
 import TanstackProvider from "@/providers/tanstack";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
+import "../globals.css";
+import { BackToTop } from "./_components/BackToTop";
 
 const inter = Inter({
   weight: ["400", "700"],
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   ],
   description: "O seu sistema de gestão de produção de sementes",
   authors: [
-    { name: "Marcio David", url: "https://md-webdeveloper.vercel.app" },
+    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
   ],
     verification: {
     google: "iujCtqRV2IM9SBkAlFhc6qixIgiTU5gOhbi__yUjCmI",
