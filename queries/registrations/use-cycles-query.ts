@@ -1,4 +1,4 @@
-import { getCycles } from "@/services/registrations/cycle";
+import { getCycleById, getCycles } from "@/services/registrations/cycle";
 import { useQuery } from "@tanstack/react-query";
 
 export function useCycles() {
@@ -7,6 +7,16 @@ export function useCycles() {
     queryFn: () => getCycles(),
     enabled: true,
     refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 * 60 * 24, // 1 dia
+  });
+}
+
+export function useCycleById(id: string) {
+  return useQuery({
+    queryKey: ["cycle", id],
+    queryFn: () => getCycleById(id),
+    enabled: !!id,
+    refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }

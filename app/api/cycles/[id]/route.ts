@@ -1,75 +1,6 @@
-import { verifyToken } from "@/lib/auth";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-
-/**
- * @swagger
- * /api/cycles:
- *   get:
- *     summary: Listar uma safra pelo ID
- *     tags:
- *       - Safra
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Safra retornada com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                   name:
- *                     type: string
- *                   startDate:
- *                     type: string
- *                     format: date
- *                   endDate:
- *                     type: string
- *                     format: date
- *       401:
- *         description: Token ausente ou inválido
- */
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth.ok) return auth.response;
-    const { companyId } = auth;
-
-    const { id } = params;
-
-    const safra = await db.productionCycle.findMany({
-      where: { id: id, companyId: companyId },
-      include: {
-        talhoes: {
-          include: {
-            talhao: {
-              select: {
-                id: true,
-                name: true,
-                area: true,
-              },
-            },
-          },
-        },
-        industryHarvests: true,
-      },
-    });
-
-    return NextResponse.json(safra);
-  } catch (error) {
-    console.error("Erro ao buscar safra:", error);
-    return NextResponse.json("Erro interno no servidor", { status: 500 });
-  }
-}
 
 /**
  * @swagger
@@ -188,6 +119,159 @@ export async function PUT(
           message: "Erro ao atualizar a safra",
         },
       },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * @swagger
+ * /api/cycles/{id}:
+ *   get:
+ *     summary: Listar uma safra pelo ID
+ *     tags:
+ *       - Safra
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Safra retornada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   startDate:
+ *                     type: string
+ *                     format: date
+ *                   endDate:
+ *                     type: string
+ *                     format: date
+ *       401:
+ *         description: Token ausente ou inválido
+ */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+
+    const { id } = params;
+
+    const safra = await db.productionCycle.findUnique({
+      where: { id },
+      include: {
+        talhoes: {
+          include: {
+            talhao: {
+              select: {
+                id: true,
+                name: true,
+                area: true,
+                farm: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        industryHarvests: true,
+      },
+    });
+
+    if (!safra || safra.companyId !== companyId) {
+      return NextResponse.json(
+        { error: "Safra não encontrada ou acesso negado" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(safra);
+  } catch (error) {
+    console.error("Erro ao buscar safra:", error);
+    return NextResponse.json("Erro interno no servidor", { status: 500 });
+  }
+}
+
+/**
+ * @swagger
+ * /api/cycles/{id}:
+ *   delete:
+ *     summary: Excluir uma safra pelo ID
+ *     tags:
+ *       - Safra
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Safra excluída com sucesso
+ *       401:
+ *         description: Token ausente ou inválido
+ *       404:
+ *         description: Safra não encontrada
+ *       400:
+ *         description: Safra possui talhões associados
+ */
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {  
+  try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+  
+    const { id } = params;
+    // 1. Verifica se o ciclo existe
+    const existingCycle = await db.productionCycle.findUnique({
+      where: { id },
+    });
+
+    if (!existingCycle || existingCycle.companyId !== companyId) {
+      return NextResponse.json(
+        { error: "Safra não encontrada ou acesso negado" },
+        { status: 404 },
+      );
+    }
+
+    const cycleHasPlot = await db.cycleTalhao.findMany({
+      where: { cycleId: id },
+    });
+
+    if (cycleHasPlot.length > 0) {
+      return NextResponse.json(
+        { error: "Safra possui talhões associados" },
+        { status: 400 },
+      );
+    }
+
+    await db.$transaction(async (tx) => {
+      await tx.cycleTalhao.deleteMany({
+        where: { cycleId: id },
+      });
+
+      await tx.productionCycle.delete({
+        where: { id },
+      });
+    });
+
+    return NextResponse.json({ message: "Safra excluída com sucesso" });
+  } catch (error) {
+    console.error("Erro ao excluir safra:", error);
+    return NextResponse.json(
+      { error: "Erro ao excluir a safra" },
       { status: 500 },
     );
   }
