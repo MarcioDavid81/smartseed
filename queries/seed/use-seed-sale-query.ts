@@ -5,7 +5,7 @@ export function useSeedSalesByCycle() {
   return useQuery({
     queryKey: ["seed-sale"],
     queryFn: () => getSeedSalesByCycle(),
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }
@@ -14,7 +14,7 @@ export function useSeedSale(saleId: string) {
   return useQuery({
     queryKey: ["seed-sale", saleId],
     queryFn: () => getSeedSaleById(saleId),
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }

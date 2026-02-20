@@ -3,6 +3,7 @@ export * from "./accountReceivable";
 export * from "./application";
 export * from "./beneficiation";
 export * from "./buy";
+export * from "./buyDetails";
 export * from "./company";
 export * from "./consumptionExit";
 export * from "./consumption";

@@ -301,7 +301,11 @@ export async function GET(
     // Buscar o compra para garantir que pertence à empresa do usuário
     const compra = await db.buy.findUnique({ 
       where: { id },
-      include: { accountPayable: true },
+      include: { 
+        cultivar: true, // traz informações do cultivar
+        customer: true, // traz fornecedor
+        accountPayable: true, // traz conta vinculada
+      },
     });
 
     if (!compra || compra.companyId !== companyId) {

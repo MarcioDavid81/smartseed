@@ -1,8 +1,8 @@
-import { Buy } from "@/types";
+import { Buy, BuyDetails } from "@/types";
 import { apiFetch } from "../api";
 import { BuyFormData } from "@/lib/schemas/seedBuyScheema";
 
-export async function getBuyByCycle(
+export async function getSeedBuysByCycle(
 ): Promise<Buy[]> {
   const data = await apiFetch<Buy[]>(
     `/api/buys`
@@ -11,6 +11,15 @@ export async function getBuyByCycle(
   return data.filter((buy) => buy.quantityKg > 0);
 }
 
+export async function getSeedBuyById(
+  buyId: string,
+): Promise<BuyDetails> {
+  const data = await apiFetch<BuyDetails>(
+    `/api/buys/${buyId}`
+  );
+
+  return data;
+}
 
 type UpsertBuyParams = {
   data: BuyFormData;
