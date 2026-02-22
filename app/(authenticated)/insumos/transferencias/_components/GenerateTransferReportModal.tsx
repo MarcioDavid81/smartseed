@@ -48,7 +48,7 @@ export default function GenerateTransferReportModal() {
     const doc = new jsPDF({ orientation: "landscape" });
 
     const logo = new window.Image();
-    logo.src = "/logo.png";
+    logo.src = "/6.png";
 
     logo.onload = () => {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);

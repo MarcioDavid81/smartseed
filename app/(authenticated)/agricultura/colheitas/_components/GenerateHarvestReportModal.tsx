@@ -1,6 +1,13 @@
 "use client";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,17 +19,29 @@ import {
 import { FaFilePdf, FaSpinner } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useIndustryHarvest } from "@/contexts/IndustryHarvestContext";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
 import { formatNumber } from "@/app/_helpers/currency";
+import { getProductLabel } from "@/app/_helpers/getProductLabel";
+import { DatePicker } from "@/components/ui/date-picker";
+import { useIndustryHarvests } from "@/queries/industry/use-harvests.query";
+import { useCycle } from "@/contexts/CycleContext";
+import { endOfDay, startOfDay } from "date-fns";
+import { IndustryHarvest } from "@/types";
 
 export default function GenerateHarvestReportModal() {
-  const { harvests } = useIndustryHarvest();
+  const { selectedCycle } = useCycle();
+  const {
+    data: harvests = [],
+    refetch,
+  } = useIndustryHarvests(selectedCycle?.id);
+
   const [produto, setProduto] = useState<string | null>(null);
   const [deposito, setDeposito] = useState<string | null>(null);
   const [talhao, setTalhao] = useState<string | null>(null);
   const [transportador, setTransportador] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -38,20 +57,46 @@ export default function GenerateHarvestReportModal() {
   );
   const talhoesUnicos = Array.from(new Set(harvests.map((h) => h.talhao.name)));
 
-  const filtered = harvests.filter((h) => {
-    const matchProduto = !produto || h.product === produto;
-    const matchDeposito = !deposito || h.industryDeposit.name === deposito;
-    const matchTransportador = !transportador || h.industryTransporter?.name === transportador;
-    const matchTalhao = !talhao || h.talhao.name === talhao;
-    return matchProduto && matchDeposito && matchTransportador && matchTalhao;
-  });
+  const filterHarvests = (list: IndustryHarvest[]) => {
+    const from = dateFrom ? startOfDay(dateFrom) : null;
+    const to = dateTo ? endOfDay(dateTo) : null;
 
-  const generatePDF = () => {
+    return list.filter((h) => {
+      const matchProduto = !produto || h.product === produto;
+      const matchDeposito = !deposito || h.industryDeposit.name === deposito;
+      const matchTransportador =
+        !transportador || h.industryTransporter?.name === transportador;
+      const matchTalhao = !talhao || h.talhao.name === talhao;
+
+      const date = new Date(h.date as unknown as string);
+      const matchDate = (!from || date >= from) && (!to || date <= to);
+
+      return (
+        matchProduto &&
+        matchDeposito &&
+        matchTransportador &&
+        matchTalhao &&
+        matchDate
+      );
+    });
+  };
+
+  const generatePDF = async () => {
     setLoading(true);
+
+    const latest = selectedCycle?.id ? await refetch() : null;
+    const harvestsToUse = (latest?.data ?? harvests) as IndustryHarvest[];
+    const filteredToUse = filterHarvests(harvestsToUse);
+
     const doc = new jsPDF({ orientation: "landscape" });
 
     const logo = new window.Image();
-    logo.src = "/logo.png";
+    logo.src = "/6.png";
+
+    const periodLabel =
+      dateFrom || dateTo
+        ? `${dateFrom ? dateFrom.toLocaleDateString("pt-BR") : "—"} até ${dateTo ? dateTo.toLocaleDateString("pt-BR") : "—"}`
+        : "Todos";
 
     logo.onload = () => {
       // Função para adicionar rodapé consistente
@@ -92,17 +137,20 @@ export default function GenerateHarvestReportModal() {
       doc.text("Relatório de Colheitas", 150, 20, { align: "center" });
 
       doc.setFontSize(10);
-      doc.text(`Produto: ${produto || "Todos"}`, 14, 35);
+      doc.text(
+        `Produto: ${produto ? getProductLabel(produto) : "Todos"}`,
+        14,
+        35,
+      );
       doc.text(`Talhão: ${talhao || "Todos"}`, 14, 40);
       doc.text(`Depósito: ${deposito || "Todos"}`, 14, 45);
       doc.text(`Transportador: ${transportador || "Todos"}`, 14, 50);
-
-
+      doc.text(`Período: ${periodLabel}`, 14, 55);
 
       autoTable(doc, {
-        startY: 55,
+        startY: 60,
         head: [["Data", "Documento", "Talhão", "Depósito", "Peso Bruto (kg)", "Impureza", "Umidade", "Peso Líquido (kg)"]],
-        body: filtered.map((h) => [
+        body: filteredToUse.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
           h.document || "N/A",
           h.talhao.name,
@@ -112,15 +160,22 @@ export default function GenerateHarvestReportModal() {
           formatNumber(Number(h.humidity_percent)),
           formatNumber(Number(h.weightLiq)),
         ]),
+        foot: [["Total Geral", "", "", "", formatNumber(filteredToUse.reduce((acc, curr) => acc + Number(curr.weightSubLiq), 0)), "", "", formatNumber(filteredToUse.reduce((acc, curr) => acc + Number(curr.weightLiq), 0))]],
+        showFoot: "lastPage",
         styles: {
           fontSize: 9,
         },
         headStyles: {
-          fillColor: [1, 204, 101],
+          fillColor: [99,185,38],
           textColor: 255,
           fontStyle: "bold",
         },
-        didDrawPage: function (data) {
+        footStyles: {
+          fillColor: [99,185,38],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        didDrawPage: function () {
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height;
           const pageWidth = pageSize.width;
@@ -153,54 +208,6 @@ export default function GenerateHarvestReportModal() {
         },
       });
 
-      // === SOMATÓRIO POR TALHÃO ===
-      const totalsByTalhao = filtered.reduce(
-        (acc, curr) => {
-          const name = curr.talhao.name;
-          if (!acc[name]) acc[name] = 0;
-          acc[name] += Number(curr.weightLiq);
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-
-      const totalGeral = filtered.reduce(
-        (acc, curr) => acc + Number(curr.weightLiq),
-        0,
-      );
-
-      let finalY = (doc as any).lastAutoTable.finalY + 10;
-      const pageHeight = doc.internal.pageSize.height;
-
-      // Se o finalY + espaço dos totais ultrapassar o limite da página, quebra a página
-      const numberOfLines = Object.keys(totalsByTalhao).length + 2; // +2 para o título e total geral
-      const estimatedHeight = numberOfLines * 6 + 20;
-
-      if (finalY + estimatedHeight > pageHeight) {
-        doc.addPage();
-        addFooter(); // Adiciona rodapé na nova página
-        finalY = 20; // Recomeça mais acima na nova página
-      }
-
-      doc.setFontSize(9);
-      doc.text("Total colhido por Talhão", 14, finalY);
-
-      doc.setFontSize(9);
-      Object.entries(totalsByTalhao).forEach(([name, total], index) => {
-        doc.text(
-          `${name}: ${formatNumber(total)} kg`,
-          14,
-          finalY + 6 + index * 6,
-        );
-      });
-
-      doc.setFontSize(9);
-      doc.text(
-        `Total Geral: ${formatNumber(totalGeral)} kg`,
-        14,
-        finalY + 6 + Object.keys(totalsByTalhao).length * 6 + 6,
-      );
-
       const fileNumber = new Date().getTime().toString();
       const fileName = `Relatorio de Colheitas - ${fileNumber}.pdf`;
       doc.save(fileName);
@@ -208,6 +215,8 @@ export default function GenerateHarvestReportModal() {
       setDeposito(null);
       setTransportador(null);
       setTalhao(null);
+      setDateFrom(undefined);
+      setDateTo(undefined);
       setLoading(false);
       setModalOpen(false);
     };
@@ -243,8 +252,8 @@ export default function GenerateHarvestReportModal() {
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               {produtosUnicos.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
+                <SelectItem key={p} value={String(p)}>
+                  {getProductLabel(String(p))}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -315,10 +324,18 @@ export default function GenerateHarvestReportModal() {
           </Select>
         </div>
 
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Período</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <DatePicker value={dateFrom} onChange={setDateFrom} />
+            <DatePicker value={dateTo} onChange={setDateTo} />
+          </div>
+        </div>
+
         <Button
           onClick={generatePDF}
           className="bg-green text-white"
-          disabled={loading}
+          disabled={loading || !selectedCycle?.id}
         >
           {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>

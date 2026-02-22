@@ -1,29 +1,29 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { FaFilePdf, FaSpinner } from "react-icons/fa";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { useReceivable } from "@/contexts/ReceivableContext";
 import { useUser } from "@/contexts/UserContext";
-import HoverButton from "@/components/HoverButton";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { useState } from "react";
 import { DateRange } from "react-day-picker";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 
 export default function GenerateReceivableReportModal() {
   const { receivables } = useReceivable();
@@ -58,7 +58,7 @@ export default function GenerateReceivableReportModal() {
     setLoading(true);
     const doc = new jsPDF({ orientation: "landscape" });
     const logo = new window.Image();
-    logo.src = "/logo.png";
+    logo.src = "/6.png";
 
     logo.onload = () => {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);

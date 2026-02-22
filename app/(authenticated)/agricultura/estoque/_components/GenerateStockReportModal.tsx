@@ -1,22 +1,22 @@
 "use client";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { FaFilePdf, FaSpinner } from "react-icons/fa";
+import { useIndustryHarvest } from "@/contexts/IndustryHarvestContext";
+import { useIndustryStock } from "@/contexts/IndustryStockContext";
+import { useUser } from "@/contexts/UserContext";
+import { ProductType } from "@prisma/client";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useUser } from "@/contexts/UserContext";
-import HoverButton from "@/components/HoverButton";
-import { useIndustryStock } from "@/contexts/IndustryStockContext";
-import { useIndustryHarvest } from "@/contexts/IndustryHarvestContext";
-import { ProductType } from "@prisma/client";
+import { useState } from "react";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 
 export default function GenerateStockReportModal() {
   const { stocks } = useIndustryStock();
@@ -41,7 +41,7 @@ export default function GenerateStockReportModal() {
     const doc = new jsPDF({ orientation: "landscape" });
 
     const logo = new window.Image();
-    logo.src = "/logo.png";
+    logo.src = "/6.png";
 
     logo.onload = () => {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);

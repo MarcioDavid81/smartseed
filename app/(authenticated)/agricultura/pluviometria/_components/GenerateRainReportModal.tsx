@@ -22,9 +22,9 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import HoverButton from "@/components/HoverButton";
 import { useUser } from "@/contexts/UserContext";
-import { Input } from "@/components/ui/input";
 import { useRains } from "@/queries/industry/use-rain";
 import { DatePicker } from "@/components/ui/date-picker";
+import { formatNumber } from "@/app/_helpers/currency";
 
 export default function GenerateRainReportModal() {
   const { user } = useUser();
@@ -33,7 +33,6 @@ export default function GenerateRainReportModal() {
   const [farmId, setFarmId] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -58,12 +57,12 @@ export default function GenerateRainReportModal() {
   });
 
   // === PDF ===
-  const generatePDF = () => {
+  const generatePDF = async () => {
     setLoading(true);
 
     const doc = new jsPDF({ orientation: "portrait" });
     const logo = new window.Image();
-    logo.src = "/logo.png";
+    logo.src = "/6.png";
 
     logo.onload = () => {
       const addFooter = () => {
@@ -125,59 +124,27 @@ export default function GenerateRainReportModal() {
       // Tabela
       autoTable(doc, {
         startY: 55,
-        head: [["Data", "Fazenda", "Chuva (mm)", "Observações"]],
+        head: [["Data", "Fazenda", "Chuva (mm)"]],
         body: filtered.map((r) => [
           new Date(r.date).toLocaleDateString("pt-BR"),
           r.farm?.name ?? "N/A",
           `${r.quantity} mm`,
         ]),
+        foot: [["Total Geral", "", formatNumber(filtered.reduce((acc, curr) => acc + Number(curr.quantity), 0))]],
+        showFoot: "lastPage",
         styles: { fontSize: 9 },
         headStyles: {
-          fillColor: [1, 204, 101],
+          fillColor: [99,185,38],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        footStyles: {
+          fillColor: [99,185,38],
           textColor: 255,
           fontStyle: "bold",
         },
         didDrawPage: addFooter,
       });
-
-      // === TOTAIS ===
-      const totalsByFarm = filtered.reduce((acc, curr) => {
-        const name = curr.farm?.name || "N/A";
-        if (!acc[name]) acc[name] = 0;
-        acc[name] += Number(curr.quantity);
-        return acc;
-      }, {} as Record<string, number>);
-
-      const totalGeral = filtered.reduce(
-        (acc, curr) => acc + Number(curr.quantity),
-        0,
-      );
-
-      let finalY = (doc as any).lastAutoTable.finalY + 10;
-      const pageHeight = doc.internal.pageSize.height;
-
-      if (finalY + 40 > pageHeight) {
-        doc.addPage();
-        addFooter();
-        finalY = 20;
-      }
-
-      doc.setFontSize(9);
-      doc.text("Total de chuva por Fazenda:", 14, finalY);
-
-      Object.entries(totalsByFarm).forEach(([name, total], index) => {
-        doc.text(
-          `${name}: ${total.toFixed(1)} mm`,
-          14,
-          finalY + 6 + index * 6,
-        );
-      });
-
-      doc.text(
-        `Total Geral: ${totalGeral.toFixed(1)} mm`,
-        14,
-        finalY + 6 + Object.keys(totalsByFarm).length * 6 + 6,
-      );
 
       doc.save(`Relatorio_de_Chuvas_${Date.now()}.pdf`);
       setLoading(false);

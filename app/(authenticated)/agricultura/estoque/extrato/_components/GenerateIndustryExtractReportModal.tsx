@@ -1,14 +1,14 @@
 "use client";
 
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { tipoIndustryMovimentacaoInfo } from "@/app/_helpers/industryMovimentacao";
+import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
-import { FaFilePdf, FaSpinner } from "react-icons/fa";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useUser } from "@/contexts/UserContext";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useUser } from "@/contexts/UserContext";
-import HoverButton from "@/components/HoverButton";
 import { useState } from "react";
-import { tipoIndustryMovimentacaoInfo } from "@/app/_helpers/industryMovimentacao";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 
 interface Movement {
   id: string;
@@ -32,7 +32,7 @@ export default function GenerateIndustryExtractReportModal({
     setLoading(true);
     const doc = new jsPDF();
     const logo = new Image();
-    logo.src = "/logo.png";
+    logo.src = "/6.png";
 
     // Adiciona logo e título
     doc.addImage(logo, "PNG", 14, 10, 30, 15);

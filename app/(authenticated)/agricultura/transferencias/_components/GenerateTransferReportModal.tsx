@@ -1,21 +1,21 @@
 "use client";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { formatNumber } from "@/app/_helpers/currency";
+import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { FaFilePdf, FaSpinner } from "react-icons/fa";
+import { useIndustryTransfer } from "@/contexts/IndustryTransferContext";
+import { useUser } from "@/contexts/UserContext";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useUser } from "@/contexts/UserContext";
-import HoverButton from "@/components/HoverButton";
-import { formatNumber } from "@/app/_helpers/currency";
-import { useIndustryTransfer } from "@/contexts/IndustryTransferContext";
+import { useState } from "react";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 
 export default function GenerateTransferReportModal() {
   const { transfers } = useIndustryTransfer();
@@ -51,7 +51,7 @@ export default function GenerateTransferReportModal() {
     const doc = new jsPDF({ orientation: "portrait" });
 
     const logo = new window.Image();
-    logo.src = "/logo.png";
+    logo.src = "/6.png";
 
     logo.onload = () => {
       // Função para adicionar rodapé consistente

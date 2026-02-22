@@ -1,20 +1,20 @@
 "use client";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { FaFilePdf, FaSpinner } from "react-icons/fa";
+import { useConsumption } from "@/contexts/ConsumptionContext";
+import { useUser } from "@/contexts/UserContext";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useUser } from "@/contexts/UserContext";
-import HoverButton from "@/components/HoverButton";
-import { useConsumption } from "@/contexts/ConsumptionContext";
+import { useState } from "react";
+import { FaFilePdf, FaSpinner } from "react-icons/fa";
 
 export default function GenerateConsumptionReportModal() {
   const { plantios } = useConsumption();
@@ -47,7 +47,7 @@ export default function GenerateConsumptionReportModal() {
     const doc = new jsPDF({ orientation: "landscape" });
 
     const logo = new window.Image();
-    logo.src = "/logo.png";
+    logo.src = "/6.png";
 
     logo.onload = () => {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
