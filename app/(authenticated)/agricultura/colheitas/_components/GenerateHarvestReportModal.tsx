@@ -50,12 +50,14 @@ export default function GenerateHarvestReportModal() {
     new Set(harvests.map((h) => h.product)),
   );
   const depositosUnicos = Array.from(
-    new Set(harvests.map((h) => h.industryDeposit.name)),
+    new Set(harvests.map((h) => h.industryDeposit?.name || "-")),
   );
   const transportadoresUnicos = Array.from(
     new Set(harvests.map((h) => h.industryTransporter?.name || "-")),
   );
-  const talhoesUnicos = Array.from(new Set(harvests.map((h) => h.talhao.name)));
+  const talhoesUnicos = Array.from(
+    new Set(harvests.map((h) => h.talhao?.name || "-")),
+  );
 
   const filterHarvests = (list: IndustryHarvest[]) => {
     const from = dateFrom ? startOfDay(dateFrom) : null;
@@ -63,10 +65,11 @@ export default function GenerateHarvestReportModal() {
 
     return list.filter((h) => {
       const matchProduto = !produto || h.product === produto;
-      const matchDeposito = !deposito || h.industryDeposit.name === deposito;
+      const matchDeposito =
+        !deposito || h.industryDeposit?.name === deposito;
       const matchTransportador =
         !transportador || h.industryTransporter?.name === transportador;
-      const matchTalhao = !talhao || h.talhao.name === talhao;
+      const matchTalhao = !talhao || h.talhao?.name === talhao;
 
       const date = new Date(h.date as unknown as string);
       const matchDate = (!from || date >= from) && (!to || date <= to);

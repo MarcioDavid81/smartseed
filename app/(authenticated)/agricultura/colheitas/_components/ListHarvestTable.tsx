@@ -64,7 +64,7 @@ export function ListHarvestTable() {
     {
       accessorKey: "industryTransporter",
       header: () => <div className="text-left">Transportador</div>,
-      cell: ({ row: { original } }) => <div className="text-left">{original.industryTransporter?.name ? (original.industryTransporter.name) : "-"}</div>,
+      cell: ({ row: { original } }) => <div className="text-left">{original.industryTransporter?.name ? (original.industryTransporter.name) : <LoadingData />}</div>,
     },
     {
       id: "industryDeposit",
