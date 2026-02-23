@@ -154,7 +154,7 @@ export function MultiPlotSelector({ control, name }: MultiPlotSelectorProps) {
                             checked={selected.includes(t.id)}
                             onCheckedChange={() => toggleSelection(t.id)}
                           />
-                          <span className="text-sm">{t.name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</span>
+                          <span className="text-sm">{t.name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toUpperCase()).join(' ')}</span>
                           <span className="text-xs font-light text-muted-foreground">
                             {formatNumber(t.area)} ha
                           </span>
