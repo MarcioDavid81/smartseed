@@ -138,6 +138,9 @@ export default function GenerateHarvestReportModal() {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Colheitas", 150, 20, { align: "center" });
+      const company = user.company.name;
+      doc.setFontSize(12);
+      doc.text(company, 150, 25, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(
