@@ -1,5 +1,6 @@
 "use client";
 import { formatNumber } from "@/app/_helpers/currency";
+import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -96,6 +97,9 @@ export default function GenerateSaleReportModal() {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Vendas", 150, 20, { align: "center" });
+      const company = user.company.name;
+      doc.setFontSize(12);
+      doc.text(company, 150, 25, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Produto: ${produto || "Todos"}`, 14, 35);
@@ -106,20 +110,28 @@ export default function GenerateSaleReportModal() {
 
       autoTable(doc, {
         startY: 55,
-        head: [["Data", "Documento", "Cliente", "Peso Bruto (kg)", "Desconto (kg)", "Peso Líquido (kg)"]],
+        head: [["Data", "Produto", "Documento", "Cliente", "Peso Bruto (kg)", "Desconto (kg)", "Peso Líquido (kg)"]],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
+          getProductLabel(h.product),
           h.document || "N/A",
           h.customer?.name || "N/A",
           formatNumber(Number(h.weightSubLiq)),
           formatNumber(Number(h.discountsKg)),
           formatNumber(Number(h.weightLiq)),
         ]),
+        foot: [["Total Geral", "", "", "", formatNumber(filtered.reduce((acc, curr) => acc + Number(curr.weightSubLiq), 0)), formatNumber(filtered.reduce((acc, curr) => acc + Number(curr.discountsKg), 0)), formatNumber(filtered.reduce((acc, curr) => acc + Number(curr.weightLiq), 0))]],
+        showFoot: "lastPage",
         styles: {
           fontSize: 9,
         },
         headStyles: {
-          fillColor: [1, 204, 101],
+          fillColor: [99,185,38],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        footStyles: {
+          fillColor: [99,185,38],
           textColor: 255,
           fontStyle: "bold",
         },
@@ -156,54 +168,6 @@ export default function GenerateSaleReportModal() {
           );
         },
       });
-
-      // === SOMATÓRIO POR CLIENTE ===
-      const totalsByCustomer = filtered.reduce(
-        (acc, curr) => {
-          const name = curr.customer?.name || "N/A";
-          if (!acc[name]) acc[name] = 0;
-          acc[name] += Number(curr.weightLiq);
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-
-      const totalGeral = filtered.reduce(
-        (acc, curr) => acc + Number(curr.weightLiq),
-        0,
-      );
-
-      let finalY = (doc as any).lastAutoTable.finalY + 10;
-      const pageHeight = doc.internal.pageSize.height;
-
-      // Se o finalY + espaço dos totais ultrapassar o limite da página, quebra a página
-      const numberOfLines = Object.keys(totalsByCustomer).length + 2; // +2 para o título e total geral
-      const estimatedHeight = numberOfLines * 6 + 20;
-
-      if (finalY + estimatedHeight > pageHeight) {
-        doc.addPage();
-        addFooter(); // Adiciona rodapé na nova página
-        finalY = 20; // Recomeça mais acima na nova página
-      }
-
-      doc.setFontSize(9);
-      doc.text("Total vendido por Cliente:", 14, finalY);
-
-      doc.setFontSize(9);
-      Object.entries(totalsByCustomer).forEach(([name, total], index) => {
-        doc.text(
-          `${name}: ${formatNumber(total)} kg`,
-          14,
-          finalY + 6 + index * 6,
-        );
-      });
-
-      doc.setFontSize(9);
-      doc.text(
-        `Total Geral: ${formatNumber(totalGeral)} kg`,
-        14,
-        finalY + 6 + Object.keys(totalsByCustomer).length * 6 + 6,
-      );
 
       const fileNumber = new Date().getTime().toString();
       const fileName = `Relatorio de Vendas - ${fileNumber}.pdf`;
@@ -246,8 +210,8 @@ export default function GenerateSaleReportModal() {
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               {produtosUnicos.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
+                <SelectItem key={p} value={String(p)}>
+                  {getProductLabel(String(p))}
                 </SelectItem>
               ))}
             </SelectContent>

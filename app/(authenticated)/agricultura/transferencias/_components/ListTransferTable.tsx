@@ -10,6 +10,8 @@ import { TransferDataTable } from "./TransferDataTable";
 import EditTransferButton from "./EditTransferButton";
 import DeleteTransferButton from "./DeleteTransferButton";
 import { useIndustryTransfers } from "@/queries/industry/use-transfers-query";
+import { getProductLabel } from "@/app/_helpers/getProductLabel";
+import { ProductType } from "@prisma/client";
 
 export function ListTransferTable() {
 
@@ -36,15 +38,21 @@ export function ListTransferTable() {
       cell: ({ row: { original } }) => new Date(original.date).toLocaleDateString("pt-BR"),
     },
     {
+      accessorKey: "product",
+      header: "Produto",
+      accessorFn: (row) => row.product,
+      cell: ({ row: { original } }) => getProductLabel(original.product as ProductType),
+    },
+    {
       accessorKey: "document",
       header: "Documento",
       accessorFn: (row) => row.document,
-      cell: ({ row: { original } }) => original.document,
+      cell: ({ row: { original } }) => original.document || "-",
     },
     {
       accessorKey: "fromDeposit",
       header: "Depósito Origem",
-      cell: ({ row: { original } }) => original.fromDeposit.name,
+      cell: ({ row: { original } }) => original.fromDeposit?.name || "-",
     },
     {
       accessorKey: "toDeposit",

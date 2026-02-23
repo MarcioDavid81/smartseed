@@ -100,6 +100,9 @@ export default function GenerateRainReportModal() {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Chuvas", 110, 20, { align: "center" });
+      const company = user.company.name;
+      doc.setFontSize(12);
+      doc.text(company, 110, 25, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(
@@ -128,9 +131,9 @@ export default function GenerateRainReportModal() {
         body: filtered.map((r) => [
           new Date(r.date).toLocaleDateString("pt-BR"),
           r.farm?.name ?? "N/A",
-          `${r.quantity} mm`,
+          `${formatNumber(r.quantity)} mm`,
         ]),
-        foot: [["Total Geral", "", formatNumber(filtered.reduce((acc, curr) => acc + Number(curr.quantity), 0))]],
+        foot: [["Total Geral", "", formatNumber(filtered.reduce((acc, curr) => acc + Number(curr.quantity), 0)) + " mm"]],
         showFoot: "lastPage",
         styles: { fontSize: 9 },
         headStyles: {
@@ -146,7 +149,7 @@ export default function GenerateRainReportModal() {
         didDrawPage: addFooter,
       });
 
-      doc.save(`Relatorio_de_Chuvas_${Date.now()}.pdf`);
+      doc.save(`Relatorio de Chuvas - ${Date.now()}.pdf`);
       setLoading(false);
       setModalOpen(false);
     };

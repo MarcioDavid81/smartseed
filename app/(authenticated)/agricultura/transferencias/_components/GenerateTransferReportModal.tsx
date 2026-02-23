@@ -1,5 +1,6 @@
 "use client";
 import { formatNumber } from "@/app/_helpers/currency";
+import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useIndustryTransfer } from "@/contexts/IndustryTransferContext";
 import { useUser } from "@/contexts/UserContext";
+import { ProductType } from "@prisma/client";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useState } from "react";
@@ -90,6 +92,9 @@ export default function GenerateTransferReportModal() {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Transferências", 110, 20, { align: "center" });
+      const company = user.company.name;
+      doc.setFontSize(12);
+      doc.text(company, 110, 25, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Produto: ${produto || "Todos"}`, 14, 35);
@@ -100,19 +105,27 @@ export default function GenerateTransferReportModal() {
 
       autoTable(doc, {
         startY: 55,
-        head: [["Data", "Documento", "Origem", "Destino", "Peso Líquido (kg)"]],
+        head: [["Data", "Produto", "Documento", "Origem", "Destino", "Peso Líquido (kg)"]],
         body: filtered.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
-          h.document || "N/A",
-          h.fromDeposit?.name || "N/A",
-          h.toDeposit?.name || "N/A",
+          getProductLabel(h.product as ProductType),
+          h.document || "-",
+          h.fromDeposit?.name || "-",
+          h.toDeposit?.name || "-",
           formatNumber(Number(h.quantity)),
         ]),
+        foot: [["Total Geral", "", "", "", "", formatNumber(filtered.reduce((acc, curr) => acc + Number(curr.quantity), 0))]],
+        showFoot: "lastPage",
         styles: {
           fontSize: 9,
         },
         headStyles: {
-          fillColor: [1, 204, 101],
+          fillColor: [99,185,38],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        footStyles: {
+          fillColor: [99,185,38],
           textColor: 255,
           fontStyle: "bold",
         },
@@ -179,25 +192,6 @@ export default function GenerateTransferReportModal() {
         finalY = 20; // Recomeça mais acima na nova página
       }
 
-      doc.setFontSize(9);
-      doc.text("Total transferido por Origem:", 14, finalY);
-
-      doc.setFontSize(9);
-      Object.entries(totalsByOrigem).forEach(([name, total], index) => {
-        doc.text(
-          `${name}: ${formatNumber(total)} kg`,
-          14,
-          finalY + 6 + index * 6,
-        );
-      });
-
-      doc.setFontSize(9);
-      doc.text(
-        `Total Geral: ${formatNumber(totalGeral)} kg`,
-        14,
-        finalY + 6 + Object.keys(totalsByOrigem).length * 6 + 6,
-      );
-
       const fileNumber = new Date().getTime().toString();
       const fileName = `Relatorio de Transferências - ${fileNumber}.pdf`;
       doc.save(fileName);
@@ -222,7 +216,7 @@ export default function GenerateTransferReportModal() {
         <DialogHeader>
           <DialogTitle>Filtrar Relatório</DialogTitle>
           <DialogDescription>
-            Selecione os filtros para gerar o relatório de vendas
+            Selecione os filtros para gerar o relatório de transferências
           </DialogDescription>
         </DialogHeader>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { tipoIndustryMovimentacaoInfo } from "@/app/_helpers/industryMovimentacao";
+import { formatNumber } from "@/app/_helpers/currency";
 import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -10,11 +10,12 @@ import autoTable from "jspdf-autotable";
 import { useState } from "react";
 import { FaFilePdf, FaSpinner } from "react-icons/fa";
 
-interface Movement {
+export interface Movement {
   id: string;
-  date: string;
+  date: string | Date;
   quantity: number;
   type: string | null;
+  balance?: number | null;
 }
 
 interface Props {
@@ -30,49 +31,75 @@ export default function GenerateIndustryExtractReportModal({
 
   const generatePDF = () => {
     setLoading(true);
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: "portrait" });
     const logo = new Image();
     logo.src = "/6.png";
 
     // Adiciona logo e título
     doc.addImage(logo, "PNG", 14, 10, 30, 15);
     doc.setFontSize(16);
-    doc.text("Extrato de Movimentações", 105, 20, { align: "center" });
+    doc.text("Extrato de Movimentações", 110, 20, { align: "center" });
+    const company = user.company.name;
+    doc.setFontSize(12);
+    doc.text(company, 110, 25, { align: "center" });
 
     // Cultivar
     doc.setFontSize(10);
 
     // Ordenar e montar dados
     const sorted = [...movements].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
 
-    let saldo = 0;
-    const body = sorted.map((m) => {
-      const tipoKey = m.type?.toUpperCase() ?? "DESCONHECIDO";
-      const info = tipoIndustryMovimentacaoInfo[tipoKey] ?? {
-        label: tipoKey,
-        entrada: false,
-      };
+    const totals = sorted.reduce(
+      (acc, m) => {
+        const t = m.type?.toUpperCase() ?? "DESCONHECIDO";
+        if (t === "ENTRY") acc.entries += m.quantity;
+        if (t === "EXIT") acc.exits += m.quantity;
+        return acc;
+      },
+      { entries: 0, exits: 0 },
+    );
 
-      saldo += info.entrada ? m.quantity : -m.quantity;
+    let runningBalance = 0;
+    const body = sorted.map((m) => {
+      const t = m.type?.toUpperCase() ?? "DESCONHECIDO";
+      const isEntry = t === "ENTRY";
+      const typeLabel = t === "ENTRY" ? "Entrada" : t === "EXIT" ? "Saída" : t;
+
+      const balance =
+        typeof m.balance === "number"
+          ? m.balance
+          : runningBalance + (isEntry ? m.quantity : -m.quantity);
+
+      runningBalance = balance;
 
       return [
         new Date(m.date).toLocaleDateString("pt-BR"),
-        m.quantity.toLocaleString("pt-BR", { minimumFractionDigits: 2 }),
-        info.label,
-        saldo.toLocaleString("pt-BR", { minimumFractionDigits: 2 }),
+        formatNumber(m.quantity),
+        typeLabel,
+        formatNumber(balance),
       ];
     });
+
+    const stockNow =
+      typeof sorted[0]?.balance === "number" ? Number(sorted[0].balance) : runningBalance;
 
     // Tabela
     autoTable(doc, {
       startY: 45,
       head: [["Data", "Quantidade (kg)", "Tipo", "Saldo (kg)"]],
       body,
+      foot: [["Total Entradas", formatNumber(totals.entries), "Total Saídas", formatNumber(totals.exits)]],
+      showFoot: "lastPage",
       styles: { fontSize: 9 },
       headStyles: {
-        fillColor: [1, 204, 101],
+        fillColor: [99,185,38],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+      footStyles: {
+        fillColor: [99,185,38],
         textColor: 255,
         fontStyle: "bold",
       },
@@ -103,11 +130,6 @@ export default function GenerateIndustryExtractReportModal({
         );
       },
     });
-
-    // === SALDO DA CULTIVAR ===
-    let finalY = (doc as any).lastAutoTable.finalY + 10;
-    doc.setFontSize(9);
-    doc.text(`Estoque atual: ${saldo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} kg`, 14, finalY);
 
     const fileName = `Extrato - ${Date.now()}.pdf`;
     doc.save(fileName);

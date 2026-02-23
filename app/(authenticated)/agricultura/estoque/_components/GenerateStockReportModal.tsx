@@ -1,4 +1,5 @@
 "use client";
+import { formatNumber } from "@/app/_helpers/currency";
 import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -38,7 +39,7 @@ export default function GenerateStockReportModal() {
 
   const generatePDF = () => {
     setLoading(true);
-    const doc = new jsPDF({ orientation: "landscape" });
+    const doc = new jsPDF({ orientation: "portrait" });
 
     const logo = new window.Image();
     logo.src = "/6.png";
@@ -47,6 +48,9 @@ export default function GenerateStockReportModal() {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Estoque", 110, 20, { align: "center" });
+      const company = user.company.name;
+      doc.setFontSize(12);
+      doc.text(company, 110, 25, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Produto: ${product || "Todos"}`, 14, 35);
@@ -59,15 +63,20 @@ export default function GenerateStockReportModal() {
         body: filteredStock.map((h) => [
           h.product,
           h.industryDeposit.name,
-          h.quantity.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          }),
+          formatNumber(Number(h.quantity)),
         ]),
+        foot: [["Total Geral", "", formatNumber(filteredStock.reduce((acc, curr) => acc + Number(curr.quantity), 0))]],
+        showFoot: "lastPage",
         styles: {
           fontSize: 9,
         },
         headStyles: {
-          fillColor: [1, 204, 101],
+          fillColor: [99,185,38],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        footStyles: {
+          fillColor: [99,185,38],
           textColor: 255,
           fontStyle: "bold",
         },
@@ -103,47 +112,6 @@ export default function GenerateStockReportModal() {
           );
         },
       });
-
-      // === SOMATÓRIO POR DEPÓSITO ===
-      const totalsByDeposit = filteredStock.reduce(
-        (acc, curr) => {
-          const name = curr.industryDeposit.name;
-          if (!acc[name]) acc[name] = 0;
-          acc[name] += curr.quantity;
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-
-      const totalGeral = filteredStock.reduce(
-        (acc, curr) => acc + curr.quantity,
-        0,
-      );
-
-      let finalY = (doc as any).lastAutoTable.finalY + 10;
-
-      doc.setFontSize(9);
-      doc.text("Estoque por Depósito", 14, finalY);
-
-      doc.setFontSize(9);
-      Object.entries(totalsByDeposit).forEach(([name, total], index) => {
-        doc.text(
-          `${name}: ${total.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          })} kg`,
-          14,
-          finalY + 6 + index * 6,
-        );
-      });
-
-      doc.setFontSize(9);
-      doc.text(
-        `Total Geral: ${totalGeral.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })} kg`,
-        14,
-        finalY + 6 + Object.keys(totalsByDeposit).length * 6 + 6,
-      );
 
       const fileNumber = new Date().getTime().toString();
       const fileName = `Relatorio de Estoque - ${fileNumber}.pdf`;
