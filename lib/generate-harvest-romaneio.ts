@@ -5,198 +5,130 @@ import jsPDF from "jspdf";
 export function generateHarvestRomaneio(data: IndustryHarvest) {
   const doc = new jsPDF();
 
-  let y = 20;
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const marginX = 14;
   const contentWidth = pageWidth - marginX * 2;
-  const gap = 6;
 
-  /* =========================
-     HELPERS
-  ========================= */
+  const sep = (y: number) => {
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.3);
+    doc.line(marginX, y, marginX + contentWidth, y);
+  };
 
-  function drawCard(height: number) {
-    doc.roundedRect(marginX, y, contentWidth, height, 3, 3);
-  }
-
-  function title(text: string, offsetY = 6) {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text(text, marginX + 4, y + offsetY);
-  }
-
-  function text(label: string, value: string, x: number, offsetY: number) {
+  const field = (label: string, value: string, x: number, y: number) => {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text(`${label}: ${value}`, x, y + offsetY);
-  }
+    doc.text(`${label}: ${value}`, x, y);
+  };
 
-  /* =========================
-     CABEÇALHO
-  ========================= */
+  const sectionTitle = (text: string, y: number) => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text(text, marginX, y);
+  };
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text(data.company?.name ?? "", pageWidth / 2, y, {
-    align: "center",
-  });
+  const renderVia = (startY: number) => {
+    let y = startY;
+    const rightX = marginX + contentWidth / 2;
+  
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("ROMANEIO DE COLHEITA", pageWidth / 2, y, { align: "center" });
 
-  y += 7;
+    y += 7;
 
-  doc.setFontSize(11);
-  doc.text("ROMANEIO DE COLHEITA", pageWidth / 2, y, {
-    align: "center",
-  });
+    doc.setFontSize(10);
+    doc.text(data.company?.name ?? "", pageWidth / 2, y, { align: "center" });
 
-  y += 8;
+    y += 6;
 
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Documento: ${data.document ?? "-"}`, marginX, y);
-  doc.text(
-    `Data: ${new Date(data.date).toLocaleDateString("pt-BR")}`,
-    pageWidth - marginX,
-    y,
-    { align: "right" },
-  );
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(`Documento: ${data.document ?? "-"}`, marginX, y);
+    doc.text(
+      `Data: ${new Date(data.date).toLocaleDateString("pt-BR")}`,
+      pageWidth - marginX,
+      y,
+      { align: "right" },
+    );
 
-  y += 8;
+    y += 4;
+    sep(y);
+    y += 6;
 
-  /* =========================
-     DADOS DO PRODUTOR
-  ========================= */
+    sectionTitle("DADOS DO PRODUTOR", y);
+    y += 5;
+    field("Fazenda", data.talhao.farm.name, marginX, y);
+    field("Produto", String(data.product), rightX, y);
+    y += 5;
+    field("Talhão", data.talhao.name, marginX, y);
 
-  drawCard(26);
-  title("DADOS DO PRODUTOR");
+    y += 4;
+    sep(y);
+    y += 6;
 
-  text(
-    "Fazenda",
-    data.talhao.farm.name,
-    marginX + 4,
-    14,
-  );
-  text(
-    "Talhão",
-    data.talhao.name,
-    marginX + 4,
-    20,
-  );
+    sectionTitle("DADOS LOGÍSTICOS", y);
+    y += 5;
+    field("Depósito", data.industryDeposit.name, marginX, y);
+    field("Placa", data.truckPlate ?? "-", rightX, y);
+    y += 5;
+    field("Transportador", data.industryTransporter?.name ?? "-", marginX, y);
+    field("Motorista", data.truckDriver ?? "-", rightX, y);
 
-  text(
-    "Produto",
-    data.product,
-    marginX + contentWidth / 2,
-    14,
-  );
+    y += 4;
+    sep(y);
+    y += 6;
 
-  y += 26 + gap;
+    sectionTitle("CLASSIFICAÇÃO / PESOS", y);
+    y += 5;
 
-  /* =========================
-     DADOS LOGÍSTICOS
-  ========================= */
+    field("Peso Bruto (kg)", formatNumber(data.weightBt), marginX, y);
+    field("Impurezas (%)", formatNumber(data.impurities_discount), rightX, y);
 
-  drawCard(26);
-  title("DADOS LOGÍSTICOS");
+    y += 5;
 
-  text(
-    "Depósito",
-    data.industryDeposit.name,
-    marginX + 4,
-    14,
-  );
-  text(
-    "Transportador",
-    data.industryTransporter?.name ?? "-",
-    marginX + 4,
-    20,
-  );
+    field("Tara (kg)", formatNumber(data.weightTr), marginX, y);
+    field("Desc. Impurezas (kg)", formatNumber(data.impurities_kg), rightX, y);
+    y += 5;
 
-  text(
-    "Placa",
-    data.truckPlate ?? "-",
-    marginX + contentWidth / 2,
-    14,
-  );
-  text(
-    "Motorista",
-    data.truckDriver ?? "-",
-    marginX + contentWidth / 2,
-    20,
-  );
+    field("Peso Sub Líquido (kg)", formatNumber(data.weightSubLiq), marginX, y);
+    field("Umidade (%)", formatNumber(data.humidity_percent), rightX, y);
+    y += 5;
 
-  y += 26 + gap;
+    field("Taxas (kg)", formatNumber(data.tax_kg ?? 0), marginX, y);
+    field("Desc. Umidade (kg)", formatNumber(data.humidity_kg), rightX, y);
+    y += 6;
 
-  /* =========================
-     CLASSIFICAÇÃO / PESOS
-  ========================= */
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(`PESO LÍQUIDO (kg): ${formatNumber(data.weightLiq)}`, rightX, y);
 
-  drawCard(42);
-  title("CLASSIFICAÇÃO / PESOS");
+    y += 20;
 
-  // Coluna esquerda
-  text("Peso Bruto (kg)", formatNumber(data.weightBt), marginX + 4, 14);
-  text("Tara (kg)", formatNumber(data.weightTr), marginX + 4, 20);
-  text(
-    "Peso Sub Líquido (kg)",
-    formatNumber(data.weightSubLiq),
-    marginX + 4,
-    26,
-  );
-  text("Taxas (kg)", formatNumber(data.tax_kg ?? 0), marginX + 4, 32);
-  text(
-    "Ajustes (kg)",
-    formatNumber(data.adjust_kg ?? 0),
-    marginX + 4,
-    38,
-  );
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.3);
+    doc.line(marginX, y, marginX + 80, y);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text("Assinatura", marginX + 40, y + 4, { align: "center" });
 
-  // Coluna direita
-  const rightX = marginX + contentWidth / 2;
+    return y + 10;
+  };
 
-    text(
-    "Impurezas (%)",
-    formatNumber(data.impurities_discount),
-    rightX,
-    26,
-  );
-  text(
-    "Desc. Impurezas (kg)",
-    formatNumber(data.impurities_kg),
-    rightX,
-    32,
-  );
-  text(
-    "Umidade (%)",
-    formatNumber(data.humidity_percent),
-    rightX,
-    14,
-  );
-  text(
-    "Desc. Umidade (kg)",
-    formatNumber(data.humidity_kg),
-    rightX,
-    20,
-  );
+  const startTop = 14;
+  const dividerY = pageHeight / 2;
+  renderVia(startTop);
+  doc.setDrawColor(140);
+  doc.setLineWidth(0.2);
+  doc.line(marginX, dividerY, marginX + contentWidth, dividerY);
+  doc.setDrawColor(0);
+  renderVia(dividerY + 6);
 
-  doc.setFont("helvetica", "bold");
-  doc.text(
-    `PESO LÍQUIDO (kg): ${formatNumber(data.weightLiq)}`,
-    rightX,
-    y + 38,
-  );
 
-  /* =========================
-     ASSINATURA
-  ========================= */
 
-  y += 42 + 10;
 
-  doc.line(marginX, y, marginX + 80, y);
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.text("Assinatura", marginX + 40, y + 5, {
-    align: "center",
-  });
+
 
   /* =========================
      RODAPÉ
