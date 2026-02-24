@@ -285,6 +285,10 @@ export async function GET(
         industryTransporter: {
           select: {
             name: true,
+            cpf_cnpj: true,
+            city: true,
+            state: true,
+            phone: true,
           },
         },
       },

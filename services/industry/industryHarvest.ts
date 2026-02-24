@@ -1,4 +1,4 @@
-import { IndustryHarvest } from "@/types";
+import { IndustryHarvest, IndustryHarvestDetails } from "@/types";
 import { apiFetch } from "../api";
 import { IndustryHarvestFormData } from "@/lib/schemas/industryHarvest";
 
@@ -14,8 +14,8 @@ export async function getHarvestsByCycle(
 
 export async function getHarvestById(
   harvestId: string
-): Promise<IndustryHarvest> {
-  const data = await apiFetch<IndustryHarvest>(
+): Promise<IndustryHarvestDetails> {
+  const data = await apiFetch<IndustryHarvestDetails>(
     `/api/industry/harvest/${harvestId}`
   );
 
