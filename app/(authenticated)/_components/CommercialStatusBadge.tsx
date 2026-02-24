@@ -7,9 +7,9 @@ import { COMMERCIAL_STATUS_TYPE_LABELS } from "../_constants/commercial";
 export type CommercialStatus = keyof typeof COMMERCIAL_STATUS_TYPE_LABELS;
 
 const STATUS_COLORS: Record<CommercialStatus, string> = {
-  OPEN: "bg-green text-white",
-  PARTIAL_FULFILLED: "bg-yellow-300 text-white",
-  FULFILLED: "bg-blue text-white",
+  OPEN: "bg-blue text-white",
+  PARTIAL_FULFILLED: "bg-yellow-400 text-white",
+  FULFILLED: "bg-green text-white",
   CANCELED: "bg-red text-white",
 };
 

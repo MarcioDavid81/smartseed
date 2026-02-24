@@ -55,6 +55,7 @@ export function PurchaseOrderItemActions({
             className="cursor-pointer font-light rounded-lg border border-green "
           >
             <DropdownMenuItem
+              disabled={item.remainingQuantity <= 0}
               onClick={() => setOpenAttend(true)}
               className="cursor-pointer py-2 hover:bg-green hover:text-white rounded-lg"
             >
