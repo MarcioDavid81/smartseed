@@ -12,16 +12,19 @@ import { ptBR } from "date-fns/locale";
 import { CornerDownLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import GenerateRomaneioButton from "../../_components/GenerateRomaneioButton";
+import { formatNumber } from "@/app/_helpers/currency";
 
 function Field({
   label,
   value,
+  className = "",
 }: {
   label: string;
   value?: string | number | null;
+  className?: string;
 }) {
   return (
-    <div className="space-y-1">
+    <div className={`space-y-1 ${className}`}>
       <p className="text-xs uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
@@ -50,11 +53,11 @@ function OriginSection({ data }: { data: IndustryHarvestDetails }) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold"><span className="border-b border-green">Origem</span> do Talhão</h2>
+      <h2 className="text-lg font-semibold"><span className="border-b border-green">Ori</span>gem</h2>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <Field label="Nome" value={t.name} />
-        <Field label="CNPJ/CPF" value={t.farm.name} />
+        <Field label="Fazenda" value={t.farm.name} />
+        <Field label="Talhão" value={t.name} />
       </div>
     </section>
   );
@@ -66,35 +69,17 @@ function WeightSection({ data }: { data: IndustryHarvestDetails }) {
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Pesa</span>gem</h2>
 
       <div className="grid md:grid-cols-4 gap-6">
-        <Field label="Peso bruto (kg)" value={data.weightBt} />
-        <Field label="Tara (kg)" value={data.weightTr} />
-        <Field label="Peso líquido (kg)" value={data.weightLiq} />
+        <Field label="Peso bruto (kg)" value={formatNumber(data.weightBt)} />
+        <Field label="Tara (kg)" value={formatNumber(data.weightTr)} />
+        <Field label="Impureza (kg)" value={formatNumber(data.impurities_kg ?? 0)} />
+        <Field label="Umidade (kg)" value={formatNumber(data.humidity_kg ?? 0)} />
+        <Field label="Taxas (kg)" value={formatNumber(data.tax_kg ?? 0)} />
+        <Field label="Ajuste (kg)" value={formatNumber(data.adjust_kg ?? 0)} />
+        <Field label="Peso líquido (kg)" value={formatNumber(data.weightLiq)} className="md:col-span-2 md:ml-40" />
       </div>
     </section>
   );
 }
-
-// function FinancialSection({ data }: { data: IndustryHarvestDetails }) {
-//   return (
-//     <section className="space-y-4">
-//       <h2 className="text-lg font-semibold"><span className="border-b border-green">Finan</span>ceiro</h2>
-
-//       <div className="grid md:grid-cols-3 gap-6">
-//         <Field label="Preço unitário" value={`R$ ${data.unitPrice.toFixed(3)}`} />
-//         <Field label="Valor total" value={`R$ ${data.totalPrice.toFixed(2)}`} />
-//         <Field
-//           label="Vencimento"
-//           value={
-//             data.dueDate
-//               ? format(new Date(data.dueDate), "dd/MM/yyyy")
-//               : "-"
-//           }
-//         />
-//       </div>
-//     </section>
-//   );
-// }
-
 
 type Props = {
   id: string;
@@ -135,9 +120,6 @@ export function IndustryHarvestDetailsView({ id }: Props) {
           <Separator />
 
           <WeightSection data={data} />
-          <Separator />
-
-          {/* <FinancialSection data={data} /> */}
           <Separator />
 
         <div className="flex items-center justify-between">

@@ -1,6 +1,7 @@
 "use client";
 
 import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
+import { formatCurrency, formatNumber } from "@/app/_helpers/currency";
 import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,10 +70,10 @@ function WeightSection({ data }: { data: IndustrySaleDetails }) {
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Pesa</span>gem</h2>
 
       <div className="grid md:grid-cols-4 gap-6">
-        <Field label="Peso bruto (kg)" value={data.weightBt} />
-        <Field label="Tara (kg)" value={data.weightTr} />
-        <Field label="Peso líquido (kg)" value={data.weightLiq} />
-        <Field label="Descontos (kg)" value={data.discountsKg ?? 0} />
+        <Field label="Peso bruto (kg)" value={formatNumber(data.weightBt)} />
+        <Field label="Tara (kg)" value={formatNumber(data.weightTr)} />
+        <Field label="Peso líquido (kg)" value={formatNumber(data.weightLiq)} />
+        <Field label="Descontos (kg)" value={formatNumber(data.discountsKg ?? 0)} />
       </div>
     </section>
   );
@@ -84,8 +85,8 @@ function FinancialSection({ data }: { data: IndustrySaleDetails }) {
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Finan</span>ceiro</h2>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <Field label="Preço unitário" value={`R$ ${data.unitPrice.toFixed(3)}`} />
-        <Field label="Valor total" value={`R$ ${data.totalPrice.toFixed(2)}`} />
+        <Field label="Preço unitário" value={formatCurrency(data.unitPrice)} />
+        <Field label="Valor total" value={formatCurrency(data.totalPrice)} />
         <Field
           label="Vencimento"
           value={

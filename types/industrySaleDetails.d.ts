@@ -7,11 +7,11 @@ export type IndustrySaleDetails = {
   product: ProductType;
   truckPlate: string;
   truckDriver: string;
-  weightBt: string;
-  weightTr: string;
-  weightSubLiq: string;
-  weightLiq: string;
-  discountsKg: string | null;
+  weightBt: number;
+  weightTr: number;
+  weightSubLiq: number;
+  weightLiq: number;
+  discountsKg: number | null;
   unitPrice: number;
   totalPrice: number;
   paymentCondition: PaymentCondition;
