@@ -1,3 +1,4 @@
+import { recalcPurchaseOrderStatus } from "@/app/_helpers/recalculatePurchaseOrderStatus";
 import {
   ForbiddenPlanError,
   PlanLimitReachedError,
@@ -168,6 +169,15 @@ export async function POST(req: NextRequest) {
             },
           },
         });
+        await recalcPurchaseOrderStatus(tx, purchaseOrderItem.purchaseOrderId);
+      }
+
+      //Valida se a quantidade do item da remessa não é maior que o saldo do pedido
+      const item = await tx.purchaseOrderItem.findUnique({
+        where: { id: purchaseOrderItemId },
+      });
+      if (Number(item?.fulfilledQuantity) > Number(item?.quantity)) {
+        throw new Error("Quantidade excede o saldo do pedido.");
       }
 
       // Atualiza/insere o estoque da fazenda

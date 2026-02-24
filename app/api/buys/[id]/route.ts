@@ -2,6 +2,7 @@ import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentCondition } from "@prisma/client";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { recalcPurchaseOrderStatus } from "@/app/_helpers/recalculatePurchaseOrderStatus";
 
 /**
  * @swagger
@@ -64,6 +65,8 @@ export async function PUT(
     const { companyId } = auth;
 
     const { id } = params;
+    const body = await req.json();
+
     const {
       cultivarId,
       date,
@@ -75,12 +78,12 @@ export async function PUT(
       notes,
       paymentCondition,
       dueDate,
-    } = await req.json();
+    } = body;
 
-    // Buscar o compra para garantir que pertence à empresa do usuário
+    // Verificação de acesso
     const existing = await db.buy.findUnique({
       where: { id },
-      include: { accountPayable: true },
+      select: { companyId: true },
     });
 
     if (!existing || existing.companyId !== companyId) {
@@ -89,99 +92,155 @@ export async function PUT(
       });
     }
 
-    // Se quantidade ou cultivar mudarem, ajustar o estoque
-    if (
-      existing.quantityKg !== quantityKg ||
-      existing.cultivarId !== cultivarId
-    ) {
-      // Reverter estoque anterior
-      await db.cultivar.update({
-        where: { id: existing.cultivarId },
-        data: {
-          stock: {
-            decrement: existing.quantityKg,
+    // =========================================================
+    // TRANSACTION
+    // =========================================================
+    const result = await db.$transaction(async (tx) => {
+      const buy = await tx.buy.findUnique({
+        where: { id },
+        include: {
+          purchaseOrderItem: {
+            include: {
+              purchaseOrder: true,
+            },
           },
+          accountPayable: true,
         },
       });
 
-      // Adicionar nova quantidade ao novo cultivar
-      await db.cultivar.update({
-        where: { id: cultivarId },
-        data: {
-          stock: {
-            increment: quantityKg,
-          },
-        },
-      });
-    }
+      if (!buy) throw new Error("Compra não encontrada");
 
-    // Atualizar compra
-    const updatedBuy = await db.buy.update({
-      where: { id },
-      data: {
-        cultivarId,
-        date: new Date(date),
-        invoice,
-        unityPrice,
-        totalPrice,
-        customerId,
-        quantityKg,
-        notes,
-        paymentCondition,
-        dueDate: dueDate ? new Date(dueDate) : null,
-      },
-    });
-    // Sincronizar AccountPayable
-    if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
-      const cultivar = await db.cultivar.findUnique({
-        where: { id: cultivarId },
-        select: {
-          name: true,
-        },
-      });
-      const customer = await db.customer.findUnique({
-        where: { id: customerId },
-        select: {
-          name: true,
-        },
-      });
-      if (existing.accountPayable) {
-        // Atualiza conta existente
-        await db.accountPayable.update({
-          where: { id: existing.accountPayable.id },
+      // -------------------------
+      // 1) calcular delta
+      // -------------------------
+      const delta = Number(quantityKg) - Number(buy.quantityKg);
+
+      // -------------------------
+      // 2) ajustar estoque
+      // -------------------------
+      if (delta !== 0 || cultivarId !== buy.cultivarId) {
+        // devolve estoque antigo
+        await tx.cultivar.update({
+          where: { id: buy.cultivarId },
+          data: { stock: { decrement: buy.quantityKg } },
+        });
+
+        // adiciona novo
+        await tx.cultivar.update({
+          where: { id: cultivarId },
+          data: { stock: { increment: quantityKg } },
+        });
+      }
+
+      // -------------------------
+      // 3) ajustar contrato (se houver)
+      // -------------------------
+      if (buy.purchaseOrderItemId && buy.purchaseOrderItem) {
+        const item = buy.purchaseOrderItem;
+
+        await tx.purchaseOrderItem.update({
+          where: { id: item.id },
           data: {
-            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice}, de ${customer?.name ?? "cliente"}`,
-            amount: totalPrice,
-            dueDate: new Date(dueDate),
-            customerId,
+            fulfilledQuantity: {
+              increment: delta,
+            },
           },
         });
+
+        // validar saldo do pedido
+        const updatedItem = await tx.purchaseOrderItem.findUnique({
+          where: { id: item.id },
+        });
+
+        if (
+          Number(updatedItem!.fulfilledQuantity) > Number(updatedItem!.quantity)
+        ) {
+          throw new Error("Quantidade excede o saldo do pedido");
+        }
+
+        // recalcular status do pedido
+        await recalcPurchaseOrderStatus(tx, item.purchaseOrderId);
+      }
+
+      // -------------------------
+      // 4) atualizar compra
+      // -------------------------
+      const updatedBuy = await tx.buy.update({
+        where: { id },
+        data: {
+          cultivarId,
+          date: new Date(date),
+          invoice,
+          unityPrice,
+          totalPrice,
+          customerId,
+          quantityKg,
+          notes,
+          paymentCondition,
+          dueDate: dueDate ? new Date(dueDate) : null,
+        },
+      });
+
+      // -------------------------
+      // 5) sincronizar financeiro
+      // -------------------------
+      if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+        const cultivar = await tx.cultivar.findUnique({
+          where: { id: cultivarId },
+          select: { name: true },
+        });
+
+        const customer = await tx.customer.findUnique({
+          where: { id: customerId },
+          select: { name: true },
+        });
+
+        const description = `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice ?? "S/NF"}, de ${customer?.name ?? "cliente"}`;
+
+        if (buy.accountPayable) {
+          await tx.accountPayable.update({
+            where: { id: buy.accountPayable.id },
+            data: {
+              description,
+              amount: totalPrice,
+              dueDate: new Date(dueDate),
+              customerId,
+            },
+          });
+        } else {
+          await tx.accountPayable.create({
+            data: {
+              description,
+              amount: totalPrice,
+              dueDate: new Date(dueDate),
+              companyId,
+              customerId,
+              buyId: updatedBuy.id,
+            },
+          });
+        }
       } else {
-        // Cria nova conta
-        await db.accountPayable.create({
-          data: {
-            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice}, de ${customer?.name ?? "cliente"}`,
-            amount: totalPrice,
-            dueDate: new Date(dueDate),
-            companyId,
-            customerId,
-            buyId: updatedBuy.id,
-          },
-        });
+        // mudou para à vista → remove conta
+        if (buy.accountPayable) {
+          await tx.accountPayable.delete({
+            where: { id: buy.accountPayable.id },
+          });
+        }
       }
-    } else {
-      // Se mudou para AVISTA → apaga a conta vinculada
-      if (existing.accountPayable) {
-        await db.accountPayable.delete({
-          where: { id: existing.accountPayable.id },
-        });
-      }
-    }
 
-    return NextResponse.json(updatedBuy);
-  } catch (error) {
+      return updatedBuy;
+    });
+
+    return NextResponse.json(result);
+  } catch (error: any) {
     console.error("Erro ao atualizar compra:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+
+    return NextResponse.json(
+      {
+        error: error.message ?? "Erro interno no servidor",
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -224,10 +283,10 @@ export async function DELETE(
 
     const { id } = params;
 
-    // Buscar o compra para garantir que pertence à empresa do usuário
+    // Verificação de acesso inicial
     const existingBuy = await db.buy.findUnique({
       where: { id },
-      include: { accountPayable: true },
+      select: { companyId: true },
     });
 
     if (!existingBuy || existingBuy.companyId !== companyId) {
@@ -236,53 +295,77 @@ export async function DELETE(
       });
     }
 
+    // =========================================================
+    // TRANSACTION
+    // =========================================================
     const deleted = await db.$transaction(async (tx) => {
-      // 1️⃣ Reverter estoque da cultivar (decrementar)
-      await tx.cultivar.update({
-        where: { id: existingBuy.cultivarId },
-        data: {
-          stock: {
-            decrement: existingBuy.quantityKg,
+      // buscar novamente dentro da transaction
+      const buy = await tx.buy.findUnique({
+        where: { id },
+        include: {
+          accountPayable: true,
+          purchaseOrderItem: {
+            include: {
+              purchaseOrder: true,
+            },
           },
         },
       });
 
-      // 2️⃣ Apagar conta vinculada
-      if (existingBuy.accountPayable) {
+      if (!buy) throw new Error("Compra não encontrada");
+
+      // 1️⃣ Reverter estoque
+      await tx.cultivar.update({
+        where: { id: buy.cultivarId },
+        data: {
+          stock: {
+            decrement: buy.quantityKg,
+          },
+        },
+      });
+
+      // 2️⃣ Remover conta financeira
+      if (buy.accountPayable) {
         await tx.accountPayable.delete({
-          where: { id: existingBuy.accountPayable.id },
+          where: { id: buy.accountPayable.id },
         });
       }
 
-      // 3️⃣ Se for atendimento de pedido de compra, reverter a quantidade entregue
-      if (existingBuy.purchaseOrderItemId) {
-        const item = await tx.purchaseOrderItem.findUnique({
-          where: { id: existingBuy.purchaseOrderItemId },
-          select: { fulfilledQuantity: true },
-        });
+      // 3️⃣ Reverter atendimento do pedido
+      if (buy.purchaseOrderItemId && buy.purchaseOrderItem) {
+        const item = buy.purchaseOrderItem;
 
-        if (!item || Number(item.fulfilledQuantity) < existingBuy.quantityKg) {
+        if (Number(item.fulfilledQuantity) < Number(buy.quantityKg)) {
           throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
         }
 
         await tx.purchaseOrderItem.update({
-          where: { id: existingBuy.purchaseOrderItemId },
+          where: { id: item.id },
           data: {
             fulfilledQuantity: {
-              decrement: existingBuy.quantityKg,
+              decrement: buy.quantityKg,
             },
           },
         });
+
+        // 🔥 RECALCULAR STATUS DO PEDIDO
+        await recalcPurchaseOrderStatus(tx, item.purchaseOrderId);
       }
 
-      // 4️⃣ Deletar a compra
+      // 4️⃣ deletar a remessa
       return await tx.buy.delete({ where: { id } });
     });
 
     return NextResponse.json(deleted, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao deletar compra:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+
+    return NextResponse.json(
+      {
+        error: error.message ?? "Erro interno no servidor",
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -299,9 +382,9 @@ export async function GET(
     const { id } = params;
 
     // Buscar o compra para garantir que pertence à empresa do usuário
-    const compra = await db.buy.findUnique({ 
+    const compra = await db.buy.findUnique({
       where: { id },
-      include: { 
+      include: {
         cultivar: true, // traz informações do cultivar
         customer: true, // traz fornecedor
         accountPayable: true, // traz conta vinculada

@@ -2,6 +2,7 @@ import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { AccountStatus, PaymentCondition } from "@prisma/client";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { recalcPurchaseOrderStatus } from "@/app/_helpers/recalculatePurchaseOrderStatus";
 
 /**
  * @swagger
@@ -80,7 +81,7 @@ export async function PUT(
       dueDate,
     } = await req.json();
 
-    // 1. Buscar a compra e validar empresa
+    // Verificação de acesso
     const existing = await db.purchase.findUnique({
       where: { id },
       include: { accountPayable: true },
@@ -92,23 +93,40 @@ export async function PUT(
     }
 
     const updated = await db.$transaction(async (tx) => {
+      const purchase = await tx.purchase.findUnique({
+        where: { id },
+        include: {
+          purchaseOrderItem: {
+            include: {
+              purchaseOrder: true,
+            },
+          },
+          accountPayable: true,
+        },
+      });
+
+      if (!purchase) throw new Error("Compra não encontrada");
+
+      // 1. Calcular o delta de quantidade
+      const delta = Number(quantity) - Number(purchase.quantity);
+
       // 2. Se quantidade, produto ou fazenda mudaram, ajustar estoque
       if (
-        existing.quantity !== quantity ||
-        existing.productId !== productId ||
-        existing.farmId !== farmId
+        purchase.quantity !== quantity ||
+        purchase.productId !== productId ||
+        purchase.farmId !== farmId
       ) {
         // Reverter estoque anterior
         await tx.productStock.update({
           where: {
             productId_farmId: {
-              productId: existing.productId,
-              farmId: existing.farmId,
+              productId: purchase.productId,
+              farmId: purchase.farmId,
             },
           },
           data: {
             stock: {
-              decrement: existing.quantity,
+              decrement: delta,
             },
           },
         });
@@ -135,7 +153,37 @@ export async function PUT(
         });
       }
 
-      // 3. Atualizar compra
+      // 3. Ajustar contrato se houver
+      if (
+        purchase.purchaseOrderItem &&
+        purchase.purchaseOrderItem.purchaseOrder
+      ) {
+        const item = purchase.purchaseOrderItem;
+        await tx.purchaseOrderItem.update({
+          where: { id: item.id },
+          data: {
+            fulfilledQuantity: {
+              increment: delta,
+            },
+          },
+        });
+
+        // validar saldo do pedido
+        const updatedItem = await tx.purchaseOrderItem.findUnique({
+          where: { id: item.id },
+        });
+
+        if (
+          Number(updatedItem!.fulfilledQuantity) > Number(updatedItem!.quantity)
+        ) {
+          throw new Error("Quantidade excede o saldo do pedido");
+        }
+
+        // recalcular status do pedido
+        await recalcPurchaseOrderStatus(tx, item.purchaseOrderId);
+      }
+
+      // 4. Atualizar compra
       return await tx.purchase.update({
         where: { id },
         data: {
@@ -246,7 +294,7 @@ export async function DELETE(
 
     const { id } = params;
 
-    // 1. Buscar compra e validar empresa
+    // Verificação de acesso
     const existing = await db.purchase.findUnique({
       where: { id },
       include: { accountPayable: true },
@@ -273,47 +321,61 @@ export async function DELETE(
     }
 
     const deleted = await db.$transaction(async (tx) => {
+      const purchase = await tx.purchase.findUnique({
+        where: { id },
+        include: {
+          accountPayable: true,
+          purchaseOrderItem: {
+            include: {
+              purchaseOrder: true,
+            },
+          },
+        },
+      });
+
+      if (!purchase) throw new Error("Compra não encontrada");
+
       // 1. Reverter estoque do insumo (decrementar)
       await tx.productStock.update({
         where: {
           productId_farmId: {
-            productId: existing.productId,
-            farmId: existing.farmId,
+            productId: purchase.productId,
+            farmId: purchase.farmId,
           },
         },
         data: {
           stock: {
-            decrement: existing.quantity,
+            decrement: purchase.quantity,
           },
         },
       });
 
       // 2. Apagar conta vinculada
-      if (existing.accountPayable) {
+      if (purchase.accountPayable) {
         await db.accountPayable.delete({
-          where: { id: existing.accountPayable.id },
+          where: { id: purchase.accountPayable.id },
         });
       }
 
       // 3. Se for atendimento de pedido de compra, reverter a quantidade entregue
-      if (existing.purchaseOrderItemId) {
-        const item = await tx.purchaseOrderItem.findUnique({
-          where: { id: existing.purchaseOrderItemId },
-          select: { fulfilledQuantity: true },
-        });
+      if (purchase.purchaseOrderItemId && purchase.purchaseOrderItem) {
+        const item = purchase.purchaseOrderItem;
 
-        if (!item || Number(item.fulfilledQuantity) < existing.quantity) {
+        if (Number(item.fulfilledQuantity) < Number(purchase.quantity)) {
           throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
         }
 
         await tx.purchaseOrderItem.update({
-          where: { id: existing.purchaseOrderItemId },
+          where: { id: item.id },
           data: {
             fulfilledQuantity: {
-              decrement: existing.quantity,
+              decrement: purchase.quantity,
             },
           },
         });
+
+        // 🔥 RECALCULAR STATUS DO PEDIDO
+        await recalcPurchaseOrderStatus(tx, item.purchaseOrderId);
       }
 
       // 4. Excluir compra
@@ -321,9 +383,15 @@ export async function DELETE(
     });
 
     return NextResponse.json(deleted, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao deletar compra:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+
+    return NextResponse.json(
+      {
+        error: error.message ?? "Erro interno no servidor",
+      },
+      { status: 500 },
+    );
   }
 }
 
