@@ -14,6 +14,7 @@ import { useUser } from "@/contexts/UserContext";
 import { canUser } from "@/lib/permissions/canUser";
 import { useIndustryHarvests } from "@/queries/industry/use-harvests.query";
 import { LoadingData } from "@/components/loading-data";
+import { HarvestDetailButton } from "./HarvestDetailButton";
 
 export function ListHarvestTable() {
   const { selectedCycle } = useCycle(); // 👈 pegando ciclo selecionado
@@ -95,6 +96,7 @@ export function ListHarvestTable() {
         const colheita = row.original;
         return (
           <div className="flex items-center justify-center gap-4" onClick={(e) => e.stopPropagation()}>
+            <HarvestDetailButton id={colheita.id} />
             <EditHarvestButton colheita={colheita} />
             <DeleteHarvestButton colheita={colheita} disabled={!canDelete} />
           </div>

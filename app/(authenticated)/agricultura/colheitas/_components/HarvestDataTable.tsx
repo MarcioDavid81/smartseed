@@ -47,8 +47,6 @@ export function HarvestDataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
-  const [selectedHarvestId, setSelectedHarvestId] = useState<string | null>(null)
-  const [openDetailsModal, setOpenDetailsModal] = useState(false)
   const table = useReactTable({
     data,
     columns,
@@ -148,15 +146,7 @@ export function HarvestDataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow 
-                  key={row.id}
-                  onClick={() => {
-                    const harvestId = (row.original as any).id
-                    setSelectedHarvestId(harvestId)
-                    setOpenDetailsModal(true)
-                  }}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                >
+                <TableRow key={row.id} >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -252,11 +242,7 @@ export function HarvestDataTable<TData, TValue>({
           </Button>
         </div>
       </div>
-      <HarvestDetailsModal
-        harvestId={selectedHarvestId}
-        open={openDetailsModal}
-        onOpenChange={setOpenDetailsModal}
-      />
+
     </div>
   );
 }

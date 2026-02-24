@@ -1,8 +1,8 @@
 import { formatNumber } from "@/app/_helpers/currency";
-import { IndustryHarvest } from "@/types";
+import { IndustryHarvest, IndustryHarvestDetails } from "@/types";
 import jsPDF from "jspdf";
 
-export function generateHarvestRomaneio(data: IndustryHarvest) {
+export function generateHarvestRomaneio(data: IndustryHarvestDetails) {
   const doc = new jsPDF();
 
   const pageWidth = doc.internal.pageSize.getWidth();
