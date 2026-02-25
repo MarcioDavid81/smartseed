@@ -1,10 +1,9 @@
 import { getToken } from "@/lib/auth-client";
 import { ApiError } from "@/lib/http/api-error";
 
-
 export async function apiFetch<T>(
   input: RequestInfo,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<T> {
   const token = getToken();
 
@@ -20,31 +19,32 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
-  let message = "Erro na requisição";
-  let code: string | undefined;
+    let message = "Erro na requisição";
+    let code: string | undefined;
 
-  try {
-    const body = await res.json();
+    try {
+      const body = await res.json();
 
-    if (body?.message) {
-      message = body.message;
-    }
+      if (body?.message) {
+        message = body.message;
+      }
 
-    if (body?.error) {
-      code =
-        typeof body.error === "string"
-          ? body.error
-          : body.error.code;
-    }
+      if (body?.error) {
+        code = typeof body.error === "string" ? body.error : body.error.code;
+      }
 
-    if (body?.error) {
+      if (body?.error) {
         message = body.error.message ?? message;
         code = body.error.code;
       }
-  } catch {}
+    } catch {}
 
-  throw new ApiError(message, res.status, code);
-}
+    throw new ApiError(message, res.status, code);
+  }
+
+  if (res.status === 204) {
+    return undefined as T;
+  }
 
   return res.json();
 }

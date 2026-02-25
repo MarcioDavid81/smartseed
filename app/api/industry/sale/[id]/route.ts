@@ -1,3 +1,4 @@
+import { recalcSaleContractStatus } from "@/app/_helpers/recalculateSaleContractStatus";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { AccountStatus, PaymentCondition } from "@prisma/client";
@@ -22,30 +23,52 @@ export async function PUT(
 
     const existing = await db.industrySale.findUnique({
       where: { id },
-      include: { accountReceivable: true, industryDeposit: true },
+      select: { companyId: true },
     });
 
     if (!existing || existing.companyId !== companyId) {
-      return new NextResponse("Venda não encontrada ou acesso negado", {
-        status: 403,
-      });
+      return NextResponse.json(
+        {
+          error: {
+            code: "SALE_NOT_FOUND",
+            title: "Venda não encontrada",
+            message:
+              "A venda não foi localizada ou você não tem permissão para acessá-la.",
+          },
+        },
+        { status: 403 },
+      );
     }
 
-    // 🧮 Se mudar o depósito ou a quantidade, ajusta o estoque
-    const quantityDiff = data.weightLiq - Number(existing.weightLiq);
-    const depositChanged =
-      data.industryDepositId !== existing.industryDepositId;
-
     await db.$transaction(async (tx) => {
+      const industrySale = await tx.industrySale.findUnique({
+        where: { id },
+        include: {
+          saleContractItem: {
+            include: {
+              saleContract: true,
+            },
+          },
+          accountReceivable: true,
+          industryDeposit: true,
+        },
+      });
+
+      if (!industrySale) throw new Error("Venda não encontrada");
+
+      // 🧮 Se mudar o depósito ou a quantidade, ajusta o estoque
+      const quantityDiff = data.weightLiq - Number(industrySale.weightLiq);
+      const depositChanged =
+        data.industryDepositId !== industrySale.industryDepositId;
       // Ajustar estoque antigo se mudou depósito
       if (depositChanged) {
         // Devolve quantidade ao depósito antigo
         await tx.industryStock.updateMany({
           where: {
-            industryDepositId: existing.industryDepositId,
-            product: existing.product,
+            industryDepositId: industrySale.industryDepositId,
+            product: industrySale.product,
           },
-          data: { quantity: { increment: Number(existing.weightLiq) } },
+          data: { quantity: { increment: Number(industrySale.weightLiq) } },
         });
 
         // Retira quantidade do novo depósito
@@ -67,6 +90,31 @@ export async function PUT(
         });
       }
 
+      if (industrySale.saleContractItemId && industrySale.saleContractItem) {
+        const item = industrySale.saleContractItem;
+
+        await tx.saleContractItem.update({
+          where: { id: item.id },
+          data: {
+            fulfilledQuantity: {
+              increment: quantityDiff,
+            },
+          },
+        });
+
+        const updatedItem = await tx.saleContractItem.findUnique({
+          where: { id: item.id },
+        });
+
+        if (
+          Number(updatedItem!.fulfilledQuantity) > Number(updatedItem!.quantity)
+        ) {
+          throw new Error("Quantidade excede o saldo do contrato");
+        }
+
+        await recalcSaleContractStatus(tx, item.saleContractId);
+      }
+
       // Atualiza venda
       const updatedSale = await tx.industrySale.update({
         where: { id },
@@ -85,19 +133,19 @@ export async function PUT(
 
         const productLabel =
           data.product ??
-          existing.product
+          industrySale.product
             .toString()
             .replace("_", " ")
             .toLowerCase()
             .replace(/\b\w/g, (l) => l.toUpperCase());
-        const document = data.document ?? existing.document ?? "S/NF";
+        const document = data.document ?? industrySale.document ?? "S/NF";
         const customerName = customer?.name ?? "cliente";
 
         const description = `Venda de ${productLabel}, cfe NF ${document}, para ${customerName}`;
 
-        if (existing.accountReceivable) {
+        if (industrySale.accountReceivable) {
           await tx.accountReceivable.update({
-            where: { id: existing.accountReceivable.id },
+            where: { id: industrySale.accountReceivable.id },
             data: {
               description,
               amount: data.totalPrice,
@@ -118,19 +166,144 @@ export async function PUT(
         }
       } else if (
         data.paymentCondition === PaymentCondition.AVISTA &&
-        existing.accountReceivable
+        industrySale.accountReceivable
       ) {
         // Se passou pra à vista, remove o contas a receber existente
         await tx.accountReceivable.delete({
-          where: { id: existing.accountReceivable.id },
+          where: { id: industrySale.accountReceivable.id },
         });
       }
     });
 
     return NextResponse.json({ message: "Venda atualizada com sucesso" });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao atualizar venda:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        error: error.message ?? "Erro interno no servidor",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+    const { id } = params;
+
+    const existing = await db.industrySale.findUnique({
+      where: { id },
+      select: { companyId: true },
+    });
+
+    if (!existing || existing.companyId !== companyId) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "SALE_NOT_FOUND",
+            title: "Venda não encontrada",
+            message:
+              "A venda não foi localizada ou você não tem permissão para acessá-la.",
+          },
+        },
+        { status: 403 },
+      );
+    }
+
+    await db.$transaction(async (tx) => {
+      const industrySale = await tx.industrySale.findUnique({
+        where: { id },
+        include: {
+          accountReceivable: true,
+          saleContractItem: {
+            include: {
+              saleContract: true,
+            },
+          },
+        },
+      });
+
+      if (!industrySale) throw new Error("Venda não encontrada");
+
+      // 🚫 Impede exclusão de venda com conta já paga
+      if (industrySale.accountReceivable?.status === AccountStatus.PAID) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "SALE_ALREADY_PAID",
+              title: "Ação não permitida",
+              message:
+                "Não é possível excluir uma venda que já possui pagamento confirmado.",
+            },
+          },
+          { status: 400 },
+        );
+      }
+
+      // 🔁 1. Reverte o estoque
+      await tx.industryStock.updateMany({
+        where: {
+          industryDepositId: industrySale.industryDepositId,
+          product: industrySale.product,
+        },
+        data: {
+          quantity: { increment: Number(industrySale.weightLiq) },
+        },
+      });
+
+      // 💰 2. Exclui o contas a receber, se existir
+      if (industrySale.accountReceivable) {
+        await tx.accountReceivable.delete({
+          where: { id: industrySale.accountReceivable.id },
+        });
+      }
+
+      // 3. Se for atendimento de contrato de compra, reverter a quantidade entregue
+      if (industrySale.saleContractItemId && industrySale.saleContractItem) {
+        const item = industrySale.saleContractItem;
+
+        if (item.fulfilledQuantity < industrySale.weightLiq) {
+          throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
+        }
+
+        await tx.saleContractItem.update({
+          where: { id: item.id },
+          data: {
+            fulfilledQuantity: {
+              decrement: industrySale.weightLiq,
+            },
+          },
+        });
+
+        // 🔥 RECALCULAR STATUS DO CONTRATO
+        await recalcSaleContractStatus(tx, item.saleContractId);
+      }
+
+      // 🧾 4. Deletar Remessa
+      await tx.industrySale.delete({ where: { id } });
+    });
+
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error("Erro ao remover venda:", error);
+    return NextResponse.json(
+      {
+        error: {
+          code: "DELETE_SALE_ERROR",
+          title: "Erro ao remover venda",
+          message:
+            "Ocorreu um erro inesperado durante a tentativa de remover a venda.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -165,115 +338,6 @@ export async function GET(
     console.error("Erro ao buscar venda:", error);
     return NextResponse.json(
       { error: "Erro interno ao buscar venda" },
-      { status: 500 },
-    );
-  }
-}
-
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth.ok) return auth.response;
-    const { companyId } = auth;
-    const { id } = params;
-
-    const existing = await db.industrySale.findUnique({
-      where: { id },
-      include: {
-        accountReceivable: true,
-      },
-    });
-
-    if (!existing || existing.companyId !== companyId) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "SALE_NOT_FOUND",
-            title: "Venda não encontrada",
-            message:
-              "A venda não foi localizada ou você não tem permissão para acessá-la.",
-          },
-        },
-        { status: 403 },
-      );
-    }
-
-    // 🚫 Impede exclusão de venda com conta já paga
-    if (existing.accountReceivable?.status === AccountStatus.PAID) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "SALE_ALREADY_PAID",
-            title: "Ação não permitida",
-            message:
-              "Não é possível excluir uma venda que já possui pagamento confirmado.",
-          },
-        },
-        { status: 400 },
-      );
-    }
-
-    const deleted =await db.$transaction(async (tx) => {
-      // 🔁 1. Reverte o estoque
-      await tx.industryStock.updateMany({
-        where: {
-          industryDepositId: existing.industryDepositId,
-          product: existing.product,
-        },
-        data: {
-          quantity: { increment: Number(existing.weightLiq) },
-        },
-      });
-
-      // 💰 2. Exclui o contas a receber, se existir
-      if (existing.accountReceivable) {
-        await tx.accountReceivable.delete({
-          where: { id: existing.accountReceivable.id },
-        });
-      }
-
-      // 3. Se for atendimento de contrato de compra, reverter a quantidade entregue
-      if (existing.saleContractItemId) {
-        const item = await tx.saleContractItem.findUnique({
-          where: { id: existing.saleContractItemId },
-          select: { fulfilledQuantity: true },
-        });
-
-        if (!item || (item.fulfilledQuantity) < existing.weightLiq) {
-          throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
-        }
-
-        await tx.saleContractItem.update({
-          where: { id: existing.saleContractItemId },
-          data: {
-            fulfilledQuantity: {
-              decrement: existing.weightLiq,
-            },
-          },
-        });
-      }
-
-      // 🧾 4. Exclui a venda
-      await tx.industrySale.delete({
-        where: { id: existing.id },
-      });
-    });
-
-    return NextResponse.json(deleted, { status: 200 });
-  } catch (error) {
-    console.error("Erro ao remover venda:", error);
-    return NextResponse.json(
-      {
-        error: {
-          code: "DELETE_SALE_ERROR",
-          title: "Erro ao remover venda",
-          message:
-            "Ocorreu um erro inesperado durante a tentativa de remover a venda.",
-        },
-      },
       { status: 500 },
     );
   }

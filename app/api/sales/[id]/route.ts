@@ -1,8 +1,7 @@
-import { adjustStockWhenDeleteMov } from "@/app/_helpers/adjustStockWhenDeleteMov";
-import { verifyToken } from "@/lib/auth";
+import { recalcSaleContractStatus } from "@/app/_helpers/recalculateSaleContractStatus";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
-import { PaymentCondition } from "@prisma/client";
+import { AccountStatus, PaymentCondition } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -59,13 +58,12 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
+    const body = await req.json();
     const {
       cultivarId,
       date,
@@ -76,7 +74,7 @@ export async function PUT(
       notes,
       paymentCondition,
       dueDate,
-    } = await req.json();
+    } = body;
 
     // ✅ Tratamento de campos opcionais
     const parsedCustomerId =
@@ -90,104 +88,152 @@ export async function PUT(
     // Buscar o venda para garantir que pertence à empresa do usuário
     const existingSale = await db.saleExit.findUnique({
       where: { id },
-      include: { accountReceivable: true },
+      select: { companyId: true }
     });
 
-    if (!existingSale || existingSale.companyId !== payload.companyId) {
-      return new NextResponse("Venda não encontrado ou acesso negado", {
-        status: 403,
-      });
-    }
-
-    // Se quantidade ou cultivar mudarem, ajustar o estoque
-    if (
-      existingSale.quantityKg !== quantityKg ||
-      existingSale.cultivarId !== cultivarId
-    ) {
-      // Reverter estoque anterior
-      await db.cultivar.update({
-        where: { id: existingSale.cultivarId },
-        data: {
-          stock: {
-            increment: existingSale.quantityKg,
+    if (!existingSale || existingSale.companyId !== companyId) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "SALE_NOT_FOUND",
+            title: "Venda não encontrada",
+            message:
+              "A venda não foi localizada ou você não tem permissão para acessá-la.",
           },
         },
-      });
-
-      // Subtrair nova quantidade ao novo cultivar
-      await db.cultivar.update({
-        where: { id: cultivarId },
-        data: {
-          stock: {
-            decrement: quantityKg,
-          },
-        },
-      });
+        { status: 403 },
+      );
     }
 
-    // Atualizar venda
-    const updatedSaleExit = await db.saleExit.update({
-      where: { id },
-      data: {
-        cultivarId,
-        date: new Date(date),
-        quantityKg: Number(quantityKg),
-        customerId: parsedCustomerId,
-        invoiceNumber: parsedInvoiceNumber,
-        saleValue: parsedSaleValue,
-        notes: parsedNotes,
-        paymentCondition,
-        dueDate: dueDate ? new Date(dueDate) : null,
-      },
-    });
-    //sincronizar AccountReceivable
-    if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
-      const cultivar = await db.cultivar.findUnique({
-        where: { id: cultivarId },
-        select: {
-          name: true,
+    const result = await db.$transaction(async (tx) => {
+      const sale = await tx.saleExit.findUnique({
+        where: { id },
+        include: {
+          saleContractItem: {
+            include: {
+              saleContract: true,
+            },
+          },
+          accountReceivable: true,
         },
       });
-      const customer = await db.customer.findUnique({
-        where: { id: customerId },
-        select: {
-          name: true,
-        },
-      });
-      if (existingSale.accountReceivable) {
-        await db.accountReceivable.update({
-          where: { id: existingSale.accountReceivable.id },
+
+      if (!sale) throw new Error("Venda não encontrada");
+
+      const delta = Number(quantityKg) - Number(sale.quantityKg);
+      if (delta !== 0 || cultivarId !== sale.cultivarId) {
+        // devolve estoque antigo
+        await tx.cultivar.update({
+          where: { id: sale.cultivarId },
+          data: { stock: { increment: sale.quantityKg } },
+        });
+
+        // adiciona novo
+        await tx.cultivar.update({
+          where: { id: cultivarId },
+          data: { stock: { decrement: quantityKg } },
+        });
+      }
+
+      if (sale.saleContractItemId && sale.saleContractItem) {
+        const item = sale.saleContractItem;
+
+        await tx.saleContractItem.update({
+          where: { id: item.id },
           data: {
-            description: `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${invoiceNumber}, para ${customer?.name ?? "cliente"}`,
-            amount: saleValue,
-            dueDate: new Date(dueDate),
+            fulfilledQuantity: {
+              increment: delta,
+            },
           },
         });
+
+        const updatedItem = await tx.saleContractItem.findUnique({
+          where: { id: item.id },
+        });
+
+        if (
+          Number(updatedItem!.fulfilledQuantity) > Number(updatedItem!.quantity)
+        ) {
+          throw new Error("Quantidade excede o saldo do contrato");
+        }
+
+        await recalcSaleContractStatus(tx, item.saleContractId);
+      }
+
+      const updatedSale = await tx.saleExit.update({
+        where: { id },
+        data: {
+          cultivarId,
+          date: new Date(date),
+          quantityKg: Number(quantityKg),
+          customerId: parsedCustomerId,
+          invoiceNumber: parsedInvoiceNumber,
+          saleValue: parsedSaleValue,
+          notes: parsedNotes,
+          paymentCondition,
+          dueDate: dueDate ? new Date(dueDate) : null,
+        },
+      });
+
+      if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+        const cultivar = await db.cultivar.findUnique({
+          where: { id: cultivarId },
+          select: {
+            name: true,
+          },
+        });
+        const customer = await db.customer.findUnique({
+          where: { id: customerId },
+          select: {
+            name: true,
+          },
+        });
+
+        const description = `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${invoiceNumber}, para ${customer?.name ?? "cliente"}`;
+
+        if (sale.accountReceivable) {
+          await tx.accountReceivable.update({
+            where: { id: sale.accountReceivable.id },
+            data: {
+              description,
+              amount: saleValue,
+              dueDate: new Date(dueDate),
+              customerId,
+            },
+          });
+        } else {
+          await tx.accountReceivable.create({
+            data: {
+              description,
+              amount: saleValue,
+              dueDate: new Date(dueDate),
+              companyId: sale.companyId,
+              customerId,
+              saleExitId: updatedSale.id,
+            },
+          });
+        }
       } else {
-        await db.accountReceivable.create({
-          data: {
-            description: `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${invoiceNumber}, para ${customer?.name ?? "cliente"}`,
-            amount: saleValue,
-            dueDate: new Date(dueDate),
-            companyId: existingSale.companyId,
-            customerId,
-            saleExitId: updatedSaleExit.id,
-          },
-        });
+        // Se mudou para AVISTA → apaga a conta vinculada
+        if (sale.accountReceivable) {
+          await tx.accountReceivable.delete({
+            where: { id: sale.accountReceivable.id },
+          });
+        }
       }
-    } else {
-      // Se mudou para AVISTA → apaga a conta vinculada
-      if (existingSale.accountReceivable) {
-        await db.accountReceivable.delete({
-          where: { id: existingSale.accountReceivable.id },
-        });
-      }
-    }
 
-    return NextResponse.json(updatedSaleExit);
-  } catch (error) {
+      return updatedSale;
+    });
+    return NextResponse.json(result);
+  } catch (error: any) {
     console.error("Erro ao atualizar venda:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+
+    return NextResponse.json(
+      {
+        error: error.message ?? "Erro interno no servidor",
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -224,73 +270,114 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
     // Buscar o venda para garantir que pertence à empresa do usuário
     const existingSale = await db.saleExit.findUnique({
       where: { id },
-      include: { accountReceivable: true },
+      select: { companyId: true }
     });
 
-    if (!existingSale || existingSale.companyId !== payload.companyId) {
-      return new NextResponse("Venda não encontrado ou acesso negado", {
-        status: 403,
-      });
+    if (!existingSale || existingSale.companyId !== companyId) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "SALE_NOT_FOUND",
+            title: "Venda não encontrada",
+            message:
+              "A venda não foi localizada ou você não tem permissão para acessá-la.",
+          },
+        },
+        { status: 403 },
+      );
     }
 
-    const deleted = await db.$transaction(async (tx) => {
-      // 1️⃣ Reverter estoque da cultivar (incrementar)
+    await db.$transaction(async (tx) => {
+      const sale = await tx.saleExit.findUnique({
+        where: { id },
+        include: {
+          accountReceivable: true,
+          saleContractItem: {
+            include: {
+              saleContract: true,
+            },
+          },
+        }
+      });
+
+      if (!sale) throw new Error("Venda não encontrada");
+
+    // 🚫 Impede exclusão de venda com conta já paga
+    if (sale.accountReceivable?.status === AccountStatus.PAID) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "SALE_ALREADY_PAID",
+            title: "Ação não permitida",
+            message:
+              "Não é possível excluir uma venda que já possui pagamento confirmado.",
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+      // 1️⃣ Reverter estoque
       await tx.cultivar.update({
-        where: { id: existingSale.cultivarId },
+        where: { id: sale.cultivarId },
         data: {
           stock: {
-            increment: existingSale.quantityKg,
+            increment: sale.quantityKg,
           },
         },
       });
 
-      // 2️⃣ Apagar conta vinculada
-      if (existingSale.accountReceivable) {
+      // 2️⃣ Remover conta financeira
+      if (sale.accountReceivable) {
         await tx.accountReceivable.delete({
-          where: { id: existingSale.accountReceivable.id },
+          where: { id: sale.accountReceivable.id },
         });
       }
 
-      // 3️⃣ Se for atendimento de contrato de venda, reverter a quantidade entregue
-      if (existingSale.saleContractItemId) {
-        const item = await tx.saleContractItem.findUnique({
-          where: { id: existingSale.saleContractItemId },
-          select: { fulfilledQuantity: true },
-        });
+      // 3️⃣ Reverter atendimento do contrato
+      if (sale.saleContractItemId && sale.saleContractItem) {
+        const item = sale.saleContractItem;
 
-        if (!item || Number(item.fulfilledQuantity) < existingSale.quantityKg) {
+        if (Number(item.fulfilledQuantity) < sale.quantityKg) {
           throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
         }
 
         await tx.saleContractItem.update({
-          where: { id: existingSale.saleContractItemId },
+          where: { id: item.id },
           data: {
             fulfilledQuantity: {
-              decrement: existingSale.quantityKg,
+              decrement: sale.quantityKg,
             },
           },
         });
+
+        // 🔥 RECALCULAR STATUS DO CONTRATO
+        await recalcSaleContractStatus(tx, item.saleContractId);
       }
 
-      // 4️⃣  Deletar a venda
+      // 4️⃣  Deletar a remessa
       await tx.saleExit.delete({ where: { id } });
     });
 
-    return NextResponse.json(deleted, { status: 200 });
-  } catch (error) {
+    return new NextResponse(null, { status: 204 });
+  } catch (error: any) {
     console.error("Erro ao deletar venda:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+
+    return NextResponse.json(
+      {
+        error: error.message ?? "Erro interno no servidor",
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -309,10 +396,10 @@ export async function GET(
     // Buscar o venda para garantir que pertence à empresa do usuário
     const venda = await db.saleExit.findUnique({
       where: { id },
-      include: { 
+      include: {
         customer: true,
-        cultivar: true,        
-        accountReceivable: true 
+        cultivar: true,
+        accountReceivable: true,
       },
     });
 

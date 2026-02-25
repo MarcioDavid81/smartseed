@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { PurchaseOrderItemDetail } from "@/types/purchaseOrderItemDetail";
 import {
   Tooltip,
   TooltipContent,
@@ -56,6 +55,7 @@ export function SaleContractItemActions({
             className="cursor-pointer font-light rounded-lg border border-green "
           >
             <DropdownMenuItem
+              disabled={item.remainingQuantity <= 0}
               onClick={() => setOpenAttend(true)}
               className="cursor-pointer py-2 hover:bg-green hover:text-white rounded-lg"
             >

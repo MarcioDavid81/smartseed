@@ -1,3 +1,4 @@
+import { recalcSaleContractStatus } from "@/app/_helpers/recalculateSaleContractStatus";
 import { validateStock } from "@/app/_helpers/validateStock";
 import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
 import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
@@ -169,6 +170,15 @@ export async function POST(req: NextRequest) {
             },
           },
         });
+        await recalcSaleContractStatus(tx, saleContractItem.saleContractId);
+      }
+
+      //Valida se a quantidade do item da remessa não é maior que o saldo do pedido
+      const item = await tx.saleContractItem.findUnique({
+        where: { id: saleContractItemId },
+      });
+      if (Number(item?.fulfilledQuantity) > Number(item?.quantity)) {
+        throw new Error("Quantidade excede o saldo do pedido.");
       }
 
       // 3️⃣ Atualiza o estoque da cultivar (decrementa)

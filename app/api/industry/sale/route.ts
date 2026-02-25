@@ -5,15 +5,19 @@ import { industrySaleSchema } from "@/lib/schemas/industrySale";
 import { validateIndustryStock } from "@/app/_helpers/validateIndustryStock";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { withAccessControl } from "@/lib/api/with-access-control";
-import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import {
+  ForbiddenPlanError,
+  PlanLimitReachedError,
+} from "@/core/access-control";
 import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import { recalcSaleContractStatus } from "@/app/_helpers/recalculateSaleContractStatus";
 
 export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
 
-    const session = await withAccessControl('REGISTER_MOVEMENT');
+    const session = await withAccessControl("REGISTER_MOVEMENT");
 
     await assertCompanyPlanAccess({
       companyId: session.user.companyId,
@@ -129,6 +133,15 @@ export async function POST(req: NextRequest) {
             },
           },
         });
+        await recalcSaleContractStatus(tx, saleContractItem.saleContractId);
+      }
+
+      //Valida se a quantidade do item da remessa não é maior que o saldo do contrato
+      const item = await tx.saleContractItem.findUnique({
+        where: { id: saleContractItemId },
+      });
+      if (Number(item?.fulfilledQuantity) > Number(item?.quantity)) {
+        throw new Error("Quantidade excede o saldo do pedido.");
       }
 
       // 🔹 Atualiza o estoque
@@ -180,17 +193,11 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Erro ao criar venda industrial:", error);
     if (error instanceof PlanLimitReachedError) {
-          return NextResponse.json(
-            { message: error.message },
-            { status: 402 }
-          )
-        }
-    
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
     if (error instanceof ForbiddenPlanError) {
-      return NextResponse.json(
-        { message: error.message },
-        { status: 403 }
-      )
+      return NextResponse.json({ message: error.message }, { status: 403 });
     }
     return NextResponse.json(
       {
@@ -208,9 +215,9 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-  const { companyId } = auth;
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const industrySales = await db.industrySale.findMany({
       where: { companyId },
