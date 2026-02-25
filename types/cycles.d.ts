@@ -5,6 +5,7 @@ import {
   Harvest,
   ProductType,
   SaleExit,
+  CycleStatus,
 } from "@prisma/client";
 import { Talhao } from "./plot";
 
@@ -14,6 +15,7 @@ export interface Cycle {
   productType: ProductType;
   startDate: Date;
   endDate: Date;
+  status: CycleStatus;
   isActive: boolean;
   companyId: string;
   harvests: Harvest[];

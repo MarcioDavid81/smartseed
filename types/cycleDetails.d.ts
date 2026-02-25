@@ -1,4 +1,4 @@
-import { ProductType } from "@prisma/client";
+import { CycleStatus, ProductType } from "@prisma/client";
 
 interface Farm {
   id: string;
@@ -22,6 +22,7 @@ export interface CycleDetails {
   name: string;
   startDate: string;
   endDate: string;
+  status: CycleStatus;
   isActive: boolean;
   productType: ProductType;
   talhoes: CycleTalhao[];
