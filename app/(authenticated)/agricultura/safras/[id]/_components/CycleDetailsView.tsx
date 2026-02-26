@@ -1,5 +1,6 @@
 "use client";
 
+import { CYCLE_STATUS_LABELS } from "@/app/(authenticated)/_constants/cycle";
 import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
 import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CornerDownLeft, CornerDownRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ChangeCycleStatus } from "./ChangeCycleStatusBox";
 
 function Field({
   label,
@@ -63,11 +65,12 @@ function MainDataSection({ data }: { data: CycleDetails }) {
         />
         <Field
           label="Status"
-          value={data.isActive ? "Ativa" : "Inativa"}
+          value={CYCLE_STATUS_LABELS[data.status]}
         />
         <Field label="Talhões" value={data.talhoes?.length ?? 0} />
         <Field label="Início" value={startLabel} />
         <Field label="Fim" value={endLabel} />
+        <ChangeCycleStatus cycleId={data.id} initialStatus={data.status} />
       </div>
     </section>
   );
