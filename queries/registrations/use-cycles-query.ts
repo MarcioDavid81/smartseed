@@ -16,7 +16,7 @@ export function useCycleById(id: string) {
     queryKey: ["cycle", id],
     queryFn: () => getCycleById(id),
     enabled: !!id,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }

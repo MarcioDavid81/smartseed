@@ -27,6 +27,7 @@ import { useUpsertIndustryHarvest } from "@/queries/industry/use-upsert-industry
 import { ApiError } from "@/lib/http/api-error";
 import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
 import { useIndustryTransporters } from "@/queries/industry/use-transporter-query";
+import { useCycleById } from "@/queries/registrations/use-cycles-query";
 
 interface UpsertHarvestModalProps {
   colheita?: IndustryHarvest;
@@ -34,20 +35,14 @@ interface UpsertHarvestModalProps {
   onClose: () => void;
 }
 
-type TalhaoOption = {
-  id: string;
-  name: string;
-  area: number;
-};
-
 const UpsertHarvestModal = ({
   colheita,
   isOpen,
   onClose,
 }: UpsertHarvestModalProps) => {
-  const [talhoes, setTalhoes] = useState<TalhaoOption[]>([]);
   const { selectedCycle } = useCycle();
   const { showToast } = useSmartToast();
+  const { data: cycleData } = useCycleById(selectedCycle?.id || "");
 
   const form = useForm<IndustryHarvestFormData>({
     resolver: zodResolver(industryHarvestSchema),
@@ -133,20 +128,12 @@ const UpsertHarvestModal = ({
   const { data: deposits = [] } = useIndustryDeposits();
   const { data: transporters = [] } = useIndustryTransporters();
 
-  useEffect(() => {
-    if (selectedCycle?.talhoes?.length) {
-        setTalhoes(
-          selectedCycle.talhoes.map((ct) => ({
-            id: ct.talhaoId,
-            name: ct.talhao.name,
-            area: ct.talhao.area,
-          }))
-        );
-      } else {
-        // fallback — caso não tenha ciclo selecionado ou o ciclo não tenha talhões cadastrados
-        setTalhoes([])
-      }
-    }, [selectedCycle]);
+const talhoes =
+  cycleData?.talhoes?.map((ct) => ({
+    id: ct.id,
+    name: ct.talhao.name,
+    area: ct.talhao.area,
+  })) ?? [];
 
 const cycle = getCycle();
 
