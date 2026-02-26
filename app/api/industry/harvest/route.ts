@@ -6,6 +6,8 @@ import { requireAuth } from "@/lib/auth/require-auth";
 import { withAccessControl } from '@/lib/api/with-access-control'
 import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
 import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import { assertCycleIsOpen } from "@/app/_helpers/assert-cycle-open";
+import { ApiError } from "@/lib/http/api-error";
 
 /**
  * @swagger
@@ -126,38 +128,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🚀 Cria a colheita com o produto vindo do ciclo
-    const industryHarvest = await db.industryHarvest.create({
-      data: {
-        ...data,
-        date: new Date(data.date),
-        companyId: session.user.companyId,
-        product: cycle.productType as ProductType, // 🔥 injeta aqui
-      },
-    });
-
-    // 📦 Atualiza ou cria estoque
-    await db.industryStock.upsert({
-      where: {
-        product_industryDepositId: {
+    const result = await db.$transaction(async (tx) => {
+      await assertCycleIsOpen(tx, data?.cycleId || "", session.user.companyId);
+      // 🚀 Cria a colheita com o produto vindo do ciclo
+      const industryHarvest = await tx.industryHarvest.create({
+        data: {
+          ...data,
+          date: new Date(data.date),
+          companyId: session.user.companyId,
+          product: cycle.productType as ProductType, // 🔥 injeta aqui
+        },
+      });
+      // 📦 Atualiza ou cria estoque
+      await tx.industryStock.upsert({
+        where: {
+          product_industryDepositId: {
+            product: cycle.productType as ProductType, // usa o produto do ciclo
+            industryDepositId: data.industryDepositId,
+          },
+        },
+        update: {
+          quantity: {
+            increment: data.weightLiq,
+          },
+        },
+        create: {
+          companyId,
           product: cycle.productType as ProductType, // usa o produto do ciclo
           industryDepositId: data.industryDepositId,
+          quantity: data.weightLiq,
         },
-      },
-      update: {
-        quantity: {
-          increment: data.weightLiq,
-        },
-      },
-      create: {
-        companyId,
-        product: cycle.productType as ProductType, // usa o produto do ciclo
-        industryDepositId: data.industryDepositId,
-        quantity: data.weightLiq,
-      },
+      });
+
+      return industryHarvest;
     });
 
-    return NextResponse.json(industryHarvest, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar colheita:", error);
     if (error instanceof PlanLimitReachedError) {
@@ -173,6 +179,20 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       )
     }
+
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code ?? "DOMAIN_ERROR",
+            title: "Operação não permitida",
+            message: error.message,
+          },
+        },
+        { status: error.status ?? 400 },
+      );
+    }
+
     return NextResponse.json(
       {
         error: {

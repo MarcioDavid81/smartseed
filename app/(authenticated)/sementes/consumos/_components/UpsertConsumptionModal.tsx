@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
+import { ApiError } from "@/lib/http/api-error";
 import { ConsumptionFormData, consumptionSchema } from "@/lib/schemas/seedConsumption";
 import { useUpsertSeedConsumption } from "@/queries/seed/use-upsert-seed-consumption";
 import { Cultivar, Talhao } from "@/types";
@@ -133,16 +134,46 @@ const UpsertConsumptionModal = ({
         form.reset();
       },
       onError: (error: Error) => {
-        showToast({
-          type: "error",
-          title: "Erro",
-          message: error.message || `Erro ao ${
-            plantio ? "atualizar" : "criar"
-          } plantio.`,
-        });
+        if (error instanceof ApiError) {
+          if (error.status === 402) {
+            showToast({
+              type: "info",
+              title: "Limite atingido",
+              message: error.message,
+            });
+            return;
+          }
+            
+        if (error.status === 401) {
+          showToast({
+            type: "info",
+            title: "Sessão expirada",
+            message: "Faça login novamente",
+          });
+          return;
+        }
+
+        if (error.status === 409) {
+          showToast({
+            type: "info",
+            title: "Safra finalizada",
+            message: error.message,
+          });
+          return;
+        }
+      }
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: error.message,
+      });
       },
     });
   };
+
+  useEffect(() => {
+    if (!isOpen) form.reset();
+  }, [isOpen, form.reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

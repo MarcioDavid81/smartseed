@@ -1,8 +1,10 @@
+import { assertCycleIsOpen } from "@/app/_helpers/assert-cycle-open";
 import { validateStock } from "@/app/_helpers/validateStock";
 import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
 import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { ApiError } from "@/lib/http/api-error";
 import { db } from "@/lib/prisma";
 import { consumptionSchema } from "@/lib/schemas/seedConsumption";
 import { NextRequest, NextResponse } from "next/server";
@@ -101,6 +103,7 @@ export async function POST(req: NextRequest) {
 
     // 🔄 Tudo dentro de uma transação para garantir integridade
     const result = await db.$transaction(async (tx) => {
+      await assertCycleIsOpen(tx, data?.cycleId || "", session.user.companyId);
       // 1️⃣ Cria o registro do consumo
       const consumption = await tx.consumptionExit.create({
         data: {
@@ -130,6 +133,20 @@ export async function POST(req: NextRequest) {
     if (error instanceof ForbiddenPlanError) {
       return NextResponse.json({ message: error.message }, { status: 403 });
     }
+
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code ?? "DOMAIN_ERROR",
+            title: "Operação não permitida",
+            message: error.message,
+          },
+        },
+        { status: error.status ?? 400 },
+      );
+    }
+
     return NextResponse.json(
       {
         error: {

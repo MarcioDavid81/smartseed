@@ -7,6 +7,8 @@ import { requireAuth } from "@/lib/auth/require-auth";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import { assertCycleIsOpen } from "@/app/_helpers/assert-cycle-open";
+import { ApiError } from "@/lib/http/api-error";
 
 /**
  * @swagger
@@ -94,6 +96,7 @@ export async function POST(req: NextRequest) {
 
     // transação: cria aplicação e atualiza estoque
     const result = await db.$transaction(async (tx) => {
+      await assertCycleIsOpen(tx, data?.cycleId || "", session.user.companyId);
       const application = await tx.application.create({
         data: {
           ...data,
@@ -129,6 +132,20 @@ export async function POST(req: NextRequest) {
     if (error instanceof ForbiddenPlanError) {
       return NextResponse.json({ message: error.message }, { status: 403 });
     }
+
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code ?? "DOMAIN_ERROR",
+            title: "Operação não permitida",
+            message: error.message,
+          },
+        },
+        { status: error.status ?? 400 },
+      );
+    }
+
     return NextResponse.json(
       {
         error: {

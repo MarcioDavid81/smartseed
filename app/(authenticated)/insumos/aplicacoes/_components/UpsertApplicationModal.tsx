@@ -123,6 +123,15 @@ const UpsertApplicationModal = ({
            });
            return;
          }
+
+        if (error.status === 409) {
+          showToast({
+            type: "info",
+            title: "Safra finalizada",
+            message: error.message,
+          });
+          return;
+        }
        }
        showToast({
          type: "error",
