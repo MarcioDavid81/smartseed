@@ -2,6 +2,7 @@ import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 /**
  * @swagger
@@ -43,30 +44,29 @@ const updateApplicationSchema = z.object({
   cycleId: z.string().cuid().optional(),
 });
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Token não enviado ou mal formatado" }, { status: 401 });
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+
+    const { id } = params;
     const body = await req.json();
     const data = updateApplicationSchema.parse({ ...body });
 
     // buscar aplicação existente
     const application = await db.application.findUnique({
-      where: { id: params.id, companyId },
+      where: { id, companyId },
     });
 
     if (!application) {
-      return NextResponse.json({ error: "Aplicação não encontrada" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Aplicação não encontrada" },
+        { status: 404 },
+      );
     }
 
     // buscar estoque
@@ -75,18 +75,24 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     });
 
     if (!stock) {
-      return NextResponse.json({ error: "Estoque não encontrado" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Estoque não encontrado" },
+        { status: 404 },
+      );
     }
 
     // calcular estoque corrigido (devolve a antiga e tira a nova)
     const adjustedStock = stock.stock + application.quantity - data.quantity;
     if (adjustedStock < 0) {
-      return NextResponse.json({ error: "Estoque insuficiente para alteração." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Estoque insuficiente para alteração." },
+        { status: 400 },
+      );
     }
 
     const [updated] = await db.$transaction([
       db.application.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           productStockId: data.productStockId,
           quantity: data.quantity,
@@ -109,7 +115,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json(updated);
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Erro ao atualizar aplicação." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erro ao atualizar aplicação." },
+      { status: 500 },
+    );
   }
 }
 
@@ -132,10 +141,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
  *       500:
  *         description: Erro interno no servidor
  */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Token não enviado ou mal formatado" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Token não enviado ou mal formatado" },
+      { status: 401 },
+    );
   }
 
   const token = authHeader.split(" ")[1];
@@ -151,7 +166,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     });
 
     if (!application) {
-      return NextResponse.json({ error: "Aplicação não encontrada" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Aplicação não encontrada" },
+        { status: 404 },
+      );
     }
 
     // recuperar estoque relacionado
@@ -160,7 +178,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     });
 
     if (!stock) {
-      return NextResponse.json({ error: "Estoque não encontrado" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Estoque não encontrado" },
+        { status: 404 },
+      );
     }
 
     await db.$transaction([
@@ -174,6 +195,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ message: "Aplicação removida com sucesso" });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Erro ao deletar aplicação." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erro ao deletar aplicação." },
+      { status: 500 },
+    );
   }
 }
