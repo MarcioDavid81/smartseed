@@ -1,3 +1,4 @@
+import { assertCycleIsOpen } from "@/app/_helpers/assert-cycle-open";
 import {
   ForbiddenPlanError,
   PlanLimitReachedError,
@@ -6,6 +7,7 @@ import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { verifyToken } from "@/lib/auth";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { ApiError } from "@/lib/http/api-error";
 import { db } from "@/lib/prisma";
 import { seedHarvestSchema } from "@/lib/schemas/seedHarvestSchema";
 import { NextRequest, NextResponse } from "next/server";
@@ -97,6 +99,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await db.$transaction(async (tx) => {
+      await assertCycleIsOpen(tx, data?.cycleId || "", session.user.companyId);
       const harvest = await tx.harvest.create({
         data: {
           ...data,
@@ -109,7 +112,7 @@ export async function POST(req: NextRequest) {
         where: { id: data.cultivarId },
         data: {
           stock: {
-            decrement: data.quantityKg,
+            increment: data.quantityKg,
           },
         },
       });
@@ -127,6 +130,20 @@ export async function POST(req: NextRequest) {
     if (error instanceof ForbiddenPlanError) {
       return NextResponse.json({ message: error.message }, { status: 403 });
     }
+
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code ?? "DOMAIN_ERROR",
+            title: "Operação não permitida",
+            message: error.message,
+          },
+        },
+        { status: error.status ?? 400 },
+      );
+    }
+
     return NextResponse.json(
       {
         error: {

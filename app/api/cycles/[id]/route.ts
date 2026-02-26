@@ -124,6 +124,76 @@ export async function PUT(
   }
 }
 
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
+
+  const { id } = params;
+
+  try {
+    const body = await req.json().catch(() => ({}));
+    const requestedStatus = body?.status as "OPEN" | "CLOSED" | undefined;
+
+    const cycle = await db.productionCycle.findUnique({
+      where: { id },
+      select: { id: true, companyId: true, status: true },
+    });
+
+    if (!cycle || cycle.companyId !== companyId) {
+      return NextResponse.json(
+        { error: "Safra não encontrada ou acesso negado" },
+        { status: 404 },
+      );
+    }
+
+    if (
+      requestedStatus &&
+      requestedStatus !== "OPEN" &&
+      requestedStatus !== "CLOSED"
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVALID_BODY",
+            title: "Status inválido",
+            message: "O status deve ser OPEN ou CLOSED.",
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    const nextStatus = requestedStatus
+      ? requestedStatus
+      : cycle.status === "OPEN"
+        ? "CLOSED"
+        : "OPEN";
+
+    const updated = await db.productionCycle.update({
+      where: { id },
+      data: { status: nextStatus },
+      select: { status: true },
+    });
+
+    return NextResponse.json(updated.status);
+  } catch (error) {
+    console.error("Erro ao atualizar status da safra:", error);
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Erro ao atualizar status da safra",
+        },
+      },
+      { status: 500 },
+    );
+  }
+}
+
 /**
  * @swagger
  * /api/cycles/{id}:
