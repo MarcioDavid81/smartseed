@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { saleContractSchema } from "@/lib/schemas/saleContractSchema";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 type Params = {
   params: {
@@ -50,32 +51,43 @@ export async function PUT(req: NextRequest, { params }: Params) {
       );
     }
 
+    if (saleContract.items.length !== 1 || items.length !== 1) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVALID_STRUCTURE",
+            message:
+              "Alteração de volume permitida apenas para contratos com um único item.",
+          },
+        },
+        { status: 400 },
+      );
+    }
+
     await db.$transaction(async (tx) => {
-      // 🟢 atualiza cabeçalho
+      // 🔹 Atualiza cabeçalho
       await tx.saleContract.update({
         where: { id: saleContract.id },
         data: contractData,
       });
 
-      // 🟢 remove itens antigos
-      await tx.saleContractItem.deleteMany({
-        where: { saleContractId: saleContract.id },
-      });
-      
-      // 🟢 recria itens
-      for (const item of items) {
-        await SaleContractDomainService.validateItemCreate(
-          tx,
-          saleContract.id,
-          item.quantity,
-        );
-        await tx.saleContractItem.create({
-          data: {
-            ...item,
-            saleContractId: saleContract.id,
-          },
-        });
+      const existingItem = saleContract.items[0];
+      const incomingItem = items[0];
+      const newQuantity = new Prisma.Decimal(incomingItem.quantity);
+
+      // 🔹 Regra empresarial: não pode reduzir abaixo do já atendido
+      if (newQuantity.lt(existingItem.fulfilledQuantity)) {
+        throw new Error("Novo volume não pode ser menor que o já atendido.");
       }
+
+      // 🔹 Atualiza somente o volume e total
+      await tx.saleContractItem.update({
+        where: { id: existingItem.id },
+        data: {
+          quantity: newQuantity,
+          totalPrice: newQuantity.mul(existingItem.unityPrice),
+        },
+      });
     });
 
     return NextResponse.json(
@@ -94,20 +106,37 @@ export async function PUT(req: NextRequest, { params }: Params) {
             code: "CANNOT_UPDATE",
             title: "Atualização não permitida",
             message:
-              "A quantidade solicitada para o item do contrato de venda excede a disponível em estoque. Por favor, revise a quantidade e tente novamente.",
+              "A quantidade solicitada para o item do contrato de venda excede a disponível em estoque.",
           },
         },
         { status: 409 },
       );
     }
+
+    if (
+      error instanceof Error &&
+      error.message === "Novo volume não pode ser menor que o já atendido."
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVALID_VOLUME",
+            title: "Volume inválido",
+            message: error.message,
+          },
+        },
+        { status: 400 },
+      );
+    }
+
     console.error("Erro ao atualizar venda:", error);
+
     return NextResponse.json(
       {
         error: {
           code: "INTERNAL_SERVER_ERROR",
           title: "Erro interno do servidor",
-          message:
-            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+          message: "Ocorreu um erro ao processar a solicitação.",
         },
       },
       { status: 500 },
@@ -146,7 +175,10 @@ export async function DELETE(
     }
 
     await db.$transaction(async (tx) => {
-      const canDelete = await SaleContractDomainService.canDeleteContract(tx, id);
+      const canDelete = await SaleContractDomainService.canDeleteContract(
+        tx,
+        id,
+      );
 
       if (!canDelete) {
         throw new Error(
@@ -211,7 +243,7 @@ export async function GET(
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
-    
+
     const { id } = params;
 
     const saleContract = await db.saleContract.findUnique({
@@ -223,8 +255,8 @@ export async function GET(
             industrySales: true,
             seedSales: true,
             cultivar: true,
-          }
-        }
+          },
+        },
       },
     });
 
@@ -282,15 +314,14 @@ export async function GET(
               : 0,
           };
         }),
-      ].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      );
+      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       return {
         id: item.id,
         description: item.description,
         quantity: Number(item.quantity),
         fulfilledQuantity: Number(item.fulfilledQuantity),
-        remainingQuantity: Number(item.quantity) - Number(item.fulfilledQuantity),
+        remainingQuantity:
+          Number(item.quantity) - Number(item.fulfilledQuantity),
         unit: item.unit,
         unityPrice: unitPrice,
         totalPrice: Number(item.totalPrice),
@@ -304,10 +335,7 @@ export async function GET(
 
     const deliveries = items
       .flatMap((item) => item.deliveries)
-      .sort(
-        (a, b) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime(),
-      );
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return NextResponse.json(
       {
@@ -337,7 +365,7 @@ export async function GET(
           code: "INTERNAL_ERROR",
           title: "Erro interno",
           message: "Erro interno no servidor",
-        }
+        },
       },
       { status: 500 },
     );

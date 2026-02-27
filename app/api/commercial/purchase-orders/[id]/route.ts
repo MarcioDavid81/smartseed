@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { purchaseOrderSchema } from "@/lib/schemas/purchaseOrderSchema";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 type Params = {
   params: {
@@ -51,31 +52,72 @@ export async function PUT(req: NextRequest, { params }: Params) {
     }
 
     await db.$transaction(async (tx) => {
-      // 🟢 atualiza cabeçalho
+      // Atualiza cabeçalho
       await tx.purchaseOrder.update({
         where: { id: purchaseOrder.id },
         data: orderData,
       });
 
-      // 🟢 remove itens antigos
-      await tx.purchaseOrderItem.deleteMany({
-        where: { purchaseOrderId: purchaseOrder.id },
-      });
+      const existingItems = purchaseOrder.items;
 
-      // 🟢 recria itens
-      for (const item of items) {
-        await PurchaseOrderDomainService.validateItemCrate(
-          tx,
-          purchaseOrder.id,
-          item.quantity,
-        );
+      const existingMap = new Map(
+        existingItems.map((item) => [item.id, item])
+      );
 
-        await tx.purchaseOrderItem.create({
-          data: {
-            ...item,
-            purchaseOrderId: purchaseOrder.id,
-          },
-        });
+      const incomingMap = new Map(
+        items.filter(i => i.id).map((item) => [item.id, item])
+      );
+
+      // 1️⃣ Atualizar itens existentes
+      for (const incomingItem of items) {
+        if (incomingItem.id && existingMap.has(incomingItem.id)) {
+          const existingItem = existingMap.get(incomingItem.id)!;
+
+          const newQuantity = new Prisma.Decimal(incomingItem.quantity);
+
+          // Regra: não pode ser menor que já recebido
+          if (newQuantity.lt(existingItem.fulfilledQuantity)) {
+            throw new Error(
+              "Quantidade não pode ser menor que a já recebida"
+            );
+          }
+
+          await tx.purchaseOrderItem.update({
+            where: { id: existingItem.id },
+            data: {
+              quantity: newQuantity,
+              unityPrice: incomingItem.unityPrice,
+              totalPrice: newQuantity.mul(incomingItem.unityPrice),
+            },
+          });
+        }
+      }
+
+      // 2️⃣ Criar novos itens
+      for (const incomingItem of items) {
+        if (!incomingItem.id) {
+          await tx.purchaseOrderItem.create({
+            data: {
+              ...incomingItem,
+              purchaseOrderId: purchaseOrder.id,
+            },
+          });
+        }
+      }
+
+      // 3️⃣ Deletar itens removidos
+      for (const existingItem of existingItems) {
+        if (!incomingMap.has(existingItem.id)) {
+          if (existingItem.fulfilledQuantity.gt(0)) {
+            throw new Error(
+              "Não é possível remover item que já teve recebimento"
+            );
+          }
+
+          await tx.purchaseOrderItem.delete({
+            where: { id: existingItem.id },
+          });
+        }
       }
     });
 
@@ -84,24 +126,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
       { status: 200 },
     );
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message ===
-        "Quantidade insuficiente em estoque para o item da ordem de compra"
-    ) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "CANNOT_UPDATE",
-            title: "Atualização não permitida",
-            message:
-              "A quantidade solicitada para o item da ordem de compra excede a disponível em estoque. Por favor, revise a quantidade e tente novamente.",
-          },
-        },
-        { status: 409 },
-      );
-    }
     console.error("Erro ao atualizar ordem de compra:", error);
+
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 },
