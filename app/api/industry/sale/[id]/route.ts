@@ -1,5 +1,6 @@
 import { recalcSaleContractStatus } from "@/app/_helpers/recalculateSaleContractStatus";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { ApiError } from "@/lib/http/api-error";
 import { db } from "@/lib/prisma";
 import { AccountStatus, PaymentCondition } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -269,8 +270,13 @@ export async function DELETE(
       if (industrySale.saleContractItemId && industrySale.saleContractItem) {
         const item = industrySale.saleContractItem;
 
-        if (item.fulfilledQuantity < industrySale.weightLiq) {
-          throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
+        const fulfilled = Number(item.fulfilledQuantity);
+        const weight = Number(industrySale.weightLiq);
+
+        if (fulfilled < weight) {
+          throw new Error(
+            `Data integrity error: fulfilledQuantity (${fulfilled}) < weightLiq (${weight})`,
+          );
         }
 
         await tx.saleContractItem.update({
@@ -293,6 +299,19 @@ export async function DELETE(
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Erro ao remover venda:", error);
+
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+        },
+        { status: error.status },
+      );
+    }
+
     return NextResponse.json(
       {
         error: {
