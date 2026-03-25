@@ -200,5 +200,13 @@ function groupByFarm(talhoes: Talhao[]): FarmGroup[] {
     farmsMap[farmName].children.push(t);
   }
 
-  return Object.values(farmsMap);
+  const groups = Object.values(farmsMap);
+
+  for (const group of groups) {
+    group.children.sort((a, b) =>
+      a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
+    );
+  }
+
+  return groups;
 }
