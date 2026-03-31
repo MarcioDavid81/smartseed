@@ -68,11 +68,11 @@ export function ListStockTable() {
     },
     {
       accessorKey: "stock",
-      header: () => <div className="text-center">Estoque (kg)</div>,
+      header: () => <div className="text-start">Estoque (kg)</div>,
       cell: ({ row }) => {
         const stock = row.original.stock;
         return (
-          <div className="text-center">
+          <div className="text-start">
             {new Intl.NumberFormat("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -115,7 +115,7 @@ export function ListStockTable() {
       {loading ? (
         <AgroLoader />
       ) : (
-        <ProductDataTable columns={columns} data={cultivars} />
+        <ProductDataTable columns={columns} data={cultivars} sumColumnId="stock" />
       )}
     </Card>
   );

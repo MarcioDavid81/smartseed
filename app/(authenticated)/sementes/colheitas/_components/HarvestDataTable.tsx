@@ -16,6 +16,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -27,12 +28,14 @@ import CreateHarvestButton from "./CreateHarvestButton";
 import GenerateHarvestReportModal from "./GenerateHarvestReportModal";
 import { Harvest } from "@/types";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
+import { FunnelX } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageSize?: number;
   searchFields?: string[];
+  sumColumnId?: string;
 }
 
 export function HarvestDataTable<TData, TValue>({
@@ -40,6 +43,7 @@ export function HarvestDataTable<TData, TValue>({
   data,
   pageSize = 8,
   searchFields = [],
+  sumColumnId,
 }: DataTableProps<TData, TValue>) {
   const [selected, setSelected] = useState<Harvest | null>(null);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -73,17 +77,55 @@ export function HarvestDataTable<TData, TValue>({
     }
   });
 
+  const filteredRows = table.getFilteredRowModel().rows;
+  const totalKg = sumColumnId
+    ? filteredRows.reduce((acc, row) => {
+        const raw = row.getValue(sumColumnId as any);
+        const num = typeof raw === "number" ? raw : Number(raw);
+        return acc + (isNaN(num) ? 0 : num);
+      }, 0)
+    : 0;
+
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex items-center justify-between py-4">
-        <Input
-          placeholder="Procure por cultivar"
-          value={(table.getColumn("cultivar")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("cultivar")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm bg-gray-50 text-primary"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Procure por fazenda"
+            value={(table.getColumn("farm")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("farm")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
+            placeholder="Procure por talhão"
+            value={(table.getColumn("talhao")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("talhao")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
+            placeholder="Procure por cultivar"
+            value={(table.getColumn("cultivar")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("cultivar")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          {table.getState().columnFilters.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => table.resetColumnFilters()}
+              className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+            >
+              <FunnelX size={14} />
+              Limpar filtros
+            </Button>
+          )}
+        </div>
         <CreateHarvestButton />
       </div>
       <div className="rounded-md border">
@@ -129,6 +171,23 @@ export function HarvestDataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={columns.length - 2} className="text-start text-muted-foreground">
+                <h3>Total</h3>
+              </TableCell>
+              <TableCell colSpan={2} className="text-start text-muted-foreground">                
+                {sumColumnId ? (
+                  <div>
+                    {new Intl.NumberFormat("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }).format(totalKg)} Kg
+                  </div>
+                ) : null}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </div>
 

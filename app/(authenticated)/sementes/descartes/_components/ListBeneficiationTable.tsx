@@ -42,9 +42,10 @@ export function ListBeneficiationTable() {
       },
     },
     {
-      accessorKey: "cultivar",
+      id: "cultivar",
       header: "Cultivar",
       accessorFn: (row) => row.cultivar?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row: { original } }) => {
         const cultivar = original.cultivar;
         return (
@@ -70,9 +71,10 @@ export function ListBeneficiationTable() {
       },
     },
     {
-      accessorKey: "destination",
+      id: "destination",
       header: () => <div className="text-left">Destino</div>,
       accessorFn: (row) => row.destination?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row }) => {
         const destination = row.original.destination;
         return (
@@ -116,7 +118,7 @@ export function ListBeneficiationTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <BeneficiationDataTable columns={columns} data={descartes} />
+        <BeneficiationDataTable columns={columns} data={descartes} sumColumnId="quantityKg" />
       )}
     </Card>
   );

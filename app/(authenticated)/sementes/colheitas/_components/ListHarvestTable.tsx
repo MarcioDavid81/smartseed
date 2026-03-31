@@ -40,8 +40,10 @@ export function ListHarvestTable() {
       cell: ({ row: { original } }) => new Date(original.date).toLocaleDateString("pt-BR"),
     },
     {
-      accessorKey: "cultivar",
+      id: "cultivar",
       header: "Cultivar",
+      accessorFn: (row) => row.cultivar?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row }) => {
         const cultivar = row.original.cultivar;
          if ((row.original as any)._optimistic) {
@@ -59,8 +61,10 @@ export function ListHarvestTable() {
       },
     },
     {
-      accessorKey: "talhao",
+      id: "talhao",
       header: "Talhão",
+      accessorFn: (row) => row.talhao?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row }) => {
         const talhao = row.original.talhao;
         if ((row.original as any)._optimistic) {
@@ -77,8 +81,10 @@ export function ListHarvestTable() {
       },
     },
     {
-      accessorKey: "farm",
-      header: () => <div className="text-left">Fazenda</div>,
+      id: "farm",
+      header: "Fazenda",
+      accessorFn: (row) => row.talhao?.farm?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row }) => {
         const farm = row.original.talhao?.farm;
         if ((row.original as any)._optimistic) {
@@ -136,7 +142,7 @@ export function ListHarvestTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <HarvestDataTable columns={columns} data={colheitas} />
+        <HarvestDataTable columns={columns} data={colheitas} sumColumnId="quantityKg" />
       )}
     </Card>
   );

@@ -42,8 +42,10 @@ export function ListConsumptionTable() {
       },
     },
     {
-      accessorKey: "cultivar",
+      id: "cultivar",
       header: "Cultivar",
+      accessorFn: (row) => row.cultivar?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row }) => {
         const cultivar = row.original.cultivar;
          if ((row.original as any)._optimistic) {
@@ -61,8 +63,10 @@ export function ListConsumptionTable() {
       },
     },
     {
-      accessorKey: "farm",
+      id: "farm",
       header: "Fazenda",
+      accessorFn: (row) => row.talhao?.farm?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row }) => {
         const farm = row.original.talhao?.farm;
         if ((row.original as any)._optimistic) {
@@ -79,8 +83,10 @@ export function ListConsumptionTable() {
       },
     },
     {
-      accessorKey: "plot",
+      id: "talhao",
       header: "Talhão",
+      accessorFn: (row) => row.talhao?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row }) => {
         const talhao = row.original.talhao;
         if ((row.original as any)._optimistic) {
@@ -149,7 +155,7 @@ export function ListConsumptionTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <ConsumptionDataTable columns={columns} data={plantios} />
+        <ConsumptionDataTable columns={columns} data={plantios} sumColumnId="quantityKg" />
       )}
     </Card>
   );

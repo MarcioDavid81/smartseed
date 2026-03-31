@@ -27,7 +27,6 @@ import { useState } from "react";
 import CreateHarvestButton from "./CreateHarvestButton";
 import GenerateHarvestReportModal from "./GenerateHarvestReportModal";
 import { FunnelX } from "lucide-react";
-import { HarvestDetailsModal } from "./HarvestDetailModal";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
 
 interface DataTableProps<TData, TValue> {
