@@ -2,6 +2,7 @@
 import { formatNumber } from "@/app/_helpers/currency";
 import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
     Select,
@@ -10,17 +11,26 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useHarvest } from "@/contexts/HarvestContext";
+import { useCycle } from "@/contexts/CycleContext";
 import { useUser } from "@/contexts/UserContext";
+import { useSeedHarvestsByCycle } from "@/queries/seed/use-seed-harvest-query";
+import { Harvest } from "@/types";
+import { endOfDay, startOfDay } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useState } from "react";
 import { FaFilePdf, FaSpinner } from "react-icons/fa";
 
 export default function GenerateHarvestReportModal() {
-  const { harvests } = useHarvest();
+    const { selectedCycle } = useCycle();
+    const {
+      data: harvests = [],
+      refetch,
+    } = useSeedHarvestsByCycle(selectedCycle?.id || "");
   const [cultivar, setCultivar] = useState<string | null>(null);
   const [talhao, setTalhao] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -30,18 +40,36 @@ export default function GenerateHarvestReportModal() {
   );
   const talhoesUnicos = Array.from(new Set(harvests.map((h) => h.talhao.name)));
 
-  const filtered = harvests.filter((h) => {
-    const matchCultivar = !cultivar || h.cultivar.name === cultivar;
-    const matchTalhao = !talhao || h.talhao.name === talhao;
-    return matchCultivar && matchTalhao;
-  });
+  const filterSeedHarvests = (list: Harvest[]) => {
+    const from = dateFrom ? startOfDay(dateFrom) : null;
+    const to = dateTo ? endOfDay(dateTo) : null;
+    
+    return list.filter((h) => {
+      const matchCultivar = !cultivar || h.cultivar.name === cultivar;
+      const matchTalhao = !talhao || h.talhao.name === talhao;
+      const date = new Date(h.date as unknown as string);
+      const matchDate = (!from || date >= from) && (!to || date <= to);
+      return matchDate && matchCultivar && matchTalhao;
+    });
+  };
 
-  const generatePDF = () => {
+
+  const generatePDF = async () => {
     setLoading(true);
+
+    const latest = selectedCycle?.id ? await refetch() : null;
+    const seedHarvestsToUse = (latest?.data ?? harvests) as Harvest[];
+    const filteredToUse = filterSeedHarvests(seedHarvestsToUse);
+
     const doc = new jsPDF({ orientation: "landscape" });
 
     const logo = new window.Image();
     logo.src = "/6.png";
+
+    const periodLabel = 
+      dateFrom || dateTo
+        ? `${dateFrom ? dateFrom.toLocaleDateString("pt-BR") : "—"} até ${dateTo ? dateTo.toLocaleDateString("pt-BR") : "—"}`
+        : "Todos";
 
     logo.onload = () => {
       // Função para adicionar rodapé consistente
@@ -80,31 +108,44 @@ export default function GenerateHarvestReportModal() {
 
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
-      doc.text("Relatório de Colheitas", 150, 20, { align: "center" });
+      doc.text("Relatório de Colheita - " + selectedCycle?.name || "",  150, 20, { align: "center" });
+      const company = user.company.name;
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(company + " - Produto destinado à semente", 150, 25, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Cultivar: ${cultivar || "Todos"}`, 14, 35);
       doc.text(`Talhão: ${talhao || "Todos"}`, 14, 40);
+      doc.text(`Período: ${periodLabel}`, 14, 45);
 
       autoTable(doc, {
-        startY: 45,
+        startY: 50,
         head: [["Data", "Cultivar", "Talhão", "Fazenda", "Quantidade (kg)"]],
-        body: filtered.map((h) => [
+        body: filteredToUse.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
           h.cultivar.name,
           h.talhao.name,
           h.talhao.farm.name,
           formatNumber(h.quantityKg),
         ]),
+        foot:[["Total Geral", "", "", "", formatNumber(filteredToUse.reduce((acc, curr) => acc + curr.quantityKg, 0))]],
+        showFoot: "lastPage",
         styles: {
           fontSize: 9,
         },
         headStyles: {
-          fillColor: [1, 204, 101],
+          fillColor: [99,185,38],
           textColor: 255,
           fontStyle: "bold",
         },
-        didDrawPage: function (data) {
+        footStyles: {
+          fillColor: [99,185,38],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        pageBreak: "auto",
+        didDrawPage: function () {
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height;
           const pageWidth = pageSize.width;
@@ -138,7 +179,7 @@ export default function GenerateHarvestReportModal() {
       });
 
       // === SOMATÓRIO POR CULTIVAR ===
-      const totalsByCultivar = filtered.reduce(
+      const totalsByCultivar = filteredToUse.reduce(
         (acc, curr) => {
           const name = curr.cultivar.name;
           if (!acc[name]) acc[name] = 0;
@@ -148,7 +189,7 @@ export default function GenerateHarvestReportModal() {
         {} as Record<string, number>,
       );
 
-      const totalGeral = filtered.reduce(
+      const totalGeral = filteredToUse.reduce(
         (acc, curr) => acc + curr.quantityKg,
         0,
       );
@@ -276,6 +317,14 @@ export default function GenerateHarvestReportModal() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Período</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <DatePicker value={dateFrom} onChange={setDateFrom} />
+            <DatePicker value={dateTo} onChange={setDateTo} />
+          </div>
         </div>
 
         <Button

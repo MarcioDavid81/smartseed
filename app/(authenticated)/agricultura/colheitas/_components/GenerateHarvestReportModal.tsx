@@ -137,10 +137,11 @@ export default function GenerateHarvestReportModal() {
       };
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
-      doc.text("Relatório de Colheitas", 150, 20, { align: "center" });
+      doc.text("Relatório de Colheita - " + selectedCycle?.name || "", 150, 20, { align: "center" });
       const company = user.company.name;
-      doc.setFontSize(12);
-      doc.text(company, 150, 25, { align: "center" });
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(company + " - Produto destinado à indústria", 150, 25, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(
@@ -197,7 +198,7 @@ export default function GenerateHarvestReportModal() {
             pageHeight - 10,
           );
 
-          const centerText = "Sistema Smart Seed";
+          const centerText = "Sistema Smart Seed by MD Web Developer";
           const centerTextWidth = doc.getTextWidth(centerText);
           doc.text(
             centerText,

@@ -74,12 +74,12 @@ export default function GenerateRainReportModal() {
 
         doc.setFontSize(8);
         doc.text(
-          `Relatório gerado em ${now} por: ${userName}`,
+          `Gerado em ${now} por: ${userName}`,
           10,
           pageHeight - 10,
         );
 
-        const centerText = "Sistema Smart Seed";
+        const centerText = "Sistema Smart Seed by MD Web Developer";
         const centerTextWidth = doc.getTextWidth(centerText);
         doc.text(
           centerText,

@@ -1,4 +1,5 @@
 "use client";
+import { formatCurrency, formatNumber } from "@/app/_helpers/currency";
 import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -46,6 +47,10 @@ export default function GenerateBuyReportModal() {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Compras", 150, 20, { align: "center" });
+      const company = user.company.name;
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(company, 150, 25, { align: "center" });
 
       doc.setFontSize(10);
       doc.text(`Cultivar: ${cultivar || "Todos"}`, 14, 35);
@@ -58,7 +63,7 @@ export default function GenerateBuyReportModal() {
             "Data",
             "Cultivar",
             "Fornecedor",
-            "Nota Fiscal",
+            "Documento",
             "Quantidade (kg)",
             "Valor (R$)",
           ],
@@ -76,15 +81,23 @@ export default function GenerateBuyReportModal() {
             currency: "BRL",
           }),
         ]),
+        foot:[["Total Geral", "", "", "", formatNumber(filtered.reduce((acc, curr) => acc + curr.quantityKg, 0)), formatCurrency(filtered.reduce((acc, curr) => acc + curr.totalPrice, 0))]],
+        showFoot: "lastPage",
         styles: {
           fontSize: 9,
         },
         headStyles: {
-          fillColor: [1, 204, 101],
+          fillColor: [99, 185, 38],
           textColor: 255,
           fontStyle: "bold",
         },
-        didDrawPage: function (data) {
+        footStyles: {
+          fillColor: [99,185,38],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        pageBreak: "auto",
+        didDrawPage: function () {
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height;
           const pageWidth = pageSize.width;
@@ -100,7 +113,7 @@ export default function GenerateBuyReportModal() {
             pageHeight - 10,
           );
 
-          const centerText = "Sistema Smart Seed";
+          const centerText = "Sistema Smart Seed by MD Web Developer";
           const centerTextWidth = doc.getTextWidth(centerText);
           doc.text(
             centerText,
