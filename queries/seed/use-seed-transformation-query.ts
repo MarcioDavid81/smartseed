@@ -7,6 +7,6 @@ export function useSeedTransformation() {
     queryFn: () => getSeedTransformation(),
     enabled: true,
     refetchOnWindowFocus: true,
-    staleTime: 1000 * 60 * 60, // 1 hora
+    staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }
