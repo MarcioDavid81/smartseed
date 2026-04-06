@@ -161,7 +161,7 @@ export default function GenerateHarvestReportModal() {
             pageHeight - 10,
           );
 
-          const centerText = "Sistema Smart Seed";
+          const centerText = "Sistema Smart Seed by MD Web Developer";
           const centerTextWidth = doc.getTextWidth(centerText);
           doc.text(
             centerText,
