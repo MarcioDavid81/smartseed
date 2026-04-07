@@ -172,9 +172,11 @@ export default function GenerateBeneficiationReportModal() {
             pageHeight - 10,
           );
 
-          const pageNumber = (doc as any).internal.getNumberOfPages();
+          const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+          const totalPages = (doc as any).internal.getNumberOfPages();
+
           doc.text(
-            `${pageNumber}/${pageNumber}`,
+            `${currentPage}/${totalPages}`,
             pageWidth - 20,
             pageHeight - 10,
           );
