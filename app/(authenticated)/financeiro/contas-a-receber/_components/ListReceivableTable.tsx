@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { ReceivableDataTable } from "./ReceivableDataTable";
 import { AgroLoader } from "@/components/agro-loader";
 import { useAccountReceivables } from "@/queries/financial/use-account-receivable-query";
+import { LoadingData } from "@/components/loading-data";
+import { formatCurrency } from "@/app/_helpers/currency";
 
 export function ListReceivableTable() {
   
@@ -22,19 +24,6 @@ export function ListReceivableTable() {
 
 
   const columns: ColumnDef<AccountReceivable>[] = [
-    {
-      accessorKey: "description",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          className="text-left px-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Descrição
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-    },
     {
       accessorKey: "dueDate",
       header: ({ column }) => (
@@ -52,23 +41,36 @@ export function ListReceivableTable() {
       },
     },
     {
+      id: "customer",
+      header: () => <div className="text-left">Cliente</div>,
+      accessorFn: (row) => row.customer?.name ?? "",
+      filterFn: "includesString",
+      cell: ({ row: { original } }) => <div className="text-left">{original.customer ? (original.customer.name) : <LoadingData />}</div>,
+    },
+    {
+      id: "description",
+      header: () => <div className="text-left">Descrição</div>,
+      cell: ({ row: { original } }) => {
+        return original.description;
+      },
+    },
+    {
       accessorKey: "amount",
       header: () => <div className="text-left">Valor (R$)</div>,
       cell: ({ row }) => {
         const amount = row.original.amount;
         return (
           <div className="text-left">
-            {new Intl.NumberFormat("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            }).format(amount)}
+            {formatCurrency(amount)}
           </div>
         );
       },
     },
     {
-      accessorKey: "status",
+      id: "status",
       header: () => <div className="text-left">Status</div>,
+      accessorFn: (row) => row.status,
+      filterFn: "includesString",
       cell: ({ row }) => {
         const status = row.original.status;
         
@@ -141,7 +143,7 @@ export function ListReceivableTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <ReceivableDataTable columns={columns} data={receivables} />
+        <ReceivableDataTable columns={columns} data={receivables} sumColumnId="amount" />
       )}
     </Card>
   );

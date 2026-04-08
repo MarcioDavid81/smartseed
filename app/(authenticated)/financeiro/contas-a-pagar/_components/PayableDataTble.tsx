@@ -16,6 +16,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -25,12 +26,15 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import GeneratePayableReportModal from "./GeneratePayableReportModal";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
+import { FunnelX } from "lucide-react";
+import { formatCurrency } from "@/app/_helpers/currency";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageSize?: number;
   searchFields?: string[];
+  sumColumnId?: string;
 }
 
 export function PayableDataTable<TData, TValue>({
@@ -38,8 +42,8 @@ export function PayableDataTable<TData, TValue>({
   data,
   pageSize = 8,
   searchFields = [],
+  sumColumnId,
 }: DataTableProps<TData, TValue>) {
-  const [modalOpen, setModalOpen] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
   const table = useReactTable({
@@ -69,18 +73,56 @@ export function PayableDataTable<TData, TValue>({
     }
   });
 
+  const filteredRows = table.getFilteredRowModel().rows;
+  const amount = sumColumnId
+    ? filteredRows.reduce((acc, row) => {
+        const raw = row.getValue(sumColumnId as any);
+        const num = typeof raw === "number" ? raw : Number(raw);
+        return acc + (isNaN(num) ? 0 : num);
+      }, 0)
+    : 0;
+
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex items-center justify-between py-4">
-        <Input
-          type="date"
-          placeholder="Procure por data de vencimento"
-          value={(table.getColumn("dueDate")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("dueDate")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm bg-gray-50 text-primary"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            placeholder="Procure por data de vencimento"
+            value={(table.getColumn("dueDate")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("dueDate")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
+            placeholder="Procure por cliente"
+            value={(table.getColumn("customer")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("customer")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
+            placeholder="Status: Paid, Pending"
+            value={(table.getColumn("status")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("status")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          {table.getState().columnFilters.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => table.resetColumnFilters()}
+              className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+            >
+              <FunnelX size={14} />
+              Limpar filtros
+            </Button>
+          )}
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -125,6 +167,25 @@ export function PayableDataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={columns.length - 4} className="text-start text-muted-foreground">
+                <h3>Total</h3>
+              </TableCell>
+              <TableCell colSpan={4} className="text-start text-muted-foreground">                
+                {sumColumnId ? (
+                  <div>
+                    {new Intl.NumberFormat("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                      style: "currency",
+                      currency: "BRL",
+                    }).format(amount)}
+                  </div>
+                ) : null}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </div>
 
