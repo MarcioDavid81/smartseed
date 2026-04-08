@@ -125,23 +125,27 @@ export async function POST(req: NextRequest) {
 
       // 🔹 Atualiza o contrato de venda se houver
       if (saleContractItem) {
-        await tx.saleContractItem.update({
+        const updatedItem = await tx.saleContractItem.update({
           where: { id: saleContractItem.id },
           data: {
             fulfilledQuantity: {
               increment: data.weightLiq,
             },
           },
+          select: {
+            fulfilledQuantity: true,
+            quantity: true,
+          },
         });
-        await recalcSaleContractStatus(tx, saleContractItem.saleContractId);
-      }
 
-      //Valida se a quantidade do item da remessa não é maior que o saldo do contrato
-      const item = await tx.saleContractItem.findUnique({
-        where: { id: saleContractItemId },
-      });
-      if (Number(item?.fulfilledQuantity) > Number(item?.quantity)) {
-        throw new Error("Quantidade excede o saldo do pedido.");
+        // 🔥 Validação pós-update (consistência dentro da transaction)
+        if (
+          Number(updatedItem.fulfilledQuantity) > Number(updatedItem.quantity)
+        ) {
+          throw new Error("Quantidade excede o saldo do pedido.");
+        }
+
+        await recalcSaleContractStatus(tx, saleContractItem.saleContractId);
       }
 
       // 🔹 Atualiza o estoque
