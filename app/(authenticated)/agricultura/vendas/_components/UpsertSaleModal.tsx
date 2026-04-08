@@ -24,6 +24,7 @@ import {
   IndustrySale} from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PaymentCondition, ProductType } from "@prisma/client";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
@@ -165,6 +166,8 @@ const UpsertIndustrySaleModal = ({
     saleContractItemId: saleContractItemId ?? undefined,
   });
   
+  const router = useRouter();
+
   const onSubmit = (data: IndustrySaleFormData) => {  
     if (
       saleContractItemId &&
@@ -193,6 +196,7 @@ const UpsertIndustrySaleModal = ({
   
         onClose();
         form.reset();
+        router.refresh();
       },
       onError: (error: Error) => {
         if (error instanceof ApiError) {

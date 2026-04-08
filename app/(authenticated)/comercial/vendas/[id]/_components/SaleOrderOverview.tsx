@@ -18,7 +18,7 @@ export function SaleContractOverview({ saleContract }: Props) {
     const router = useRouter();
 
   const handleRefreshPage = () => {
-    window.location.reload();
+    router.refresh();
   };
 
   const handleReturn = () => {
