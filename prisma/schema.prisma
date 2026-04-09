@@ -84,7 +84,8 @@ model MemberAdress {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  @@unique([memberId])
+  @@index([memberId])
+  @@unique([memberId, stateRegistration])
 }
 
 model Farm {
