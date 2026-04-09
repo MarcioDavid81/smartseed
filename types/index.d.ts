@@ -34,6 +34,7 @@ export * from "./insumo";
 export * from "./purchaseDetails";
 export * from "./machine";
 export * from "./maintenance";
+export * from "./member";
 export * from "./notice";
 export * from "./plot";
 export * from "./productStock";
