@@ -2,7 +2,8 @@ import {
   AiOutlineDashboard 
 } from "react-icons/ai";
 import { 
-  FaSeedling, FaTruck 
+  FaSeedling, FaTruck, 
+  FaUsers
 } from "react-icons/fa";
 import { 
   GiFarmTractor 
@@ -15,7 +16,8 @@ import {
   MapIcon,
   FuelIcon,
   Cog,
-  Handshake
+  Handshake,
+  Users
 } from "lucide-react";
 import { TbTransferIn, TbUserStar } from "react-icons/tb";
 import Image from "next/image";
@@ -106,6 +108,7 @@ export const routes = [
     name: "Cadastros",
     icon: <Scroll size={20} />,
     subRoutes: [
+      { name: "Sócios", path: "/cadastros/socios", icon: <FaUsers size={16} /> },
       { name: "Fazendas", path: "/cadastros/fazendas", icon: <PiFarmLight size={16} /> },
       { name: "Usuários", path: "/cadastros/usuarios", icon: <User size={16} /> },
       { name: "Clientes", path: "/cadastros/clientes", icon: <TbUserStar size={16} /> },
