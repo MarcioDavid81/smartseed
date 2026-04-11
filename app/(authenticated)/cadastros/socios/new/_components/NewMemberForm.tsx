@@ -16,31 +16,35 @@ import { Button } from "@/components/ui/button";
 import { NewMemberAdressForm } from "./NewMemberAdressForm";
 import { CornerDownLeftIcon, PlusIcon } from "lucide-react";
 import { FaSpinner } from "react-icons/fa";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUpsertMember } from "@/queries/registrations/use-member";
 import { useSmartToast } from "@/contexts/ToastContext";
 import Link from "next/link";
 
-export function NewMemberForm() {
+interface MemberFormProps {
+  initialData?: any;
+  isEditing?: boolean;
+}
+
+export function NewMemberForm({ initialData, isEditing }: MemberFormProps) {
   const { showToast } = useSmartToast();
   const url = "/cadastros/socios"
   const form = useForm<MemberFormData>({
     resolver: zodResolver(memberSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      cpf: "",
-      adresses: [
+      name: initialData?.name || "",
+      email: initialData?.email || "",
+      phone: initialData?.phone || "",
+      cpf: initialData?.cpf || "",
+      adresses: initialData?.adresses || [
         {
-          stateRegistration: "",
-          zip: "",
-          adress: "",
-          number: "",
-          complement: "",
-          district: "",
-          city: "",
-          state: "",
+          stateRegistration: initialData?.adresses?.[0]?.stateRegistration || "",
+          zip: initialData?.adresses?.[0]?.zip || "",
+          adress: initialData?.adresses?.[0]?.adress || "",
+          number: initialData?.adresses?.[0]?.number || "",
+          complement: initialData?.adresses?.[0]?.complement || "",
+          district: initialData?.adresses?.[0]?.district || "",
+          city: initialData?.adresses?.[0]?.city || "",
+          state: initialData?.adresses?.[0]?.state || "",
         },
       ],
     },

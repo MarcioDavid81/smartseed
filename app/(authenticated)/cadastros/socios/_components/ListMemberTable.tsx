@@ -10,6 +10,7 @@ import { MembersDataTable } from "./MemberDataTable";
 import { useMembers } from "@/queries/registrations/use-member";
 import EditCustomerButton from "../../clientes/_components/EditCustomerButton";
 import { MemberDetailButton } from "./MemberDetailButton";
+import EditMemberButton from "./EditMemberButton";
 
 export function ListMembersTable() {
 
@@ -61,6 +62,7 @@ export function ListMembersTable() {
         return (
           <div className="flex items-center justify-center gap-4">
             <MemberDetailButton id={member.id} />
+            <EditMemberButton memberId={member.id} />
           </div>
         );
       },
