@@ -78,7 +78,7 @@ const { mutateAsync, isPending } = useUpsertMember({});
   }
 
   return (
-    <ScrollArea className="md:h-[calc(100vh-200px)]">
+    <div className="w-full mx-auto py-2 max-h-[calc(100vh-170px)] overflow-y-auto scrollbar-hide">
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <h3 className="text-lg font-medium"><span className="border-b-2 border-green">Dado</span>s Principais</h3>
@@ -201,6 +201,6 @@ const { mutateAsync, isPending } = useUpsertMember({});
 
       </form>
     </Form>
-    </ScrollArea>
+    </div>
   );
 }

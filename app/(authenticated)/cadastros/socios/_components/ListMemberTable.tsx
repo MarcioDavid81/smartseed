@@ -8,6 +8,8 @@ import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { AgroLoader } from "@/components/agro-loader";
 import { MembersDataTable } from "./MemberDataTable";
 import { useMembers } from "@/queries/registrations/use-member";
+import EditCustomerButton from "../../clientes/_components/EditCustomerButton";
+import { MemberDetailButton } from "./MemberDetailButton";
 
 export function ListMembersTable() {
 
@@ -55,10 +57,10 @@ export function ListMembersTable() {
       accessorKey: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
-        const customer = row.original;
+        const member = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
-            botões
+            <MemberDetailButton id={member.id} />
           </div>
         );
       },
