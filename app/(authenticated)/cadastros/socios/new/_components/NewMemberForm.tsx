@@ -19,6 +19,7 @@ import { FaSpinner } from "react-icons/fa";
 import { useUpsertMember } from "@/queries/registrations/use-member";
 import { useSmartToast } from "@/contexts/ToastContext";
 import Link from "next/link";
+import InputMask from "react-input-mask";
 
 interface MemberFormProps {
   initialData?: any;
@@ -111,7 +112,20 @@ const { mutateAsync, isPending } = useUpsertMember({});
                 <FormItem>
                   <FormLabel>CPF</FormLabel>
                   <FormControl>
-                    <Input placeholder="CPF" {...field} />
+                    <InputMask
+                      mask="999.999.999-99"
+                      placeholder="CPF"
+                      value={field.value}
+                      onChange={field.onChange}
+                    >
+                      {(inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          placeholder="CPF"
+                          type="text"
+                        />
+                      )}
+                    </InputMask>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -141,7 +155,20 @@ const { mutateAsync, isPending } = useUpsertMember({});
                   <FormItem>
                     <FormLabel>Telefone</FormLabel>
                     <FormControl>
-                      <Input placeholder="Telefone" {...field} />
+                      <InputMask
+                        mask="(99) 9999-9999"
+                        placeholder="Telefone"
+                        value={field.value}
+                        onChange={field.onChange}
+                      >
+                      {(inputProps: any) => (
+                        <Input
+                          {...inputProps}
+                          placeholder="Telefone"
+                          type="text"
+                        />
+                      )}
+                    </InputMask>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

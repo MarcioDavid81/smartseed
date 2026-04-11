@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash, Trash2, TrashIcon } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import InputMask from "react-input-mask";
 
 type Props = {
   index: number;
@@ -34,7 +35,19 @@ export function NewMemberAdressForm({
             <FormItem>
               <FormLabel>Inscrição Estadual</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <InputMask
+                  mask="999/999 999-9"
+                  value={field.value}
+                  onChange={field.onChange}
+                >
+                  {(inputProps: any) => (
+                    <Input
+                      {...inputProps}
+                      placeholder="Inscrição Estadual"
+                      type="text"
+                    />
+                  )}
+                </InputMask>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -47,7 +60,19 @@ export function NewMemberAdressForm({
             <FormItem>
               <FormLabel>CEP</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <InputMask
+                  mask="99999-999"
+                  value={field.value}
+                  onChange={field.onChange}
+                >
+                  {(inputProps: any) => (
+                    <Input
+                      {...inputProps}
+                      placeholder="CEP" 
+                      type="text"
+                    />
+                  )}
+                </InputMask>
               </FormControl>
               <FormMessage />
             </FormItem>

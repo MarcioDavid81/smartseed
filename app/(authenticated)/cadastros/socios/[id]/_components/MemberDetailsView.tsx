@@ -7,7 +7,48 @@ import { Separator } from "@/components/ui/separator";
 import { useMember } from "@/queries/registrations/use-member";
 import { Member } from "@/types";
 import { CornerDownLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+function getDigits(value?: string | number | null) {
+  return String(value ?? "").replace(/\D/g, "");
+}
+
+export function formatCpf(value?: string | number | null) {
+  const digits = getDigits(value);
+  if (!digits) return "-";
+  if (digits.length < 11) return digits;
+  return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*$/, "$1.$2.$3-$4");
+}
+
+export function formatStateRegistration(value?: string | number | null) {
+  const digits = getDigits(value);
+  if (!digits) return "-";
+  if (digits.length < 10) return digits;
+  return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{1}).*$/, "$1/$2 $3-$4");
+
+}
+
+export function formatCep(value?: string | number | null) {
+  const digits = getDigits(value);
+  if (!digits) return "-";
+  if (digits.length < 8) return digits;
+  return digits.replace(/^(\d{5})(\d{3}).*$/, "$1-$2");
+}
+
+export function formatPhone(value?: string | number | null) {
+  const digits = getDigits(value);
+  if (!digits) return "-";
+
+  if (digits.length >= 11) {
+    return digits.replace(/^(\d{2})(\d{5})(\d{4}).*$/, "($1) $2-$3");
+  }
+
+  if (digits.length >= 10) {
+    return digits.replace(/^(\d{2})(\d{4})(\d{4}).*$/, "($1) $2-$3");
+  }
+
+  return digits;
+}
 
 function Field({
   label,
@@ -35,9 +76,9 @@ function MainDataSection({ data }: { data: Member }) {
 
       <div className="grid md:grid-cols-4 gap-6">
         <Field label="Nome" value={data.name} />
-        <Field label="CPF" value={data.cpf} />
+        <Field label="CPF" value={formatCpf(data.cpf)} />
         <Field label="Email" value={data.email} />
-        <Field label="Telefone" value={data.phone} />
+        <Field label="Telefone" value={formatPhone(data.phone)} />
       </div>
     </section>
   );
@@ -52,7 +93,7 @@ function AddressCard({
 }) {
   const title =
     address.stateRegistration && address.stateRegistration.trim()
-      ? `Endereço ${index + 1} — IE: ${address.stateRegistration}`
+      ? `Endereço ${index + 1} — IE: ${formatStateRegistration(address.stateRegistration)}`
       : `Endereço ${index + 1}`;
 
   const enderecoLinha = [
@@ -63,7 +104,7 @@ function AddressCard({
     .filter(Boolean)
     .join(" ");
 
-  const cidadeUf = [address.city, address.state].filter(Boolean).join(" / ");
+  const cidadeUf = [address.city, address.state].filter(Boolean).join(" - ");
 
   return (
     <Card className="shadow-sm">
@@ -72,10 +113,10 @@ function AddressCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid md:grid-cols-4 gap-6">
-          <Field label="CEP" value={address.zip} />
+          <Field label="CEP" value={formatCep(address.zip)} />
           <Field label="Bairro" value={address.district} />
           <Field label="Cidade/UF" value={cidadeUf} />
-          <Field label="Inscrição Estadual" value={address.stateRegistration} />
+          <Field label="Inscrição Estadual" value={formatStateRegistration(address.stateRegistration)} />
         </div>
 
         <Separator />
@@ -118,7 +159,7 @@ type Props = {
 
 export function MemberDetailsView({ id }: Props) {
   const { data, isLoading } = useMember(id);
-  const router = useRouter();
+  const url = "/cadastros/socios";
 
   if (isLoading) return <AgroLoader />;
   if (!data) return <p>Sócio não encontrado</p>;
@@ -128,10 +169,10 @@ export function MemberDetailsView({ id }: Props) {
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="text-xl font-medium">
-            Sócio - {data.name}
+            {data.name.split(" ")[0]}
           </CardTitle>
           <p className="text-xs font-light text-muted-foreground">
-            {data.cpf ? `CPF: ${data.cpf}` : "-"}
+            {data.cpf ? `CPF: ${formatCpf(data.cpf)}` : "-"}
           </p>
         </CardHeader>
 
@@ -140,14 +181,15 @@ export function MemberDetailsView({ id }: Props) {
           <Separator />
           <AddressesSection data={data} />
 
-          <Button
-            type="button"
-            className="max-w-[100px] bg-green text-white mt-4 font-light"
-            onClick={() => router.push("/cadastros/socios")}
-          >
-            <CornerDownLeft size={20} />
-            Voltar
-          </Button>
+          <Link href={url}>
+            <Button
+              type="button"
+              className="max-w-[100px] bg-green text-white mt-4 font-light"
+            >
+              <CornerDownLeft size={20} />
+              Voltar
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     </div>

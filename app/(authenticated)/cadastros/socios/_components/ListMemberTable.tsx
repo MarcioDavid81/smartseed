@@ -11,6 +11,7 @@ import { useMembers } from "@/queries/registrations/use-member";
 import EditCustomerButton from "../../clientes/_components/EditCustomerButton";
 import { MemberDetailButton } from "./MemberDetailButton";
 import EditMemberButton from "./EditMemberButton";
+import { formatCpf, formatPhone } from "../[id]/_components/MemberDetailsView";
 
 export function ListMembersTable() {
 
@@ -40,13 +41,13 @@ export function ListMembersTable() {
       accessorKey: "cpf",
       header: "CPF",
       accessorFn: (row) => row.cpf,
-      cell: ({ row: { original } }) => original.cpf,
+      cell: ({ row: { original } }) => formatCpf(original.cpf),
     },
     {
       accessorKey: "phone",
       header: "Telefone",
       accessorFn: (row) => row.phone,
-      cell: ({ row: { original } }) => original.phone,
+      cell: ({ row: { original } }) => formatPhone(original.phone),
     },
     {
       accessorKey: "email",
