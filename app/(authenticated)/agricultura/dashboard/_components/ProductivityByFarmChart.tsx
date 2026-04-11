@@ -9,6 +9,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  Line,
 } from "recharts";
 
 type FarmReport = {
@@ -54,18 +55,18 @@ export function ProductivityByFarmChart({ farmReports }: { farmReports: FarmRepo
       </CardHeader>
 
       <CardContent>
-        <ResponsiveContainer width="100%" height={320}>
+        <ResponsiveContainer width="100%" height={330}>
           <BarChart data={farmReports} className="font-light text-xs">
 
             <XAxis
               dataKey="farmName"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11 }}
               tickLine={false}
               axisLine={false}
             />
 
             <YAxis
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11 }}
               tickLine={false}
               axisLine={false}
             />
@@ -73,22 +74,33 @@ export function ProductivityByFarmChart({ farmReports }: { farmReports: FarmRepo
             <Tooltip content={<FarmTooltip />} />
 
             <Bar
-              dataKey="productivityScHa"
-              name="Produtividade"
+              dataKey="totalAreaHa"
+              name="Total Área"
               radius={[10, 10, 0, 0]}
-              fill="url(#premiumGradientFarm)"
+              fill="url(#areaGradient)"
+            />
+
+            <Line
+              type="monotone"
+              dataKey="productivityScHa"
+              yAxisId="right"
+              stroke="url(#lineGradient)"
+              strokeWidth={1}
+              dot={{ r: 4, strokeWidth: 1, stroke: "#1A3F0E" }}
+              activeDot={{ r: 6 }}
             />
 
             <defs>
-              <linearGradient
-                id="premiumGradientFarm"
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop offset="0%" stopColor="#3EB75E" />
-                <stop offset="100%" stopColor="#1F6B34" />
+              {/* Gradiente barras */}
+              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#79D82F" />
+                <stop offset="100%" stopColor="#4C8A1F" />
+              </linearGradient>
+
+              {/* Gradiente linha */}
+              <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#285AE8" />
+                <stop offset="100%" stopColor="#0033A0" />
               </linearGradient>
             </defs>
           </BarChart>

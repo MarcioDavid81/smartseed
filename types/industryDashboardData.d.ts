@@ -25,6 +25,9 @@ export interface FieldReport {
   productivityKgHa: number
   productivityScHa: number
   participationPercent: number
+  farmId: string
+  farmName: string
+  totalAreaHa: number
 }
 
 export interface FarmReport {

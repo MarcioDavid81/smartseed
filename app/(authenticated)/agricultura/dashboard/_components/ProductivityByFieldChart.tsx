@@ -57,7 +57,7 @@ const sortedReports = [...fieldReports].sort((a, b) =>
     <Card className="rounded-2xl shadow-sm border bg-gradient-to-br from-white to-neutral-50">
       <CardHeader>
         <CardTitle className="font-normal tracking-tight">
-          Indicador de Produtividade por área (sc/ha)
+          Produtividade por Talhão (sc/ha)
         </CardTitle>
       </CardHeader>
 

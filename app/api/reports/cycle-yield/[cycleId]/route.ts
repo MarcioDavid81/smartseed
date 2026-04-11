@@ -114,22 +114,28 @@ export async function GET(
     ];
 
     // --- AGRUPAMENTO POR TALHÃO --------------------------------
-    const groupedByField = allHarvests.reduce((acc, h) => {
-      const key = `${h.talhaoId}-${h.productType}`;
+    const groupedByField = allHarvests.reduce(
+      (acc, h) => {
+        const key = `${h.talhaoId}-${h.productType}`;
 
-      if (!acc[key]) {
-        acc[key] = {
-          talhaoId: h.talhaoId,
-          talhaoName: h.talhaoName,
-          productType: h.productType,
-          totalKg: 0,
-          areaHa: h.areaHa,
-        };
-      }
+        if (!acc[key]) {
+          acc[key] = {
+            talhaoId: h.talhaoId,
+            talhaoName: h.talhaoName,
+            farmId: h.farmId,
+            farmName: h.farmName,
+            totalAreaHa: h.areaHa,
+            productType: h.productType,
+            totalKg: 0,
+            areaHa: h.areaHa,
+          };
+        }
 
-      acc[key].totalKg += h.quantityKg;
-      return acc;
-    }, {} as Record<string, any>);
+        acc[key].totalKg += h.quantityKg;
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
 
     const fieldReports: FieldReport[] = Object.values(groupedByField).map(
       (f) => {
@@ -139,6 +145,9 @@ export async function GET(
         return {
           talhaoId: f.talhaoId,
           talhaoName: f.talhaoName,
+          farmId: f.farmId,
+          farmName: f.farmName,
+          totalAreaHa: f.totalAreaHa,
           productType: f.productType,
           totalKg: f.totalKg,
           totalSc,
@@ -166,13 +175,11 @@ export async function GET(
     // --- PARTICIPAÇÃO POR TALHÃO --------------------------------
     const enrichedFieldReports = fieldReports.map((f) => ({
       ...f,
-      participationPercent: totalKg
-        ? (f.totalKg / totalKg) * 100
-        : 0,
+      participationPercent: totalKg ? (f.totalKg / totalKg) * 100 : 0,
     }));
 
     // --- AGRUPAMENTO POR FAZENDA --------------------------------
-    const farmMap = new Map<string, FarmReport>();
+    const farmMap = new Map<string, FarmReport & { talhoes: Set<string> }>();
 
     for (const h of allHarvests) {
       if (!farmMap.has(h.farmId)) {
@@ -185,6 +192,7 @@ export async function GET(
           productivityKgHa: null,
           productivityScHa: null,
           participationPercent: 0,
+          talhoes: new Set(), // 👈 controle de unicidade
         });
       }
 
@@ -195,18 +203,23 @@ export async function GET(
 
       farm.totalKg += h.quantityKg;
       farm.totalSc += sc;
-      farm.totalAreaHa += h.areaHa;
+
+      // 🔥 AQUI ESTÁ A CORREÇÃO
+      if (!farm.talhoes.has(h.talhaoId)) {
+        farm.totalAreaHa += h.areaHa;
+        farm.talhoes.add(h.talhaoId);
+      }
     }
 
-    const farmReports = Array.from(farmMap.values()).map((f) => ({
-      ...f,
-      productivityKgHa:
-        f.totalAreaHa > 0 ? f.totalKg / f.totalAreaHa : null,
-      productivityScHa:
-        f.totalAreaHa > 0 ? f.totalSc / f.totalAreaHa : null,
-      participationPercent:
-        summary.totalKg > 0 ? (f.totalKg / summary.totalKg) * 100 : 0,
-    }));
+    const farmReports = Array.from(farmMap.values()).map(
+      ({ talhoes, ...f }) => ({
+        ...f,
+        productivityKgHa: f.totalAreaHa > 0 ? f.totalKg / f.totalAreaHa : null,
+        productivityScHa: f.totalAreaHa > 0 ? f.totalSc / f.totalAreaHa : null,
+        participationPercent:
+          summary.totalKg > 0 ? (f.totalKg / summary.totalKg) * 100 : 0,
+      }),
+    );
 
     // --- RETORNO FINAL ------------------------------------------
     return NextResponse.json({

@@ -5,6 +5,8 @@ import { ProductivityByFieldChart } from "./ProductivityByFieldChart"
 import { useCycle } from "@/contexts/CycleContext"
 import { AgroLoader } from "@/components/agro-loader"
 import { useIndustryDashboardData } from "@/queries/industry/use-dashboard-data-query"
+import { ProductivityByFarmChart } from "./ProductivityByFarmChart"
+import { ProductivityDrilldownChart } from "./ProductivityDrilldownChart"
 
 
 export default function DashboardContent() {
@@ -41,11 +43,13 @@ export default function DashboardContent() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-hide">
       <SummaryCards summary={data.summary} />
       {data.fieldReports.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-          <ProductivityByFieldChart fieldReports={data.fieldReports} />
+          {/* <ProductivityByFieldChart fieldReports={data.fieldReports} />
+          <ProductivityByFarmChart farmReports={data.farmReports} /> */}
+          <ProductivityDrilldownChart fieldReports={data.fieldReports} farmReports={data.farmReports} />
         </div>
       ) : (
         <div className="text-center text-muted-foreground font-light h-40 flex items-center justify-center">
