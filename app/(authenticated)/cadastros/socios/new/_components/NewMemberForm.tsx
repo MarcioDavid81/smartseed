@@ -56,22 +56,25 @@ export function NewMemberForm({ initialData, isEditing }: MemberFormProps) {
     name: "adresses",
   });
 
-const { mutateAsync, isPending } = useUpsertMember({});
+  const memberId = isEditing ? initialData?.id : undefined;
+
+  const { mutateAsync, isPending } = useUpsertMember({ memberId });
 
   async function onSubmit(data: MemberFormData) {
     try {
       await mutateAsync(data);
 
-      // feedback pro usuário
       showToast({
         type: "success",
         title: "Sucesso",
-        message: "Sócio cadastrado com sucesso",
+        message: isEditing
+          ? "Sócio atualizado com sucesso"
+          : "Sócio cadastrado com sucesso",
       });
 
-      // reset form
-      form.reset();
-
+      if (!isEditing) {
+        form.reset();
+      }
     } catch (error) {
       console.error(error);
       showToast({
