@@ -100,6 +100,7 @@ const routes = [
     name: "Cadastros",
     icon: <Scroll size={20} />,
     adminRoutes: [
+      { path: "/cadastros/socios", name: "Sócios" },
       { path: "/cadastros/fazendas", name: "Fazendas" },
       { path: "/cadastros/usuarios", name: "Usuários" },
       { path: "/cadastros/clientes", name: "Clientes" },
