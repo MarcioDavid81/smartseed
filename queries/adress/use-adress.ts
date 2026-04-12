@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   UseFormReturn,
@@ -39,9 +39,16 @@ export function useAddress<T extends FieldValues>({
     enabled: !!currentState,
   });
 
+  const didMountRef = useRef(false);
+
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
     form.setValue(cityField, "" as PathValue<T, Path<T>>);
-  }, [currentState]);
+  }, [currentState, cityField, form]);
 
   return {
     states: statesQuery.data ?? [],
