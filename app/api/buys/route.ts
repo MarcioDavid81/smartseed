@@ -146,6 +146,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const member = await db.member.findUnique({
+      where: { id: data.memberId },
+      select: { id: true, name: true },
+    });
+
+    if (!member) {
+      return NextResponse.json(
+        { error: "Sócio não encontrado" },
+        { status: 404 },
+      );
+    }
+
     const result = await db.$transaction(async (tx) => {
       const buy = await tx.buy.create({
         data: {
@@ -155,28 +167,32 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Atualiza o pedido de compra se houver
+      // 🔹 Atualiza o pedido de compra se houver
       if (purchaseOrderItem) {
-        await tx.purchaseOrderItem.update({
+        const updatedItem = await tx.purchaseOrderItem.update({
           where: { id: purchaseOrderItem.id },
           data: {
             fulfilledQuantity: {
               increment: data.quantityKg,
             },
           },
+          select: {
+            fulfilledQuantity: true,
+            quantity: true,
+          },
         });
+
+        // 🔥 Validação pós-update (consistência dentro da transaction)
+        if (
+          Number(updatedItem.fulfilledQuantity) > Number(updatedItem.quantity)
+        ) {
+          throw new Error("Quantidade excede o saldo do pedido.");
+        }
+
         await recalcPurchaseOrderStatus(tx, purchaseOrderItem.purchaseOrderId);
       }
 
-      //Valida se a quantidade do item da remessa não é maior que o saldo do pedido
-      const item = await tx.purchaseOrderItem.findUnique({
-        where: { id: purchaseOrderItemId },
-      });
-      if (Number(item?.fulfilledQuantity) > Number(item?.quantity)) {
-        throw new Error("Quantidade excede o saldo do pedido.");
-      }
-
-      // Atualiza o estoque da cultivar
+      // 🔹 Atualiza o estoque da cultivar
       await tx.cultivar.update({
         where: { id: data.cultivarId },
         data: {
@@ -186,19 +202,22 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Se for a prazo → cria conta a pagar
+      // 🔹 Se for a prazo → cria conta a pagar
       if (data.paymentCondition === PaymentCondition.APRAZO && data.dueDate) {
         await tx.accountPayable.create({
           data: {
-            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${data.invoice ?? "S/NF"}, de ${customer?.name ?? "cliente"}`,
+            description: `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${data.invoice ?? "S/NF"}, de ${customer?.name ?? "cliente"}, em nome de ${member?.name ?? "sócio"}`,
             amount: data.totalPrice,
             dueDate: new Date(data.dueDate),
             companyId: session.user.companyId,
             customerId: data.customerId,
+            memberId: data.memberId,
+            memberAdressId: data.memberAdressId,
             buyId: buy.id,
           },
         });
       }
+
       return buy;
     });
 
@@ -281,6 +300,22 @@ export async function GET(req: NextRequest) {
         },
         customer: {
           select: { id: true, name: true },
+        },
+        member: {
+          select: { id: true, name: true, email: true, phone: true, cpf: true },
+        },
+        memberAdress: {
+          select: {
+            id: true,
+            stateRegistration: true,
+            zip: true,
+            adress: true,
+            number: true,
+            complement: true,
+            district: true,
+            state: true,
+            city: true,
+          },
         },
         accountPayable: {
           select: { id: true, status: true, dueDate: true },

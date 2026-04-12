@@ -9,6 +9,8 @@ export const seedBuySchema = z.object({
   unityPrice: z.coerce.number().min(0.01, "Preço unitário é obrigatório"),
   totalPrice: z.coerce.number().min(0.01, "Preço total é obrigatório"),
   customerId: z.string().min(1, "Selecione um cliente"),
+  memberId: z.string().optional(),
+  memberAdressId: z.string().optional(),
   notes: z.string().optional(),
   paymentCondition: z.nativeEnum(PaymentCondition).optional(),
   dueDate: z.coerce.date(),

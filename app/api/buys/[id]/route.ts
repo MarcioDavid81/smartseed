@@ -74,6 +74,8 @@ export async function PUT(
       unityPrice,
       totalPrice,
       customerId,
+      memberId,
+      memberAdressId,
       quantityKg,
       notes,
       paymentCondition,
@@ -174,6 +176,8 @@ export async function PUT(
           unityPrice,
           totalPrice,
           customerId,
+          memberId,
+          memberAdressId,
           quantityKg,
           notes,
           paymentCondition,
@@ -195,7 +199,12 @@ export async function PUT(
           select: { name: true },
         });
 
-        const description = `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice ?? "S/NF"}, de ${customer?.name ?? "cliente"}`;
+        const member = await tx.member.findUnique({
+          where: { id: memberId },
+          select: { name: true },
+        });
+
+        const description = `Compra de ${cultivar?.name ?? "semente"}, cfe NF ${invoice ?? "S/NF"}, de ${customer?.name ?? "cliente"}, em nome de ${member?.name ?? "sócio"}`;
 
         if (buy.accountPayable) {
           await tx.accountPayable.update({
@@ -215,6 +224,8 @@ export async function PUT(
               dueDate: new Date(dueDate),
               companyId,
               customerId,
+              memberId,
+              memberAdressId,
               buyId: updatedBuy.id,
             },
           });
@@ -387,6 +398,8 @@ export async function GET(
       include: {
         cultivar: true, // traz informações do cultivar
         customer: true, // traz fornecedor
+        member: true, // traz informações do socio
+        memberAdress: true, // traz informações do endereco do socio
         accountPayable: true, // traz conta vinculada
       },
     });
