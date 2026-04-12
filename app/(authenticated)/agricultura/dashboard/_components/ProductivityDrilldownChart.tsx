@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
   Line,
 } from "recharts";
+import { MoveLeft } from "lucide-react";
 
 type FarmReport = {
   farmId: string;
@@ -105,9 +106,10 @@ export function ProductivityDrilldownChart({
                 setLevel("farm");
                 setSelectedFarmId(null);
               }}
-              className="text-xs text-blue-600 hover:underline"
+              className="text-sm text-green flex items-center gap-1 hover:gap-2 transition-all duration-300"
             >
-              ← Voltar
+              <MoveLeft size={16} />
+              Voltar
             </button>
           )}
         </div>
