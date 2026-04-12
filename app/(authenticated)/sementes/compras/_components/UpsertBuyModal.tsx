@@ -39,6 +39,7 @@ import { MoneyInput, QuantityInput } from "@/components/inputs";
 import { useCustomers } from "@/queries/registrations/use-customer";
 import { useSeedCultivarQuery } from "@/queries/seed/use-seed-cultivar-query";
 import { getCycle } from "@/lib/cycle";
+import { useMembers } from "@/queries/registrations/use-member";
 
 interface UpsertBuyModalProps {
   compra?: Buy;
@@ -80,6 +81,8 @@ const UpsertBuyModal = ({
     defaultValues: {
       cultivarId: compra?.cultivarId ?? cultivarId ?? "",
       customerId: compra?.customerId ?? customerId ?? "",
+      memberId: compra?.memberId ?? "",
+      memberAdressId: compra?.memberAdressId ?? "",
       date: compra ? new Date(compra.date) : new Date(),
       invoice: compra?.invoice ?? "",
       unityPrice: compra?.unityPrice ?? unityPriceFromOrder ?? 0,
@@ -109,6 +112,8 @@ const UpsertBuyModal = ({
       form.reset({
         cultivarId: compra.cultivarId,
         customerId: compra.customerId,
+        memberId: compra.memberId ?? "",
+        memberAdressId: compra.memberAdressId ?? "",
         date: new Date(compra.date),
         invoice: compra.invoice,
         unityPrice: compra.unityPrice,
@@ -142,6 +147,10 @@ const UpsertBuyModal = ({
 
   const { data: cultivars = [] } = useSeedCultivarQuery();
   const { data: customers = [] } = useCustomers();
+  const { data: members = [] } = useMembers();
+  const memberId = form.watch("memberId");
+  const selectedMember = members.find(m => m.id === memberId);
+  const addresses = selectedMember?.adresses ?? [];
 
   const { mutate, isPending } = useUpsertSeedBuy({
     cycleId: cycle?.id!,
@@ -245,7 +254,7 @@ const UpsertBuyModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[750px]">
+      <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Compra
@@ -262,6 +271,100 @@ const UpsertBuyModal = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data</FormLabel>
+                    <FormControl>
+                      <DatePicker value={field.value} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="invoice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nota Fiscal</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="memberId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel> Sócio</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!!purchaseOrderItemId}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma socio" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {members.map((member) => (
+                          <SelectItem key={member.id} value={member.id}>
+                            <div className="flex justify-between gap-2">
+                              <span>{member.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="memberAdressId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Inscrição Estadual</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!!purchaseOrderItemId || !memberId || addresses.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma inscrição estadual" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {addresses.map((memberAdress) => (
+                          <SelectItem key={memberAdress.id} value={memberAdress.id}>
+                            <div className="flex justify-between gap-2">
+                              <span>{memberAdress.stateRegistration}</span>
+                              <span className="text-muted-foreground">
+                                {memberAdress.district}, {memberAdress.city} - {memberAdress.state}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -284,7 +387,7 @@ const UpsertBuyModal = ({
                           <SelectItem key={cultivar.id} value={cultivar.id}>
                             <div className="flex justify-between gap-2">
                               <span>{cultivar.name}</span>
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-muted-foreground">
                                 Estoque: {cultivar.stock} kg
                               </span>
                             </div>
@@ -318,7 +421,7 @@ const UpsertBuyModal = ({
                           <SelectItem key={customer.id} value={customer.id}>
                             <div className="flex justify-between gap-2">
                               <span>{customer.name}</span>
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-muted-foreground">
                                 {customer.cpf_cnpj}
                               </span>
                             </div>
@@ -331,37 +434,6 @@ const UpsertBuyModal = ({
                 )}
               />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data</FormLabel>
-                    <FormControl>
-                      <DatePicker value={field.value} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="invoice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nota Fiscal</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}

@@ -133,7 +133,7 @@ export function MembersDataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Nenhum talhão encontrado.
+                  Nenhum sócio encontrado.
                 </TableCell>
               </TableRow>
             )}

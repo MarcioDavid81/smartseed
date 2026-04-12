@@ -43,6 +43,39 @@ function MainDataSection({ data }: { data: BuyDetails }) {
   );
 }
 
+function MemberSection({ data }: { data: BuyDetails }) {
+  const m = data.member;
+  const mA = data.memberAdress;
+
+  return (
+    <section className="space-y-4">
+      <h2 className="text-lg font-semibold">
+        <span className="border-b border-green">Sóc</span>io
+      </h2>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <Field label="Nome" value={m?.name ?? "-"} />
+        <Field label="CNPJ/CPF" value={m?.cpf ?? "-"} />
+        <Field label="Endereço" value={mA?.adress ?? "-"} />
+
+        <Field
+          label="Cidade"
+          value={
+            mA?.city && mA?.state
+              ? `${mA.city} - ${mA.state}`
+              : "-"
+          }
+        />
+
+        <Field
+          label="Inscrição Estadual"
+          value={mA?.stateRegistration ?? "-"}
+        />
+      </div>
+    </section>
+  );
+}
+
 function CustomerSection({ data }: { data: BuyDetails }) {
   const c = data.customer;
 
@@ -128,6 +161,9 @@ export function SeedBuyDetailsView({ id }: Props) {
         <CardContent className="space-y-6">
 
           <MainDataSection data={data} />
+          <Separator />
+
+          <MemberSection data={data} />
           <Separator />
 
           <CustomerSection data={data} />

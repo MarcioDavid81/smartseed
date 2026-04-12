@@ -1,4 +1,3 @@
-import { Control } from "react-hook-form";
 import { MemberFormData } from "@/lib/schemas/memberSchema";
 import {
   FormControl,
@@ -7,29 +6,45 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAddress } from "@/queries/adress/use-adress";
 import { Trash2 } from "lucide-react";
+import { useFormContext } from "react-hook-form";
 import InputMask from "react-input-mask";
 
 type Props = {
   index: number;
-  control: Control<MemberFormData>;
   remove: (index: number) => void;
   canRemove: boolean;
 };
 
 export function NewMemberAdressForm({
   index,
-  control,
   remove,
   canRemove,
 }: Props) {
+  const form = useFormContext<MemberFormData>();
+
+  const { states, cities, isLoadingCities, isLoadingStates } = useAddress({
+    isOpen: true,
+    form,
+    stateField: `adresses.${index}.state`,
+    cityField: `adresses.${index}.city`,
+  });
+
   return (
     <div className="border rounded-xl p-4 space-y-4 mt-8 mb-8">
       <div className="grid md:grid-cols-4 gap-4">
         <FormField
-          control={control}
+          control={form.control}
           name={`adresses.${index}.stateRegistration`}
           render={({ field }) => (
             <FormItem>
@@ -54,7 +69,7 @@ export function NewMemberAdressForm({
           )}
         />
         <FormField
-          control={control}
+          control={form.control}
           name={`adresses.${index}.zip`}
           render={({ field }) => (
             <FormItem>
@@ -66,11 +81,7 @@ export function NewMemberAdressForm({
                   onChange={field.onChange}
                 >
                   {(inputProps: any) => (
-                    <Input
-                      {...inputProps}
-                      placeholder="CEP" 
-                      type="text"
-                    />
+                    <Input {...inputProps} placeholder="CEP" type="text" />
                   )}
                 </InputMask>
               </FormControl>
@@ -79,7 +90,7 @@ export function NewMemberAdressForm({
           )}
         />
         <FormField
-          control={control}
+          control={form.control}
           name={`adresses.${index}.adress`}
           render={({ field }) => (
             <FormItem className="col-span-2">
@@ -95,7 +106,7 @@ export function NewMemberAdressForm({
 
       <div className="grid md:grid-cols-5 gap-4">
         <FormField
-          control={control}
+          control={form.control}
           name={`adresses.${index}.number`}
           render={({ field }) => (
             <FormItem>
@@ -108,7 +119,7 @@ export function NewMemberAdressForm({
           )}
         />
         <FormField
-          control={control}
+          control={form.control}
           name={`adresses.${index}.complement`}
           render={({ field }) => (
             <FormItem>
@@ -121,7 +132,7 @@ export function NewMemberAdressForm({
           )}
         />
         <FormField
-          control={control}
+          control={form.control}
           name={`adresses.${index}.district`}
           render={({ field }) => (
             <FormItem>
@@ -134,26 +145,52 @@ export function NewMemberAdressForm({
           )}
         />
         <FormField
-          control={control}
+          control={form.control}
           name={`adresses.${index}.state`}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Estado</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
+                <FormControl>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger disabled={isLoadingStates}>
+                        <SelectValue placeholder="Selecione um estado" />
+                      </SelectTrigger>
+                    <SelectContent>
+                      {states.map((state) => (
+                        <SelectItem key={state.id} value={state.sigla}>
+                          {state.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <FormField
-          control={control}
+          control={form.control}
           name={`adresses.${index}.city`}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Cidade</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={!form.watch(`adresses.${index}.state`) || isLoadingCities}
+                >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                  <SelectContent>
+                    {cities.map((c) => (
+                      <SelectItem key={c.id} value={c.nome}>
+                        {c.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>

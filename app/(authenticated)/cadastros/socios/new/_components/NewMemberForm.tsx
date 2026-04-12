@@ -159,7 +159,7 @@ export function NewMemberForm({ initialData, isEditing }: MemberFormProps) {
                     <FormLabel>Telefone</FormLabel>
                     <FormControl>
                       <InputMask
-                        mask="(99) 9999-9999"
+                        mask="(99) 99999-9999"
                         placeholder="Telefone"
                         value={field.value}
                         onChange={field.onChange}
@@ -187,7 +187,6 @@ export function NewMemberForm({ initialData, isEditing }: MemberFormProps) {
             <NewMemberAdressForm
               key={field.id}
               index={index}
-              control={form.control}
               remove={remove}
               canRemove={fields.length > 1}
             />
