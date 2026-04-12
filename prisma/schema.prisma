@@ -56,36 +56,56 @@ model Company {
 }
 
 model Member {
-  id        String         @id @default(uuid())
-  name      String
-  email     String?
-  phone     String?
-  cpf       String?
-  adresses  MemberAdress[]
-  companyId String
-  createdAt DateTime       @default(now())
-  company   Company        @relation(fields: [companyId], references: [id])
+  id                  String              @id @default(uuid())
+  name                String
+  email               String?
+  phone               String?
+  cpf                 String?
+  adresses            MemberAdress[]
+  companyId           String
+  createdAt           DateTime            @default(now())
+  company             Company             @relation(fields: [companyId], references: [id])
+  buys                Buy[]
+  saleExits           SaleExit[]
+  purchases           Purchase[]
+  accountsPayables    AccountPayable[]
+  accountsReceivables AccountReceivable[]
+  industrySales       IndustrySale[]
+  fuelPurchases       FuelPurchase[]
+  maintenances        Maintenance[]
+  saleContracts       SaleContract[]
+  purchaseOrders      PurchaseOrder[]
 
   @@unique([cpf, companyId])
 }
 
 model MemberAdress {
-  id                String   @id @default(uuid())
-  stateRegistration String?
-  zip               String
-  adress            String
-  number            String?
-  complement        String?
-  district          String?
-  state             String
-  city              String
-  memberId          String
-  member            Member   @relation(fields: [memberId], references: [id])
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                  String              @id @default(uuid())
+  stateRegistration   String?
+  zip                 String
+  adress              String
+  number              String?
+  complement          String?
+  district            String?
+  state               String
+  city                String
+  memberId            String
+  member              Member              @relation(fields: [memberId], references: [id])
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  buys                Buy[]
+  saleExits           SaleExit[]
+  purchases           Purchase[]
+  accountsPayables    AccountPayable[]
+  accountsReceivables AccountReceivable[]
+  industrySales       IndustrySale[]
+  fuelPurchases       FuelPurchase[]
+  maintenances        Maintenance[]
+  saleContracts       SaleContract[]
+  purchaseOrders      PurchaseOrder[]
 
-  @@index([memberId])
   @@unique([memberId, stateRegistration])
+  @@index([memberId])
 }
 
 model Farm {
@@ -214,6 +234,8 @@ model Buy {
   companyId           String
   createdAt           DateTime           @default(now())
   customerId          String
+  memberId            String?
+  memberAdressId      String?
   invoice             String
   totalPrice          Float
   unityPrice          Float
@@ -228,6 +250,8 @@ model Buy {
   company             Company            @relation(fields: [companyId], references: [id])
   cultivar            Cultivar           @relation(fields: [cultivarId], references: [id])
   customer            Customer           @relation(fields: [customerId], references: [id])
+  member              Member?            @relation(fields: [memberId], references: [id])
+  memberAdress        MemberAdress?      @relation(fields: [memberAdressId], references: [id])
   cycle               ProductionCycle?   @relation(fields: [cycleId], references: [id])
 }
 
@@ -271,6 +295,8 @@ model SaleExit {
   date               DateTime
   quantityKg         Float
   customerId         String?
+  memberId           String?
+  memberAdressId     String?
   invoiceNumber      String?
   saleValue          Float?
   notes              String?
@@ -287,6 +313,8 @@ model SaleExit {
   company            Company            @relation(fields: [companyId], references: [id])
   cultivar           Cultivar           @relation(fields: [cultivarId], references: [id])
   customer           Customer?          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  member             Member?            @relation(fields: [memberId], references: [id])
+  memberAdress       MemberAdress?      @relation(fields: [memberAdressId], references: [id])
   cycle              ProductionCycle?   @relation(fields: [cycleId], references: [id])
 }
 
@@ -394,6 +422,8 @@ model Purchase {
   unitPrice           Float
   totalPrice          Float
   customerId          String
+  memberId            String?
+  memberAdressId      String?
   notes               String?
   companyId           String
   type                InsumoOperationType @default(COMPRA)
@@ -409,6 +439,8 @@ model Purchase {
   purchaseOrderItem   PurchaseOrderItem?  @relation(fields: [purchaseOrderItemId], references: [id])
   company             Company             @relation(fields: [companyId], references: [id])
   customer            Customer            @relation(fields: [customerId], references: [id])
+  member              Member?             @relation(fields: [memberId], references: [id])
+  memberAdress        MemberAdress?       @relation(fields: [memberAdressId], references: [id])
   cycle               ProductionCycle?    @relation(fields: [cycleId], references: [id])
   farm                Farm                @relation(fields: [farmId], references: [id])
   product             Product             @relation(fields: [productId], references: [id])
@@ -464,11 +496,15 @@ model AccountPayable {
   buyId          String?       @unique
   purchaseId     String?       @unique
   customerId     String
+  memberId       String?
+  memberAdressId String?
   fuelPurchaseId String?       @unique
   maintenanceId  String?       @unique
   buy            Buy?          @relation(fields: [buyId], references: [id])
   company        Company       @relation(fields: [companyId], references: [id])
   customer       Customer      @relation(fields: [customerId], references: [id])
+  member         Member?       @relation(fields: [memberId], references: [id])
+  memberAdress   MemberAdress? @relation(fields: [memberAdressId], references: [id])
   fuelPurchase   FuelPurchase? @relation(fields: [fuelPurchaseId], references: [id])
   maintenance    Maintenance?  @relation(fields: [maintenanceId], references: [id])
   purchase       Purchase?     @relation(fields: [purchaseId], references: [id])
@@ -486,9 +522,13 @@ model AccountReceivable {
   companyId      String
   saleExitId     String?       @unique
   customerId     String
+  memberId       String?
+  memberAdressId String?
   industrySaleId String?       @unique
   company        Company       @relation(fields: [companyId], references: [id])
   customer       Customer      @relation(fields: [customerId], references: [id])
+  member         Member?       @relation(fields: [memberId], references: [id])
+  memberAdress   MemberAdress? @relation(fields: [memberAdressId], references: [id])
   industrySale   IndustrySale? @relation(fields: [industrySaleId], references: [id])
   saleExit       SaleExit?     @relation(fields: [saleExitId], references: [id])
 }
@@ -596,6 +636,8 @@ model IndustrySale {
   product               ProductType
   industryDepositId     String
   customerId            String
+  memberId              String?
+  memberAdressId        String?
   industryTransporterId String?
   truckPlate            String?
   truckDriver           String?
@@ -618,6 +660,8 @@ model IndustrySale {
   saleContractItem      SaleContractItem?    @relation(fields: [saleContractItemId], references: [id])
   company               Company              @relation(fields: [companyId], references: [id])
   customer              Customer             @relation(fields: [customerId], references: [id])
+  member                Member?              @relation(fields: [memberId], references: [id])
+  memberAdress          MemberAdress?        @relation(fields: [memberAdressId], references: [id])
   cycle                 ProductionCycle?     @relation(fields: [cycleId], references: [id])
   industryDeposit       IndustryDeposit      @relation(fields: [industryDepositId], references: [id])
   industryTransporter   IndustryTransporter? @relation(fields: [industryTransporterId], references: [id], onDelete: Restrict)
@@ -671,6 +715,8 @@ model FuelPurchase {
   companyId        String
   tankId           String
   customerId       String
+  memberId         String?
+  memberAdressId   String?
   paymentCondition PaymentCondition?
   dueDate          DateTime?
   date             DateTime          @default(now())
@@ -684,6 +730,8 @@ model FuelPurchase {
   accountPayable   AccountPayable?
   company          Company           @relation(fields: [companyId], references: [id])
   customer         Customer          @relation(fields: [customerId], references: [id])
+  member           Member?           @relation(fields: [memberId], references: [id])
+  memberAdress     MemberAdress?     @relation(fields: [memberAdressId], references: [id])
   tank             FuelTank          @relation(fields: [tankId], references: [id])
 }
 
@@ -708,6 +756,8 @@ model Maintenance {
   companyId        String
   machineId        String
   customerId       String
+  memberId         String?
+  memberAdressId   String?
   paymentCondition PaymentCondition
   dueDate          DateTime?
   date             DateTime         @default(now())
@@ -718,6 +768,8 @@ model Maintenance {
   accountPayable   AccountPayable?
   company          Company          @relation(fields: [companyId], references: [id])
   customer         Customer         @relation(fields: [customerId], references: [id])
+  member           Member?          @relation(fields: [memberId], references: [id])
+  memberAdress     MemberAdress?    @relation(fields: [memberAdressId], references: [id])
   machine          Machine          @relation(fields: [machineId], references: [id])
 }
 
@@ -734,19 +786,23 @@ model Rain {
 }
 
 model SaleContract {
-  id         String             @id @default(cuid())
-  type       SaleContractType
-  date       DateTime
-  document   String?
-  customerId String
-  notes      String?
-  status     ComercialStatus    @default(OPEN)
-  items      SaleContractItem[]
-  companyId  String
-  customer   Customer           @relation(fields: [customerId], references: [id])
-  company    Company            @relation(fields: [companyId], references: [id])
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
+  id             String             @id @default(cuid())
+  type           SaleContractType
+  date           DateTime
+  document       String?
+  customerId     String
+  memberId       String?
+  memberAdressId String?
+  notes          String?
+  status         ComercialStatus    @default(OPEN)
+  items          SaleContractItem[]
+  companyId      String
+  customer       Customer           @relation(fields: [customerId], references: [id])
+  member         Member?            @relation(fields: [memberId], references: [id])
+  memberAdress   MemberAdress?      @relation(fields: [memberAdressId], references: [id])
+  company        Company            @relation(fields: [companyId], references: [id])
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 }
 
 model SaleContractItem {
@@ -768,19 +824,23 @@ model SaleContractItem {
 }
 
 model PurchaseOrder {
-  id         String              @id @default(cuid())
-  type       PurchaseOrderType
-  date       DateTime
-  document   String?
-  customerId String
-  notes      String?
-  status     ComercialStatus     @default(OPEN)
-  items      PurchaseOrderItem[]
-  companyId  String
-  customer   Customer            @relation(fields: [customerId], references: [id])
-  company    Company             @relation(fields: [companyId], references: [id])
-  createdAt  DateTime            @default(now())
-  updatedAt  DateTime            @updatedAt
+  id             String              @id @default(cuid())
+  type           PurchaseOrderType
+  date           DateTime
+  document       String?
+  customerId     String
+  memberId       String?
+  memberAdressId String?
+  notes          String?
+  status         ComercialStatus     @default(OPEN)
+  items          PurchaseOrderItem[]
+  companyId      String
+  customer       Customer            @relation(fields: [customerId], references: [id])
+  member         Member?             @relation(fields: [memberId], references: [id])
+  memberAdress   MemberAdress?       @relation(fields: [memberAdressId], references: [id])
+  company        Company             @relation(fields: [companyId], references: [id])
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 }
 
 model PurchaseOrderItem {
