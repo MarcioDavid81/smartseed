@@ -266,7 +266,7 @@ export async function PUT(
       return updatedPurchase;
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
     console.error("Erro ao atualizar compra:", error);
 
@@ -448,7 +448,7 @@ export async function GET(
       });
     }
 
-    return NextResponse.json(purchase);
+    return NextResponse.json(purchase, { status: 200 });
   } catch (error) {
     console.error("Erro ao buscar compra:", error);
     return new NextResponse("Erro interno no servidor", { status: 500 });
