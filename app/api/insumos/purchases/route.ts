@@ -7,7 +7,6 @@ import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { verifyToken } from "@/lib/auth";
 import { requireAuth } from "@/lib/auth/require-auth";
-import { canCompanyAddPurchase } from "@/lib/permissions/canCompanyAddPurchase";
 import { db } from "@/lib/prisma";
 import { inputPurchaseSchema } from "@/lib/schemas/inputSchema";
 import { PaymentCondition } from "@prisma/client";
@@ -150,6 +149,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const member = await db.member.findUnique({
+      where: { id: data.memberId },
+      select: { id: true, name: true },
+    });
+
+    if (!member) {
+      return NextResponse.json(
+        { error: "Sócio não encontrado" },
+        { status: 404 },
+      );
+    }
+
     const result = await db.$transaction(async (tx) => {
       const purchase = await tx.purchase.create({
         data: {
@@ -161,23 +172,27 @@ export async function POST(req: NextRequest) {
 
       // Atualiza o pedido de compra se houver
       if (purchaseOrderItem) {
-        await tx.purchaseOrderItem.update({
+        const updatedItem = await tx.purchaseOrderItem.update({
           where: { id: purchaseOrderItem.id },
           data: {
             fulfilledQuantity: {
               increment: data.quantity,
             },
           },
+          select: {
+            fulfilledQuantity: true,
+            quantity: true,
+          },
         });
-        await recalcPurchaseOrderStatus(tx, purchaseOrderItem.purchaseOrderId);
-      }
 
-      //Valida se a quantidade do item da remessa não é maior que o saldo do pedido
-      const item = await tx.purchaseOrderItem.findUnique({
-        where: { id: purchaseOrderItemId },
-      });
-      if (Number(item?.fulfilledQuantity) > Number(item?.quantity)) {
-        throw new Error("Quantidade excede o saldo do pedido.");
+        // 🔥 Validação pós-update (consistência dentro da transaction)
+        if (
+          Number(updatedItem.fulfilledQuantity) > Number(updatedItem.quantity)
+        ) {
+          throw new Error("Quantidade excede o saldo do pedido.");
+        }
+
+        await recalcPurchaseOrderStatus(tx, purchaseOrderItem.purchaseOrderId);
       }
 
       // Atualiza/insere o estoque da fazenda
@@ -205,11 +220,13 @@ export async function POST(req: NextRequest) {
       if (data.paymentCondition === PaymentCondition.APRAZO && data.dueDate) {
         await tx.accountPayable.create({
           data: {
-            description: `Compra de ${product?.name ?? "insumo"}, cfe NF ${data.invoiceNumber ?? "S/NF"}, de ${customer?.name ?? "cliente"}`,
+            description: `Compra de ${product?.name ?? "insumo"}, cfe NF ${data.invoiceNumber ?? "S/NF"}, de ${customer?.name ?? "cliente"}, em nome de ${member?.name ?? "sócio"}`,
             amount: data.totalPrice,
             dueDate: new Date(data.dueDate),
             companyId: session.user.companyId,
             customerId: data.customerId,
+            memberId: data.memberId,
+            memberAdressId: data.memberAdressId,
             purchaseId: purchase.id,
           },
         });
@@ -319,11 +336,18 @@ export async function GET(req: NextRequest) {
         product: true,
         farm: true,
         customer: true,
+        member: true,
+        memberAdress: true,
         accountPayable: true,
       },
-      orderBy: {
-        date: "desc",
-      },
+      orderBy: [
+        {
+          date: "desc",
+        },
+        {
+          invoiceNumber: "desc",
+        },
+      ]
     });
 
     return NextResponse.json(purchases, { status: 200 });

@@ -70,6 +70,8 @@ export async function PUT(
     const {
       productId,
       customerId,
+      memberId,
+      memberAdressId,
       date,
       invoiceNumber,
       unitPrice,
@@ -92,7 +94,7 @@ export async function PUT(
       });
     }
 
-    const updated = await db.$transaction(async (tx) => {
+    const result = await db.$transaction(async (tx) => {
       const purchase = await tx.purchase.findUnique({
         where: { id },
         include: {
@@ -184,11 +186,13 @@ export async function PUT(
       }
 
       // 4. Atualizar compra
-      return await tx.purchase.update({
+      const updatedPurchase = await tx.purchase.update({
         where: { id },
         data: {
           productId,
           customerId,
+          memberId,
+          memberAdressId,
           date: new Date(date),
           invoiceNumber,
           unitPrice,
@@ -200,58 +204,78 @@ export async function PUT(
           dueDate: dueDate ? new Date(dueDate) : null,
         },
       });
-    });
-    // Sincronizar AccountPayable
-    if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
-      const product = await db.product.findUnique({
-        where: { id: productId },
-        select: {
-          name: true,
-        },
-      });
-      const customer = await db.customer.findUnique({
-        where: { id: customerId },
-        select: {
-          name: true,
-        },
-      });
-      if (existing.accountPayable) {
-        // Atualiza conta existente
-        await db.accountPayable.update({
-          where: { id: existing.accountPayable.id },
-          data: {
-            description: `Compra de ${product?.name ?? "insumo"}, cfe NF ${invoiceNumber}, de ${customer?.name ?? "cliente"}`,
-            amount: totalPrice,
-            dueDate: new Date(dueDate),
-            customerId,
-          },
-        });
-      } else {
-        // Cria nova conta
-        await db.accountPayable.create({
-          data: {
-            description: `Compra de ${product?.name ?? "insumo"}, cfe NF ${invoiceNumber}, de ${customer?.name ?? "cliente"}`,
-            amount: totalPrice,
-            dueDate: new Date(dueDate),
-            companyId,
-            customerId,
-            purchaseId: updated.id,
-          },
-        });
-      }
-    } else {
-      // Se mudou para AVISTA → apaga a conta vinculada
-      if (existing.accountPayable) {
-        await db.accountPayable.delete({
-          where: { id: existing.accountPayable.id },
-        });
-      }
-    }
 
-    return NextResponse.json(updated);
-  } catch (error) {
+      // 5. Atualizar conta a pagar se houver
+      if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+        const product = await db.product.findUnique({
+          where: { id: productId },
+          select: {
+            name: true,
+          },
+        });
+        const customer = await db.customer.findUnique({
+          where: { id: customerId },
+          select: {
+            name: true,
+          },
+        });
+        const member = await db.member.findUnique({
+          where: { id: memberId },
+          select: {
+            name: true,
+          },
+        });
+
+        const description = `Compra de ${product?.name ?? "insumo"}, cfe NF ${invoiceNumber}, de ${customer?.name ?? "cliente"}, em nome de ${member?.name ?? "sócio"}`;
+
+        if (purchase.accountPayable) {
+          // Atualiza conta existente
+          await tx.accountPayable.update({
+            where: { id: purchase.accountPayable.id },
+            data: {
+              description: description,
+              amount: totalPrice,
+              dueDate: new Date(dueDate),
+              customerId,
+            },
+          });
+        } else {
+          // Cria nova conta
+          await tx.accountPayable.create({
+            data: {
+              description: description,
+              amount: totalPrice,
+              dueDate: new Date(dueDate),
+              companyId,
+              customerId,
+              memberId,
+              memberAdressId,
+              purchaseId: updatedPurchase.id,
+            },
+          });
+        }
+      } else {
+        // Se mudou para AVISTA → apaga a conta vinculada
+        if (purchase.accountPayable) {
+          await tx.accountPayable.delete({
+            where: { id: purchase.accountPayable.id },
+          });
+        }
+      }
+
+      return updatedPurchase;
+    });
+
+    return NextResponse.json(result);
+  } catch (error: any) {
     console.error("Erro ao atualizar compra:", error);
-    return new NextResponse("Erro interno no servidor", { status: 500 });
+
+    return NextResponse.json(
+      {
+        error: error.message ?? "Erro interno no servidor",
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -411,6 +435,8 @@ export async function GET(
       include: {
         product: true, // traz informações do insumo
         customer: true, // traz fornecedor
+        member: true, // traz sócio
+        memberAdress: true, // traz endereço do sócio
         farm: true, // traz fazenda
         accountPayable: true, // traz conta vinculada
       },

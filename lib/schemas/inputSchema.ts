@@ -18,6 +18,8 @@ export const inputPurchaseSchema = z.object({
   unitPrice: z.coerce.number().min(0.01, "Preço unitário é obrigatório"),
   totalPrice: z.coerce.number().min(0.01, "Preço total é obrigatório"),
   customerId: z.string(),
+  memberId: z.string().optional(),
+  memberAdressId: z.string().optional(),
   notes: z.string().optional(),
   farmId: z.string(),
   paymentCondition: z.nativeEnum(PaymentCondition).optional(),
