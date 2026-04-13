@@ -8,3 +8,11 @@ export async function getSeedCultivars(): Promise<Cultivar[]> {
 
   return data;
 }
+
+export async function getSeedCultivarAvailableForSale(): Promise<Cultivar[]> {
+  const data = await apiFetch<Cultivar[]>(
+    "/api/cultivars/available-for-sale"
+  );
+
+  return data;
+}
