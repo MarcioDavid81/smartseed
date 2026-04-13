@@ -102,6 +102,14 @@ export function SaleDataTable<TData, TValue>({
             }
               className="max-w-sm bg-gray-50 text-primary"
             />
+            <Input
+              placeholder="Procure por socio"
+              value={(table.getColumn("member")?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn("member")?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm bg-gray-50 text-primary"
+            />
             {table.getState().columnFilters.length > 0 && (
               <Button
                 variant="ghost"

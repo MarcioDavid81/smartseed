@@ -8,7 +8,6 @@ import { SaleDataTable } from "./SaleDataTable";
 import DeleteSaleButton from "./DeleteSaleButton";
 import UpsertSaleButton from "./UpsertSaleButton";
 import { Sale } from "@/types/sale";
-import DetailSaleButton from "./DetailSaleButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { useSeedSalesByCycle } from "@/queries/seed/use-seed-sale-query";
 import { LoadingData } from "@/components/loading-data";
@@ -79,6 +78,26 @@ export function ListSaleTable() {
           );
         }
         return <span>{customer.name}</span>;
+      },
+    },
+    {
+      id: "member",
+      header: "Sócio",
+      accessorFn: (row) => row.member?.name,
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const member = row.original.member;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!member) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem socio
+            </span>
+          );
+        }
+        return <span>{member.name.split(" ")[0]}</span>;
       },
     },
     {
