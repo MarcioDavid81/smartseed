@@ -82,6 +82,26 @@ export function ListBuyTable() {
       },
     },
     {
+      id: "member",
+      header: "Sócio",
+      accessorFn: (row) => row.member?.name,
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const member = row.original.member;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!member) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem socio
+            </span>
+          );
+        }
+        return <span>{member.name.split(" ")[0]}</span>;
+      },
+    },
+    {
       accessorKey: "invoice",
       header: "Nota Fiscal",
       cell: ({ row: { original } }) => original.invoice,
