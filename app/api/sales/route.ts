@@ -1,6 +1,9 @@
 import { recalcSaleContractStatus } from "@/app/_helpers/recalculateSaleContractStatus";
 import { validateStock } from "@/app/_helpers/validateStock";
-import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control";
+import {
+  ForbiddenPlanError,
+  PlanLimitReachedError,
+} from "@/core/access-control";
 import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { verifyToken } from "@/lib/auth";
@@ -149,6 +152,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const member = await db.member.findUnique({
+      where: { id: data.memberId },
+      select: { id: true, name: true },
+    });
+
+    if (!member) {
+      return NextResponse.json(
+        { error: "Sócio não encontrado" },
+        { status: 404 },
+      );
+    }
+
     // 🔄 Tudo dentro de uma transação para garantir integridade
     const result = await db.$transaction(async (tx) => {
       // 1️⃣ Cria o registro da venda
@@ -162,23 +177,27 @@ export async function POST(req: NextRequest) {
 
       // 2️⃣ Atualiza o contrato de venda se houver
       if (saleContractItem) {
-        await tx.saleContractItem.update({
+        const updatedItem = await tx.saleContractItem.update({
           where: { id: saleContractItem.id },
           data: {
             fulfilledQuantity: {
               increment: data.quantityKg,
             },
           },
+          select: {
+            fulfilledQuantity: true,
+            quantity: true,
+          },
         });
-        await recalcSaleContractStatus(tx, saleContractItem.saleContractId);
-      }
 
-      //Valida se a quantidade do item da remessa não é maior que o saldo do pedido
-      const item = await tx.saleContractItem.findUnique({
-        where: { id: saleContractItemId },
-      });
-      if (Number(item?.fulfilledQuantity) > Number(item?.quantity)) {
-        throw new Error("Quantidade excede o saldo do pedido.");
+        // 🔥 Validação pós-update (consistência dentro da transaction)
+        if (
+          Number(updatedItem.fulfilledQuantity) > Number(updatedItem.quantity)
+        ) {
+          throw new Error("Quantidade excede o saldo do pedido.");
+        }
+
+        await recalcSaleContractStatus(tx, saleContractItem.saleContractId);
       }
 
       // 3️⃣ Atualiza o estoque da cultivar (decrementa)
@@ -193,11 +212,13 @@ export async function POST(req: NextRequest) {
       if (data.paymentCondition === PaymentCondition.APRAZO && data.dueDate) {
         await tx.accountReceivable.create({
           data: {
-            description: `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${data.invoiceNumber ?? "S/NF"}, para ${customer?.name ?? "cliente"}`,
+            description: `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${data.invoiceNumber ?? "S/NF"}, para ${customer?.name ?? "cliente"}, em nome de ${member?.name ?? "sócio"}`,
             amount: data.saleValue,
             dueDate: new Date(data.dueDate),
             companyId: session.user.companyId,
             customerId: data.customerId,
+            memberId: data.memberId,
+            memberAdressId: data.memberAdressId,
             saleExitId: sale.id,
           },
         });
@@ -270,23 +291,9 @@ export async function POST(req: NextRequest) {
  *         description: Token ausente ou inválido
  */
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   try {
     const sales = await db.saleExit.findMany({
@@ -297,6 +304,22 @@ export async function GET(req: NextRequest) {
         },
         customer: {
           select: { id: true, name: true },
+        },
+        member: {
+          select: { id: true, name: true, email: true, phone: true, cpf: true },
+        },
+        memberAdress: {
+          select: {
+            id: true,
+            stateRegistration: true,
+            zip: true,
+            adress: true,
+            number: true,
+            complement: true,
+            district: true,
+            state: true,
+            city: true,
+          },
         },
         accountReceivable: {
           select: { id: true, status: true, dueDate: true },

@@ -4,6 +4,8 @@ import { z } from "zod";
 export const seedSaleSchema = z.object({
   cultivarId: z.string().min(1, "Selecione uma cultivar"),
   customerId: z.string().min(1, "Selecione um talhão"),
+  memberId: z.string().optional(),
+  memberAdressId: z.string().optional(),
   date: z.coerce.date(),
   invoiceNumber: z.string().min(1, "Informe a nota fiscal"),
   quantityKg: z.coerce.number().min(1, "Quantidade é obrigatória"),

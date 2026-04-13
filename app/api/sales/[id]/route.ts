@@ -69,6 +69,8 @@ export async function PUT(
       date,
       quantityKg,
       customerId,
+      memberId,
+      memberAdressId,
       invoiceNumber,
       saleValue,
       notes,
@@ -79,6 +81,10 @@ export async function PUT(
     // ✅ Tratamento de campos opcionais
     const parsedCustomerId =
       customerId && customerId !== "" ? customerId : null;
+    const parsedMemberId =
+      memberId && memberId !== "" ? memberId : null;
+    const parsedMemberAdressId =
+      memberAdressId && memberAdressId !== "" ? memberAdressId : null;
     const parsedInvoiceNumber =
       invoiceNumber && invoiceNumber !== "" ? invoiceNumber : null;
     const parsedSaleValue =
@@ -167,6 +173,8 @@ export async function PUT(
           date: new Date(date),
           quantityKg: Number(quantityKg),
           customerId: parsedCustomerId,
+          memberId: parsedMemberId,
+          memberAdressId: parsedMemberAdressId,
           invoiceNumber: parsedInvoiceNumber,
           saleValue: parsedSaleValue,
           notes: parsedNotes,
@@ -188,8 +196,17 @@ export async function PUT(
             name: true,
           },
         });
+        const member = await db.member.findUnique({
+          where: { id: memberId },
+          select: {
+            name: true,
+            email: true,
+            phone: true,
+            cpf: true,
+          },
+        });
 
-        const description = `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${invoiceNumber}, para ${customer?.name ?? "cliente"}`;
+        const description = `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${invoiceNumber}, para ${customer?.name ?? "cliente"}, em nome de ${member?.name ?? "socio"}`;
 
         if (sale.accountReceivable) {
           await tx.accountReceivable.update({
@@ -209,6 +226,8 @@ export async function PUT(
               dueDate: new Date(dueDate),
               companyId: sale.companyId,
               customerId,
+              memberId,
+              memberAdressId,
               saleExitId: updatedSale.id,
             },
           });
@@ -398,6 +417,8 @@ export async function GET(
       where: { id },
       include: {
         customer: true,
+        member: true,
+        memberAdress: true,
         cultivar: true,
         accountReceivable: true,
       },
