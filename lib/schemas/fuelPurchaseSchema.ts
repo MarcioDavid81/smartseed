@@ -9,6 +9,8 @@ export const fuelPurchaseSchema = z.object({
   unitPrice: z.coerce.number().min(0.01, "Preço unitário é obrigatório"),
   totalValue: z.coerce.number().min(1, "Preço total é obrigatório"),
   customerId: z.string().min(1, "Cliente é obrigatório"),
+  memberId: z.string().optional(),
+  memberAdressId: z.string().optional(),
   tankId: z.string().min(1, "Tanque é obrigatório"),
   paymentCondition: z.nativeEnum(PaymentCondition).optional(),
   dueDate: z.coerce.date().optional(),

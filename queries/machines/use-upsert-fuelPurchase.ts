@@ -35,6 +35,9 @@ export function useUpsertFuelPurchase({ fuelPurchaseId }: Params) {
       queryClient.invalidateQueries({
         queryKey: ["fuelPurchases"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["fuelTanks"],
+      });
     },
   });
 }

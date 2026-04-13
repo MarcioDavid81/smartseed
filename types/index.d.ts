@@ -14,6 +14,7 @@ export {CycleDetails} from "./cycleDetails";
 export * from "./farm";
 export * from "./finalStock";
 export * from "./fuelPurchase";
+export * from "./fuelPurchaseDetails";
 export * from "./fuelTank";
 export * from "./harvest";
 export * from "./harvestRomaneio";

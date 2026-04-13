@@ -1,10 +1,18 @@
-import { FuelPurchase } from "@/types";
+import { FuelPurchase, FuelPurchaseDetails } from "@/types";
 import { apiFetch } from "../api";
 import { FuelPurchaseFormData } from "@/lib/schemas/fuelPurchaseSchema";
 
 export async function getFuelPurchase(): Promise<FuelPurchase[]> {
   const data = await apiFetch<FuelPurchase[]>(
     "/api/machines/fuel-purchase"
+  );
+
+  return data;
+}
+
+export async function getFuelPurchaseById(fuelPurchaseId: string): Promise<FuelPurchaseDetails> {
+  const data = await apiFetch<FuelPurchaseDetails>(
+    `/api/machines/fuel-purchase/${fuelPurchaseId}`
   );
 
   return data;

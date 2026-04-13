@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { fuelPurchaseSchema } from "@/lib/schemas/fuelPurchaseSchema";
 import { db } from "@/lib/prisma";
@@ -6,8 +6,12 @@ import { PaymentCondition } from "@prisma/client";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import {
+  ForbiddenPlanError,
+  PlanLimitReachedError,
+} from "@/core/access-control";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
@@ -60,11 +64,34 @@ export async function POST(req: Request) {
       );
     }
 
-    const fuelPurchase = await db.$transaction(async (tx) => {
-      const createdPurchase = await tx.fuelPurchase.create({
+    const customer = await db.customer.findUnique({
+      where: { id: data.customerId },
+      select: { id: true, name: true },
+    });
+
+    if (!customer) {
+      return NextResponse.json(
+        { error: "Cliente não encontrado" },
+        { status: 404 },
+      );
+    }
+
+    const member = await db.member.findUnique({
+      where: { id: data.memberId },
+      select: { id: true, name: true },
+    });
+
+    if (!member) {
+      return NextResponse.json(
+        { error: "Sócio não encontrado" },
+        { status: 404 },
+      );
+    }
+
+    const result = await db.$transaction(async (tx) => {
+      const fuelPurchase = await tx.fuelPurchase.create({
         data: {
           ...data,
-          date: new Date(data.date),
           companyId: session.user.companyId,
         },
       });
@@ -81,74 +108,70 @@ export async function POST(req: Request) {
       });
 
       if (data.paymentCondition === PaymentCondition.APRAZO && data.dueDate) {
-        const customer = await tx.customer.findUnique({
-          where: {
-            id: data.customerId,
-          },
-          select: { name: true },
-        });
-        const document = data.invoiceNumber ?? "S/NF";
-        const customerName = customer?.name ?? "cliente";
-
         await tx.accountPayable.create({
           data: {
-            description: `Compra de combustível, cfe NF ${document}, de ${customerName}`,
+            description: `Compra de combustível, cfe NF ${fuelPurchase.invoiceNumber}, de ${customer?.name ?? "cliente"}, em nome de ${member?.name ?? "sócio"}`,
             amount: data.totalValue,
             dueDate: new Date(data.dueDate),
             companyId: session.user.companyId,
             customerId: data.customerId,
-            fuelPurchaseId: createdPurchase.id,
+            memberId: data.memberId,
+            memberAdressId: data.memberAdressId,
+            fuelPurchaseId: fuelPurchase.id,
           },
         });
       }
 
-      return createdPurchase;
+      return fuelPurchase;
     });
 
-    return NextResponse.json(fuelPurchase, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.log("Erro ao criar compra de combustível:", error);
+    console.error("Erro ao criar compra:", error);
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
     return NextResponse.json(
-      { error: "Erro ao criar compra de combustível" },
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
       { status: 500 },
     );
   }
 }
 
-export async function GET(req: Request) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+export async function GET(req: NextRequest) {
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   try {
     const fuelPurchases = await db.fuelPurchase.findMany({
       where: { companyId },
       include: {
-        customer: {
-          select: { id: true, name: true },
-        },
-        accountPayable: {
-          select: { id: true, amount: true, dueDate: true },
-        },
-        tank: {
-          select: { id: true, name: true, stock: true },
-        },
+        customer: true,
+        member: true,
+        memberAdress: true,
+        accountPayable: true,
+        tank: true,
       },
-      orderBy: [{ date: "desc" }, { invoiceNumber: "desc" }],
+      orderBy: [
+        {
+          date: "desc",
+        },
+        {
+          invoiceNumber: "desc",
+        },
+      ],
     });
 
     return NextResponse.json(fuelPurchases, { status: 200 });
