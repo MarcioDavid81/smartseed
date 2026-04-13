@@ -71,9 +71,7 @@ const UpsertBuyModal = ({
   const { showToast } = useSmartToast();
   const cycle = getCycle();
 
-  const suggestedQuantityKg =
-    initialQuantityKg ?? maxQuantityKg ?? undefined;
-
+  const suggestedQuantityKg = initialQuantityKg ?? maxQuantityKg ?? undefined;
   const customerPlaceholder = customerName ?? "Selecione um fornecedor";
 
   const form = useForm<BuyFormData>({
@@ -468,7 +466,7 @@ const UpsertBuyModal = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="paymentCondition"
@@ -518,19 +516,21 @@ const UpsertBuyModal = ({
               )}
             </div>
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observações</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Opcional" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observações</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Opcional" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <Button
               type="submit"

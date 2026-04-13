@@ -12,6 +12,7 @@ import { AgroLoader } from "@/components/agro-loader";
 import { useInputPurchaseQuery } from "@/queries/input/use-input-purchase";
 import { LoadingData } from "@/components/loading-data";
 import { InputPurchaseDetailButton } from "./InputPurchaseDetailButton";
+import { QuantityInput } from "@/components/inputs";
 
 export function ListPurchaseTable() {
 
@@ -82,6 +83,26 @@ export function ListPurchaseTable() {
       },
     },
     {
+      id: "member",
+      header: "Sócio",
+      accessorFn: (row) => row.member?.name,
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const member = row.original.member;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!member) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem socio
+            </span>
+          );
+        }
+        return <span>{member.name.split(" ")[0]}</span>;
+      },
+    },
+    {
       accessorKey: "invoiceNumber",
       header: "Nota Fiscal",
       cell: ({ row: { original: original } }) => original.invoiceNumber,
@@ -90,7 +111,7 @@ export function ListPurchaseTable() {
       accessorKey: 'quantity',
       header: () => <div className="text-left">Quantidade</div>,
       cell: ({ row }) => {
-        const peso = row.original.quantity;
+        const quantity = row.original.quantity;
         const product = row.original.product;
 
         if ((row.original as any)._optimistic || product === undefined) {
@@ -109,7 +130,7 @@ export function ListPurchaseTable() {
             {new Intl.NumberFormat('pt-BR', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            }).format(peso)}{' '}
+            }).format(quantity)}{' '}
             {unit.toLocaleLowerCase()}
           </span>
         );
@@ -172,7 +193,7 @@ export function ListPurchaseTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <PurchaseDataTable columns={columns} data={inputPurchases} />
+        <PurchaseDataTable columns={columns} data={inputPurchases} sumColumnIds={["quantity", "totalPrice"]} />
       )}
     </Card>
   );

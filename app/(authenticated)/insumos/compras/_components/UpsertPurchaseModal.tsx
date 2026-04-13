@@ -40,6 +40,7 @@ import { useFarms } from "@/queries/registrations/use-farm";
 import { useInputProductQuery } from "@/queries/input/use-input";
 import { useCustomers } from "@/queries/registrations/use-customer";
 import { PRODUCT_CLASS_OPTIONS } from "@/app/(authenticated)/_constants/insumos";
+import { useMembers } from "@/queries/registrations/use-member";
 
 interface UpsertPurchaseModalProps {
   compra?: Purchase;
@@ -78,6 +79,8 @@ const UpsertPurchaseModal = ({
     defaultValues: {
       date: compra?.date ? new Date(compra.date) : new Date(),
       customerId: compra?.customerId ?? customerId ?? "",
+      memberId: compra?.memberId ?? "",
+      memberAdressId: compra?.memberAdressId ?? "",
       productId: compra?.productId ?? productId ?? "",
       invoiceNumber: compra?.invoiceNumber ?? "",
       quantity: compra?.quantity ?? suggestedQuantity ?? 0,
@@ -108,6 +111,8 @@ const UpsertPurchaseModal = ({
       form.reset({
         date: compra?.date ? new Date(compra.date) : new Date(),
         customerId: compra.customerId,
+        memberId: compra.memberId ?? "",
+        memberAdressId: compra.memberAdressId ?? "",
         productId: compra.productId,
         invoiceNumber: compra.invoiceNumber,
         quantity: compra.quantity,
@@ -142,7 +147,10 @@ const UpsertPurchaseModal = ({
   const { data: farms = [] } = useFarms();
   const { data: products = [] } = useInputProductQuery();
   const { data: customers = [] } = useCustomers();
-
+  const { data: members = [] } = useMembers();
+  const memberId = form.watch("memberId");
+  const selectedMember = members.find(m => m.id === memberId);
+  const addresses = selectedMember?.adresses ?? [];
 
    const { mutate, isPending } = useUpsertInputPurchase({
      purchaseId: compra?.id,
@@ -234,7 +242,7 @@ const UpsertPurchaseModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[750px]">
+      <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Compra
@@ -249,10 +257,107 @@ const UpsertPurchaseModal = ({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Produto */}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+            {/* Data, Nota Fiscal */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data</FormLabel>
+                      <FormControl>
+                        <DatePicker value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Nota Fiscal */}
+                <FormField
+                  control={form.control}
+                  name="invoiceNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nota Fiscal</FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            </div>
+
+            {/* Sócio, Endereço */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="memberId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel> Sócio</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!!purchaseOrderItemId}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma socio" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {members.map((member) => (
+                          <SelectItem key={member.id} value={member.id}>
+                            <div className="flex justify-between gap-2">
+                              <span>{member.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="memberAdressId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Inscrição Estadual</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!!purchaseOrderItemId || !memberId || addresses.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma inscrição estadual" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {addresses.map((memberAdress) => (
+                          <SelectItem key={memberAdress.id} value={memberAdress.id}>
+                            <div className="flex justify-between gap-2">
+                              <span>{memberAdress.stateRegistration}</span>
+                              <span className="text-muted-foreground">
+                                {memberAdress.district}, {memberAdress.city} - {memberAdress.state}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+              {/* Produto, Fornecedor */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="productId"
@@ -329,39 +434,8 @@ const UpsertPurchaseModal = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {/* Data */}
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data</FormLabel>
-                      <FormControl>
-                        <DatePicker value={field.value} onChange={field.onChange} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {/* Nota Fiscal */}
-                <FormField
-                  control={form.control}
-                  name="invoiceNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nota Fiscal</FormLabel>
-                      <FormControl>
-                        <Input type="text" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                {/* Quantidade */}
+              {/* Quantidade, Preço e Valor Total */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="quantity"
@@ -373,7 +447,7 @@ const UpsertPurchaseModal = ({
                     />
                   )}
                 />               
-                {/* Preço Unitário */}
+
                 <FormField
                   control={form.control}
                   name="unitPrice"
@@ -385,7 +459,7 @@ const UpsertPurchaseModal = ({
                     />
                   )}
                 />
-              {/* Valor Total */}
+
                 <FormField
                   control={form.control}
                   name="totalPrice"
@@ -395,36 +469,38 @@ const UpsertPurchaseModal = ({
                 />
               </div>
 
-
               {/* Fazenda */}
-              <FormField
-                control={form.control}
-                name="farmId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Depósito</FormLabel>
-                    <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um depósito" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {farms.map((farm) => (
-                              <SelectItem key={farm.id} value={farm.id}>
-                                {farm.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {/* Condição de Pagamento */}
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <FormField
+                  control={form.control}
+                  name="farmId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Depósito</FormLabel>
+                      <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione um depósito" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {farms.map((farm) => (
+                                <SelectItem key={farm.id} value={farm.id}>
+                                  {farm.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Condição de Pagamento, Data de Vencimento */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="paymentCondition"
@@ -473,19 +549,21 @@ const UpsertPurchaseModal = ({
               </div>
 
               {/* Observações */}
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observações</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Opcional" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div>
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Observações</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Opcional" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <Button
                 type="submit"
@@ -495,7 +573,6 @@ const UpsertPurchaseModal = ({
               >
                 {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
-            </div>
           </form>
         </Form>
       </DialogContent>
