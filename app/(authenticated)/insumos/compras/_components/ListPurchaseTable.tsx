@@ -12,7 +12,6 @@ import { AgroLoader } from "@/components/agro-loader";
 import { useInputPurchaseQuery } from "@/queries/input/use-input-purchase";
 import { LoadingData } from "@/components/loading-data";
 import { InputPurchaseDetailButton } from "./InputPurchaseDetailButton";
-import { QuantityInput } from "@/components/inputs";
 
 export function ListPurchaseTable() {
 

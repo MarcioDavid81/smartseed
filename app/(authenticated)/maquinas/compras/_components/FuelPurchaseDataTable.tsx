@@ -16,6 +16,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -33,6 +34,8 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   pageSize?: number;
   searchFields?: string[];
+  sumColumnIds?: string[]; // Mudado para array
+  sumLabels?: string[]; // Labels para cada soma
 }
 
 export function FuelPurchaseDataTable<TData, TValue>({
@@ -40,6 +43,8 @@ export function FuelPurchaseDataTable<TData, TValue>({
   data,
   pageSize = 8,
   searchFields = [],
+  sumColumnIds = [],
+  sumLabels = [],
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
@@ -70,29 +75,60 @@ export function FuelPurchaseDataTable<TData, TValue>({
     }
   });
 
+  const filteredRows = table.getFilteredRowModel().rows;
+  
+  // Calcular soma para múltiplas colunas
+  const sums = sumColumnIds.map(columnId => {
+    const total = filteredRows.reduce((acc, row) => {
+      const raw = row.getValue(columnId as any);
+      const num = typeof raw === "number" ? raw : Number(raw);
+      return acc + (isNaN(num) ? 0 : num);
+    }, 0);
+    return total;
+  });
+
+  // Determinar quantas colunas ocupar no footer
+  const footerColSpan = columns.length - (sumColumnIds.length * 2);
+
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between py-4">
         <div className="flex items-center gap-2">
           <Input
-            placeholder="Procure por cliente"
+            placeholder="Procure por fornecedor"
             value={(table.getColumn("customer")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("customer")?.setFilterValue(event.target.value)
             }
-            className="w-full md:max-w-sm bg-gray-50 text-primary"
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
+            placeholder="Procure por sócio"
+            value={(table.getColumn("member")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("member")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
+            placeholder="Procure por tanque"
+            value={(table.getColumn("tank")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("tank")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm bg-gray-50 text-primary"
           />
           {table.getState().columnFilters.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => table.resetColumnFilters()}
-                  className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
-                >
-                  <FunnelX size={14} />
-                  Limpar filtros
-                </Button>
-              )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => table.resetColumnFilters()}
+              className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+            >
+              <FunnelX size={14} />
+              Limpar filtros
+            </Button>
+          )}
         </div>
         <CreateFuelPurchaseButton />
       </div>
@@ -139,6 +175,48 @@ export function FuelPurchaseDataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            {sumColumnIds.length > 0 && (
+              <TableRow>
+                <TableCell 
+                  colSpan={footerColSpan} 
+                  className="text-start text-muted-foreground font-medium"
+                >
+                  Totais:
+                </TableCell>
+                {sumColumnIds.map((columnId, index) => {
+                  const label = sumLabels[index] || columnId;
+                  const value = sums[index];
+                  const isCurrency = label.toLowerCase().includes('value') || columnId.toLowerCase().includes('value');
+                  
+                  return (
+                    <TableCell 
+                      key={columnId}
+                      colSpan={2} 
+                      className="text-start text-muted-foreground"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {isCurrency 
+                            ? new Intl.NumberFormat("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }).format(value)
+                            : new Intl.NumberFormat("pt-BR", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }).format(value)
+                          }
+                        </span>
+                      </div>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            )}
+          </TableFooter>
         </Table>
       </div>
 

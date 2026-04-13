@@ -1,13 +1,13 @@
 "use client";
 
-import { PRODUCT_CLASS_LABELS } from "@/app/(authenticated)/_constants/insumos";
 import { formatCurrency, formatNumber } from "@/app/_helpers/currency";
 import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useInputPurchase } from "@/queries/input/use-input-purchase";
-import { PurchaseDetails } from "@/types";
+import { useFuelPurchaseById } from "@/queries/machines/use-fuelPurchase-query";
+import { FuelPurchaseDetails } from "@/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CornerDownLeft } from "lucide-react";
@@ -30,20 +30,19 @@ function Field({
   );
 }
 
-function MainDataSection({ data }: { data: PurchaseDetails }) {
+function MainDataSection() {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Dados</span> Principais</h2>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <Field label="Produto" value={data.product.name} />
-        <Field label="Classe" value={PRODUCT_CLASS_LABELS[data.product.class]} />
+        <Field label="Produto" value={"Óleo Diesel"} />
       </div>
     </section>
   );
 }
 
-function MemberSection({ data }: { data: PurchaseDetails }) {
+function MemberSection({ data }: { data: FuelPurchaseDetails }) {
   const m = data.member;
   const mA = data.memberAdress;
 
@@ -76,7 +75,7 @@ function MemberSection({ data }: { data: PurchaseDetails }) {
   );
 }
 
-function CustomerSection({ data }: { data: PurchaseDetails }) {
+function CustomerSection({ data }: { data: FuelPurchaseDetails }) {
   const c = data.customer;
 
   return (
@@ -95,25 +94,25 @@ function CustomerSection({ data }: { data: PurchaseDetails }) {
   );
 }
 
-function WeightSection({ data }: { data: PurchaseDetails }) {
+function WeightSection({ data }: { data: FuelPurchaseDetails }) {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Deta</span>lhes</h2>
       <div className="grid md:grid-cols-2 gap-6">
-        <Field label="Quantidade" value={formatNumber(data.quantity) + " " + data.product.unit} />
+        <Field label="Quantidade" value={formatNumber(data.quantity)} />
       </div>
     </section>
   );
 }
 
-function FinancialSection({ data }: { data: PurchaseDetails }) {
+function FinancialSection({ data }: { data: FuelPurchaseDetails }) {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Finan</span>ceiro</h2>
 
       <div className="grid md:grid-cols-3 gap-6">
         <Field label="Preço unitário" value={formatCurrency(data.unitPrice)} />
-        <Field label="Valor total" value={formatCurrency(data.totalPrice)} />
+        <Field label="Valor total" value={formatCurrency(data.totalValue)} />
         <Field
           label="Vencimento"
           value={
@@ -132,11 +131,11 @@ type Props = {
   id: string;
 };
 
-export function InputPurchaseDetailsView({ id }: Props) {
-  const { data, isLoading } = useInputPurchase(id);
+export function FuelPurchaseDetailsView({ id }: Props) {
+  const { data, isLoading } = useFuelPurchaseById(id);
   const router = useRouter();
   const handleReturn = () => {
-    router.push("/insumos/compras");
+    router.push("/maquinas/compras");
   }
 
   if (isLoading) return <AgroLoader />;
@@ -160,7 +159,7 @@ export function InputPurchaseDetailsView({ id }: Props) {
 
         <CardContent className="space-y-6">
 
-          <MainDataSection data={data} />
+          <MainDataSection />
           <Separator />
 
           <MemberSection data={data} />

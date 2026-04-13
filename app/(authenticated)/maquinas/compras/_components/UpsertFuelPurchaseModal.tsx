@@ -13,17 +13,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
 import { FuelPurchaseFormData, fuelPurchaseSchema } from "@/lib/schemas/fuelPurchaseSchema";
+import { useFuelTank } from "@/queries/machines/use-fuelTank-query";
 import { useUpsertFuelPurchase } from "@/queries/machines/use-upsert-fuelPurchase";
-import {
-  Customer,
-  FuelPurchase,
-  FuelTank
-} from "@/types";
+import { useCustomers } from "@/queries/registrations/use-customer";
+import { useMembers } from "@/queries/registrations/use-member";
+import { FuelPurchase } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PaymentCondition } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 
@@ -38,9 +36,6 @@ const UpsertFuelPurchaseModal = ({
   isOpen,
   onClose,
 }: UpsertFuelPurchaseModalProps) => {
-  
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [tanks, setTanks] = useState<FuelTank[]>([]);
   const { showToast } = useSmartToast();
 
   const form = useForm<FuelPurchaseFormData>({
@@ -87,29 +82,12 @@ const UpsertFuelPurchaseModal = ({
     }
   }, [compra, isOpen, form]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
-
-      const [tankRes, customerRes] = await Promise.all([
-        fetch("/api/machines/fuel-tank", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/customers", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      const [tankData, customerData] = await Promise.all([
-        tankRes.json(),
-        customerRes.json(),
-      ]);
-      setTanks(tankData);
-      setCustomers(customerData);
-    };
-
-    if (isOpen) fetchData();
-  }, [isOpen]);
+  const { data: customers = [] } = useCustomers();
+  const { data: tanks = [] } = useFuelTank();
+  const { data: members = [] } = useMembers();
+  const memberId = form.watch("memberId");
+  const selectedMember = members.find(m => m.id === memberId);
+  const addresses = selectedMember?.adresses ?? [];
   
   const { mutate, isPending } = useUpsertFuelPurchase({
     fuelPurchaseId: compra?.id,
@@ -145,7 +123,7 @@ const UpsertFuelPurchaseModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle>Compra</DialogTitle>
           <DialogDescription>
@@ -153,120 +131,191 @@ const UpsertFuelPurchaseModal = ({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid gap-4">
-              <div className="grid grid-cols-4 gap-4">
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Data</FormLabel>
-                        <FormControl>
-                          <DatePicker value={field.value} onChange={field.onChange} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="invoiceNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nota Fiscal</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="col-span-2">
-                  {/* Cliente */}
-                  <FormField
-                    control={form.control}
-                    name="customerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cliente</FormLabel>
-                        <FormControl>
-                          <ComboBoxOption
-                            options={customers.map((c) => ({
-                              label: c.name,
-                              value: c.id,
-                            }))}
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="Selecione um cliente"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+            {/* Data, Nota Fiscal */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data</FormLabel>
+                    <FormControl>
+                      <DatePicker value={field.value} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="invoiceNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nota Fiscal</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-              {/* Tanque, Quantidade e Preço Unitário */}
-              <div className="grid grid-cols-4 gap-4">
-                <div className="grid col-span-2">
-                  <FormField
-                    control={form.control}
-                    name="tankId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tanque</FormLabel>
-                        <FormControl>
-                          <ComboBoxOption
-                            options={tanks.map((t) => ({
-                              label: t.name,
-                              value: t.id,
-                            }))}
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="Selecione um tanque"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="quantity"
-                    render={({ field }) => (
-                      <QuantityInput label="Quantidade" field={field} suffix=" L" />
-                    )}
-                  />
-              </div>
-              <div>
-                <FormField
-                  control={form.control}
-                  name="unitPrice"
-                  render={({ field }) => (
-                    <MoneyInput label="Preço Unitário" field={field} />
-                  )}
-                />
-              </div>
-              </div>
+            {/* Sócio, Endereço */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="memberId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel> Sócio</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma socio" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {members.map((member) => (
+                          <SelectItem key={member.id} value={member.id}>
+                            <div className="flex justify-between gap-2">
+                              <span>{member.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="memberAdressId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Inscrição Estadual</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!memberId || addresses.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma inscrição estadual" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {addresses.map((memberAdress) => (
+                          <SelectItem key={memberAdress.id} value={memberAdress.id}>
+                            <div className="flex justify-between gap-2">
+                              <span>{memberAdress.stateRegistration}</span>
+                              <span className="text-muted-foreground">
+                                {memberAdress.district}, {memberAdress.city} - {memberAdress.state}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Cliente, Tanque */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Cliente */}
+              <FormField
+                control={form.control}
+                name="customerId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cliente</FormLabel>
+                    <FormControl>
+                      <ComboBoxOption
+                        options={customers.map((c) => ({
+                          label: c.name,
+                          value: c.id,
+                        }))}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Selecione um cliente"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="tankId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tanque</FormLabel>
+                    <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um tanque" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {tanks.map((tank) => (
+                          <SelectItem key={tank.id} value={tank.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{tank.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {tank.stock} L
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Quantidade, Preço e Valor Total */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <QuantityInput label="Quantidade" field={field} suffix=" L" />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="unitPrice"
+                render={({ field }) => (
+                  <MoneyInput label="Preço Unitário" field={field} />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="totalValue"
+                render={({ field }) => (
+                  <MoneyInput label="Preço Total" field={field} readonly />
+                )}
+              />
+            </div>
 
 
-              {/* Condição de Pagamento (FormField + condicional APRAZO) */}
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="totalValue"
-                  render={({ field }) => (
-                    <MoneyInput label="Preço Total" field={field} readonly />
-                  )}
-                />
+              {/* Condição de Pagamento, Data de Vencimento */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="paymentCondition"
@@ -315,7 +364,6 @@ const UpsertFuelPurchaseModal = ({
               >
                 {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
-            </div>
           </form>
         </Form>
       </DialogContent>

@@ -13,6 +13,7 @@ import DeleteFuelPurchaseButton from "./DeleteFuelPurchaseButton";
 import { useFuelPurchase } from "@/queries/machines/use-fuelPurchase-query";
 import EditFuelPurchaseButton from "./EditFuelPurchaseButton";
 import { FuelPurchaseDataTable } from "./FuelPurchaseDataTable";
+import { FuelPurchaseDetailButton } from "./FuelPurchaseDetailButton";
 
 export function ListFuelPurchaseTable() {
   const { user } = useUser();
@@ -47,13 +48,66 @@ export function ListFuelPurchaseTable() {
       cell: ({ row: { original } }) => original.invoiceNumber,
     },
     {
-      accessorKey: "customer",
-      header: "Cliente",
-      cell: ({ row: { original } }) => <div className="text-left">{original.customer?.name ? (original.customer.name) : <LoadingData />}</div>,
+      id: "customer",
+      header: "Fornecedor",
+      accessorFn: (row) => row.customer?.name ?? "",
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const fornecedor = row.original.customer;
+         if ((row.original as any)._optimistic || fornecedor === undefined) {
+          return <LoadingData />;
+        }
+           
+        if (!fornecedor) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              -
+            </span>
+          );
+        }
+      return <span>{fornecedor.name}</span>;
+      },
     },
     {
-      accessorKey: "fuelTank",
+      id: "member",
+      header: "Sócio",
+      accessorFn: (row) => row.member?.name,
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const member = row.original.member;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!member) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem socio
+            </span>
+          );
+        }
+        return <span>{member.name.split(" ")[0]}</span>;
+      },
+    },
+    {
+      accessorKey: "quantity",
+      header: () => <div className="text-left">Quantidade (lt)</div>,
+      cell: ({ row }) => {
+        const quantity = row.original.quantity;
+        return (
+          <div className="text-left">
+            {new Intl.NumberFormat("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(quantity)}
+          </div>
+        );
+      },
+    },
+    {
+      id: "tank",
       header: () => <div className="text-left">Tanque de Combustível</div>,
+      accessorFn: (row) => row.tank?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row }) => {
         const fuelTank = row.original.tank;
 
@@ -73,16 +127,16 @@ export function ListFuelPurchaseTable() {
       },
     },
     {
-      accessorKey: "quantity",
-      header: () => <div className="text-left">Quantidade (lt)</div>,
+      accessorKey: "totalValue",
+      header: () => <div className="text-left">Total</div>,
       cell: ({ row }) => {
-        const quantity = row.original.quantity;
+        const valor = row.original.totalValue;
         return (
           <div className="text-left">
             {new Intl.NumberFormat("pt-BR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(quantity)}
+              style: "currency",
+              currency: "BRL",
+            }).format(valor)}
           </div>
         );
       },
@@ -94,6 +148,7 @@ export function ListFuelPurchaseTable() {
         const compra = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
+            <FuelPurchaseDetailButton id={compra.id} />
             <EditFuelPurchaseButton compra={compra} />
             <DeleteFuelPurchaseButton compra={compra} disabled={!canDelete} />
           </div>
@@ -113,7 +168,7 @@ export function ListFuelPurchaseTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <FuelPurchaseDataTable columns={columns} data={fuelPurchases} />
+        <FuelPurchaseDataTable columns={columns} data={fuelPurchases} sumColumnIds={["quantity", "totalValue"]}  />
       )}
     </Card>
   );

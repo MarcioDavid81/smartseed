@@ -10,16 +10,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
 import { RefuelFormData, refuelSchema } from "@/lib/schemas/refuelSchema";
+import { useFuelTank } from "@/queries/machines/use-fuelTank-query";
+import { useMachines } from "@/queries/machines/use-machine-query";
 import { useUpsertRefuel } from "@/queries/machines/use-upsert-refuel";
-import {
-  FuelTank,
-  Machine,
-  Refuel
-} from "@/types";
+import { Refuel } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -37,9 +35,6 @@ const UpsertRefuelModal = ({
   isOpen,
   onClose,
 }: UpsertRefuelModalProps) => {
-  
-  const [machines, setMachines] = useState<Machine[]>([]);
-  const [tanks, setTanks] = useState<FuelTank[]>([]);
   const { showToast } = useSmartToast();
 
   const form = useForm<RefuelFormData>({
@@ -69,29 +64,8 @@ const UpsertRefuelModal = ({
     }
   }, [abastecimento, isOpen, form]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
-
-      const [tankRes, machineRes] = await Promise.all([
-        fetch("/api/machines/fuel-tank", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/machines/machine", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      const [tankData, machineData] = await Promise.all([
-        tankRes.json(),
-        machineRes.json(),
-      ]);
-      setTanks(tankData);
-      setMachines(machineData);
-    };
-
-    if (isOpen) fetchData();
-  }, [isOpen]);
+  const { data: tanks = [] } = useFuelTank();
+  const { data: machines = [] } = useMachines();
   
   const { mutate, isPending } = useUpsertRefuel({
     refuelId: abastecimento?.id,
@@ -167,29 +141,40 @@ const UpsertRefuelModal = ({
 
               {/* Tanque e Máquina */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="tankId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tanque</FormLabel>
-                        <FormControl>
-                          <ComboBoxOption
-                            options={tanks.map((t) => ({
-                              label: t.name,
-                              value: t.id,
-                            }))}
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="Selecione um tanque"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              <FormField
+                control={form.control}
+                name="tankId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tanque</FormLabel>
+                    <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um tanque" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {tanks.map((tank) => (
+                          <SelectItem key={tank.id} value={tank.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{tank.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {tank.stock} L
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
                 <div>
                   <FormField
                       control={form.control}
@@ -198,15 +183,25 @@ const UpsertRefuelModal = ({
                         <FormItem>
                           <FormLabel>Veículo</FormLabel>
                           <FormControl>
-                            <ComboBoxOption
-                              options={machines.map((t) => ({
-                                label: t.name,
-                                value: t.id,
-                              }))}
-                              value={field.value}
-                              onChange={field.onChange}
-                              placeholder="Selecione um veículo/equipamento"
-                            />
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um veículo/equipamento" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {machines.map((machine) => (
+                          <SelectItem key={machine.id} value={machine.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{machine.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
