@@ -1,18 +1,12 @@
 import { AccountStatus, PaymentCondition } from "@prisma/client";
 
-export interface FuelPurchaseDetails {
+export interface MaintenanceDetails {
   id: string;
   date: string;
-  invoiceNumber: string;
-  quantity: number;
-  unitPrice: number;
+  description: string;
   totalValue: number;
   paymentCondition?: PaymentCondition;
   dueDate: string | null;
-
-  tank: {
-    name: string;
-  };
 
   customer: {
     name: string;

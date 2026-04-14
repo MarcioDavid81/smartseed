@@ -1,4 +1,4 @@
-import { Maintenance } from "@/types";
+import { Maintenance, MaintenanceDetails } from "@/types";
 import { apiFetch } from "../api";
 import { MaintenanceFormData } from "@/lib/schemas/maintenanceSchema";
 
@@ -7,6 +7,13 @@ export async function getMaintenance(): Promise<Maintenance[]> {
     "/api/machines/maintenance"
   );
 
+  return data;
+}
+
+export async function getMaintenanceById(maintenanceId: string): Promise<MaintenanceDetails> {
+  const data = await apiFetch<MaintenanceDetails>(
+    `/api/machines/maintenance/${maintenanceId}`
+  );
   return data;
 }
 

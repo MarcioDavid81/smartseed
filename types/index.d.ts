@@ -35,6 +35,7 @@ export * from "./insumo";
 export * from "./purchaseDetails";
 export * from "./machine";
 export * from "./maintenance";
+export * from "./maintenanceDetails";
 export * from "./member";
 export * from "./notice";
 export * from "./plot";

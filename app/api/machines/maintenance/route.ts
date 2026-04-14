@@ -6,6 +6,10 @@ import { PaymentCondition } from "@prisma/client";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { withAccessControl } from "@/lib/api/with-access-control";
 import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
+import {
+  ForbiddenPlanError,
+  PlanLimitReachedError,
+} from "@/core/access-control";
 
 export async function POST(req: Request) {
   try {
@@ -64,7 +68,23 @@ export async function POST(req: Request) {
       );
     }
 
-    const maintenance = await db.$transaction(async (tx) => {
+    const member = await db.member.findUnique({
+      where: {
+        id: data.memberId,
+      },
+      select: {
+        name: true,
+      },
+    });
+
+    if (!member) {
+      return NextResponse.json(
+        { error: "Sócio não encontrado" },
+        { status: 404 },
+      );
+    }
+
+    const result = await db.$transaction(async (tx) => {
       const createdMaintenance = await tx.maintenance.create({
         data: {
           ...data,
@@ -84,11 +104,13 @@ export async function POST(req: Request) {
 
         await tx.accountPayable.create({
           data: {
-            description: `Manutenção de ${machine.name}, em ${customerName}`,
+            description: `Manutenção de ${machine.name}, em ${customerName}, em nome de ${member.name}`,
             amount: data.totalValue,
             dueDate: new Date(data.dueDate),
             companyId,
             customerId: data.customerId,
+            memberId: data.memberId,
+            memberAdressId: data.memberAdressId,
             maintenanceId: createdMaintenance.id,
           },
         });
@@ -97,50 +119,53 @@ export async function POST(req: Request) {
       return createdMaintenance;
     });
 
-    return NextResponse.json(maintenance, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.log("Erro ao criar manutenção da máquina:", error);
+    console.error("Erro ao criar compra:", error);
+    if (error instanceof PlanLimitReachedError) {
+      return NextResponse.json({ message: error.message }, { status: 402 });
+    }
+
+    if (error instanceof ForbiddenPlanError) {
+      return NextResponse.json({ message: error.message }, { status: 403 });
+    }
     return NextResponse.json(
-      { error: "Erro ao criar manutenção da máquina" },
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
       { status: 500 },
     );
   }
 }
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Token não enviado ou mal formatado" },
-      { status: 401 },
-    );
-  }
-
-  const token = authHeader.split(" ")[1];
-  const payload = await verifyToken(token);
-
-  if (!payload) {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
-  }
-
-  const { companyId } = payload;
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  const { companyId } = auth;
 
   try {
     const machineMaintenances = await db.maintenance.findMany({
       where: { companyId },
       include: {
-        machine: {
-          select: { id: true, name: true },
-        },
-        customer: {
-          select: { id: true, name: true },
-        },
-        accountPayable: {
-          select: { id: true, amount: true, dueDate: true },
-        },
+        machine: true,
+        customer: true,
+        member: true,
+        memberAdress: true,
+        accountPayable: true,
       },
-      orderBy: [{ date: "desc" }],
+      orderBy: [
+        { 
+          date: "desc" 
+        },
+        {
+          createdAt: "desc",
+        }
+      ],
     });
 
     return NextResponse.json(machineMaintenances, { status: 200 });
