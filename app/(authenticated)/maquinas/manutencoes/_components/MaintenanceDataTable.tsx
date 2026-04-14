@@ -16,6 +16,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -33,6 +34,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   pageSize?: number;
   searchFields?: string[];
+  sumColumnId?: string;
 }
 
 export function MaintenanceDataTable<TData, TValue>({
@@ -40,6 +42,7 @@ export function MaintenanceDataTable<TData, TValue>({
   data,
   pageSize = 8,
   searchFields = [],
+  sumColumnId,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
@@ -70,6 +73,15 @@ export function MaintenanceDataTable<TData, TValue>({
     }
   });
 
+  const filteredRows = table.getFilteredRowModel().rows;
+  const totalValue = sumColumnId
+    ? filteredRows.reduce((acc, row) => {
+        const raw = row.getValue(sumColumnId as any);
+        const num = typeof raw === "number" ? raw : Number(raw);
+        return acc + (isNaN(num) ? 0 : num);
+      }, 0)
+    : 0;
+
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between py-4">
@@ -90,17 +102,25 @@ export function MaintenanceDataTable<TData, TValue>({
             }
             className="w-full md:max-w-sm bg-gray-50 text-primary"
           />
+          <Input
+            placeholder="Procure por sócio"
+            value={(table.getColumn("member")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("member")?.setFilterValue(event.target.value)
+            }
+            className="w-full md:max-w-sm bg-gray-50 text-primary"
+          />
           {table.getState().columnFilters.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => table.resetColumnFilters()}
-                  className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
-                >
-                  <FunnelX size={14} />
-                  Limpar filtros
-                </Button>
-              )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => table.resetColumnFilters()}
+              className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+            >
+              <FunnelX size={14} />
+              Limpar filtros
+            </Button>
+          )}
         </div>
         <CreateMaintenanceButton />
       </div>
@@ -147,6 +167,25 @@ export function MaintenanceDataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={columns.length - 2} className="text-start text-muted-foreground">
+                <h3>Total</h3>
+              </TableCell>
+              <TableCell colSpan={2} className="text-start text-muted-foreground">                
+                {sumColumnId ? (
+                  <div>
+                    {new Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }).format(totalValue)}
+                  </div>
+                ) : null}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </div>
 

@@ -5,8 +5,8 @@ import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useFuelPurchaseById } from "@/queries/machines/use-fuelPurchase-query";
-import { FuelPurchaseDetails } from "@/types";
+import { useMaintenanceById } from "@/queries/machines/use-maintenance-query";
+import { MaintenanceDetails } from "@/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CornerDownLeft } from "lucide-react";
@@ -29,26 +29,26 @@ function Field({
   );
 }
 
-function MainDataSection() {
+function MainDataSection({ data }: { data: MaintenanceDetails }) {
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold"><span className="border-b border-green">Dados</span> Principais</h2>
+      <h2 className="text-lg font-semibold"><span className="border-b border-green">Dado</span>s Principais</h2>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <Field label="Produto" value={"Óleo Diesel"} />
+      <div className="grid grid-cols-1 gap-6">
+        <Field label="Tipo" value={data.description ?? "-"} />
       </div>
     </section>
   );
 }
 
-function MemberSection({ data }: { data: FuelPurchaseDetails }) {
+function MemberSection({ data }: { data: MaintenanceDetails }) {
   const m = data.member;
   const mA = data.memberAdress;
 
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold">
-        <span className="border-b border-green">Sóc</span>io
+        <span className="border-b border-green">Sóci</span>o
       </h2>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -74,12 +74,12 @@ function MemberSection({ data }: { data: FuelPurchaseDetails }) {
   );
 }
 
-function CustomerSection({ data }: { data: FuelPurchaseDetails }) {
+function CustomerSection({ data }: { data: MaintenanceDetails }) {
   const c = data.customer;
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold"><span className="border-b border-green">Forne</span>cedor</h2>
+      <h2 className="text-lg font-semibold"><span className="border-b border-green">Pres</span>tador</h2>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Field label="Nome" value={c.name} />
@@ -93,24 +93,23 @@ function CustomerSection({ data }: { data: FuelPurchaseDetails }) {
   );
 }
 
-function WeightSection({ data }: { data: FuelPurchaseDetails }) {
+function WeightSection({ data }: { data: MaintenanceDetails }) {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold"><span className="border-b border-green">Deta</span>lhes</h2>
       <div className="grid md:grid-cols-2 gap-6">
-        <Field label="Quantidade" value={formatNumber(data.quantity)} />
+        <Field label="Manutenção" value={data.description} />
       </div>
     </section>
   );
 }
 
-function FinancialSection({ data }: { data: FuelPurchaseDetails }) {
+function FinancialSection({ data }: { data: MaintenanceDetails }) {
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold"><span className="border-b border-green">Finan</span>ceiro</h2>
+      <h2 className="text-lg font-semibold"><span className="border-b border-green">Fina</span>nceiro</h2>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        <Field label="Preço unitário" value={formatCurrency(data.unitPrice)} />
+      <div className="grid md:grid-cols-2 gap-6">
         <Field label="Valor total" value={formatCurrency(data.totalValue)} />
         <Field
           label="Vencimento"
@@ -130,26 +129,26 @@ type Props = {
   id: string;
 };
 
-export function FuelPurchaseDetailsView({ id }: Props) {
-  const { data, isLoading } = useFuelPurchaseById(id);
+export function MaintenanceDetailsView({ id }: Props) {
+  const { data, isLoading } = useMaintenanceById(id);
   const router = useRouter();
   const handleReturn = () => {
-    router.push("/maquinas/compras");
+    router.push("/maquinas/manutencoes");
   }
 
   if (isLoading) return <AgroLoader />;
-  if (!data) return <p>Compra não encontrada</p>;
+  if (!data) return <p>Manutenção não encontrada</p>;
 
   return (
     <div className="w-full mx-auto py-2 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-hide">
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="text-xl font-medium">
-            Nota de Compra - NF {data.invoiceNumber}
+            Manutenção
           </CardTitle>
 
           <p className="text-xs font-light text-muted-foreground">
-            Emitida em{" "}
+            Realizada em{" "}
             {format(new Date(data.date), "dd 'de' MMMM 'de' yyyy", {
               locale: ptBR,
             })}
@@ -158,7 +157,7 @@ export function FuelPurchaseDetailsView({ id }: Props) {
 
         <CardContent className="space-y-6">
 
-          <MainDataSection />
+          <MainDataSection data={data} />
           <Separator />
 
           <MemberSection data={data} />

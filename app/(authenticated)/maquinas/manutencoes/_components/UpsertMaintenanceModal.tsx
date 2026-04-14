@@ -1,5 +1,5 @@
 import { ComboBoxOption } from "@/components/combo-option";
-import { MoneyInput, QuantityInput } from "@/components/inputs";
+import { MoneyInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -26,6 +26,10 @@ import { PaymentCondition } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
+import { useCustomers } from "@/queries/registrations/use-customer";
+import { useMachines } from "@/queries/machines/use-machine-query";
+import { useMembers } from "@/queries/registrations/use-member";
+import { Input } from "@/components/ui/input";
 
 interface UpsertMaintenanceModalProps {
   manutencao?: Maintenance;
@@ -38,9 +42,6 @@ const UpsertMaintenanceModal = ({
   isOpen,
   onClose,
 }: UpsertMaintenanceModalProps) => {
-  
-  const [machines, setMachines] = useState<Machine[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const { showToast } = useSmartToast();
 
   const form = useForm<MaintenanceFormData>({
@@ -72,29 +73,12 @@ const UpsertMaintenanceModal = ({
     }
   }, [manutencao, isOpen, form]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
-
-      const [machineRes, customerRes] = await Promise.all([
-        fetch("/api/machines/machine", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/customers", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      const [machineData, customerData] = await Promise.all([
-        machineRes.json(),
-        customerRes.json(),
-      ]);
-      setMachines(machineData);
-      setCustomers(customerData);
-    };
-
-    if (isOpen) fetchData();
-  }, [isOpen]);
+  const { data: customers = [] } = useCustomers();
+  const { data: machines = [] } = useMachines();
+  const { data: members = [] } = useMembers();
+  const memberId = form.watch("memberId");
+  const selectedMember = members.find(m => m.id === memberId);
+  const addresses = selectedMember?.adresses ?? [];
   
   const { mutate, isPending } = useUpsertMaintenance({
     maintenanceId: manutencao?.id,
@@ -130,7 +114,7 @@ const UpsertMaintenanceModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle>Manutenção</DialogTitle>
           <DialogDescription>
@@ -138,10 +122,9 @@ const UpsertMaintenanceModal = ({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+            {/* Data e Máquina */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="date"
@@ -155,36 +138,106 @@ const UpsertMaintenanceModal = ({
                       </FormItem>
                     )}
                   />
-                </div>
-                <div>
+
                   <FormField
                     control={form.control}
                     name="machineId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Máquina</FormLabel>
-                        <FormControl>
-                          <ComboBoxOption
-                            options={machines.map((m) => ({
-                              label: m.name,
-                              value: m.id,
-                            }))}
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="Selecione uma máquina"
-                          />
-                        </FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma máquina" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {machines.map((machine) => (
+                              <SelectItem key={machine.id} value={machine.id}>
+                                <div className="flex justify-between gap-2">
+                                  <span>{machine.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-              </div>
+            </div>
 
-              {/* Tanque, Quantidade e Preço Unitário */}
+            {/* Sócio, Endereço */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="memberId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel> Sócio</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma socio" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {members.map((member) => (
+                          <SelectItem key={member.id} value={member.id}>
+                            <div className="flex justify-between gap-2">
+                              <span>{member.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="memberAdressId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Inscrição Estadual</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!memberId || addresses.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma inscrição estadual" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {addresses.map((memberAdress) => (
+                          <SelectItem key={memberAdress.id} value={memberAdress.id}>
+                            <div className="flex justify-between gap-2">
+                              <span>{memberAdress.stateRegistration}</span>
+                              <span className="text-muted-foreground">
+                                {memberAdress.district}, {memberAdress.city} - {memberAdress.state}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+              {/* Cliente, Valor */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  {/* Cliente */}
                   <FormField
                     control={form.control}
                     name="customerId"
@@ -206,8 +259,7 @@ const UpsertMaintenanceModal = ({
                       </FormItem>
                     )}
                   />
-                </div>
-                <div>
+
                   <FormField
                     control={form.control}
                     name="totalValue"
@@ -215,33 +267,10 @@ const UpsertMaintenanceModal = ({
                       <MoneyInput label="Preço Total" field={field} />
                     )}
                   />
-                </div>
-              </div>
-              <div>
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descrição</FormLabel>
-                        <FormControl>
-                          <Textarea value={field.value} onChange={field.onChange} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                  )}
-                />
               </div>
 
-              {/* Condição de Pagamento (FormField + condicional APRAZO) */}
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="totalValue"
-                  render={({ field }) => (
-                    <MoneyInput label="Preço Total" field={field} readonly />
-                  )}
-                />
+              {/* Condição de Pagamento, Data de Vencimento */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="paymentCondition"
@@ -282,9 +311,23 @@ const UpsertMaintenanceModal = ({
                   />
                 )}
               </div>
+
+              {/* Descrição */}
+              <div>
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                        <FormControl>
+                          <Input value={field.value} onChange={field.onChange} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                  )}
+                />
               </div>
-
-
 
               <Button
                 type="submit"

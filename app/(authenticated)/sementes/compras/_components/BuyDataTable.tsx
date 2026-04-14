@@ -103,7 +103,7 @@ export function BuyDataTable<TData, TValue>({
               className="max-w-sm bg-gray-50 text-primary"
             />
             <Input
-              placeholder="Procure por socio"
+              placeholder="Procure por sócio"
               value={(table.getColumn("member")?.getFilterValue() as string) ?? ""}
               onChange={(event) =>
                 table.getColumn("member")?.setFilterValue(event.target.value)

@@ -13,6 +13,7 @@ import { useMaintenance } from "@/queries/machines/use-maintenance-query";
 import EditMaintenanceButton from "./EditMaintenanceButton";
 import DeleteMaintenanceButton from "./DeleteMaintenanceButton";
 import { MaintenanceDataTable } from "./MaintenanceDataTable";
+import { MaintenanceDetailButton } from "./MaintenanceDetailButton";
 
 export function ListMaintenanceTable() {
   const { user } = useUser();
@@ -64,6 +65,26 @@ export function ListMaintenanceTable() {
       },
     },
     {
+      id: "member",
+      header: "Sócio",
+      accessorFn: (row) => row.member?.name,
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const member = row.original.member;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!member) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem socio
+            </span>
+          );
+        }
+        return <span>{member.name.split(" ")[0]}</span>;
+      },
+    },
+    {
       id: "machine",
       header: () => <div className="text-left">Máquina</div>,
       accessorFn: (row) => row.machine?.name ?? "",
@@ -96,6 +117,8 @@ export function ListMaintenanceTable() {
         return (
           <div className="text-left">
             {new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }).format(totalValue)}
@@ -110,6 +133,7 @@ export function ListMaintenanceTable() {
         const manutencao = row.original;
         return (
           <div className="flex items-center justify-center gap-4">
+            <MaintenanceDetailButton id={manutencao.id} />
             <EditMaintenanceButton manutencao={manutencao} />
             <DeleteMaintenanceButton manutencao={manutencao} disabled={!canDelete} />
           </div>
@@ -129,7 +153,7 @@ export function ListMaintenanceTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <MaintenanceDataTable columns={columns} data={maintenances} />
+        <MaintenanceDataTable columns={columns} data={maintenances} sumColumnId="totalValue" />
       )}
     </Card>
   );
