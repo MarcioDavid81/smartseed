@@ -87,18 +87,26 @@ export function SaleDataTable<TData, TValue>({
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between py-4">
         <div className="flex items-center gap-2">
           <Input
-            placeholder="Procure por cliente"
-            value={(table.getColumn("customer")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("customer")?.setFilterValue(event.target.value)
-            }
-            className="w-full md:max-w-sm bg-gray-50 text-primary"
-          />
-          <Input
             placeholder="Procure por produto"
             value={(table.getColumn("product")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("product")?.setFilterValue(event.target.value)
+            }
+            className="w-full md:max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
+            placeholder="Procure por sócio"
+            value={(table.getColumn("member")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("member")?.setFilterValue(event.target.value)
+            }
+            className="w-full md:max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
+            placeholder="Procure por cliente"
+            value={(table.getColumn("customer")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("customer")?.setFilterValue(event.target.value)
             }
             className="w-full md:max-w-sm bg-gray-50 text-primary"
           />

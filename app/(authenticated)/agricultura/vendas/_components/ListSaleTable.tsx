@@ -58,9 +58,42 @@ export function ListSaleTable() {
     {
       id: "customer",
       header: "Cliente",
-      accessorFn: (row) => row.customer?.name ?? "",
+      accessorFn: (row) => row.customer.name,
       filterFn: "includesString",
-      cell: ({ row: { original } }) => <div className="text-left">{original.customer?.name ? (original.customer.name) : <LoadingData />}</div>,
+      cell: ({ row }) => {
+        const customer = row.original.customer;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!customer) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem cliente
+            </span>
+          );
+        }
+        return <span>{customer.name}</span>;
+      },
+    },
+    {
+      id: "member",
+      header: "Sócio",
+      accessorFn: (row) => row.member?.name,
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const member = row.original.member;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!member) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem socio
+            </span>
+          );
+        }
+        return <span>{member.name.split(" ")[0]}</span>;
+      },
     },
     {
       accessorKey: "industryTransporter",

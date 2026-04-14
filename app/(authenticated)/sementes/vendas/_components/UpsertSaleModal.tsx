@@ -57,7 +57,6 @@ const UpsertSaleModal = ({
   saleContractItemId,
   cultivarId,
   customerId,
-  customerName,
   saleValue,
   maxQuantityKg,
   initialQuantityKg,
@@ -246,9 +245,9 @@ const UpsertSaleModal = ({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+              {/* Data e Nota Fiscal */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -276,6 +275,8 @@ const UpsertSaleModal = ({
                   )}
                 />
               </div>
+
+              {/* Sócio e Inscrição Estadual */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -341,6 +342,8 @@ const UpsertSaleModal = ({
                   )}
                 />
               </div>
+
+              {/* Cultivar e Cliente */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -409,6 +412,8 @@ const UpsertSaleModal = ({
                   )}
                 />
               </div>
+
+              {/* Quantidade e Valor Total */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -426,7 +431,8 @@ const UpsertSaleModal = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Preço Total e Condição de Pagamento (FormField + condicional APRAZO) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="paymentCondition"
@@ -468,19 +474,22 @@ const UpsertSaleModal = ({
                 )}
               </div>
 
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observações</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Opcional" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Observações */}
+              <div>
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Observações</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Opcional" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <Button
                 type="submit"
@@ -489,7 +498,6 @@ const UpsertSaleModal = ({
               >
                 {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
               </Button>
-            </div>
           </form>
         </Form>
       </DialogContent>
