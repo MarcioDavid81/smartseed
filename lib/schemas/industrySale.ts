@@ -9,6 +9,8 @@ export const industrySaleSchema = z.object({
     .string()
     .min(1, "Depósito de destino da venda é obrigatório"),
   customerId: z.string().min(1, "Cliente é obrigatório"),
+  memberId: z.string().optional(),
+  memberAdressId: z.string().optional(),
   industryTransporterId: z.string().nullable().optional(),
   truckPlate: z.string().optional(),
   truckDriver: z.string().optional(),

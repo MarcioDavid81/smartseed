@@ -29,13 +29,16 @@ export async function POST(req: NextRequest) {
     const parsed = industrySaleSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json({
-        error: {
-          code: "INVALID_DATA",
-          title: "Dados inválidos",
-          message: parsed.error.issues[0].message,
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: parsed.error.issues[0].message,
+          },
         },
-      });
+        { status: 400 },
+      );
     }
     const data = parsed.data;
 
@@ -109,6 +112,30 @@ export async function POST(req: NextRequest) {
     );
     if (stockError) return stockError;
 
+    const customer = await db.customer.findUnique({
+      where: { id: data.customerId },
+      select: { id: true, name: true },
+    });
+
+    if (!customer) {
+      return NextResponse.json(
+        { error: "Cliente não encontrado" },
+        { status: 404 },
+      );
+    }
+
+    const member = await db.member.findUnique({
+      where: { id: data.memberId },
+      select: { id: true, name: true },
+    });
+
+    if (!member) {
+      return NextResponse.json(
+        { error: "Sócio não encontrado" },
+        { status: 404 },
+      );
+    }
+
     // 💾 Transação principal
     const result = await db.$transaction(async (tx) => {
       // 🔹 Cria a venda
@@ -165,11 +192,6 @@ export async function POST(req: NextRequest) {
 
       // 🔹 Se for venda a prazo, cria conta a receber
       if (data.paymentCondition === PaymentCondition.APRAZO && data.dueDate) {
-        const customer = await tx.customer.findUnique({
-          where: { id: data.customerId },
-          select: { name: true },
-        });
-
         const productLabel = data.product
           .toString()
           .replace("_", " ")
@@ -177,14 +199,18 @@ export async function POST(req: NextRequest) {
           .replace(/\b\w/g, (l) => l.toUpperCase());
         const document = data.document ?? "S/NF";
         const customerName = customer?.name ?? "cliente";
+        const memberName = member?.name ?? "sócio";
+        const description = `Venda de ${productLabel}, cfe NF ${document}, para ${customerName} em nome de ${memberName}`;
 
         await tx.accountReceivable.create({
           data: {
-            description: `Venda de ${productLabel}, cfe NF ${document}, para ${customerName}`,
+            description: description,
             amount: data.totalPrice,
             dueDate: new Date(data.dueDate),
             companyId: session.user.companyId,
             customerId: data.customerId,
+            memberId: data.memberId,
+            memberAdressId: data.memberAdressId,
             industrySaleId: sale.id,
           },
         });
@@ -229,6 +255,22 @@ export async function GET(req: NextRequest) {
         customer: {
           select: { id: true, name: true },
         },
+        member: {
+          select: { id: true, name: true, email: true, phone: true, cpf: true },
+        },
+        memberAdress: {
+          select: {
+            id: true,
+            stateRegistration: true,
+            zip: true,
+            adress: true,
+            number: true,
+            complement: true,
+            district: true,
+            state: true,
+            city: true,
+          },
+        },
         industryTransporter: {
           select: { id: true, name: true },
         },
@@ -236,12 +278,19 @@ export async function GET(req: NextRequest) {
           select: { id: true, status: true, dueDate: true },
         },
       },
-      orderBy: [{ date: "desc" }, { document: "desc" }],
+      orderBy: [
+        {
+          date: "desc",
+        },
+        {
+          document: "desc",
+        },
+      ],
     });
 
     return NextResponse.json(industrySales, { status: 200 });
   } catch (error) {
-    console.error("Erro ao buscar venda industrial:", error);
+    console.error("Erro ao buscar vendas:", error);
     return NextResponse.json(
       {
         error: {

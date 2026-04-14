@@ -1,4 +1,5 @@
 import { recalcSaleContractStatus } from "@/app/_helpers/recalculateSaleContractStatus";
+import { industrySaleSchema } from "@/lib/schemas/industrySale";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { ApiError } from "@/lib/http/api-error";
 import { db } from "@/lib/prisma";
@@ -15,12 +16,40 @@ export async function PUT(
     const { companyId } = auth;
 
     const { id } = params;
-    const rawData = await req.json();
+    const body = await req.json();
+
+    const parsed = industrySaleSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: parsed.error.issues[0]?.message ?? "Dados inválidos",
+          },
+        },
+        { status: 400 },
+      );
+    }
 
     const data = {
-      ...rawData,
-      industryTransporterId: rawData.industryTransporterId?.trim() || null,
+      ...parsed.data,
+      industryTransporterId: parsed.data.industryTransporterId?.trim() || null,
     };
+
+    if (data.paymentCondition === PaymentCondition.APRAZO && !data.dueDate) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVALID_DATA",
+            title: "Dados inválidos",
+            message: "Vencimento é obrigatório para pagamento a prazo",
+          },
+        },
+        { status: 400 },
+      );
+    }
 
     const existing = await db.industrySale.findUnique({
       where: { id },
@@ -57,8 +86,11 @@ export async function PUT(
 
       if (!industrySale) throw new Error("Venda não encontrada");
 
+      const product = data.product ?? industrySale.product;
+
       // 🧮 Se mudar o depósito ou a quantidade, ajusta o estoque
-      const quantityDiff = data.weightLiq - Number(industrySale.weightLiq);
+      const quantityDiff =
+        Number(data.weightLiq) - Number(industrySale.weightLiq);
       const depositChanged =
         data.industryDepositId !== industrySale.industryDepositId;
       // Ajustar estoque antigo se mudou depósito
@@ -67,7 +99,7 @@ export async function PUT(
         await tx.industryStock.updateMany({
           where: {
             industryDepositId: industrySale.industryDepositId,
-            product: industrySale.product,
+            product,
           },
           data: { quantity: { increment: Number(industrySale.weightLiq) } },
         });
@@ -76,7 +108,7 @@ export async function PUT(
         await tx.industryStock.updateMany({
           where: {
             industryDepositId: data.industryDepositId,
-            product: data.product,
+            product,
           },
           data: { quantity: { decrement: Number(data.weightLiq) } },
         });
@@ -85,7 +117,7 @@ export async function PUT(
         await tx.industryStock.updateMany({
           where: {
             industryDepositId: data.industryDepositId,
-            product: data.product,
+            product,
           },
           data: { quantity: { decrement: quantityDiff } }, // se positivo, diminui; se negativo, aumenta
         });
@@ -93,6 +125,11 @@ export async function PUT(
 
       if (industrySale.saleContractItemId && industrySale.saleContractItem) {
         const item = industrySale.saleContractItem;
+
+        const nextFulfilled = Number(item.fulfilledQuantity) + quantityDiff;
+        if (nextFulfilled > Number(item.quantity)) {
+          throw new Error("Quantidade excede o saldo do contrato");
+        }
 
         await tx.saleContractItem.update({
           where: { id: item.id },
@@ -103,34 +140,30 @@ export async function PUT(
           },
         });
 
-        const updatedItem = await tx.saleContractItem.findUnique({
-          where: { id: item.id },
-        });
-
-        if (
-          Number(updatedItem!.fulfilledQuantity) > Number(updatedItem!.quantity)
-        ) {
-          throw new Error("Quantidade excede o saldo do contrato");
-        }
-
         await recalcSaleContractStatus(tx, item.saleContractId);
       }
 
-      // Atualiza venda
+      const totalPrice = Number(data.unitPrice) * Number(data.weightLiq);
+
       const updatedSale = await tx.industrySale.update({
         where: { id },
         data: {
           ...data,
-          totalPrice: data.unitPrice * data.weightLiq,
+          totalPrice,
         },
       });
 
-      // Atualiza ou cria conta a receber
       if (data.paymentCondition === PaymentCondition.APRAZO && data.dueDate) {
-        const customer = await tx.customer.findUnique({
-          where: { id: data.customerId },
-          select: { name: true },
-        });
+        const [customer, member] = await Promise.all([
+          tx.customer.findUnique({
+            where: { id: data.customerId },
+            select: { name: true },
+          }),
+          tx.member.findUnique({
+            where: { id: data.memberId },
+            select: { name: true, email: true, phone: true, cpf: true },
+          }),
+        ]);
 
         const productLabel =
           data.product ??
@@ -141,27 +174,33 @@ export async function PUT(
             .replace(/\b\w/g, (l) => l.toUpperCase());
         const document = data.document ?? industrySale.document ?? "S/NF";
         const customerName = customer?.name ?? "cliente";
+        const memberName = member?.name ?? "sócio";
 
-        const description = `Venda de ${productLabel}, cfe NF ${document}, para ${customerName}`;
+        const description = `Venda de ${productLabel}, cfe NF ${document}, para ${customerName}, em nome de ${memberName}`;
 
         if (industrySale.accountReceivable) {
           await tx.accountReceivable.update({
             where: { id: industrySale.accountReceivable.id },
             data: {
               description,
-              amount: data.totalPrice,
-              dueDate: new Date(data.dueDate),
+              amount: totalPrice,
+              dueDate: data.dueDate,
+              customerId: data.customerId,
+              memberId: data.memberId,
+              memberAdressId: data.memberAdressId,
             },
           });
         } else {
           await tx.accountReceivable.create({
             data: {
               description,
-              amount: data.totalPrice,
-              dueDate: new Date(data.dueDate),
+              amount: totalPrice,
+              dueDate: data.dueDate,
               companyId,
               customerId: data.customerId,
-              industrySaleId: updatedSale.id, // FK correta!
+              memberId: data.memberId,
+              memberAdressId: data.memberAdressId,
+              industrySaleId: updatedSale.id,
             },
           });
         }
@@ -340,6 +379,8 @@ export async function GET(
       where: { id },
       include: {
         customer: true,
+        member: true,
+        memberAdress: true,
         industryDeposit: true,
         industryTransporter: true,
         accountReceivable: true,

@@ -325,12 +325,29 @@ export async function GET(req: NextRequest) {
           select: { id: true, status: true, dueDate: true },
         },
       },
-      orderBy: { date: "desc" },
+      orderBy: [
+        {
+          date: "desc",
+        },
+        {
+          invoiceNumber: "desc",
+        },
+      ],
     });
 
     return NextResponse.json(sales, { status: 200 });
   } catch (error) {
     console.error("Erro ao buscar vendas:", error);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message:
+            "Ocorreu um erro ao processar a solicitação. Por favor, tente novamente mais tarde.",
+        },
+      },
+      { status: 500 },
+    );
   }
 }

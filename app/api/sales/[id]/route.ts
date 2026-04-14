@@ -78,11 +78,8 @@ export async function PUT(
       dueDate,
     } = body;
 
-    // ✅ Tratamento de campos opcionais
-    const parsedCustomerId =
-      customerId && customerId !== "" ? customerId : null;
-    const parsedMemberId =
-      memberId && memberId !== "" ? memberId : null;
+    const parsedCustomerId = customerId && customerId !== "" ? customerId : null;
+    const parsedMemberId = memberId && memberId !== "" ? memberId : null;
     const parsedMemberAdressId =
       memberAdressId && memberAdressId !== "" ? memberAdressId : null;
     const parsedInvoiceNumber =
@@ -91,24 +88,19 @@ export async function PUT(
       saleValue && saleValue !== "" ? Number(saleValue) : null;
     const parsedNotes = notes && notes !== "" ? notes : null;
 
-    // Buscar o venda para garantir que pertence à empresa do usuário
-    const existingSale = await db.saleExit.findUnique({
-      where: { id },
-      select: { companyId: true }
-    });
+    const parsedQuantityKg = Number(quantityKg);
+    if (!Number.isFinite(parsedQuantityKg)) {
+      return NextResponse.json({ error: "Quantidade inválida" }, { status: 400 });
+    }
 
-    if (!existingSale || existingSale.companyId !== companyId) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "SALE_NOT_FOUND",
-            title: "Venda não encontrada",
-            message:
-              "A venda não foi localizada ou você não tem permissão para acessá-la.",
-          },
-        },
-        { status: 403 },
-      );
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return NextResponse.json({ error: "Data inválida" }, { status: 400 });
+    }
+
+    const parsedDueDate = dueDate ? new Date(dueDate) : null;
+    if (parsedDueDate && Number.isNaN(parsedDueDate.getTime())) {
+      return NextResponse.json({ error: "Vencimento inválido" }, { status: 400 });
     }
 
     const result = await db.$transaction(async (tx) => {
@@ -124,9 +116,21 @@ export async function PUT(
         },
       });
 
-      if (!sale) throw new Error("Venda não encontrada");
+      if (!sale || sale.companyId !== companyId) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "SALE_NOT_FOUND",
+              title: "Venda não encontrada",
+              message:
+                "A venda não foi localizada ou você não tem permissão para acessá-la.",
+            },
+          },
+          { status: 403 },
+        );
+      }
 
-      const delta = Number(quantityKg) - Number(sale.quantityKg);
+      const delta = parsedQuantityKg - Number(sale.quantityKg);
       if (delta !== 0 || cultivarId !== sale.cultivarId) {
         // devolve estoque antigo
         await tx.cultivar.update({
@@ -137,12 +141,17 @@ export async function PUT(
         // adiciona novo
         await tx.cultivar.update({
           where: { id: cultivarId },
-          data: { stock: { decrement: quantityKg } },
+          data: { stock: { decrement: parsedQuantityKg } },
         });
       }
 
       if (sale.saleContractItemId && sale.saleContractItem) {
         const item = sale.saleContractItem;
+
+        const nextFulfilled = Number(item.fulfilledQuantity) + delta;
+        if (nextFulfilled > Number(item.quantity)) {
+          throw new Error("Quantidade excede o saldo do contrato");
+        }
 
         await tx.saleContractItem.update({
           where: { id: item.id },
@@ -153,16 +162,6 @@ export async function PUT(
           },
         });
 
-        const updatedItem = await tx.saleContractItem.findUnique({
-          where: { id: item.id },
-        });
-
-        if (
-          Number(updatedItem!.fulfilledQuantity) > Number(updatedItem!.quantity)
-        ) {
-          throw new Error("Quantidade excede o saldo do contrato");
-        }
-
         await recalcSaleContractStatus(tx, item.saleContractId);
       }
 
@@ -170,8 +169,8 @@ export async function PUT(
         where: { id },
         data: {
           cultivarId,
-          date: new Date(date),
-          quantityKg: Number(quantityKg),
+          date: parsedDate,
+          quantityKg: parsedQuantityKg,
           customerId: parsedCustomerId,
           memberId: parsedMemberId,
           memberAdressId: parsedMemberAdressId,
@@ -179,61 +178,64 @@ export async function PUT(
           saleValue: parsedSaleValue,
           notes: parsedNotes,
           paymentCondition,
-          dueDate: dueDate ? new Date(dueDate) : null,
+          dueDate: parsedDueDate,
         },
       });
 
-      if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
-        const cultivar = await db.cultivar.findUnique({
-          where: { id: cultivarId },
-          select: {
-            name: true,
-          },
-        });
-        const customer = await db.customer.findUnique({
-          where: { id: customerId },
-          select: {
-            name: true,
-          },
-        });
-        const member = await db.member.findUnique({
-          where: { id: memberId },
-          select: {
-            name: true,
-            email: true,
-            phone: true,
-            cpf: true,
-          },
-        });
+      if (paymentCondition === PaymentCondition.APRAZO && parsedDueDate) {
+        if (!parsedCustomerId) {
+          throw new Error("Cliente é obrigatório para pagamento a prazo");
+        }
+        if (!parsedSaleValue || !Number.isFinite(parsedSaleValue)) {
+          throw new Error("Valor de venda inválido para pagamento a prazo");
+        }
 
-        const description = `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${invoiceNumber}, para ${customer?.name ?? "cliente"}, em nome de ${member?.name ?? "socio"}`;
+        const [cultivar, customer, member] = await Promise.all([
+          tx.cultivar.findUnique({
+            where: { id: cultivarId },
+            select: { name: true },
+          }),
+          tx.customer.findUnique({
+            where: { id: parsedCustomerId },
+            select: { name: true },
+          }),
+          parsedMemberId
+            ? tx.member.findUnique({
+                where: { id: parsedMemberId },
+                select: { name: true, email: true, phone: true, cpf: true },
+              })
+            : Promise.resolve(null),
+        ]);
+
+        const description = `Venda de ${cultivar?.name ?? "semente"}, cfe NF ${parsedInvoiceNumber ?? "S/NF"}, para ${customer?.name ?? "cliente"}, em nome de ${member?.name ?? "socio"}`;
 
         if (sale.accountReceivable) {
           await tx.accountReceivable.update({
             where: { id: sale.accountReceivable.id },
             data: {
               description,
-              amount: saleValue,
-              dueDate: new Date(dueDate),
-              customerId,
+              amount: parsedSaleValue,
+              dueDate: parsedDueDate,
+              customerId: parsedCustomerId,
+              memberId: parsedMemberId,
+              memberAdressId: parsedMemberAdressId,
             },
           });
         } else {
           await tx.accountReceivable.create({
             data: {
               description,
-              amount: saleValue,
-              dueDate: new Date(dueDate),
+              amount: parsedSaleValue,
+              dueDate: parsedDueDate,
               companyId: sale.companyId,
-              customerId,
-              memberId,
-              memberAdressId,
+              customerId: parsedCustomerId,
+              memberId: parsedMemberId,
+              memberAdressId: parsedMemberAdressId,
               saleExitId: updatedSale.id,
             },
           });
         }
       } else {
-        // Se mudou para AVISTA → apaga a conta vinculada
         if (sale.accountReceivable) {
           await tx.accountReceivable.delete({
             where: { id: sale.accountReceivable.id },
@@ -246,6 +248,20 @@ export async function PUT(
     return NextResponse.json(result);
   } catch (error: any) {
     console.error("Erro ao atualizar venda:", error);
+
+    if (error?.message === "SALE_NOT_FOUND") {
+      return NextResponse.json(
+        {
+          error: {
+            code: "SALE_NOT_FOUND",
+            title: "Venda não encontrada",
+            message:
+              "A venda não foi localizada ou você não tem permissão para acessá-la.",
+          },
+        },
+        { status: 403 },
+      );
+    }
 
     return NextResponse.json(
       {
@@ -328,7 +344,9 @@ export async function DELETE(
         }
       });
 
-      if (!sale) throw new Error("Venda não encontrada");
+      if (!sale || sale.companyId !== companyId) {
+        throw new Error("SALE_NOT_FOUND");
+      }
 
     // 🚫 Impede exclusão de venda com conta já paga
     if (sale.accountReceivable?.status === AccountStatus.PAID) {
