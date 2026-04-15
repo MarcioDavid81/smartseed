@@ -10,6 +10,9 @@ type Props = {
   item: SaleContractItemDetail & { unityPrice?: number };
   customerId: string;
   customerName: string;
+  memberId: string;
+  memberName: string;
+  memberAdressId: string;
 };
 
 export function AttendSaleContractItemModal({
@@ -18,6 +21,9 @@ export function AttendSaleContractItemModal({
   item,
   customerId,
   customerName,
+  memberId,
+  memberName,
+  memberAdressId,
 }: Props) {
   const onClose = () => onOpenChange(false);
 
@@ -47,6 +53,9 @@ export function AttendSaleContractItemModal({
         customerId={customerId}
         customerName={customerName}
         unitPrice={item.unityPrice}
+        memberId={memberId}
+        memberName={memberName}
+        memberAdressId={memberAdressId}
       />
     );
   }
@@ -66,6 +75,9 @@ export function AttendSaleContractItemModal({
         customerId={customerId}
         customerName={customerName}
         saleValue={item.unityPrice}
+        memberId={memberId}
+        memberName={memberName}
+        memberAdressId={memberAdressId}
       />
     );
   }

@@ -92,6 +92,9 @@ export function SaleContractItems({ saleContract }: Props) {
                         item={item}
                         customerId={saleContract.customerId}
                         customerName={saleContract.customer.name}
+                        memberId={saleContract.memberId ?? ""}
+                        memberName={saleContract.member?.name ?? ""}
+                        memberAdressId={saleContract.memberAdressId ?? ""}
                       />
                     </TableCell>
                   </TableRow>
