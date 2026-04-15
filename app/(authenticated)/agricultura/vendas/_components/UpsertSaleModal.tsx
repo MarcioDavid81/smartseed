@@ -487,9 +487,15 @@ const UpsertIndustrySaleModal = ({
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={
-                              selectedProduct ? "Selecione uma depósito" : "Primeiro selecione um produto"
-                            } />
+                          <SelectValue
+                            placeholder={
+                              !selectedProduct
+                                ? "Selecione um produto primeiro"
+                                : availableDeposits.length === 0
+                                ? "Sem estoque disponível"
+                                : "Selecione um depósito"
+                            }
+                          />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
