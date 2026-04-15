@@ -10,6 +10,9 @@ type Props = {
   item: PurchaseOrderItemDetail & { unityPrice?: number };
   customerId: string;
   customerName: string;
+  memberId: string;
+  memberName: string;
+  memberAdressId: string;
 };
 
 export function AttendPurchaseOrderItemModal({
@@ -18,6 +21,9 @@ export function AttendPurchaseOrderItemModal({
   item,
   customerId,
   customerName,
+  memberId,
+  memberName,
+  memberAdressId,
 }: Props) {
   const onClose = () => onOpenChange(false);
 
@@ -47,6 +53,9 @@ export function AttendPurchaseOrderItemModal({
         customerId={customerId}
         customerName={customerName}
         unitPrice={item.unityPrice}
+        memberId={memberId}
+        memberName={memberName}
+        memberAdressId={memberAdressId}
       />
     );
   }
@@ -66,6 +75,9 @@ export function AttendPurchaseOrderItemModal({
         customerId={customerId}
         customerName={customerName}
         unityPrice={item.unityPrice}
+        memberId={memberId}
+        memberName={memberName}
+        memberAdressId={memberAdressId}
       />
     );
   }

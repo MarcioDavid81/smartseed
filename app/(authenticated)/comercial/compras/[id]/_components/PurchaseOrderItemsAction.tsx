@@ -24,12 +24,18 @@ type Props = {
   item: PurchaseOrderItemDetail;
   customerId: string;
   customerName: string;
+  memberId: string;
+  memberName: string;
+  memberAdressId: string;
 };
 
 export function PurchaseOrderItemActions({
   item,
   customerId,
   customerName,
+  memberId,
+  memberName,
+  memberAdressId,
 }: Props) {
   const [openDeliveries, setOpenDeliveries] = useState(false);
   const [openAttend, setOpenAttend] = useState(false);
@@ -77,6 +83,9 @@ export function PurchaseOrderItemActions({
           item={item}
           customerId={customerId}
           customerName={customerName}
+          memberId={memberId}
+          memberName={memberName}
+          memberAdressId={memberAdressId}
         />
 
         <PurchaseOrderItemDeliveries

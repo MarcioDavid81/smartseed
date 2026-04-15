@@ -88,6 +88,9 @@ export function PurchaseOrderItems({ purchaseOrder }: Props) {
                           item={item}
                           customerId={purchaseOrder.customerId}
                           customerName={purchaseOrder.customer.name}
+                          memberId={purchaseOrder.memberId ?? ""}
+                          memberName={purchaseOrder.member?.name ?? ""}
+                          memberAdressId={purchaseOrder.memberAdressId ?? ""}
                         />
                       </TableCell>
                     </TableRow>

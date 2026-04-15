@@ -15,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormControl,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,7 +31,7 @@ import {
   purchaseOrderSchema,
   PurchaseOrderFormData,
 } from "@/lib/schemas/purchaseOrderSchema";
-import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
+import { PurchaseOrderDetails } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PurchaseOrderType, Unit } from "@prisma/client";
 import { useEffect } from "react";
@@ -40,6 +41,7 @@ import { useUpsertPurchaseOrder } from "@/queries/commercial/use-purchase-orders
 import PurchaseOrderItemForm from "./PurchaseOrderItemForm";
 import { ComboBoxOption } from "@/components/combo-option";
 import { useCustomers } from "@/queries/registrations/use-customer";
+import { useMembers } from "@/queries/registrations/use-member";
 
 interface UpsertPurchaseOrderModalProps {
   compra?: PurchaseOrderDetails;
@@ -60,6 +62,8 @@ const UpsertPurchaseOrderModal = ({
       type: compra?.type || PurchaseOrderType.INPUT_PURCHASE,
       date: compra ? new Date(compra.date) : new Date(),
       customerId: compra?.customerId || "",
+      memberId: compra?.memberId || "",
+      memberAdressId: compra?.memberAdressId || "",
       document: compra?.document || "",
       notes: compra?.notes || "",
       items:
@@ -83,6 +87,10 @@ const UpsertPurchaseOrderModal = ({
 
   const orderType = form.watch("type");
   const { data: customers = [] } = useCustomers();
+  const { data: members = [] } = useMembers();
+  const memberId = form.watch("memberId");
+  const selectedMember = members.find(m => m.id === memberId);
+  const addresses = selectedMember?.adresses ?? [];
 
   useEffect(() => {
     if (!isOpen) return;
@@ -92,6 +100,8 @@ const UpsertPurchaseOrderModal = ({
         type: compra.type,
         date: new Date(compra.date),
         customerId: compra.customerId,
+        memberId: compra.memberId || "",
+        memberAdressId: compra.memberAdressId || "",
         document: compra.document ?? "",
         notes: compra.notes ?? "",
         items: compra.items.map((item) => ({
@@ -139,24 +149,17 @@ const UpsertPurchaseOrderModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[95vh] sm:max-w-[900px] flex flex-col">
-        {/* ---------- Header ---------- */}
+      <DialogContent className="sm:max-w-[900px] max-h-[95vh] md:max-h-full overflow-auto scrollbar-hide">
         <DialogHeader>
-          <DialogTitle>Pedido de Compra</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">Pedido de Compra</DialogTitle>
           <DialogDescription>
             {compra ? "Editar pedido de compra" : "Novo pedido de compra"}
           </DialogDescription>
         </DialogHeader>
-
-        {/* ---------- Form ---------- */}
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col flex-1 gap-6"
-          >
-            {/* ---------- Dados principais ---------- */}
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2" >
+            {/* Data e Documento */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -187,7 +190,76 @@ const UpsertPurchaseOrderModal = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Sócio e Inscrição Estadual */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="memberId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel> Sócio</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma sócio" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {members.map((member) => (
+                            <SelectItem key={member.id} value={member.id}>
+                              <div className="flex justify-between gap-2">
+                                <span>{member.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="memberAdressId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Inscrição Estadual</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!memberId || addresses.length === 0}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={
+                              memberId ? "Selecione uma inscrição estadual" : "Selecione uma sócio primeiro"
+                            } />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {addresses.map((memberAdress) => (
+                            <SelectItem key={memberAdress.id} value={memberAdress.id}>
+                              <div className="flex items-center justify-between gap-2">
+                                <span>{memberAdress.stateRegistration}</span>
+                                <span className="text-muted-foreground">
+                                  {memberAdress.district}, {memberAdress.city} - {memberAdress.state}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Tipo e Cliente */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="type"
@@ -238,22 +310,24 @@ const UpsertPurchaseOrderModal = ({
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observações</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+              {/* Observações */}
+              <div>
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Observações</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
 
             {/* ---------- Itens (SCROLL) ---------- */}
-            <div className="flex flex-col gap-4 flex-1">
+            <div className="flex flex-col gap-2 flex-1">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg">Itens</h3>
                 <Button

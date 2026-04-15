@@ -50,7 +50,7 @@ export function PurchaseOrderOverview({ purchaseOrder }: Props) {
 
       <CardContent className="flex flex-col gap-4 text-sm">
         <div className="w-full flex flex-col md:flex-row items-start md:items-center justify-between">
-          <div className="flex flex-col gap-6 w-[50%]">
+          <div className="flex flex-col gap-6 w-[33%]">
             <div>
               <span className="text-muted-foreground">Fornecedor</span>
               <p className="font-medium">{purchaseOrder.customer.name}</p>
@@ -60,10 +60,20 @@ export function PurchaseOrderOverview({ purchaseOrder }: Props) {
               <p>{new Date(purchaseOrder.date).toLocaleDateString("pt-BR")}</p>
             </div>
           </div>
-          <div className="flex flex-col items-start gap-6 w-[50%]">
+          <div className="flex flex-col gap-6 w-[33%]">
+            <div>
+              <span className="text-muted-foreground">Sócio</span>
+              <p className="font-medium">{purchaseOrder.member?.name || "—"}</p>
+            </div>
             <div>
               <span className="text-muted-foreground">Tipo</span>
               <p>{PURCHASE_TYPE_LABELS[purchaseOrder.type]}</p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-6 w-[33%]">
+            <div>
+              <span className="text-muted-foreground">Inscrição Estadual</span>
+              <p>{purchaseOrder.memberAdress?.stateRegistration || "—"}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Observações</span>
