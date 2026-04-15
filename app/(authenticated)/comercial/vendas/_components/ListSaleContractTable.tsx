@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "@/components/ui/card";
 import { SaleContractDetails } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { AgroLoader } from "@/components/agro-loader";
 import { LoadingData } from "@/components/loading-data";
 import { useSaleContracts } from "@/queries/commercial/use-sale-contracts";
@@ -33,9 +33,42 @@ export function ListSaleContractTable() {
     {
       id: "customer",
       header: "Cliente",
-      accessorFn: (row) => row.customer?.name ?? "",
+      accessorFn: (row) => row.customer.name,
       filterFn: "includesString",
-      cell: ({ row: { original } }) => <div className="text-left">{original.customer?.name ? (original.customer.name) : <LoadingData />}</div>,
+      cell: ({ row }) => {
+        const customer = row.original.customer;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!customer) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem cliente
+            </span>
+          );
+        }
+        return <span>{customer.name}</span>;
+      },
+    },
+    {
+      id: "member",
+      header: "Sócio",
+      accessorFn: (row) => row.member?.name,
+      filterFn: "includesString",
+      cell: ({ row }) => {
+        const member = row.original.member;
+        if ((row.original as any)._optimistic) {
+          return <LoadingData />;
+        }
+        if (!member) {
+          return (
+            <span className="text-muted-foreground italic text-sm">
+              Sem socio
+            </span>
+          );
+        }
+        return <span>{member.name.split(" ")[0]}</span>;
+      },
     },
     {
       id: "product",

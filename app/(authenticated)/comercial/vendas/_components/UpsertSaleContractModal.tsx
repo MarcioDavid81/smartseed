@@ -15,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormControl,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -37,6 +38,7 @@ import { useCustomers } from "@/queries/registrations/use-customer";
 import { SaleContractFormData, saleContractSchema } from "@/lib/schemas/saleContractSchema";
 import { useUpsertSaleContract } from "@/queries/commercial/use-sale-contracts";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useMembers } from "@/queries/registrations/use-member";
 
 interface UpsertSaleContractModalProps {
   venda?: SaleContractDetails;
@@ -57,6 +59,8 @@ const UpsertSaleContractModal = ({
       type: venda?.type || SaleContractType.INDUSTRY_SALE,
       date: venda ? new Date(venda.date) : new Date(),
       customerId: venda?.customerId || "",
+      memberId: venda?.memberId || "",
+      memberAdressId: venda?.memberAdressId || "",
       document: venda?.document || "",
       notes: venda?.notes || "",   
       items: 
@@ -79,8 +83,11 @@ const UpsertSaleContractModal = ({
   });
 
   const orderType = form.watch("type");
-
   const { data: customers = [] } = useCustomers();
+  const { data: members = [] } = useMembers();
+  const memberId = form.watch("memberId");
+  const selectedMember = members.find(m => m.id === memberId);
+  const addresses = selectedMember?.adresses ?? [];
 
   useEffect(() => {
     if (!isOpen) return;
@@ -90,6 +97,8 @@ const UpsertSaleContractModal = ({
         type: venda.type,
         date: new Date(venda.date),
         customerId: venda.customerId,
+        memberId: venda.memberId || "",
+        memberAdressId: venda.memberAdressId || "",
         document: venda.document ?? "",
         notes: venda.notes ?? "",
         items: venda.items.map((item) => ({
@@ -137,18 +146,17 @@ const UpsertSaleContractModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[95vh] sm:max-w-[900px] flex flex-col">
+      <DialogContent className="sm:max-w-[900px] max-h-[95vh] md:max-h-full overflow-auto scrollbar-hide">
         <DialogHeader>
-          <DialogTitle>Contrato de Venda</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">Contrato de Venda</DialogTitle>
           <DialogDescription>
-            {venda ? "Editar venda" : "Nova venda"}
+            {venda ? "Editar contrato de venda" : "Novo contrato de venda"}
           </DialogDescription>
         </DialogHeader>
-
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* ---------- Cabeçalho ---------- */}
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2">
+            {/* Data e Documento */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="date"
@@ -179,14 +187,82 @@ const UpsertSaleContractModal = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              {/* Tipo do pedido */}
+              {/* Sócio e Inscrição Estadual */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="memberId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel> Sócio</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma sócio" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {members.map((member) => (
+                            <SelectItem key={member.id} value={member.id}>
+                              <div className="flex justify-between gap-2">
+                                <span>{member.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="memberAdressId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Inscrição Estadual</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!memberId || addresses.length === 0}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={
+                              memberId ? "Selecione uma inscrição estadual" : "Selecione uma sócio primeiro"
+                            } />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {addresses.map((memberAdress) => (
+                            <SelectItem key={memberAdress.id} value={memberAdress.id}>
+                              <div className="flex items-center justify-between gap-2">
+                                <span>{memberAdress.stateRegistration}</span>
+                                <span className="text-muted-foreground">
+                                  {memberAdress.district}, {memberAdress.city} - {memberAdress.state}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+            {/* Tipo e Cliente */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipo do pedido</FormLabel>
+                    <FormLabel>Tipo do contrato</FormLabel>
                     <FormControl>
                       <Select
                         value={field.value}
@@ -231,20 +307,23 @@ const UpsertSaleContractModal = ({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observações</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {/* Observações */}
+            <div>
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observações</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            {/* ---------- Itens ---------- */}
+            {/* ---------- Itens (SCROLL) ---------- */}
             <div className="flex flex-col gap-4 flex-1">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg">Itens</h3>
@@ -278,6 +357,7 @@ const UpsertSaleContractModal = ({
               </ScrollArea>
             </div>
 
+            {/* ---------- Footer ---------- */}
             <Button
               type="submit"
               disabled={isPending}
