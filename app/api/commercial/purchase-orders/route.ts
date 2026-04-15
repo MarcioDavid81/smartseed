@@ -98,6 +98,8 @@ export async function GET(req: Request) {
       },
       include: {
         customer: true,
+        member: true,
+        memberAdress: true,
         items: {
           include: {
             product: true,
@@ -105,6 +107,14 @@ export async function GET(req: Request) {
           },
         },
       },
+      orderBy: [
+        {
+          date: "desc",
+        },
+        {
+          document: "desc",
+        },
+      ]
     });
     
     return NextResponse.json(purchaseOrders);

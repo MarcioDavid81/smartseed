@@ -96,13 +96,22 @@ export async function GET(req: Request) {
       },
       include: {
         customer: true,
+        member: true,
+        memberAdress: true,
         items: {
           include: {
             cultivar: true,
-
           }
         }
       },
+      orderBy: [
+        {
+          date: "desc",
+        },
+        {
+          document: "desc",
+        },
+      ]
     });
 
     return NextResponse.json(saleContracts);

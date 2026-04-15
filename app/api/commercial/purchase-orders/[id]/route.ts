@@ -60,12 +60,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
       const existingItems = purchaseOrder.items;
 
-      const existingMap = new Map(
-        existingItems.map((item) => [item.id, item])
-      );
+      const existingMap = new Map(existingItems.map((item) => [item.id, item]));
 
       const incomingMap = new Map(
-        items.filter(i => i.id).map((item) => [item.id, item])
+        items.filter((i) => i.id).map((item) => [item.id, item]),
       );
 
       // 1️⃣ Atualizar itens existentes
@@ -77,9 +75,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
           // Regra: não pode ser menor que já recebido
           if (newQuantity.lt(existingItem.fulfilledQuantity)) {
-            throw new Error(
-              "Quantidade não pode ser menor que a já recebida"
-            );
+            throw new Error("Quantidade não pode ser menor que a já recebida");
           }
 
           await tx.purchaseOrderItem.update({
@@ -110,7 +106,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
         if (!incomingMap.has(existingItem.id)) {
           if (existingItem.fulfilledQuantity.gt(0)) {
             throw new Error(
-              "Não é possível remover item que já teve recebimento"
+              "Não é possível remover item que já teve recebimento",
             );
           }
 
@@ -238,6 +234,8 @@ export async function GET(
       where: { id, companyId },
       include: {
         customer: true,
+        member: true,
+        memberAdress: true,
         items: {
           include: {
             seedPurchases: true,
@@ -267,7 +265,10 @@ export async function GET(
       const deliveries = [
         ...item.seedPurchases.map((buy) => ({
           id: buy.id,
-          date: buy.date instanceof Date ? buy.date.toISOString() : String(buy.date),
+          date:
+            buy.date instanceof Date
+              ? buy.date.toISOString()
+              : String(buy.date),
           invoice: String(buy.invoice ?? ""),
           quantity: Number(buy.quantityKg),
           unit: item.unit,
@@ -275,55 +276,78 @@ export async function GET(
         })),
         ...item.inputsPurchases.map((purchase) => ({
           id: purchase.id,
-          date: purchase.date instanceof Date ? purchase.date.toISOString() : String(purchase.date),
+          date:
+            purchase.date instanceof Date
+              ? purchase.date.toISOString()
+              : String(purchase.date),
           invoice: String(purchase.invoiceNumber ?? ""),
           quantity: Number(purchase.quantity),
           unit: item.unit,
           totalPrice: Number(purchase.totalPrice),
         })),
-      ].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      );
+      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       return {
         id: item.id,
         description: item.description,
         quantity: Number(item.quantity),
         fulfilledQuantity: Number(item.fulfilledQuantity),
-        remainingQuantity: Number(item.quantity) - Number(item.fulfilledQuantity),
+        remainingQuantity:
+          Number(item.quantity) - Number(item.fulfilledQuantity),
         unit: item.unit,
         unityPrice: Number(item.unityPrice),
         totalPrice: Number(item.totalPrice),
-        product: item.product ? { id: item.product.id, name: item.product.name } : null,
-        cultivar: item.cultivar ? { id: item.cultivar.id, name: item.cultivar.name } : null,
+        product: item.product
+          ? { id: item.product.id, name: item.product.name }
+          : null,
+        cultivar: item.cultivar
+          ? { id: item.cultivar.id, name: item.cultivar.name }
+          : null,
         deliveries,
       };
     });
 
     const deliveries = items
       .flatMap((item) => item.deliveries)
-      .sort(
-        (a, b) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime(),
-      );
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    return NextResponse.json({
-      id: purchaseOrder.id,
-      type: purchaseOrder.type,
-      date: purchaseOrder.date,
-      document: purchaseOrder.document,
-      status: purchaseOrder.status,
-      notes: purchaseOrder.notes,
-      customerId: purchaseOrder.customerId,
+    return NextResponse.json(
+      {
+        id: purchaseOrder.id,
+        type: purchaseOrder.type,
+        date: purchaseOrder.date,
+        document: purchaseOrder.document,
+        status: purchaseOrder.status,
+        notes: purchaseOrder.notes,
+        customerId: purchaseOrder.customerId,
 
-      customer: {
-        id: purchaseOrder.customer.id,
-        name: purchaseOrder.customer.name,
+        customer: {
+          id: purchaseOrder.customer.id,
+          name: purchaseOrder.customer.name,
+        },
+        memberId: purchaseOrder.memberId ?? null,
+        member: {
+          id: purchaseOrder.member?.id ?? null,
+          name: purchaseOrder.member?.name ?? null,
+          email: purchaseOrder.member?.email ?? null,
+          phone: purchaseOrder.member?.phone ?? null,
+          cpf: purchaseOrder.member?.cpf ?? null,
+        },
+        memberAdressId: purchaseOrder.memberAdressId ?? null,
+        memberAdress: {
+          id: purchaseOrder.memberAdress?.id ?? null,
+          stateRegistration: purchaseOrder.memberAdress?.stateRegistration ?? null,
+          zip: purchaseOrder.memberAdress?.zip ?? null,
+          adress: purchaseOrder.memberAdress?.adress ?? null,
+          number: purchaseOrder.memberAdress?.number ?? null,
+          complement: purchaseOrder.memberAdress?.complement ?? null,
+          district: purchaseOrder.memberAdress?.district ?? null,
+          state: purchaseOrder.memberAdress?.state ?? null,
+          city: purchaseOrder.memberAdress?.city ?? null,
+        },
+        items,
+        deliveries,
       },
-
-      items,
-      deliveries,
-    },
       { status: 200 },
     );
   } catch (error) {

@@ -18,6 +18,27 @@ export type PurchaseOrderDetails = {
     name: string;
   };
 
+  memberId?: string | null
+  member?: {
+    id: string
+    name: string
+    email: string
+    phone: string
+    cpf: string
+  }
+  memberAdressId?: string | null
+  memberAdress?: {
+    id: string
+    stateRegistration: string
+    zip: string
+    adress: string
+    number: string
+    complement: string
+    district: string
+    state: string
+    city: string
+  }
+
   items: Array<{
     id: string;
     description: string | null;

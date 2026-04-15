@@ -250,6 +250,8 @@ export async function GET(
       where: { id },
       include: {
         customer: true,
+        member: true,
+        memberAdress: true,
         items: {
           include: {
             industrySales: true,
@@ -351,7 +353,24 @@ export async function GET(
           id: saleContract.customer.id,
           name: saleContract.customer.name,
         },
-
+        member: {
+          id: saleContract.member?.id ?? null,
+          name: saleContract.member?.name ?? null,
+          email: saleContract.member?.email ?? null,
+          phone: saleContract.member?.phone ?? null,
+          cpf: saleContract.member?.cpf ?? null,
+        },
+        memberAdress: {
+          id: saleContract.memberAdress?.id ?? null,
+          stateRegistration: saleContract.memberAdress?.stateRegistration ?? null,
+          zip: saleContract.memberAdress?.zip ?? null,
+          adress: saleContract.memberAdress?.adress ?? null,
+          number: saleContract.memberAdress?.number ?? null,
+          complement: saleContract.memberAdress?.complement ?? null,
+          district: saleContract.memberAdress?.district ?? null,
+          state: saleContract.memberAdress?.state ?? null,
+          city: saleContract.memberAdress?.city ?? null,
+        },
         items,
         deliveries,
       },
