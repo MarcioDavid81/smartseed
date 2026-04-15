@@ -22,6 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 import { PaymentCondition } from "@prisma/client";
 import {
   Select,
@@ -52,6 +53,9 @@ interface UpsertPurchaseModalProps {
   productId?: string;
   customerId?: string;
   customerName?: string;
+  memberId?: string;
+  memberName?: string;
+  memberAdressId?: string;
   unitPrice?: number;
   maxQuantityKg?: number;
   initialQuantity?: number;
@@ -65,22 +69,28 @@ const UpsertPurchaseModal = ({
   productId,
   customerId,
   customerName,
+  memberId,
+  memberName,
+  memberAdressId,
   unitPrice: unitPriceFromOrder,
   maxQuantityKg,
   initialQuantity,
 }: UpsertPurchaseModalProps) => {
   const { showToast } = useSmartToast();
+  const router = useRouter();
 
   const suggestedQuantity = initialQuantity ?? maxQuantityKg ?? undefined;
-  const customerPlaceholder = customerName ?? "Selecione um fornecedor";
+  const customerPlaceholder = customerName || "Selecione um fornecedor";
+  const socioPlaceholder = memberName || "Selecione um sócio";
+  const socioAdressPlaceholder = memberAdressId || "Selecione uma endereço";
 
   const form = useForm<InputPurchaseFormData>({
     resolver: zodResolver(inputPurchaseSchema),
     defaultValues: {
       date: compra?.date ? new Date(compra.date) : new Date(),
       customerId: compra?.customerId ?? customerId ?? "",
-      memberId: compra?.memberId ?? "",
-      memberAdressId: compra?.memberAdressId ?? "",
+      memberId: compra?.memberId ?? memberId ?? "",
+      memberAdressId: compra?.memberAdressId ?? memberAdressId ?? "",
       productId: compra?.productId ?? productId ?? "",
       invoiceNumber: compra?.invoiceNumber ?? "",
       quantity: compra?.quantity ?? suggestedQuantity ?? 0,
@@ -129,6 +139,8 @@ const UpsertPurchaseModal = ({
         purchaseOrderItemId: purchaseOrderItemId ?? undefined,
         productId: productId ?? "",
         customerId: customerId ?? "",
+        memberId: memberId ?? "",
+        memberAdressId: memberAdressId ?? "",
         unitPrice: unitPriceFromOrder ?? 0,
         quantity: suggestedQuantity ?? 0,
       });
@@ -139,6 +151,8 @@ const UpsertPurchaseModal = ({
     purchaseOrderItemId,
     productId,
     customerId,
+    memberId,
+    memberAdressId,
     unitPriceFromOrder,
     suggestedQuantity,
     form,
@@ -148,14 +162,14 @@ const UpsertPurchaseModal = ({
   const { data: products = [] } = useInputProductQuery();
   const { data: customers = [] } = useCustomers();
   const { data: members = [] } = useMembers();
-  const memberId = form.watch("memberId");
-  const selectedMember = members.find(m => m.id === memberId);
+  const socioId = form.watch("memberId");
+  const selectedMember = members.find(m => m.id === socioId);
   const addresses = selectedMember?.adresses ?? [];
 
-   const { mutate, isPending } = useUpsertInputPurchase({
-     purchaseId: compra?.id,
-     purchaseOrderItemId: purchaseOrderItemId ?? undefined,
-   });
+  const { mutate, isPending } = useUpsertInputPurchase({
+    purchaseId: compra?.id,
+    purchaseOrderItemId: purchaseOrderItemId ?? undefined,
+  });
  
    const onSubmit = async (data: InputPurchaseFormData) => {  
     if (
@@ -182,9 +196,10 @@ const UpsertPurchaseModal = ({
              ? "Compra atualizada com sucesso!"
              : "Compra cadastrada com sucesso!",
          });
-       
+
          onClose();
          form.reset();
+         router.refresh();
        },
        onError: (error: Error) => {
          if (error instanceof ApiError) {
@@ -228,6 +243,14 @@ const UpsertPurchaseModal = ({
       form.setValue("customerId", customerId, { shouldValidate: true });
     }
 
+    if (memberId) {
+      form.setValue("memberId", memberId, { shouldValidate: true });
+    }
+
+    if (memberAdressId) {
+      form.setValue("memberAdressId", memberAdressId, { shouldValidate: true });
+    }
+
     if (typeof unitPriceFromOrder === "number") {
       form.setValue("unitPrice", unitPriceFromOrder, {
         shouldValidate: true,
@@ -237,7 +260,7 @@ const UpsertPurchaseModal = ({
     if (typeof suggestedQuantity === "number") {
       form.setValue("quantity", suggestedQuantity, { shouldValidate: true });
     }
-  }, [productId, customerId, unitPriceFromOrder, suggestedQuantity, form]);
+  }, [productId, customerId, memberId, memberAdressId, unitPriceFromOrder, suggestedQuantity, form]);
 
 
   return (
@@ -304,7 +327,7 @@ const UpsertPurchaseModal = ({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma socio" />
+                          <SelectValue placeholder={socioPlaceholder} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -334,7 +357,7 @@ const UpsertPurchaseModal = ({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma inscrição estadual" />
+                          <SelectValue placeholder={socioAdressPlaceholder} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

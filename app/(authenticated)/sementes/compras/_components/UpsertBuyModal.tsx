@@ -22,6 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 import { PaymentCondition } from "@prisma/client";
 import {
   Select,
@@ -51,6 +52,9 @@ interface UpsertBuyModalProps {
   cultivarId?: string;
   customerId?: string;
   customerName?: string;
+  memberId?: string;
+  memberName?: string;
+  memberAdressId?: string;
   unityPrice?: number;
   maxQuantityKg?: number;
   initialQuantityKg?: number;
@@ -64,23 +68,29 @@ const UpsertBuyModal = ({
   cultivarId,
   customerId,
   customerName,
+  memberId,
+  memberName,
+  memberAdressId,
   unityPrice: unityPriceFromOrder,
   maxQuantityKg,
   initialQuantityKg,
 }: UpsertBuyModalProps) => {
   const { showToast } = useSmartToast();
+  const router = useRouter();
   const cycle = getCycle();
 
   const suggestedQuantityKg = initialQuantityKg ?? maxQuantityKg ?? undefined;
-  const customerPlaceholder = customerName ?? "Selecione um fornecedor";
+  const customerPlaceholder = customerName || "Selecione um fornecedor";
+  const socioPlaceholder = memberName || "Selecione um sócio";
+  const socioAdressPlaceholder = memberAdressId || "Selecione uma endereço";
 
   const form = useForm<BuyFormData>({
     resolver: zodResolver(seedBuySchema),
     defaultValues: {
       cultivarId: compra?.cultivarId ?? cultivarId ?? "",
       customerId: compra?.customerId ?? customerId ?? "",
-      memberId: compra?.memberId ?? "",
-      memberAdressId: compra?.memberAdressId ?? "",
+      memberId: compra?.memberId ?? memberId ?? "",
+      memberAdressId: compra?.memberAdressId ?? memberAdressId ?? "",
       date: compra ? new Date(compra.date) : new Date(),
       invoice: compra?.invoice ?? "",
       unityPrice: compra?.unityPrice ?? unityPriceFromOrder ?? 0,
@@ -128,6 +138,8 @@ const UpsertBuyModal = ({
         purchaseOrderItemId: purchaseOrderItemId ?? undefined,
         cultivarId: cultivarId ?? "",
         customerId: customerId ?? "",
+        memberId: memberId ?? "",
+        memberAdressId: memberAdressId ?? "",
         unityPrice: unityPriceFromOrder ?? 0,
         quantityKg: suggestedQuantityKg ?? 0,
       });
@@ -138,6 +150,8 @@ const UpsertBuyModal = ({
     purchaseOrderItemId,
     cultivarId,
     customerId,
+    memberId,
+    memberAdressId,
     unityPriceFromOrder,
     suggestedQuantityKg,
     form,
@@ -146,8 +160,8 @@ const UpsertBuyModal = ({
   const { data: cultivars = [] } = useSeedCultivarQuery();
   const { data: customers = [] } = useCustomers();
   const { data: members = [] } = useMembers();
-  const memberId = form.watch("memberId");
-  const selectedMember = members.find(m => m.id === memberId);
+  const socioId = form.watch("memberId");
+  const selectedMember = members.find(m => m.id === socioId);
   const addresses = selectedMember?.adresses ?? [];
 
   const { mutate, isPending } = useUpsertSeedBuy({
@@ -196,6 +210,7 @@ const UpsertBuyModal = ({
 
           onClose();
           form.reset();
+          router.refresh();
         },
         onError: (error: Error) => {
           if (error instanceof ApiError) {
@@ -237,6 +252,14 @@ const UpsertBuyModal = ({
       form.setValue("customerId", customerId, { shouldValidate: true });
     }
 
+    if (memberId) {
+      form.setValue("memberId", memberId, { shouldValidate: true });
+    }
+
+    if (memberAdressId) {
+      form.setValue("memberAdressId", memberAdressId, { shouldValidate: true });
+    }
+
     if (typeof unityPriceFromOrder === "number") {
       form.setValue("unityPrice", unityPriceFromOrder, {
         shouldValidate: true,
@@ -248,7 +271,7 @@ const UpsertBuyModal = ({
         shouldValidate: true,
       });
     }
-  }, [cultivarId, customerId, unityPriceFromOrder, suggestedQuantityKg, form]);
+  }, [cultivarId, customerId, memberId, memberAdressId, unityPriceFromOrder, suggestedQuantityKg, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -269,6 +292,8 @@ const UpsertBuyModal = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+
+            {/* Data e Nota Fiscal */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -298,6 +323,8 @@ const UpsertBuyModal = ({
                 )}
               />
             </div>
+
+            {/* Sócio e Endereço */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -312,7 +339,7 @@ const UpsertBuyModal = ({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma socio" />
+                          <SelectValue placeholder={socioPlaceholder} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -338,11 +365,11 @@ const UpsertBuyModal = ({
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
-                      disabled={!!purchaseOrderItemId || !memberId || addresses.length === 0}
+                      disabled={!!purchaseOrderItemId || !socioId || addresses.length === 0}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma inscrição estadual" />
+                          <SelectValue placeholder={socioAdressPlaceholder} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -363,6 +390,8 @@ const UpsertBuyModal = ({
                 )}
               />
             </div>
+
+            {/* Cultivar e Fornecedor */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -432,6 +461,8 @@ const UpsertBuyModal = ({
                 )}
               />
             </div>
+
+            {/* Quantidade, Preço Unitário e Preço Total */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -466,6 +497,7 @@ const UpsertBuyModal = ({
               />
             </div>
 
+            {/* Condição de Pagamento e Data de Vencimento (Se for À Prazo) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -516,6 +548,7 @@ const UpsertBuyModal = ({
               )}
             </div>
 
+            {/* Observações */}
             <div>
               <FormField
                 control={form.control}
