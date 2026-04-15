@@ -82,7 +82,7 @@ const UpsertBuyModal = ({
   const suggestedQuantityKg = initialQuantityKg ?? maxQuantityKg ?? undefined;
   const customerPlaceholder = customerName || "Selecione um fornecedor";
   const socioPlaceholder = memberName || "Selecione um sócio";
-  const socioAdressPlaceholder = memberAdressId || "Selecione uma endereço";
+  const socioAdressPlaceholder = memberAdressId || "Primeiro selecione um sócio";
 
   const form = useForm<BuyFormData>({
     resolver: zodResolver(seedBuySchema),
@@ -369,7 +369,9 @@ const UpsertBuyModal = ({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={socioAdressPlaceholder} />
+                          <SelectValue placeholder={
+                            socioId ? "Selecione uma inscrição" : socioAdressPlaceholder
+                          } />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
