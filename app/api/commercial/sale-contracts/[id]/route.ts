@@ -353,6 +353,7 @@ export async function GET(
           id: saleContract.customer.id,
           name: saleContract.customer.name,
         },
+        memberId: saleContract.memberId ?? null,
         member: {
           id: saleContract.member?.id ?? null,
           name: saleContract.member?.name ?? null,
@@ -360,6 +361,7 @@ export async function GET(
           phone: saleContract.member?.phone ?? null,
           cpf: saleContract.member?.cpf ?? null,
         },
+        memberAdressId: saleContract.memberAdressId ?? null,
         memberAdress: {
           id: saleContract.memberAdress?.id ?? null,
           stateRegistration: saleContract.memberAdress?.stateRegistration ?? null,
