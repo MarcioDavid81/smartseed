@@ -1,5 +1,6 @@
 "use client";
 
+import { ComboBoxOption } from "@/components/combo-option";
 import { MoneyInput, QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -45,6 +46,9 @@ interface UpsertSaleModalProps {
   cultivarId?: string;
   customerId?: string;
   customerName?: string;
+  memberId?: string;
+  memberName?: string;
+  memberAdressId?: string;
   saleValue?: number;
   maxQuantityKg?: number;
   initialQuantityKg?: number;
@@ -57,6 +61,10 @@ const UpsertSaleModal = ({
   saleContractItemId,
   cultivarId,
   customerId,
+  customerName,
+  memberId,
+  memberName,
+  memberAdressId,
   saleValue,
   maxQuantityKg,
   initialQuantityKg,
@@ -64,16 +72,18 @@ const UpsertSaleModal = ({
   const { showToast } = useSmartToast();
   const cycle = getCycle();
 
-  const suggestedQuantityKg =
-    initialQuantityKg ?? maxQuantityKg ?? undefined;
+  const suggestedQuantityKg = initialQuantityKg ?? maxQuantityKg ?? undefined;
+  const customerPlaceholder = customerName || "Selecione um cliente";
+  const socioPlaceholder = memberName || "Selecione um sócio";
+  const socioAdressPlaceholder = memberAdressId || "Primeiro selecione um sócio";
 
   const form = useForm<SeedSaleFormData>({
     resolver: zodResolver(seedSaleSchema),
     defaultValues: {
-      cultivarId: venda?.cultivarId ?? "",
-      customerId: venda?.customerId ?? "",
-      memberId: venda?.memberId ?? "",
-      memberAdressId: venda?.memberAdressId ?? "",
+      cultivarId: venda?.cultivarId ?? cultivarId ?? "",
+      customerId: venda?.customerId ?? customerId ?? "",
+      memberId: venda?.memberId ?? memberId ?? "",
+      memberAdressId: venda?.memberAdressId ?? memberAdressId ?? "",
       date: venda ? new Date(venda.date) : new Date(),
       invoiceNumber: venda?.invoiceNumber ?? "",
       saleValue: venda?.saleValue ?? 0,
@@ -107,6 +117,8 @@ const UpsertSaleModal = ({
         saleContractItemId: saleContractItemId ?? undefined,
         cultivarId: cultivarId ?? "",
         customerId: customerId ?? "",
+        memberId: memberId ?? "",
+        memberAdressId: memberAdressId ?? "",
         saleValue: saleValue ?? 0,
         quantityKg: suggestedQuantityKg ?? 0,
       });
@@ -117,6 +129,8 @@ const UpsertSaleModal = ({
     saleContractItemId,
     cultivarId,
     customerId,
+    memberId,
+    memberAdressId,
     saleValue,
     isOpen,
     suggestedQuantityKg,
@@ -126,8 +140,8 @@ const UpsertSaleModal = ({
   const { data: cultivars = [] } = useSeedCultivarAvailableForSaleQuery();
   const { data: customers = [] } = useCustomers();
   const { data: members = [] } = useMembers();
-  const memberId = form.watch("memberId");
-  const selectedMember = members.find(m => m.id === memberId);
+  const socioId = form.watch("memberId");
+  const selectedMember = members.find(m => m.id === socioId);
   const addresses = selectedMember?.adresses ?? [];
 
   const { mutate, isPending } = useUpsertSeedSale({
@@ -215,6 +229,14 @@ const UpsertSaleModal = ({
       form.setValue("customerId", customerId, { shouldValidate: true });
     }
 
+    if (memberId) {
+      form.setValue("memberId", memberId, { shouldValidate: true });
+    }
+
+    if (memberAdressId) {
+      form.setValue("memberAdressId", memberAdressId, { shouldValidate: true });
+    }
+
     if (typeof saleValue === "number") {
       form.setValue("saleValue", saleValue, {
         shouldValidate: true,
@@ -226,7 +248,7 @@ const UpsertSaleModal = ({
         shouldValidate: true,
       });
     }
-  }, [cultivarId, customerId, saleValue, suggestedQuantityKg, form])
+  }, [cultivarId, customerId, memberId, memberAdressId, saleValue, suggestedQuantityKg, form])
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -291,7 +313,7 @@ const UpsertSaleModal = ({
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma socio" />
+                            <SelectValue placeholder={socioPlaceholder} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -317,11 +339,13 @@ const UpsertSaleModal = ({
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
-                        disabled={!!saleContractItemId || !memberId || addresses.length === 0}
+                        disabled={!!saleContractItemId || !socioId || addresses.length === 0}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma inscrição estadual" />
+                            <SelectValue placeholder={
+                              socioId ? "Selecione uma inscrição" : socioAdressPlaceholder
+                            } />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -385,27 +409,15 @@ const UpsertSaleModal = ({
                     <FormItem>
                       <FormLabel>Destino</FormLabel>
                       <FormControl>
-                        <Select 
-                          onValueChange={field.onChange} 
+                        <ComboBoxOption
+                          options={customers.map((c) => ({
+                            label: c.name,
+                            value: c.id,
+                          }))}
                           value={field.value}
-                          disabled={!!saleContractItemId}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um cliente" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {customers.map((customer) => (
-                              <SelectItem key={customer.id} value={customer.id}>
-                                <div className="flex items-center gap-2">
-                                  <span>{customer.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {`${customer.cpf_cnpj}`}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          onChange={field.onChange}
+                          placeholder={customerPlaceholder}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

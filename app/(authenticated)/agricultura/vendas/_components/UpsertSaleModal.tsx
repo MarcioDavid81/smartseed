@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSmartToast } from "@/contexts/ToastContext";
 import { ApiError } from "@/lib/http/api-error";
 import { IndustrySaleFormData, industrySaleSchema } from "@/lib/schemas/industrySale";
-import { useIndustryDepositById, useIndustryDeposits } from "@/queries/industry/use-deposits-query";
+import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
 import { useIndustryTransporters } from "@/queries/industry/use-transporter-query";
 import { useUpsertIndustrySale } from "@/queries/industry/use-upsert-industry-sale";
 import { useCustomers } from "@/queries/registrations/use-customer";
@@ -41,6 +41,9 @@ interface UpsertSaleModalProps {
   product?: ProductType;
   customerId?: string;
   customerName?: string;
+  memberId?: string;
+  memberName?: string;
+  memberAdressId?: string;
   unitPrice?: number;
   maxQuantityKg?: number;
   initialQuantity?: number;
@@ -53,6 +56,10 @@ const UpsertIndustrySaleModal = ({
   saleContractItemId,
   product,
   customerId,
+  customerName,
+  memberId,
+  memberName,
+  memberAdressId,
   unitPrice: unitPriceFromSale,
   maxQuantityKg,
   initialQuantity,
@@ -60,6 +67,9 @@ const UpsertIndustrySaleModal = ({
   const { showToast } = useSmartToast();
 
   const suggestedQuantity = initialQuantity ?? maxQuantityKg ?? undefined;
+  const customerPlaceholder = customerName || "Selecione um fornecedor";
+  const socioPlaceholder = memberName || "Selecione um sócio";
+  const socioAdressPlaceholder = memberAdressId || "Primeiro selecione um sócio";
 
   const form = useForm<IndustrySaleFormData>({
     resolver: zodResolver(industrySaleSchema),
@@ -141,6 +151,8 @@ const UpsertIndustrySaleModal = ({
         product: product ?? undefined,
         industryDepositId: "",
         customerId: customerId ?? "",
+        memberId: memberId ?? "",
+        memberAdressId: memberAdressId ?? "",
         unitPrice: unitPriceFromSale ?? 0,
         weightLiq: suggestedQuantity ?? 0,
       });
@@ -151,6 +163,8 @@ const UpsertIndustrySaleModal = ({
     saleContractItemId,
     product,
     customerId,
+    memberId,
+    memberAdressId,
     unitPriceFromSale,
     suggestedQuantity,
     form,
@@ -159,18 +173,27 @@ const UpsertIndustrySaleModal = ({
   const { data: deposits = [] } = useIndustryDeposits();
   const { data: transporters = [] } = useIndustryTransporters();
   const { data: customers = [] } = useCustomers();
-  const { data: deposit, isLoading } = useIndustryDepositById(depositId);
   const { data: members = [] } = useMembers();
-  const memberId = form.watch("memberId");
-  const selectedMember = members.find(m => m.id === memberId);
+  const socioId = form.watch("memberId");
+  const selectedMember = members.find(m => m.id === socioId);
   const addresses = selectedMember?.adresses ?? [];
 
-  const availableProducts = deposit?.industryStocks
-  ?.filter((s) => s.quantity > 0) ?? [];
+  const selectedProduct = form.watch("product");
+  const availableDeposits = deposits
+  .map((deposit) => {
+    const stock = deposit.industryStocks?.find(
+      (s) => s.product === selectedProduct && s.quantity > 0
+    );
 
-  useEffect(() => {
-    form.setValue("product", availableProducts[0]?.product || undefined);
-    }, [depositId]);
+    if (!stock) return null;
+
+    return {
+      id: deposit.id,
+      name: deposit.name,
+      quantity: stock.quantity,
+    };
+  })
+  .filter(Boolean);
 
   
   const { mutate, isPending } = useUpsertIndustrySale({
@@ -252,6 +275,14 @@ const UpsertIndustrySaleModal = ({
         form.setValue("customerId", customerId, { shouldValidate: true });
       }
   
+      if (memberId) {
+        form.setValue("memberId", memberId, { shouldValidate: true });
+      }
+  
+      if (memberAdressId) {
+        form.setValue("memberAdressId", memberAdressId, { shouldValidate: true });
+      }
+
       if (typeof unitPriceFromSale === "number") {
         form.setValue("unitPrice", unitPriceFromSale, {
           shouldValidate: true,
@@ -261,7 +292,7 @@ const UpsertIndustrySaleModal = ({
       if (typeof suggestedQuantity === "number") {
         form.setValue("weightLiq", suggestedQuantity, { shouldValidate: true });
       }
-    }, [product, customerId, unitPriceFromSale, suggestedQuantity, form]);
+    }, [product, customerId, memberId, memberAdressId, unitPriceFromSale, suggestedQuantity, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -329,7 +360,7 @@ const UpsertIndustrySaleModal = ({
                             }))}
                             value={field.value}
                             onChange={field.onChange}
-                            placeholder="Selecione um cliente"
+                            placeholder={customerPlaceholder}
                           />
                         </FormControl>
                         <FormMessage />
@@ -354,7 +385,7 @@ const UpsertIndustrySaleModal = ({
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma sócio" />
+                            <SelectValue placeholder={socioPlaceholder} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -380,12 +411,12 @@ const UpsertIndustrySaleModal = ({
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
-                        disabled={!!saleContractItemId || !memberId || addresses.length === 0}
+                        disabled={!!saleContractItemId || !socioId || addresses.length === 0}
                       >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder={
-                              memberId ? "Selecione uma inscrição estadual" : "Selecione uma sócio primeiro"
+                              socioId ? "Selecione uma inscrição" : socioAdressPlaceholder
                             } />
                           </SelectTrigger>
                         </FormControl>
@@ -412,35 +443,6 @@ const UpsertIndustrySaleModal = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="industryDepositId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Depósito</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma depósito" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {deposits.map((deposit) => (
-                            <SelectItem key={deposit.id} value={deposit.id}>
-                              <div className="flex justify-between gap-2">
-                                <span>{deposit.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />                
-                <FormField
-                  control={form.control}
                   name="product"
                   render={({ field }) => (
                     <FormItem>
@@ -448,30 +450,21 @@ const UpsertIndustrySaleModal = ({
                       <FormControl>
                         <Select
                           value={field.value}
-                          onValueChange={field.onChange}
-                          disabled={!depositId || isLoading}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("industryDepositId", "");
+                          }}
+                          disabled={!!saleContractItemId}
                         >
                           <SelectTrigger>
                             <SelectValue
-                              placeholder={
-                                !depositId
-                                  ? "Selecione um depósito primeiro"
-                                  : availableProducts.length === 0
-                                  ? "Depósito sem estoque"
-                                  : "Selecione um produto"
-                              }
+                              placeholder="Selecione um produto"
                             />
                           </SelectTrigger>
-
                           <SelectContent>
-                            {availableProducts.map((stock) => (
-                              <SelectItem key={stock.product} value={stock.product}>
-                                <div className="flex items-center justify-between w-full gap-4">
-                                  <span>{PRODUCT_TYPE_LABELS[stock.product]}</span>
-                                  <span className="text-muted-foreground">
-                                    {formatNumber(stock.quantity)} kg
-                                  </span>
-                                </div>
+                            {Object.entries(PRODUCT_TYPE_LABELS).map(([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -481,6 +474,41 @@ const UpsertIndustrySaleModal = ({
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="industryDepositId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Depósito</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!selectedProduct}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={
+                              selectedProduct ? "Selecione uma depósito" : "Primeiro selecione um produto"
+                            } />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableDeposits.map((deposit) => (
+                            <SelectItem key={deposit?.id || ""} value={deposit?.id || ""}>
+                              <div className="flex justify-between gap-2 w-full">
+                                <span>{deposit?.name || ""}</span>
+                                <span className="text-muted-foreground">
+                                  {formatNumber(deposit?.quantity || 0)} kg
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />                
               </div>
 
               {/* Transportador, Placa e Motorista */}

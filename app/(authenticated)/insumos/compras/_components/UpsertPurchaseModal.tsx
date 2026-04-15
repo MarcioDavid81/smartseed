@@ -353,7 +353,7 @@ const UpsertPurchaseModal = ({
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
-                      disabled={!!purchaseOrderItemId || !memberId || addresses.length === 0}
+                      disabled={!!purchaseOrderItemId || !socioId || addresses.length === 0}
                     >
                       <FormControl>
                         <SelectTrigger>
