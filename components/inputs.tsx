@@ -13,12 +13,14 @@ interface MoneyInputProps<T extends FieldValues> {
   label: string;
   field: ControllerRenderProps<T, any>;
   readonly?: boolean;
+  onChange?: () => void;
 }
 
 export function MoneyInput<T extends FieldValues>({
   label,
   field,
   readonly = false,
+  onChange,
 }: MoneyInputProps<T>) {
   return (
     <FormItem>
@@ -39,6 +41,10 @@ export function MoneyInput<T extends FieldValues>({
           className="font-light"
           onValueChange={(values) => {
             field.onChange(values.floatValue ?? 0);
+
+            if (onChange) {
+              onChange();
+            }
           }}
           disabled={readonly}
         />
