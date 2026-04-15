@@ -17,6 +17,7 @@ import { useInputProductQuery } from "@/queries/input/use-input";
 import { useSeedCultivarQuery } from "@/queries/seed/use-seed-cultivar-query";
 import { PurchaseOrderType } from "@prisma/client";
 import { Trash2Icon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 
@@ -33,10 +34,24 @@ const PurchaseOrderItemForm = ({
   onRemove,
   orderType,
 }: PurchaseOrderItemFormProps) => {
-  const quantity = form.watch(`items.${index}.quantity`);
-  const unityPrice = form.watch(`items.${index}.unityPrice`);
-  const total = quantity * unityPrice || 0;
-  form.setValue(`items.${index}.totalPrice`, total);
+const quantity = form.watch(`items.${index}.quantity`);
+const unityPrice = form.watch(`items.${index}.unityPrice`);
+const totalPrice = form.watch(`items.${index}.totalPrice`);
+const [lastChanged, setLastChanged] = useState<"unity" | "total" | null>(null);
+
+useEffect(() => {
+  if (!quantity) return;
+
+  if (lastChanged === "unity") {
+    const total = quantity * unityPrice;
+    form.setValue(`items.${index}.totalPrice`, total);
+  }
+
+  if (lastChanged === "total") {
+    const unity = totalPrice / quantity;
+    form.setValue(`items.${index}.unityPrice`, unity);
+  }
+}, [quantity, unityPrice, totalPrice, lastChanged]);
 
   const { data: cultivars = [] } = useSeedCultivarQuery();
   const { data: products = [] } = useInputProductQuery();
@@ -131,7 +146,7 @@ const PurchaseOrderItemForm = ({
           control={form.control}
           name={`items.${index}.unityPrice`}
           render={({ field }) => (
-            <MoneyInput label="Preço Unitário" field={field} />
+            <MoneyInput label="Preço Unitário" field={field} onChange={() => setLastChanged("unity")} />
           )}
         />
 
@@ -140,7 +155,7 @@ const PurchaseOrderItemForm = ({
           control={form.control}
           name={`items.${index}.totalPrice`}
           render={({ field }) => (
-            <MoneyInput label="Preço Total" field={field} readonly />
+            <MoneyInput label="Preço Total" field={field} onChange={() => setLastChanged("total")} />
           )}
         />
       </div>

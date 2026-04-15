@@ -9,16 +9,20 @@ import { CornerDownLeft, RefreshCcw } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 
 type Props = {
   purchaseOrder: PurchaseOrderDetails;
 };
 
 export function PurchaseOrderOverview({ purchaseOrder }: Props) {
-    const router = useRouter();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   const handleRefreshPage = () => {
-    window.location.reload();
+    startTransition(() => {
+      router.refresh();
+    });
   };
 
   const handleReturn = () => {
@@ -34,8 +38,16 @@ export function PurchaseOrderOverview({ purchaseOrder }: Props) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button onClick={handleRefreshPage} className="text-sm text-primary">
-                    <RefreshCcw className="w-4 h-4" />
+                  <button
+                    onClick={handleRefreshPage}
+                    className="text-sm text-primary"
+                    disabled={isPending}
+                    aria-busy={isPending}
+                  >
+                    <RefreshCcw
+                      size={16}
+                      className={isPending ? "animate-spin text-muted-foreground" : ""}
+                    />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>

@@ -94,6 +94,14 @@ export function PurchaseOrderDataTable<TData, TValue>({
             className="w-full md:max-w-sm bg-gray-50 text-primary"
           />
           <Input
+            placeholder="Procure por sócio"
+            value={(table.getColumn("member")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("member")?.setFilterValue(event.target.value)
+            }
+            className="w-full md:max-w-sm bg-gray-50 text-primary"
+          />
+          <Input
             placeholder="Procure por produto"
             value={(table.getColumn("product")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
