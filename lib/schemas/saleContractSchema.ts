@@ -17,6 +17,8 @@ export const saleContractSchema = z.object({
   date: z.coerce.date(),
   document: z.string().optional(),
   customerId: z.string(),
+  memberId: z.string().optional(),
+  memberAdressId: z.string().optional(),
   notes: z.string().optional(),
   items: z.array(saleContractItemSchema).min(1, "Adicione ao menos um item"),
 });
