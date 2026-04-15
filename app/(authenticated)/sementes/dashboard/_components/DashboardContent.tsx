@@ -16,7 +16,6 @@ import UseByCultivarChart from "./UseByCultivarChart";
 import { useCycle } from "@/contexts/CycleContext";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { CultivarStatusBadge } from "../../estoque/_components/CultivarStatusBadge";
-import ProductionMarquee from "./ProductionMarquee";
 
 const DashboardContent = () => {
   const { selectedCycle } = useCycle();
@@ -119,13 +118,6 @@ const DashboardContent = () => {
               ))}
             </SelectContent>
           </Select>
-          <ProductionMarquee 
-            name={selectedCultivar?.name || ""}
-            totalCultivar={totalCultivar}
-            totalDescarte={totalDescarte}
-            totalAjuste={totalAjuste}
-            porcentagemAproveitamento={porcentagemAproveitamento}
-          />
         </div>
 
         {/* Cards em linha */}
