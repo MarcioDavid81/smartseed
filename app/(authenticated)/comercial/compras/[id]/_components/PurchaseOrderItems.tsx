@@ -86,6 +86,8 @@ export function PurchaseOrderItems({ purchaseOrder }: Props) {
                       <TableCell className="text-right font-light">
                         <PurchaseOrderItemActions
                           item={item}
+                          orderNumber={purchaseOrder.document ?? ""}
+                          orderDate={purchaseOrder.date}
                           customerId={purchaseOrder.customerId}
                           customerName={purchaseOrder.customer.name}
                           memberId={purchaseOrder.memberId ?? ""}

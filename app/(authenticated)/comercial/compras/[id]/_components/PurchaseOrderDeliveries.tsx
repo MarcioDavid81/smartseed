@@ -18,23 +18,67 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useUser } from "@/contexts/UserContext";
 import { PurchaseOrderItemDetail } from "@/types/purchaseOrderItemDetail";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item: PurchaseOrderItemDetail;
+  orderNumber?: string;
+  orderDate?: Date;
+  customerName?: string;
+  memberName?: string;
 };
+
+function loadLogo(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new window.Image();
+    img.src = src;
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Falha ao carregar logo"));
+  });
+}
 
 export function PurchaseOrderItemDeliveries({
   open,
   onOpenChange,
   item,
+  orderNumber,
+  orderDate,
+  customerName,
+  memberName,
 }: Props) {
   const deliveries = item.deliveries ?? [];
   const title = item.product?.name ?? item.cultivar?.name ?? "Remessas";
+  const { user } = useUser();
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  const handlePrint = async () => {
+    try {
+      setIsPrinting(true);
+      const company = user?.company?.name;
+      const userName = user?.name;
+
+      const logo = company ? await loadLogo("/6.png") : undefined;
+
+      generatePurchaseDeliveriesReport(item, {
+        orderNumber,
+        orderDate,
+        customerName,
+        memberName,
+        company: company ?? undefined,
+        userName,
+        logo,
+        subtitle: title,
+      });
+    } finally {
+      setIsPrinting(false);
+    }
+  };
 
   // Função para determinar o link baseado no tipo de item
   const getDeliveryLink = (deliveryId: string) => {
@@ -130,8 +174,8 @@ export function PurchaseOrderItemDeliveries({
           </div>
         )}
         <div className="flex justify-end mt-4">
-          <Button onClick={() => generatePurchaseDeliveriesReport(item)}>
-            Imprimir relatório
+          <Button onClick={handlePrint} disabled={isPrinting}>
+            {isPrinting ? "Gerando…" : "Imprimir relatório"}
           </Button>
         </div>
       </DialogContent>

@@ -22,6 +22,8 @@ import { Separator } from "@/components/ui/separator";
 
 type Props = {
   item: PurchaseOrderItemDetail;
+  orderNumber: string;
+  orderDate: Date;
   customerId: string;
   customerName: string;
   memberId: string;
@@ -31,6 +33,8 @@ type Props = {
 
 export function PurchaseOrderItemActions({
   item,
+  orderNumber,
+  orderDate,
   customerId,
   customerName,
   memberId,
@@ -92,6 +96,10 @@ export function PurchaseOrderItemActions({
           open={openDeliveries}
           onOpenChange={setOpenDeliveries}
           item={item}
+          orderNumber={orderNumber}
+          orderDate={orderDate}
+          customerName={customerName}
+          memberName={memberName}
         />
       </Tooltip>
     </TooltipProvider>
