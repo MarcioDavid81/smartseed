@@ -4,7 +4,8 @@ import { formatCurrency, formatNumber } from "@/app/_helpers/currency";
 import { PurchaseOrderItemDetail } from "@/types/purchaseOrderItemDetail";
 import { SaleContractItemDetail } from "@/types/saleContractItemDetail";
 import { ProductType } from "@prisma/client";
-import { drawFooter } from "./pdf-theme";
+import { drawFooter, drawHeader } from "./pdf-theme";
+import { PRODUCT_TYPE_LABELS } from "../(authenticated)/_constants/products";
 
 export function generatePurchaseDeliveriesReport(
   item: PurchaseOrderItemDetail,
@@ -88,43 +89,115 @@ export function generatePurchaseDeliveriesReport(
   doc.save(`relatorio-remessas-${title}.pdf`);
 }
 
-export function generateSaleDeliveriesReport(item: SaleContractItemDetail) {
-  const doc = new jsPDF();
+type SaleDeliveriesReportMeta = {
+  contractNumber?: string;
+  contractDate?: Date | string;
+  customerName?: string;
+  memberName?: string;
+  company?: string;
+  logo?: HTMLImageElement;
+  subtitle?: string;
+  userName?: string;
+  drawHeaderFn?: typeof drawHeader;
+};
+
+function formatContractDate(value?: Date | string) {
+  if (!value) return "—";
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("pt-BR");
+}
+
+export function generateSaleDeliveriesReport(
+  item: SaleContractItemDetail,
+  meta?: SaleDeliveriesReportMeta,
+) {
+  const doc = new jsPDF({ orientation: "landscape" });
 
   const deliveries = item.deliveries ?? [];
 
-  const title =
-    (item.product as ProductType) ?? item.cultivar?.name ?? "Relatório";
+  const productLabel =
+    (PRODUCT_TYPE_LABELS[item.product as ProductType]) ?? item.cultivar?.name ?? "—";
+
+  const headerTitle = "Relatório de Remessas";
+
+  if (meta?.company && meta?.logo) {
+    const header = meta.drawHeaderFn ?? drawHeader;
+    header({
+      doc,
+      title: headerTitle,
+      company: meta.company,
+      logo: meta.logo,
+    });
+  }
 
   const totalDelivered = deliveries.reduce(
     (acc, cur) => acc + Number(cur.quantity),
     0,
   );
 
-  const totalValue = deliveries.reduce((acc, cur) => acc + cur.totalPrice, 0);
+  const totalDeliveredValue = deliveries.reduce(
+    (acc, cur) => acc + cur.totalPrice,
+    0,
+  );
 
   const contractedQuantity = Number(item.quantity ?? 0);
   const unitPrice = Number(item.unityPrice ?? 0);
+  const contractedTotalValue = contractedQuantity * unitPrice;
   const balance = contractedQuantity - totalDelivered;
 
-  // 🧾 HEADER
+  const contentStartY = meta?.company && meta?.logo ? 40 : 20;
+  const leftX = 14;
+  const rightX = 150;
+  const lineH = 6;
+
+  let y = contentStartY;
+
   doc.setFontSize(10);
-
   doc.setFont("helvetica", "bold");
-  doc.text("Resumo", 14, 40);
+  doc.text("Dados Principais", leftX, y);
 
+  y += lineH;
   doc.setFont("helvetica", "normal");
 
-  doc.text(`Qtd. contratada: ${formatNumber(contractedQuantity)}`, 14, 46);
-  doc.text(`Valor unitário: ${formatCurrency(unitPrice)}`, 14, 52);
+  doc.text(`Data do contrato: ${formatContractDate(meta?.contractDate)}`, leftX, y);
+  doc.text(`Contrato: ${meta?.contractNumber ?? "—"}`, rightX, y);
 
-  doc.text(`Qtd. entregue: ${formatNumber(totalDelivered)}`, 100, 46);
-  doc.text(`Saldo: ${formatNumber(balance)}`, 100, 52);
+  y += lineH + 4;
 
-  // 📊 TABELA
+  doc.setFont("helvetica", "bold");
+  doc.text("Participantes", leftX, y);
+
+  y += lineH;
+  doc.setFont("helvetica", "normal");
+  doc.text(`Cliente: ${meta?.customerName ?? "—"}`, leftX, y);
+  doc.text(`Sócio: ${meta?.memberName ?? "—"}`, rightX, y);
+
+  y += lineH + 4;
+
+  doc.setFont("helvetica", "bold");
+  doc.text("Resumo", leftX, y);
+
+  y += lineH;
+  doc.setFont("helvetica", "normal");
+
+  doc.text(`Produto: ${productLabel}`, leftX, y);
+  doc.text(`Qtd. contratada: ${formatNumber(contractedQuantity)}`, rightX, y);
+
+  y += lineH;
+  doc.text(`Valor unitário: ${formatCurrency(unitPrice)}`, leftX, y);
+  doc.text(`Valor total: ${formatCurrency(contractedTotalValue)}`, rightX, y);
+
+  y += lineH;
+  doc.text(`Total entregue: ${formatNumber(totalDelivered)}`, leftX, y);
+  doc.text(`Saldo: ${formatNumber(balance)}`, rightX, y);
+
+  y += lineH + 8;
+
   autoTable(doc, {
-    startY: 60,
+    startY: y,
     head: [["Data", "Documento", "Quantidade", "Valor total"]],
+    showHead: "firstPage",
     body: deliveries.map((d) => [
       new Date(d.date).toLocaleDateString("pt-BR"),
       d.invoice || "—",
@@ -140,9 +213,10 @@ export function generateSaleDeliveriesReport(item: SaleContractItemDetail) {
         totalDelivered.toLocaleString("pt-BR", {
           minimumFractionDigits: 2,
         }),
-        formatCurrency(totalValue),
+        formatCurrency(totalDeliveredValue),
       ],
     ],
+    showFoot: "lastPage",
 
     styles: {
       fontSize: 9,
@@ -150,13 +224,13 @@ export function generateSaleDeliveriesReport(item: SaleContractItemDetail) {
     },
 
     headStyles: {
-      fillColor: [99, 185, 38], // 🔥 verde sistema
+      fillColor: [99, 185, 38],
       textColor: 255,
       fontStyle: "bold",
     },
 
     alternateRowStyles: {
-      fillColor: [245, 245, 245], // zebra
+      fillColor: [245, 245, 245],
     },
 
     footStyles: {
@@ -166,7 +240,13 @@ export function generateSaleDeliveriesReport(item: SaleContractItemDetail) {
     },
   });
 
-  drawFooter(doc);
+  drawFooter(doc, meta?.userName);
 
-  doc.save(`relatorio-remessas-${title}.pdf`);
+  const fileNameParts = [
+    "relatorio-remessas",
+    meta?.contractNumber ? `contrato-${meta.contractNumber}` : undefined,
+    productLabel ? String(productLabel).toLowerCase().replace(/\s+/g, "-") : undefined,
+  ].filter(Boolean);
+
+  doc.save(`${fileNameParts.join("-")}.pdf`);
 }

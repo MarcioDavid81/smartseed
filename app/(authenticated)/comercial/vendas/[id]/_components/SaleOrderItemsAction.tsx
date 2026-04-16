@@ -22,6 +22,8 @@ import { SaleContracItemDeliveries } from "./SaleContractDeliveries";
 
 type Props = {
   item: SaleContractItemDetail;
+  contractNumber: string;
+  contractDate: Date;
   customerId: string;
   customerName: string;
   memberId: string;
@@ -31,6 +33,8 @@ type Props = {
 
 export function SaleContractItemActions({
   item,
+  contractNumber,
+  contractDate,
   customerId,
   customerName,
   memberId,
@@ -92,6 +96,10 @@ export function SaleContractItemActions({
           open={openDeliveries}
           onOpenChange={setOpenDeliveries}
           item={item}
+          contractDate={contractDate}
+          contractNumber={contractNumber}
+          customerName={customerName}
+          memberName={memberName}
         />
       </Tooltip>
     </TooltipProvider>

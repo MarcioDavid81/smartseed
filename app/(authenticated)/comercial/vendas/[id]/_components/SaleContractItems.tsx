@@ -90,8 +90,10 @@ export function SaleContractItems({ saleContract }: Props) {
                     <TableCell className="text-right font-light">
                       <SaleContractItemActions
                         item={item}
+                        contractNumber={saleContract.document ?? ""}
                         customerId={saleContract.customerId}
                         customerName={saleContract.customer.name}
+                        contractDate={saleContract.date}
                         memberId={saleContract.memberId ?? ""}
                         memberName={saleContract.member?.name ?? ""}
                         memberAdressId={saleContract.memberAdressId ?? ""}

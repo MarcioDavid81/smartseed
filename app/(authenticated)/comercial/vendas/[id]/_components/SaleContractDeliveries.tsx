@@ -3,6 +3,8 @@
 import { formatCurrency } from "@/app/_helpers/currency";
 import { generateSaleDeliveriesReport } from "@/app/_helpers/generate-deliveries-report";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/contexts/UserContext";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -26,15 +28,57 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item: SaleContractItemDetail;
+  contractNumber?: string;
+  contractDate?: Date;
+  customerName?: string;
+  memberName?: string;
 };
+
+function loadLogo(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new window.Image();
+    img.src = src;
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Falha ao carregar logo"));
+  });
+}
 
 export function SaleContracItemDeliveries({
   open,
   onOpenChange,
   item,
+  contractNumber,
+  contractDate,
+  customerName,
+  memberName,
 }: Props) {
   const deliveries = item.deliveries ?? [];
   const title = item.product ?? item.cultivar?.name ?? "Remessas";
+  const { user } = useUser();
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  const handlePrint = async () => {
+    try {
+      setIsPrinting(true);
+      const company = user?.company?.name;
+      const userName = user?.name;
+
+      const logo = company ? await loadLogo("/6.png") : undefined;
+
+      generateSaleDeliveriesReport(item, {
+        contractNumber,
+        contractDate,
+        customerName,
+        memberName,
+        company: company ?? undefined,
+        userName,
+        logo,
+        subtitle: title,
+      });
+    } finally {
+      setIsPrinting(false);
+    }
+  };
 
   // Função para determinar o link baseado no tipo de item
   const getDeliveryLink = (deliveryId: string) => {
@@ -128,8 +172,8 @@ export function SaleContracItemDeliveries({
               </TableFooter>
             </Table>
         <div className="flex justify-end mt-4">
-          <Button onClick={() => generateSaleDeliveriesReport(item)}>
-            Imprimir relatório
+          <Button onClick={handlePrint} disabled={isPrinting}>
+            {isPrinting ? "Gerando…" : "Imprimir relatório"}
           </Button>
         </div>
           </div>
