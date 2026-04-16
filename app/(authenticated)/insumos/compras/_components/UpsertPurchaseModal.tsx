@@ -127,6 +127,7 @@ const UpsertPurchaseModal = ({
         invoiceNumber: compra.invoiceNumber,
         quantity: compra.quantity,
         unitPrice: compra.unitPrice,
+        totalPrice: compra.totalPrice,
         farmId: compra.farmId,
         notes: compra.notes || "",
         paymentCondition: compra.paymentCondition ?? PaymentCondition.AVISTA,
