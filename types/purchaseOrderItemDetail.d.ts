@@ -4,6 +4,9 @@ export type PurchaseOrderItemDetail = {
   id: string;
   description: string | null;
 
+  unityPrice: number;
+  totalPrice: number;
+
   quantity: number;
   fulfilledQuantity: number;
   remainingQuantity: number;

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCurrency } from "@/app/_helpers/currency";
+import { generatePurchaseDeliveriesReport } from "@/app/_helpers/generate-deliveries-report";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -56,7 +57,7 @@ export function PurchaseOrderItemDeliveries({
             Nenhuma remessa registrada para este item.
           </div>
         ) : (
-          <div className="h-[70vh] max-h-[80vh] overflow-y-auto pr-2">
+          <div className="h-[70vh] max-h-[80vh] overflow-y-auto pr-2 scrollbar-hide">
             <Table>
               <TableHeader className="sticky top-0 z-10">
                 <TableRow>
@@ -128,6 +129,11 @@ export function PurchaseOrderItemDeliveries({
             </Table>
           </div>
         )}
+        <div className="flex justify-end mt-4">
+          <Button onClick={() => generatePurchaseDeliveriesReport(item)}>
+            Imprimir relatório
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
