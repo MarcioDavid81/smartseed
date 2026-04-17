@@ -33,6 +33,7 @@ import { PlotFormData, plotSchema } from "@/lib/schemas/plotSchema";
 import { useUpsertPlot } from "@/queries/registrations/use-upsert-plot";
 import { QuantityInput } from "@/components/inputs";
 import { ApiError } from "@/lib/http/api-error";
+import { useFarms } from "@/queries/registrations/use-farm";
 
 interface UpsertPlotModalProps {
   talhao?: Talhao;
@@ -45,8 +46,8 @@ const UpsertPlotModal = ({
   isOpen,
   onClose,
 }: UpsertPlotModalProps) => {
-  const [farms, setFarms] = useState<Farm[]>([])
   const { showToast } = useSmartToast();
+  const { data: farms = [] } = useFarms();
 
   const form = useForm<PlotFormData>({
     resolver: zodResolver(plotSchema),
@@ -68,20 +69,6 @@ const UpsertPlotModal = ({
       form.reset();
     }
   }, [talhao, isOpen, form.reset]);
-
-  useEffect(() => {
-    const fetchFarms = async () => {
-      const token = getToken();
-      const res = await fetch("/api/farms", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setFarms(data);
-    };
-
-    if (isOpen) fetchFarms();
-  
-  }, [isOpen]);
 
   const { mutate, isPending } = useUpsertPlot({
     plotId: talhao?.id,

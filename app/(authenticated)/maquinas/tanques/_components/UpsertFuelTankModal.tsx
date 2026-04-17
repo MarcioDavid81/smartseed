@@ -20,6 +20,7 @@ import { FaSpinner } from "react-icons/fa";
 import { NumericFormat } from "react-number-format";
 import { FuelTankFormData, fuelTankSchema } from "@/lib/schemas/fuelTankSchema";
 import { useUpsertFuelTank } from "@/queries/machines/use-upsert-fuelTank";
+import { QuantityInput } from "@/components/inputs";
 
 
 interface UpsertFuelTankModalProps {
@@ -123,32 +124,7 @@ export function UpsertFuelTankModal({
                 control={form.control}
                 name="capacity"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Capacidade (L)</FormLabel>
-                    <FormControl>
-                      <NumericFormat
-                        customInput={Input}
-                        value={field.value}
-                        thousandSeparator="."
-                        decimalSeparator="," 
-                        decimalScale={2}
-                        fixedDecimalScale
-                        allowNegative={false}
-                        suffix=" L"
-                        inputMode="numeric"
-                        valueIsNumericString
-                        isAllowed={(values) => {
-                          const { floatValue } = values;
-                          return floatValue === undefined || floatValue >= 0;
-                        }}
-                        className="font-light"
-                        onValueChange={(values) => {
-                          field.onChange(values.floatValue ?? 0);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <QuantityInput label="Capacidade (lt)" field={field} suffix=" lt" />
                 )}
               />
             </div>
