@@ -102,39 +102,6 @@ export default function GenerateHarvestReportModal() {
         : "Todos";
 
     logo.onload = () => {
-      // Função para adicionar rodapé consistente
-      const addFooter = () => {
-        const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height;
-        const pageWidth = pageSize.width;
-
-        const now = new Date();
-        const formattedDate = now.toLocaleString("pt-BR");
-        const userName = user?.name || "Usuário desconhecido";
-
-        doc.setFontSize(8);
-        doc.text(
-          `Relatório gerado em ${formattedDate} por: ${userName}`,
-          10,
-          pageHeight - 10,
-        );
-
-        const centerText = "Sistema Smart Seed";
-        const centerTextWidth = doc.getTextWidth(centerText);
-        doc.text(
-          centerText,
-          pageWidth / 2 - centerTextWidth / 2,
-          pageHeight - 10,
-        );
-
-        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
-        const totalPages = (doc as any).internal.getNumberOfPages();
-        doc.text(
-          `${currentPage}/${totalPages}`,
-          pageWidth - 20,
-          pageHeight - 10,
-        );
-      };
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Colheita - " + selectedCycle?.name || "", 150, 20, { align: "center" });
@@ -153,6 +120,9 @@ export default function GenerateHarvestReportModal() {
       doc.text(`Depósito: ${deposito || "Todos"}`, 14, 45);
       doc.text(`Transportador: ${transportador || "Todos"}`, 14, 50);
       doc.text(`Período: ${periodLabel}`, 14, 55);
+
+      // Tabela
+      const totalPagesExp = "{total_pages_count_string}";
 
       autoTable(doc, {
         startY: 60,
@@ -187,33 +157,30 @@ export default function GenerateHarvestReportModal() {
           const pageHeight = pageSize.height;
           const pageWidth = pageSize.width;
 
-          const now = new Date();
-          const formattedDate = now.toLocaleString("pt-BR");
+          const now = new Date().toLocaleString("pt-BR");
           const userName = user?.name || "Usuário desconhecido";
 
+          const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+
           doc.setFontSize(8);
-          doc.text(
-            `Relatório gerado em ${formattedDate} por: ${userName}`,
-            10,
-            pageHeight - 10,
-          );
+          doc.text(`Relatório gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
 
-          const centerText = "Sistema Smart Seed by MD Web Developer";
-          const centerTextWidth = doc.getTextWidth(centerText);
-          doc.text(
-            centerText,
-            pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10,
-          );
+          const footerText = "Sistema Smart Seed";
+          doc.text(footerText, pageWidth / 2, pageHeight - 10, {
+            align: "center",
+          });
 
-          const pageNumber = (doc as any).internal.getNumberOfPages();
           doc.text(
-            `${pageNumber}/${pageNumber}`,
+            `${currentPage}/${totalPagesExp}`,
             pageWidth - 20,
             pageHeight - 10,
           );
         },
       });
+
+      if (typeof (doc as any).putTotalPages === "function") {
+      (doc as any).putTotalPages(totalPagesExp);
+    }
 
       const fileNumber = new Date().getTime().toString();
       const fileName = `Relatorio de Colheitas - ${fileNumber}.pdf`;

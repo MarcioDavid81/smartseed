@@ -64,18 +64,16 @@ export default function GenerateIndustryExtractReportModal({
   const generatePDF = () => {
     setLoading(true);
 
-    if (!dateFrom || !dateTo) {
-      setLoading(false);
-      return;
-    }
-
     const filtered = filterMovements(movements);
 
     const doc = new jsPDF({ orientation: "portrait" });
     const logo = new Image();
     logo.src = "/6.png";
 
-    const periodLabel = `${dateFrom.toLocaleDateString("pt-BR")} até ${dateTo.toLocaleDateString("pt-BR")}`;
+    const periodLabel =
+      dateFrom || dateTo
+        ? `${dateFrom ? dateFrom.toLocaleDateString("pt-BR") : "—"} até ${dateTo ? dateTo.toLocaleDateString("pt-BR") : "—"}`
+        : "Todos";
 
     const movementTypeLabel =
       movementType === "ENTRY"
@@ -191,10 +189,13 @@ export default function GenerateIndustryExtractReportModal({
     if (typeof (doc as any).putTotalPages === "function") {
       (doc as any).putTotalPages(totalPagesExp);
     }
-
-    const fileName = `Extrato - ${Date.now()}.pdf`;
+    const fileNumber = new Date().getTime().toString();
+    const fileName = `Extrato - ${fileNumber}.pdf`;
     doc.save(fileName);
     setLoading(false);
+    setDateFrom(undefined);
+    setDateTo(undefined);
+    setMovementType("all");
     setModalOpen(false);
   };
 
@@ -213,18 +214,6 @@ export default function GenerateIndustryExtractReportModal({
               Selecione os filtros para gerar o relatório de extrato
             </DialogDescription>
         </AlertDialogHeader>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Contexto</label>
-          <div className="text-sm text-muted-foreground space-y-1">
-            <div>
-              Depósito: <span className="text-foreground">{depositName?.trim() ? depositName : "—"}</span>
-            </div>
-            <div>
-              Produto: <span className="text-foreground">{productLabel?.trim() ? productLabel : "—"}</span>
-            </div>
-          </div>
-        </div>
-
         <div className="space-y-2">
           <label className="text-sm font-medium">Período</label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -249,7 +238,7 @@ export default function GenerateIndustryExtractReportModal({
         <Button
           onClick={generatePDF}
           className="bg-green text-white"
-          disabled={loading || !dateFrom || !dateTo}
+          disabled={loading}
         >
           {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>
