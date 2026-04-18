@@ -375,21 +375,21 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                 control={form.control}
                 name="weightBt"
                 render={({ field }) => (
-                  <QuantityInput label="Peso Bruto" field={field} suffix=" kg" />
+                  <QuantityInput label="Peso Bruto" field={field} suffix=" Kg" placeholder="0,00 Kg" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="weightTr"
                 render={({ field }) => (
-                  <QuantityInput label="Tara" field={field} suffix=" kg" />
+                  <QuantityInput label="Tara" field={field} suffix=" Kg" placeholder="0,00 Kg" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="weightSubLiq"
                 render={({ field }) => (
-                  <QuantityInput label="Sub Líquido" field={field} suffix=" kg" readonly />
+                  <QuantityInput label="Sub Líquido" field={field} suffix=" Kg" placeholder="0,00 Kg" readonly />
                 )}
               />
             </div>
@@ -400,21 +400,21 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                 control={form.control}
                 name="impurities_percent"
                 render={({ field }) => (
-                  <QuantityInput label="Impureza" field={field} />
+                  <QuantityInput label="Impureza" field={field} suffix=" Gr" placeholder="0,00 Gr" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="impurities_discount"
                 render={({ field }) => (
-                  <PercentInput label="Desconto" field={field} />
+                  <PercentInput label="Desconto" field={field} placeholder="0,00 %" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="impurities_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Impureza" field={field} suffix=" kg" readonly />
+                  <QuantityInput label="Impureza" field={field} suffix=" Kg" placeholder="0,00 Kg" readonly />
                 )}
               />
             </div>
@@ -424,21 +424,21 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                 control={form.control}
                 name="humidity_percent"
                 render={({ field }) => (
-                  <QuantityInput label="Umidade" field={field} />
+                  <QuantityInput label="Umidade" field={field} suffix=" %" placeholder="0,00 %" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="humidity_discount"
                 render={({ field }) => (
-                  <PercentInput label="Desconto" field={field} />
+                  <PercentInput label="Desconto" field={field} placeholder="0,00 %" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="humidity_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Umidade" field={field} suffix=" kg" readonly />
+                  <QuantityInput label="Umidade" field={field} suffix=" Kg" placeholder="0,00 Kg" readonly />
                 )}
               />
             </div>
@@ -449,21 +449,21 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                 control={form.control}
                 name="tax_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Taxa" field={field} suffix=" kg" />
+                  <QuantityInput label="Taxa" field={field} suffix=" Kg" placeholder="0,00 Kg" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="adjust_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Ajuste" field={field} suffix=" kg" />
+                  <QuantityInput label="Ajuste" field={field} suffix=" Kg" placeholder="0,00 Kg" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="weightLiq"
                 render={({ field }) => (
-                  <QuantityInput label="Peso Líquido" field={field} suffix=" kg" readonly />
+                  <QuantityInput label="Peso Líquido" field={field} suffix=" Kg" placeholder="0,00 Kg" readonly />
                 )}
               />
             </div>

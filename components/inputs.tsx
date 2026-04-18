@@ -206,6 +206,7 @@ interface QuantityInputProps<T extends FieldValues> {
   label: string;
   field: ControllerRenderProps<T, any>;
   suffix?: string;
+  placeholder?: string;
   readonly?: boolean;
   value?: number;
   max?: number;
@@ -217,6 +218,7 @@ export function QuantityInput<T extends FieldValues>({
   field,
   readonly = false,
   suffix,
+  placeholder,
   max,
   decimalScale = 2,
 }: QuantityInputProps<T>) {
@@ -228,7 +230,7 @@ export function QuantityInput<T extends FieldValues>({
         <ReverseNumberInput
           value={field.value}
           decimalScale={decimalScale}
-          placeholder="0,00"
+          placeholder={placeholder}
           suffix={suffix}
           disabled={readonly}
           className="font-light"
@@ -250,12 +252,14 @@ export function QuantityInput<T extends FieldValues>({
 interface PercentInputProps<T extends FieldValues> {
   label: string;
   field: ControllerRenderProps<T, any>;
+  placeholder?: string;
   decimalScale?: number;
 }
 
 export function PercentInput<T extends FieldValues>({
   label,
   field,
+  placeholder,
   decimalScale = 2,
 }: PercentInputProps<T>) {
   return (
@@ -266,7 +270,7 @@ export function PercentInput<T extends FieldValues>({
         <ReverseNumberInput
           value={field.value}
           decimalScale={decimalScale}
-          placeholder="0,00"
+          placeholder={placeholder}
           suffix=" %"
           className="font-light"
           min={0}
