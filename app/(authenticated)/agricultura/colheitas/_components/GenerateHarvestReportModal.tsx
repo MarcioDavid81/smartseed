@@ -37,8 +37,9 @@ export default function GenerateHarvestReportModal() {
   } = useIndustryHarvests(selectedCycle?.id);
 
   const [produto, setProduto] = useState<string | null>(null);
-  const [deposito, setDeposito] = useState<string | null>(null);
+  const [fazenda, setFazenda] = useState<string | null>(null);
   const [talhao, setTalhao] = useState<string | null>(null);
+  const [deposito, setDeposito] = useState<string | null>(null);
   const [transportador, setTransportador] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
@@ -49,14 +50,17 @@ export default function GenerateHarvestReportModal() {
   const produtosUnicos = Array.from(
     new Set(harvests.map((h) => h.product)),
   );
+  const fazendasUnicas = Array.from(
+    new Set(harvests.map((h) => h.talhao?.farm?.name || "-")),
+  );
+  const talhoesUnicos = Array.from(
+    new Set(harvests.map((h) => h.talhao?.name || "-")),
+  );
   const depositosUnicos = Array.from(
     new Set(harvests.map((h) => h.industryDeposit?.name || "-")),
   );
   const transportadoresUnicos = Array.from(
     new Set(harvests.map((h) => h.industryTransporter?.name || "-")),
-  );
-  const talhoesUnicos = Array.from(
-    new Set(harvests.map((h) => h.talhao?.name || "-")),
   );
 
   const filterHarvests = (list: IndustryHarvest[]) => {
@@ -65,6 +69,7 @@ export default function GenerateHarvestReportModal() {
 
     return list.filter((h) => {
       const matchProduto = !produto || h.product === produto;
+      const matchFazenda = !fazenda || h.talhao?.farm?.name === fazenda;
       const matchDeposito =
         !deposito || h.industryDeposit?.name === deposito;
       const matchTransportador =
@@ -76,6 +81,7 @@ export default function GenerateHarvestReportModal() {
 
       return (
         matchProduto &&
+        matchFazenda &&
         matchDeposito &&
         matchTransportador &&
         matchTalhao &&
@@ -111,21 +117,45 @@ export default function GenerateHarvestReportModal() {
       doc.text(company + " - Produto destinado à indústria", 150, 25, { align: "center" });
 
       doc.setFontSize(10);
-      doc.text(
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
+
+      // largura útil da página (tirando margens)
+      const usableWidth = pageWidth - margin * 2;
+
+      // divide em 3 colunas
+      const columnWidth = usableWidth / 3;
+
+      const startY = 35;
+      const lineHeight = 5;
+
+      const filters = [
         `Produto: ${produto ? getProductLabel(produto) : "Todos"}`,
-        14,
-        35,
-      );
-      doc.text(`Talhão: ${talhao || "Todos"}`, 14, 40);
-      doc.text(`Depósito: ${deposito || "Todos"}`, 14, 45);
-      doc.text(`Transportador: ${transportador || "Todos"}`, 14, 50);
-      doc.text(`Período: ${periodLabel}`, 14, 55);
+        `Fazenda: ${fazenda || "Todos"}`,
+        `Talhão: ${talhao || "Todos"}`,
+        `Depósito: ${deposito || "Todos"}`,
+        `Transportador: ${transportador || "Todos"}`,
+        `Período: ${periodLabel}`,
+      ];
+
+      filters.forEach((text, index) => {
+        const column = index % 3; // 0,1,2
+        const row = Math.floor(index / 3);
+
+        const x = margin + column * columnWidth;
+        const y = startY + row * lineHeight;
+
+        doc.text(text, x, y, {
+          maxWidth: columnWidth - 5, // evita estourar a coluna
+        });
+      });
 
       // Tabela
       const totalPagesExp = "{total_pages_count_string}";
 
       autoTable(doc, {
-        startY: 60,
+        startY: 45,
         head: [["Data", "Documento", "Talhão", "Depósito", "Peso Bruto (kg)", "Impureza", "Umidade", "Peso Líquido (kg)"]],
         body: filteredToUse.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
@@ -186,6 +216,7 @@ export default function GenerateHarvestReportModal() {
       const fileName = `Relatorio de Colheitas - ${fileNumber}.pdf`;
       doc.save(fileName);
       setProduto(null);
+      setFazenda(null);
       setDeposito(null);
       setTransportador(null);
       setTalhao(null);
@@ -228,6 +259,28 @@ export default function GenerateHarvestReportModal() {
               {produtosUnicos.map((p) => (
                 <SelectItem key={p} value={String(p)}>
                   {getProductLabel(String(p))}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Fazenda</label>
+          <Select
+            value={fazenda ?? ""}
+            onValueChange={(value) =>
+              setFazenda(value === "todos" ? null : value)
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              {fazendasUnicas.map((f) => (
+                <SelectItem key={f} value={f}>
+                  {f}
                 </SelectItem>
               ))}
             </SelectContent>
