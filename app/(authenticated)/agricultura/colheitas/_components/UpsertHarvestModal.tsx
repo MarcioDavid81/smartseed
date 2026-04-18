@@ -27,6 +27,7 @@ import { useUpsertIndustryHarvest } from "@/queries/industry/use-upsert-industry
 import { ApiError } from "@/lib/http/api-error";
 import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
 import { useIndustryTransporters } from "@/queries/industry/use-transporter-query";
+import { PlateInput } from "@/components/plate-input";
 
 interface UpsertHarvestModalProps {
   colheita?: IndustryHarvest;
@@ -232,9 +233,9 @@ const onSubmit = (data: IndustryHarvestFormData) => {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-4">
-            <div className="grid grid-cols-4 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2">
+            {/* Data e Documento */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -296,7 +297,8 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                     />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            {/* Depósito e Transportador */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="industryDepositId"
@@ -340,8 +342,8 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                 )}
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            {/* Placa e Motorista */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="truckPlate"
@@ -349,7 +351,7 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                   <FormItem>
                     <FormLabel>Placa</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <PlateInput value={field.value} onChange={field.onChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -369,8 +371,8 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                 )}
               />
             </div>
-            {/* peso */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Peso Brito, Tara e Sub Líquido */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="weightBt"
@@ -394,8 +396,8 @@ const onSubmit = (data: IndustryHarvestFormData) => {
               />
             </div>
             {/* CLASSIFICAÇÃO */}
-            {/* impureza */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Impureza */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="impurities_percent"
@@ -418,8 +420,8 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                 )}
               />
             </div>
-            {/* umidade */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Umidade */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="humidity_percent"
@@ -442,9 +444,8 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                 )}
               />
             </div>
-
-            {/* peso líquido */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Taxa, Ajuste e Peso Líquido */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="tax_kg"
@@ -467,14 +468,13 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                 )}
               />
             </div>
-          </div>
-          <Button
-            type="submit"
-            disabled={isPending}
-            className="w-full bg-green text-white mt-4"
-          >
-            {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
-          </Button>
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full bg-green text-white mt-4"
+            >
+              {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
+            </Button>
         </form>
         </Form>
       </DialogContent>

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo, useEffect  } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,6 @@ import autoTable from "jspdf-autotable";
 import { useUser } from "@/contexts/UserContext";
 import HoverButton from "@/components/HoverButton";
 import { formatNumber } from "@/app/_helpers/currency";
-import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useIndustryHarvests } from "@/queries/industry/use-harvests.query";
 import { useCycle } from "@/contexts/CycleContext";
@@ -36,7 +35,6 @@ export default function GenerateHarvestReportModal() {
     refetch,
   } = useIndustryHarvests(selectedCycle?.id);
 
-  const [produto, setProduto] = useState<string | null>(null);
   const [fazenda, setFazenda] = useState<string | null>(null);
   const [talhao, setTalhao] = useState<string | null>(null);
   const [deposito, setDeposito] = useState<string | null>(null);
@@ -47,15 +45,20 @@ export default function GenerateHarvestReportModal() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const produtosUnicos = Array.from(
-    new Set(harvests.map((h) => h.product)),
-  );
   const fazendasUnicas = Array.from(
     new Set(harvests.map((h) => h.talhao?.farm?.name || "-")),
   );
-  const talhoesUnicos = Array.from(
-    new Set(harvests.map((h) => h.talhao?.name || "-")),
-  );
+  const talhoesFiltrados = useMemo(() => {
+    let base = harvests;
+
+    if (fazenda) {
+      base = base.filter((h) => h.talhao?.farm?.name === fazenda);
+    }
+
+    return Array.from(
+      new Set(base.map((h) => h.talhao?.name || "-")),
+    );
+  }, [harvests, fazenda]);
   const depositosUnicos = Array.from(
     new Set(harvests.map((h) => h.industryDeposit?.name || "-")),
   );
@@ -63,12 +66,15 @@ export default function GenerateHarvestReportModal() {
     new Set(harvests.map((h) => h.industryTransporter?.name || "-")),
   );
 
+  useEffect(() => {
+    setTalhao(null);
+  }, [fazenda]);
+
   const filterHarvests = (list: IndustryHarvest[]) => {
     const from = dateFrom ? startOfDay(dateFrom) : null;
     const to = dateTo ? endOfDay(dateTo) : null;
 
     return list.filter((h) => {
-      const matchProduto = !produto || h.product === produto;
       const matchFazenda = !fazenda || h.talhao?.farm?.name === fazenda;
       const matchDeposito =
         !deposito || h.industryDeposit?.name === deposito;
@@ -80,7 +86,6 @@ export default function GenerateHarvestReportModal() {
       const matchDate = (!from || date >= from) && (!to || date <= to);
 
       return (
-        matchProduto &&
         matchFazenda &&
         matchDeposito &&
         matchTransportador &&
@@ -131,7 +136,6 @@ export default function GenerateHarvestReportModal() {
       const lineHeight = 5;
 
       const filters = [
-        `Produto: ${produto ? getProductLabel(produto) : "Todos"}`,
         `Fazenda: ${fazenda || "Todos"}`,
         `Talhão: ${talhao || "Todos"}`,
         `Depósito: ${deposito || "Todos"}`,
@@ -157,6 +161,7 @@ export default function GenerateHarvestReportModal() {
       autoTable(doc, {
         startY: 45,
         head: [["Data", "Documento", "Talhão", "Depósito", "Peso Bruto (kg)", "Impureza", "Umidade", "Peso Líquido (kg)"]],
+        showHead: "firstPage",
         body: filteredToUse.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
           h.document || "N/A",
@@ -215,7 +220,6 @@ export default function GenerateHarvestReportModal() {
       const fileNumber = new Date().getTime().toString();
       const fileName = `Relatorio de Colheitas - ${fileNumber}.pdf`;
       doc.save(fileName);
-      setProduto(null);
       setFazenda(null);
       setDeposito(null);
       setTransportador(null);
@@ -235,7 +239,7 @@ export default function GenerateHarvestReportModal() {
           Gerar Relatório
         </HoverButton>
       </DialogTrigger>
-      <DialogContent className="space-y-4">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-hidden rounded-2xl">
         <DialogHeader>
           <DialogTitle>Filtrar Relatório</DialogTitle>
             <DialogDescription>
@@ -243,121 +247,108 @@ export default function GenerateHarvestReportModal() {
             </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Produto</label>
-          <Select
-            value={produto ?? ""}
-            onValueChange={(value) =>
-              setProduto(value === "todos" ? null : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {produtosUnicos.map((p) => (
-                <SelectItem key={p} value={String(p)}>
-                  {getProductLabel(String(p))}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Fazenda</label>
-          <Select
-            value={fazenda ?? ""}
-            onValueChange={(value) =>
-              setFazenda(value === "todos" ? null : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {fazendasUnicas.map((f) => (
-                <SelectItem key={f} value={f}>
-                  {f}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Talhão</label>
-          <Select
-            value={talhao ?? ""}
-            onValueChange={(value) =>
-              setTalhao(value === "todos" ? null : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {talhoesUnicos.map((t) => (
-                <SelectItem key={t} value={t}>
-                  {t}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Depósito</label>
-          <Select
-            value={deposito ?? ""}
-            onValueChange={(value) =>
-              setDeposito(value === "todos" ? null : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {depositosUnicos.map((d) => (
-                <SelectItem key={d} value={d}>
-                  {d}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Transportador</label>
-          <Select
-            value={transportador ?? ""}
-            onValueChange={(value) =>
-              setTransportador(value === "todos" ? null : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {transportadoresUnicos.map((t) => (
-                <SelectItem key={t} value={t}>
-                  {t}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Período</label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <DatePicker value={dateFrom} onChange={setDateFrom} />
-            <DatePicker value={dateTo} onChange={setDateTo} />
+        {/* Fazenda e Talhão */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">        
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Fazenda</label>
+            <Select
+              value={fazenda ?? ""}
+              onValueChange={(value) =>
+                setFazenda(value === "todos" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {fazendasUnicas.map((f) => (
+                  <SelectItem key={f} value={f}>
+                    {f}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Talhão</label>
+            <Select
+              value={talhao ?? ""}
+              onValueChange={(value) =>
+                setTalhao(value === "todos" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {talhoesFiltrados.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
+
+        {/* Depósito e Transportador */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Depósito</label>
+            <Select
+              value={deposito ?? ""}
+              onValueChange={(value) =>
+                setDeposito(value === "todos" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {depositosUnicos.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Transportador</label>
+            <Select
+              value={transportador ?? ""}
+              onValueChange={(value) =>
+                setTransportador(value === "todos" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {transportadoresUnicos.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Período */}
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Período</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <DatePicker value={dateFrom} onChange={setDateFrom} />
+              <DatePicker value={dateTo} onChange={setDateTo} />
+            </div>
+          </div>
+
 
         <Button
           onClick={generatePDF}

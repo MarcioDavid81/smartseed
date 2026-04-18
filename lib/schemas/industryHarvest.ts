@@ -1,5 +1,7 @@
 import z from "zod";
 
+const plateRegex = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/;
+
 export const industryHarvestSchema = z.object({
   date: z.coerce.date(),
   document: z.string().optional(),
@@ -8,7 +10,11 @@ export const industryHarvestSchema = z.object({
     .string()
     .min(1, "Depósito de destino da colheita é obrigatório"),
   industryTransporterId: z.string().nullable().optional(),
-  truckPlate: z.string().optional(),
+  truckPlate: z
+    .string()
+    .toUpperCase()
+    .regex(plateRegex, "Placa inválida")
+    .optional(),
   truckDriver: z.string().optional(),
   weightBt: z.coerce.number().min(1, "Peso bruto é obrigatório"),
   weightTr: z.coerce.number().min(1, "Peso da tara é obrigatório"),
