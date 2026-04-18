@@ -32,6 +32,8 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   pageSize?: number;
   searchFields?: string[];
+  depositName?: string;
+  productLabel?: string;
 }
 
 export function IndustryStockStatementDataTable<TData, TValue>({
@@ -39,6 +41,8 @@ export function IndustryStockStatementDataTable<TData, TValue>({
   data,
   pageSize = 10,
   searchFields = [],
+  depositName,
+  productLabel,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -123,7 +127,11 @@ export function IndustryStockStatementDataTable<TData, TValue>({
 
       {/* Paginação */}
         <div className="flex items-center justify-between space-x-2 dark:text-primary">
-          <GenerateIndustryExtractReportModal movements={data as Movement[]}/>  
+          <GenerateIndustryExtractReportModal
+            movements={data as Movement[]}
+            depositName={depositName}
+            productLabel={productLabel}
+          />  
           <div className="flex items-center gap-1 justify-end">
             {/* Anterior */}
             <Button

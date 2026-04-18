@@ -125,6 +125,8 @@ export function ListIndustryStockStatementTable({
         <IndustryStockStatementDataTable
           columns={columns}
           data={industryStockStatement}
+          depositName={deposit?.name}
+          productLabel={PRODUCT_TYPE_LABELS[product]}
         />
       )}
     </Card>

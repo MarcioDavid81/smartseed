@@ -2,9 +2,19 @@
 
 import { formatNumber } from "@/app/_helpers/currency";
 import HoverButton from "@/components/HoverButton";
+import { AlertDialogHeader } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useUser } from "@/contexts/UserContext";
+import { endOfDay, startOfDay } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useState } from "react";
@@ -20,20 +30,62 @@ export interface Movement {
 
 interface Props {
   movements: Movement[];
+  depositName?: string;
+  productLabel?: string;
 }
 
 export default function GenerateIndustryExtractReportModal({
   movements,
+  depositName,
+  productLabel,
 }: Props) {
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [movementType, setMovementType] = useState<"all" | "ENTRY" | "EXIT">(
+    "all",
+  );
+
+  const filterMovements = (list: Movement[]) => {
+    const from = dateFrom ? startOfDay(dateFrom) : null;
+    const to = dateTo ? endOfDay(dateTo) : null;
+
+    return list.filter((m) => {
+      const date = new Date(m.date as unknown as string);
+      const matchDate = (!from || date >= from) && (!to || date <= to);
+      const t = m.type?.toUpperCase() ?? "";
+      const matchType = movementType === "all" || t === movementType;
+      return matchDate && matchType;
+    });
+  };
 
   const generatePDF = () => {
     setLoading(true);
+
+    if (!dateFrom || !dateTo) {
+      setLoading(false);
+      return;
+    }
+
+    const filtered = filterMovements(movements);
+
     const doc = new jsPDF({ orientation: "portrait" });
     const logo = new Image();
     logo.src = "/6.png";
+
+    const periodLabel = `${dateFrom.toLocaleDateString("pt-BR")} até ${dateTo.toLocaleDateString("pt-BR")}`;
+
+    const movementTypeLabel =
+      movementType === "ENTRY"
+        ? "Entrada"
+        : movementType === "EXIT"
+          ? "Saída"
+          : "Todos";
+
+    const depositLabel = depositName?.trim() ? depositName : "—";
+    const productLabelText = productLabel?.trim() ? productLabel : "—";
 
     // Adiciona logo e título
     doc.addImage(logo, "PNG", 14, 10, 30, 15);
@@ -43,11 +95,18 @@ export default function GenerateIndustryExtractReportModal({
     doc.setFontSize(12);
     doc.text(company, 110, 25, { align: "center" });
 
+    // Filtros
+    doc.setFontSize(10);
+    doc.text(`Depósito: ${depositLabel}`, 14, 35);
+    doc.text(`Produto: ${productLabelText}`, 14, 40);
+    doc.text(`Período: ${periodLabel}`, 14, 45);
+    doc.text(`Tipo: ${movementTypeLabel}`, 14, 50);
+
     // Cultivar
     doc.setFontSize(10);
 
     // Ordenar e montar dados
-    const sorted = [...movements].sort(
+    const sorted = [...filtered].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
 
@@ -82,13 +141,11 @@ export default function GenerateIndustryExtractReportModal({
       ];
     });
 
-    const stockNow =
-      typeof sorted[0]?.balance === "number" ? Number(sorted[0].balance) : runningBalance;
-
     // Tabela
     autoTable(doc, {
-      startY: 45,
+      startY: 50,
       head: [["Data", "Quantidade (kg)", "Tipo", "Saldo (kg)"]],
+      showHead: "firstPage",
       body,
       foot: [["Total Entradas", formatNumber(totals.entries), "Total Saídas", formatNumber(totals.exits)]],
       showFoot: "lastPage",
@@ -104,30 +161,31 @@ export default function GenerateIndustryExtractReportModal({
         fontStyle: "bold",
       },
       didDrawPage: () => {
-        const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height;
-        const pageWidth = pageSize.width;
+        const pageCount = doc.getNumberOfPages();
 
-        const now = new Date().toLocaleString("pt-BR");
-        const userName = user?.name || "Usuário desconhecido";
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
 
-        doc.setFontSize(8);
-        doc.text(`Gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
+          const pageSize = doc.internal.pageSize;
+          const pageHeight = pageSize.height;
+          const pageWidth = pageSize.width;
 
-        const footerText = "Sistema Smart Seed";
-        const centerTextWidth = doc.getTextWidth(footerText);
-        doc.text(
-          footerText,
-          pageWidth / 2 - centerTextWidth / 2,
-          pageHeight - 10,
-        );
+          const now = new Date().toLocaleString("pt-BR");
+          const userName = user?.name || "Usuário desconhecido";
 
-        const pageNumber = (doc as any).internal.getNumberOfPages();
-        doc.text(
-          `${pageNumber}/${pageNumber}`,
-          pageWidth - 20,
-          pageHeight - 10,
-        );
+          doc.setFontSize(8);
+          doc.text(`Gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
+
+          const footerText = "Sistema Smart Seed";
+          const centerTextWidth = doc.getTextWidth(footerText);
+          doc.text(
+            footerText,
+            pageWidth / 2 - centerTextWidth / 2,
+            pageHeight - 10,
+          );
+
+          doc.text(`${i}/${pageCount}`, pageWidth - 20, pageHeight - 10);
+        }
       },
     });
 
@@ -146,11 +204,49 @@ export default function GenerateIndustryExtractReportModal({
         </HoverButton>
       </DialogTrigger>
       <DialogContent className="space-y-4">
-        <h2 className="text-xl font-semibold">Gerar Extrato em PDF</h2>
+        <AlertDialogHeader>
+          <DialogTitle>Filtrar Relatório</DialogTitle>
+            <DialogDescription>
+              Selecione os filtros para gerar o relatório de extrato
+            </DialogDescription>
+        </AlertDialogHeader>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Contexto</label>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <div>
+              Depósito: <span className="text-foreground">{depositName?.trim() ? depositName : "—"}</span>
+            </div>
+            <div>
+              Produto: <span className="text-foreground">{productLabel?.trim() ? productLabel : "—"}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Período</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <DatePicker value={dateFrom} onChange={setDateFrom} />
+            <DatePicker value={dateTo} onChange={setDateTo} />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Tipo</label>
+          <Select value={movementType} onValueChange={(v) => setMovementType(v as any)}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="ENTRY">Entrada</SelectItem>
+              <SelectItem value="EXIT">Saída</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Button
           onClick={generatePDF}
           className="bg-green text-white"
-          disabled={loading}
+          disabled={loading || !dateFrom || !dateTo}
         >
           {loading ? <FaSpinner className="animate-spin" /> : "Baixar PDF"}
         </Button>
