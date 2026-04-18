@@ -142,8 +142,10 @@ export default function GenerateIndustryExtractReportModal({
     });
 
     // Tabela
+    const totalPagesExp = "{total_pages_count_string}";
+
     autoTable(doc, {
-      startY: 50,
+      startY: 55,
       head: [["Data", "Quantidade (kg)", "Tipo", "Saldo (kg)"]],
       showHead: "firstPage",
       body,
@@ -161,33 +163,34 @@ export default function GenerateIndustryExtractReportModal({
         fontStyle: "bold",
       },
       didDrawPage: () => {
-        const pageCount = doc.getNumberOfPages();
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height;
+        const pageWidth = pageSize.width;
 
-        for (let i = 1; i <= pageCount; i++) {
-          doc.setPage(i);
+        const now = new Date().toLocaleString("pt-BR");
+        const userName = user?.name || "Usuário desconhecido";
 
-          const pageSize = doc.internal.pageSize;
-          const pageHeight = pageSize.height;
-          const pageWidth = pageSize.width;
+        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
 
-          const now = new Date().toLocaleString("pt-BR");
-          const userName = user?.name || "Usuário desconhecido";
+        doc.setFontSize(8);
+        doc.text(`Gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
 
-          doc.setFontSize(8);
-          doc.text(`Gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
+        const footerText = "Sistema Smart Seed";
+        doc.text(footerText, pageWidth / 2, pageHeight - 10, {
+          align: "center",
+        });
 
-          const footerText = "Sistema Smart Seed";
-          const centerTextWidth = doc.getTextWidth(footerText);
-          doc.text(
-            footerText,
-            pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10,
-          );
-
-          doc.text(`${i}/${pageCount}`, pageWidth - 20, pageHeight - 10);
-        }
+        doc.text(
+          `${currentPage}/${totalPagesExp}`,
+          pageWidth - 20,
+          pageHeight - 10,
+        );
       },
     });
+
+    if (typeof (doc as any).putTotalPages === "function") {
+      (doc as any).putTotalPages(totalPagesExp);
+    }
 
     const fileName = `Extrato - ${Date.now()}.pdf`;
     doc.save(fileName);
