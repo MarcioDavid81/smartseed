@@ -6,6 +6,7 @@ export const seedAdjustmentSchema = z.object({
   quantityKg: z.coerce.number(),
   direction: z.enum(["entrada", "saida"]),
   notes: z.string().optional(),
+  cycleId: z.string().optional(),
 });
 
 export type SeedAdjustStock = z.infer<typeof seedAdjustmentSchema>;

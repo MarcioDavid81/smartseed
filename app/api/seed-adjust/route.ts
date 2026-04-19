@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
           date: new Date(data.date),
           quantityKg: data.quantityKg,
           cultivarId: data.cultivarId,
+          cycleId: data.cycleId ?? (() => { throw new Error('CycleId required') })(),
           companyId: session.user.companyId,
-          notes: data.notes,
         },
       });
 
