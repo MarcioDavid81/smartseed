@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
     const ajustes = await db.seedStockAdjustment.findMany({
       where: {
         cultivarId,
+        cycleId,
         companyId,
       },
       select: {

@@ -10,17 +10,22 @@ export async function getSeedAdjustStock(): Promise<SeedAdjustStock[]> {
   return data;
 }
 
+type CreateSeedAdjustStockParams = {
+  data: SeedAdjustStockFormData;
+  cycleId: string;
+}
+
 export async function createSeedAdjustStock({
   data,
-}: {
-  data: SeedAdjustStockFormData;
-}) {
+  cycleId,
+}: CreateSeedAdjustStockParams) {
   return apiFetch<SeedAdjustStock>(
     "/api/seed-adjust",
     {
       method: "POST",
       body: JSON.stringify({
         ...data,
+        cycleId,
       }),
     }
   );

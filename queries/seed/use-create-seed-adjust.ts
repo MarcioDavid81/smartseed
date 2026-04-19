@@ -3,19 +3,24 @@ import { SeedAdjustStock as SeedAdjustStockFormData } from "@/lib/schemas/seedAd
 import { createSeedAdjustStock } from "@/services/seed/seedAdjustmentStock";
 import { SeedAdjustStock } from "@/types";
 
+type Params = {
+  cycleId: string;
+}
 
-export function useCreateSeedAdjust() {
+export function useCreateSeedAdjust({ cycleId }: Params) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: SeedAdjustStockFormData) =>
-      createSeedAdjustStock({
+    mutationFn: (data: SeedAdjustStockFormData) => {
+      return createSeedAdjustStock({
         data,
-      }),
+        cycleId,
+      });
+    },
 
       onSuccess: (savedSeedAdjust) => {
         queryClient.setQueryData<SeedAdjustStock[]>(
-          ["seed-adjust"],
+          ["seed-adjust", cycleId],
           (old) => {
             if (!old) return [savedSeedAdjust];
   
@@ -23,7 +28,7 @@ export function useCreateSeedAdjust() {
           },
         );
         queryClient.invalidateQueries({
-          queryKey: ["seed-adjust"],
+          queryKey: ["seed-adjust", cycleId],
         });
       },
   });
