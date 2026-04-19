@@ -60,7 +60,7 @@ const DashboardContent = () => {
     async function fetchDashboardData() {
       const token = getToken();
       const res = await fetch(
-        `/api/dashboard/summary?cultivar=${selectedCultivar?.id}`,
+        `/api/dashboard/summary?cultivar=${selectedCultivar?.id}&cycle=${selectedCycle?.id || ""}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

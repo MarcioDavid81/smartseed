@@ -8,10 +8,11 @@ export async function GET(req: NextRequest) {
   const { companyId } = auth;
   const { searchParams } = new URL(req.url);
   const cultivarId = searchParams.get("cultivar");
+  const cycleId = searchParams.get("cycle");
 
-  if (!cultivarId) {
+  if (!cultivarId || !cycleId) {
     return NextResponse.json(
-      { error: "Cultivar ID obrigatório" },
+      { error: "Cultivar ID e Ciclo ID obrigatóriorios" },
       { status: 400 },
     );
   }
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
     const colheitas = await db.harvest.findMany({
       where: {
         cultivarId,
+        cycleId,
         companyId,
       },
       select: {
@@ -30,6 +32,7 @@ export async function GET(req: NextRequest) {
     const beneficiamentos = await db.beneficiation.findMany({
       where: {
         cultivarId,
+        cycleId,
         companyId,
       },
       select: {
