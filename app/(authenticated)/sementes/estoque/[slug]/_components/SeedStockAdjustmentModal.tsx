@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
+import { getCycle } from "@/lib/cycle";
 import { seedAdjustmentSchema, SeedAdjustStock as SeedAdjustStockFormData } from "@/lib/schemas/seedAdjustStockSchema";
 import { useCreateSeedAdjust } from "@/queries/seed/use-create-seed-adjust";
 import {
@@ -35,6 +36,7 @@ const SeedStockAdjustmentModal = ({
 }: SeedStockAdjustmentModalProps) => {
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const { showToast } = useSmartToast();
+  const cycle = getCycle();
 
   const form = useForm<SeedAdjustStockFormData>({
     resolver: zodResolver(seedAdjustmentSchema)
@@ -55,7 +57,9 @@ const SeedStockAdjustmentModal = ({
     if (isOpen) fetchData();
   }, [isOpen]);
   
-  const { mutate, isPending } = useCreateSeedAdjust();
+  const { mutate, isPending } = useCreateSeedAdjust({
+    cycleId: cycle.id!,
+  });
   
   const onSubmit = (data: SeedAdjustStockFormData) => {
     const signedQuantity = data.direction === "entrada" ? data.quantityKg : -data.quantityKg;
@@ -64,6 +68,7 @@ const SeedStockAdjustmentModal = ({
       {
         ...data,
         quantityKg: signedQuantity,
+        cycleId: cycle.id!,
       },
       {
       onSuccess: () => {
