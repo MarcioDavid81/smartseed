@@ -94,14 +94,38 @@ export default function GenerateIndustryExtractReportModal({
     doc.text(company, 110, 25, { align: "center" });
 
     // Filtros
-    doc.setFontSize(10);
-    doc.text(`Depósito: ${depositLabel}`, 14, 35);
-    doc.text(`Produto: ${productLabelText}`, 14, 40);
-    doc.text(`Período: ${periodLabel}`, 14, 45);
-    doc.text(`Tipo: ${movementTypeLabel}`, 14, 50);
+      doc.setFontSize(10);
 
-    // Cultivar
-    doc.setFontSize(10);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
+
+      // largura útil da página (tirando margens)
+      const usableWidth = pageWidth - margin * 2;
+
+      // divide em 2 colunas
+      const columnWidth = usableWidth / 2;
+
+      const startY = 35;
+      const lineHeight = 5;
+
+      const filters = [
+        `Depósito: ${depositLabel || "Todos"}`,
+        `Produto: ${productLabelText || "Todos"}`,
+        `Período: ${periodLabel || "Todos"}`,
+        `Tipo: ${movementTypeLabel || "Todos"}`,
+      ];
+
+      filters.forEach((text, index) => {
+        const column = index % 2; // 0,1
+        const row = Math.floor(index / 2);
+
+        const x = margin + column * columnWidth;
+        const y = startY + row * lineHeight;
+
+        doc.text(text, x, y, {
+          maxWidth: columnWidth - 5, // evita estourar a coluna
+        });
+      });
 
     // Ordenar e montar dados
     const sorted = [...filtered].sort(
@@ -143,7 +167,7 @@ export default function GenerateIndustryExtractReportModal({
     const totalPagesExp = "{total_pages_count_string}";
 
     autoTable(doc, {
-      startY: 55,
+      startY: 45,
       head: [["Data", "Quantidade (kg)", "Tipo", "Saldo (kg)"]],
       showHead: "firstPage",
       body,

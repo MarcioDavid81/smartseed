@@ -62,7 +62,7 @@ export default function GenerateExtractReportModal({
     // Adiciona logo e título
     doc.addImage(logo, "PNG", 14, 10, 30, 15);
     doc.setFontSize(16);
-    doc.text("Extrato de Movimentações", 105, 20, { align: "center" });
+    doc.text("Extrato de Movimentações", 110, 20, { align: "center" });
     const company = user.company.name;
     doc.setFontSize(12);
     doc.text(company, 110, 25, { align: "center" });
