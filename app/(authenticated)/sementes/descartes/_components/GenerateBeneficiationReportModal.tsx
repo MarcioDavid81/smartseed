@@ -36,7 +36,7 @@ export default function GenerateBeneficiationReportModal() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const cultivaresUnicos = Array.from(
-    new Set(descartes.map((h) => h.cultivar.name)),
+    new Set(descartes.map((h) => h.cultivar?.name || "")),
   );
   const depositosUnicos = Array.from(
     new Set(descartes.map((h) => h.destination?.name || "")),

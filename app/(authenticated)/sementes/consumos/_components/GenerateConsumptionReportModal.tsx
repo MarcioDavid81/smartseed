@@ -37,10 +37,10 @@ export default function GenerateConsumptionReportModal() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const cultivaresUnicos = Array.from(
-    new Set(plantios.map((h) => h.cultivar.name)),
+    new Set(plantios.map((h) => h.cultivar?.name || "N/A")),
   );
 
-  const farmsUnicos = Array.from(new Set(plantios.map((h) => h.talhao.farm.name)));
+  const farmsUnicos = Array.from(new Set(plantios.map((h) => h.talhao?.farm?.name || "N/A")));
 
   const talhaosUnicos = Array.from(
     new Set(plantios.map((h) => h.talhao?.name || "N/A")),

@@ -36,17 +36,17 @@ export default function GenerateHarvestReportModal() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const cultivaresUnicos = Array.from(
-    new Set(harvests.map((h) => h.cultivar.name)),
+    new Set(harvests.map((h) => h.cultivar?.name || "N/A")),
   );
-  const talhoesUnicos = Array.from(new Set(harvests.map((h) => h.talhao.name)));
+  const talhoesUnicos = Array.from(new Set(harvests.map((h) => h.talhao?.name || "N/A")));
 
   const filterSeedHarvests = (list: Harvest[]) => {
     const from = dateFrom ? startOfDay(dateFrom) : null;
     const to = dateTo ? endOfDay(dateTo) : null;
     
     return list.filter((h) => {
-      const matchCultivar = !cultivar || h.cultivar.name === cultivar;
-      const matchTalhao = !talhao || h.talhao.name === talhao;
+      const matchCultivar = !cultivar || h.cultivar?.name === cultivar;
+      const matchTalhao = !talhao || h.talhao?.name === talhao;
       const date = new Date(h.date as unknown as string);
       const matchDate = (!from || date >= from) && (!to || date <= to);
       return matchDate && matchCultivar && matchTalhao;
