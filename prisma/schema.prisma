@@ -156,7 +156,7 @@ model Customer {
   city               String?
   state              String?
   phone              String?
-  cpf_cnpj           String?             @unique
+  cpf_cnpj           String?
   companyId          String
   createdAt          DateTime            @default(now())
   accountsPayable    AccountPayable[]
@@ -170,6 +170,8 @@ model Customer {
   sales              SaleExit[]
   saleContracts      SaleContract[]
   purchaseOrders     PurchaseOrder[]
+
+  @@unique([cpf_cnpj, companyId])
 }
 
 model Talhao {
@@ -319,16 +321,18 @@ model SaleExit {
 }
 
 model SeedStockAdjustment {
-  id         String        @id @default(cuid())
+  id         String           @id @default(cuid())
   date       DateTime
   quantityKg Float
   cultivarId String
   companyId  String
+  cycleId    String?
   notes      String?
-  createdAt  DateTime      @default(now())
-  type       OperationType @default(Ajuste)
-  company    Company       @relation(fields: [companyId], references: [id])
-  cultivar   Cultivar      @relation(fields: [cultivarId], references: [id])
+  createdAt  DateTime         @default(now())
+  type       OperationType    @default(Ajuste)
+  company    Company          @relation(fields: [companyId], references: [id])
+  cultivar   Cultivar         @relation(fields: [cultivarId], references: [id])
+  cycle      ProductionCycle? @relation(fields: [cycleId], references: [id])
 }
 
 model Transformation {
@@ -347,16 +351,16 @@ model Transformation {
 }
 
 model ProductionCycle {
-  id                String             @id @default(cuid())
+  id                String                @id @default(cuid())
   name              String
   startDate         DateTime
   endDate           DateTime
-  status            CycleStatus        @default(OPEN)
+  status            CycleStatus           @default(OPEN)
   companyId         String
-  createdAt         DateTime           @default(now())
-  isActive          Boolean            @default(false)
+  createdAt         DateTime              @default(now())
+  isActive          Boolean               @default(false)
   productType       ProductType?
-  forceMigration    Int?               @default(1)
+  forceMigration    Int?                  @default(1)
   applications      Application[]
   beneficiations    Beneficiation[]
   buys              Buy[]
@@ -366,10 +370,11 @@ model ProductionCycle {
   industryHarvests  IndustryHarvest[]
   industrySales     IndustrySale[]
   industryTransfers IndustryTransfer[]
-  company           Company            @relation(fields: [companyId], references: [id])
+  company           Company               @relation(fields: [companyId], references: [id])
   purchases         Purchase[]
   salesExit         SaleExit[]
   transfers         TransferExit[]
+  adjusts           SeedStockAdjustment[]
 }
 
 model CycleTalhao {
@@ -584,7 +589,7 @@ model IndustryTransporter {
   id               String            @id @default(cuid())
   name             String
   fantasyName      String?
-  cpf_cnpj         String?           @unique
+  cpf_cnpj         String?
   adress           String?
   city             String?
   state            String?
@@ -594,6 +599,8 @@ model IndustryTransporter {
   industryHarvests IndustryHarvest[]
   industrySales    IndustrySale[]
   company          Company           @relation(fields: [companyId], references: [id])
+
+  @@unique([cpf_cnpj, companyId])
 }
 
 model IndustryHarvest {
