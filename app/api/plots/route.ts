@@ -142,11 +142,11 @@ export async function POST(req: NextRequest) {
  *         description: Token ausente ou inválido
  */
 export async function GET(req: NextRequest) {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-  const { companyId } = auth;
-
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
+
     const plots = await db.talhao.findMany({
       where: { companyId },
       include: { farm: { select: { id: true, name: true } } },
