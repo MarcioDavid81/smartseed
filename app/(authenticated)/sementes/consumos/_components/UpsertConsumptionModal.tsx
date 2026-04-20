@@ -20,11 +20,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCycle } from "@/contexts/CycleContext";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { ApiError } from "@/lib/http/api-error";
 import { ConsumptionFormData, consumptionSchema } from "@/lib/schemas/seedConsumption";
+import { useCycleCultivarsWithStock } from "@/queries/registrations/use-cultivars";
+import { useCyclePlots } from "@/queries/registrations/use-cylce-plots";
+import { usePlots } from "@/queries/registrations/use-plot-query";
 import { useUpsertSeedConsumption } from "@/queries/seed/use-upsert-seed-consumption";
 import { Cultivar, Talhao } from "@/types";
 import { Consumption } from "@/types/consumption";
@@ -46,8 +50,8 @@ const UpsertConsumptionModal = ({
   isOpen,
   onClose,
 }: UpsertConsumptionModalProps) => {
-  const [cultivars, setCultivars] = useState<Cultivar[]>([]);
-  const [talhao, setTalhao] = useState<Talhao[]>([]);
+  const { data: cultivarsWithStock } = useCycleCultivarsWithStock(isOpen);
+  const talhoes = useCyclePlots();
   const { showToast } = useSmartToast();
 
   const form = useForm<ConsumptionFormData>({
@@ -74,36 +78,6 @@ const UpsertConsumptionModal = ({
       form.reset();
     }
   }, [plantio, isOpen, form.reset]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = getToken();
-      const cycle = getCycle();
-      if (!cycle || !cycle.productType) {
-        toast.error("Nenhum ciclo de produção selecionado.");
-        return;
-      }
-      
-      const [cultivarRes, talhaoRes] = await Promise.all([
-        fetch(`/api/cultivars/available-for-planting?productType=${cycle.productType as ProductType}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/plots", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      const [cultivarData, talhaoData] = await Promise.all([
-        cultivarRes.json(),
-        talhaoRes.json(),
-      ]);
-
-      setCultivars(cultivarData);
-      setTalhao(talhaoData);
-    };
-
-    if (isOpen) fetchData();
-  }, [isOpen]);
 
   const cycle = getCycle();
 
@@ -200,11 +174,11 @@ const UpsertConsumptionModal = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {cultivars.map((cultivar) => (
+                          {cultivarsWithStock?.map((cultivar: Cultivar) => (
                             <SelectItem key={cultivar.id} value={cultivar.id}>
                               <div className="flex items-center gap-2">
                                 <span>{cultivar.name}</span>
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-muted-foreground">
                                   {`Estoque: ${cultivar.stock} kg`}
                                 </span>
                               </div>
@@ -230,12 +204,12 @@ const UpsertConsumptionModal = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {talhao.map((talhao) => (
+                            {talhoes.map((talhao) => (
                               <SelectItem key={talhao.id} value={talhao.id}>
                                 <div className="flex items-center gap-2">
                                   <span>{talhao.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {talhao.farm.name}
+                                  <span className="text-muted-foreground">
+                                    {talhao.farm?.name} {talhao.area} ha
                                   </span>
                                 </div>
                               </SelectItem>

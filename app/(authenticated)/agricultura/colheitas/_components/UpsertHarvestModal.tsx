@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useCycle } from "@/contexts/CycleContext";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getCycle } from "@/lib/cycle";
 import { IndustryHarvestFormData, industryHarvestSchema } from "@/lib/schemas/industryHarvest";
@@ -18,7 +17,7 @@ import {
   IndustryHarvest} from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { ComboBoxOption } from "@/components/combo-option";
@@ -28,6 +27,7 @@ import { ApiError } from "@/lib/http/api-error";
 import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
 import { useIndustryTransporters } from "@/queries/industry/use-transporter-query";
 import { PlateInput } from "@/components/plate-input";
+import { useCyclePlots } from "@/queries/registrations/use-cylce-plots";
 
 interface UpsertHarvestModalProps {
   colheita?: IndustryHarvest;
@@ -35,19 +35,12 @@ interface UpsertHarvestModalProps {
   onClose: () => void;
 }
 
-type TalhaoOption = {
-  id: string;
-  name: string;
-  area: number;
-};
-
 const UpsertHarvestModal = ({
   colheita,
   isOpen,
   onClose,
 }: UpsertHarvestModalProps) => {
-  const [talhoes, setTalhoes] = useState<TalhaoOption[]>([]);
-  const { selectedCycle } = useCycle();
+  const talhoes = useCyclePlots();
   const { showToast } = useSmartToast();
 
   const form = useForm<IndustryHarvestFormData>({
@@ -134,90 +127,75 @@ const UpsertHarvestModal = ({
   const { data: deposits = [] } = useIndustryDeposits();
   const { data: transporters = [] } = useIndustryTransporters();
 
-  useEffect(() => {
-    if (selectedCycle?.talhoes?.length) {
-        setTalhoes(
-          selectedCycle.talhoes.map((ct) => ({
-            id: ct.talhaoId,
-            name: ct.talhao.name,
-            area: ct.talhao.area,
-          }))
-        );
-      } else {
-        // fallback — caso não tenha ciclo selecionado ou o ciclo não tenha talhões cadastrados
-        setTalhoes([])
-      }
-    }, [selectedCycle]);
+  const cycle = getCycle();
 
-const cycle = getCycle();
+  const { mutate, isPending } = useUpsertIndustryHarvest({
+    cycleId: cycle?.id!,
+    harvestId: colheita?.id,
+  });
 
-const { mutate, isPending } = useUpsertIndustryHarvest({
-  cycleId: cycle?.id!,
-  harvestId: colheita?.id,
-});
-
-const onSubmit = (data: IndustryHarvestFormData) => {
-  if (!cycle?.id) {
-    showToast({
-      type: "error",
-      title: "Erro",
-      message: "Nenhum ciclo de produção selecionado.",
-    });
-    return;
-  }
-
-  mutate(data, {
-    onSuccess: () => {
-      showToast({
-        type: "success",
-        title: "Sucesso",
-        message: colheita
-          ? "Colheita atualizada com sucesso!"
-          : "Colheita cadastrada com sucesso!",
-      });
-
-      onClose();
-      form.reset();
-    },
-    onError: (error: Error) => {
-      if (error instanceof ApiError) {
-        if (error.status === 402) {
-          showToast({
-            type: "info",
-            title: "Limite atingido",
-            message: error.message,
-          });
-          return;
-        }
-
-        if (error.status === 401) {
-          showToast({
-            type: "info",
-            title: "Sessão expirada",
-            message: "Faça login novamente",
-          });
-          return;
-        }
-
-        if (error.status === 409) {
-          showToast({
-            type: "info",
-            title: "Safra finalizada",
-            message: error.message,
-          });
-          return;
-        }
-      }
+  const onSubmit = (data: IndustryHarvestFormData) => {
+    if (!cycle?.id) {
       showToast({
         type: "error",
         title: "Erro",
-        message: error.message || `Erro ao ${
-          colheita ? "atualizar" : "criar"
-        } colheita.`,
+        message: "Nenhum ciclo de produção selecionado.",
       });
-    },
-  });
-};
+      return;
+    }
+
+    mutate(data, {
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: colheita
+            ? "Colheita atualizada com sucesso!"
+            : "Colheita cadastrada com sucesso!",
+        });
+
+        onClose();
+        form.reset();
+      },
+      onError: (error: Error) => {
+        if (error instanceof ApiError) {
+          if (error.status === 402) {
+            showToast({
+              type: "info",
+              title: "Limite atingido",
+              message: error.message,
+            });
+            return;
+          }
+
+          if (error.status === 401) {
+            showToast({
+              type: "info",
+              title: "Sessão expirada",
+              message: "Faça login novamente",
+            });
+            return;
+          }
+
+          if (error.status === 409) {
+            showToast({
+              type: "info",
+              title: "Safra finalizada",
+              message: error.message,
+            });
+            return;
+          }
+        }
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: error.message || `Erro ao ${
+            colheita ? "atualizar" : "criar"
+          } colheita.`,
+        });
+      },
+    });
+  };
 
   useEffect(() => {
     if (!isOpen) form.reset();
@@ -234,7 +212,7 @@ const onSubmit = (data: IndustryHarvestFormData) => {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2">
-            {/* Data e Documento */}
+            {/* Data, Documento e Talhão */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
@@ -273,7 +251,7 @@ const onSubmit = (data: IndustryHarvestFormData) => {
                             {talhoes.length > 0 ? (
                               <ComboBoxOption
                                 options={talhoes.map((t) => ({
-                                  label: t.name,
+                                  label: t.name + ` (${t.farm.name})`,
                                   value: t.id,
                                 }))}
                                 value={field.value}
