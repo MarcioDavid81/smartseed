@@ -78,12 +78,14 @@ export default function GenerateSeedExtractReportModal({
           ? "Saída"
           : "Todos";
 
-    const cultivarLabel = cultivarName?.trim() ? cultivarName : "—";
+    const cultivarLabel = cultivarName?.trim() || "—";
 
-    // Adiciona logo e título
+    // Adiciona logo e cabeçalho
     doc.addImage(logo, "PNG", 14, 10, 30, 15);
+
     doc.setFontSize(16);
-    doc.text("Extrato de Movimentações", 110, 20, { align: "center" });
+    doc.text(`Extrato de Movimentações`, 110, 20, { align: "center" });
+
     const company = user.company.name;
     doc.setFontSize(12);
     doc.text(company, 110, 25, { align: "center" });
@@ -98,12 +100,13 @@ export default function GenerateSeedExtractReportModal({
       const usableWidth = pageWidth - margin * 2;
 
       // divide em 2 colunas
-      const columnWidth = usableWidth / 3;
+      const columnWidth = usableWidth / 2;
 
       const startY = 35;
       const lineHeight = 5;
 
       const filters = [
+        `Cultivar: ${cultivarLabel || "—"}`,
         `Período: ${periodLabel || "Todos"}`,
         `Tipo: ${movementTypeLabel || "Todos"}`,
       ];
@@ -150,7 +153,7 @@ export default function GenerateSeedExtractReportModal({
     const totalPagesExp = "{total_pages_count_string}";
 
     autoTable(doc, {
-      startY: 40,
+      startY: 45,
       head: [["Data", "Quantidade (kg)", "Tipo", "Saldo (kg)"]],
       showHead: "firstPage",
       body,
@@ -197,7 +200,8 @@ export default function GenerateSeedExtractReportModal({
       (doc as any).putTotalPages(totalPagesExp);
     }
     const fileNumber = new Date().getTime().toString();
-    const fileName = `Extrato ${cultivarName} - ${fileNumber}.pdf`;
+    const safeCultivarLabel = cultivarLabel.replace(/[\\/:*?"<>|]/g, "-");
+    const fileName = `Extrato ${safeCultivarLabel} - ${fileNumber}.pdf`;
     doc.save(fileName);
     setLoading(false);
     setDateFrom(undefined);

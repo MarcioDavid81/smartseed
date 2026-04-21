@@ -127,6 +127,7 @@ export function ListSeedStockStatementTable({
         <SeedStockStatementDataTable
           columns={columns}
           data={seedStockStatement}
+          cultivarName={cultivar?.name ?? ""}
           productLabel={cultivarId}
         />
       )}
