@@ -1,4 +1,6 @@
 "use client";
+import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
+import { formatNumber } from "@/app/_helpers/currency";
 import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -53,104 +55,99 @@ export default function GenerateStockReportModal() {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Estoque", 110, 20, { align: "center" });
+      const company = user.company.name;
+      doc.setFontSize(12);
+      doc.text(company, 110, 25, { align: "center" });
 
       doc.setFontSize(10);
-      doc.text(`Produto: ${product || "Todos"}`, 14, 35);
-      doc.text(`Cultivar: ${cultivar || "Todos"}`, 14, 40);
-      doc.text(`Status: ${status || "Todos"}`, 14, 45);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
+
+      // largura útil da página (tirando margens)
+      const usableWidth = pageWidth - margin * 2;
+
+      // divide em 3 colunas
+      const columnWidth = usableWidth / 3;
+
+      const startY = 35;
+      const lineHeight = 5;
+
+      const filters = [
+        `Produto: ${product || "Todos"}`,
+        `Cultivar: ${cultivar || "Todos"}`,
+        `Status: ${status || "Todos"}`,
+      ];
+
+      filters.forEach((text, index) => {
+        const column = index % 3; // 0,1,2
+        const row = Math.floor(index / 3);
+
+        const x = margin + column * columnWidth;
+        const y = startY + row * lineHeight;
+
+        doc.text(text, x, y, {
+          maxWidth: columnWidth - 5, // evita estourar a coluna
+        });
+      });
+
+      // Tabela
+      const totalPagesExp = "{total_pages_count_string}";
 
       autoTable(doc, {
-        startY: 50,
+        startY: 40,
         head: [["Nome", "Produto", "Estoque (kg)", "Status"]],
         body: filteredStock.map((h) => [
           h.name,
-          h.product,
+          PRODUCT_TYPE_LABELS[h.product],
           h.stock.toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
           }),
           h.status,
         ]),
+        foot: [["Total Geral", "", formatNumber(filteredStock.reduce((acc, curr) => acc + Number(curr.stock), 0))]],
+        showFoot: "lastPage",
         styles: {
           fontSize: 9,
         },
         headStyles: {
-          fillColor: [1, 204, 101],
+          fillColor: [99,185,38],
           textColor: 255,
           fontStyle: "bold",
         },
-        didDrawPage: function (data) {
+        footStyles: {
+          fillColor: [99,185,38],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        didDrawPage: function () {
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height;
           const pageWidth = pageSize.width;
 
-          const now = new Date();
-          const formattedDate = now.toLocaleString("pt-BR");
+          const now = new Date().toLocaleString("pt-BR");
           const userName = user?.name || "Usuário desconhecido";
 
+          const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+
           doc.setFontSize(8);
-          doc.text(
-            `Relatório gerado em ${formattedDate} por: ${userName}`,
-            10,
-            pageHeight - 10,
-          );
+          doc.text(`Gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
 
-          const centerText = "Sistema Smart Seed";
-          const centerTextWidth = doc.getTextWidth(centerText);
-          doc.text(
-            centerText,
-            pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10,
-          );
+          const footerText = "Sistema Smart Seed";
+          doc.text(footerText, pageWidth / 2, pageHeight - 10, {
+            align: "center",
+          });
 
-          const pageNumber = (doc as any).internal.getNumberOfPages();
           doc.text(
-            `${pageNumber}/${pageNumber}`,
+            `${currentPage}/${totalPagesExp}`,
             pageWidth - 20,
             pageHeight - 10,
           );
         },
       });
 
-      // === SOMATÓRIO POR CULTIVAR ===
-      const totalsByCultivar = filteredStock.reduce(
-        (acc, curr) => {
-          const name = curr.name;
-          if (!acc[name]) acc[name] = 0;
-          acc[name] += curr.stock;
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-
-      const totalGeral = filteredStock.reduce(
-        (acc, curr) => acc + curr.stock,
-        0,
-      );
-
-      let finalY = (doc as any).lastAutoTable.finalY + 10;
-
-      doc.setFontSize(9);
-      doc.text("Estoque por Cultivar", 14, finalY);
-
-      doc.setFontSize(9);
-      Object.entries(totalsByCultivar).forEach(([name, total], index) => {
-        doc.text(
-          `${name}: ${total.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          })} kg`,
-          14,
-          finalY + 6 + index * 6,
-        );
-      });
-
-      doc.setFontSize(9);
-      doc.text(
-        `Total Geral: ${totalGeral.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })} kg`,
-        14,
-        finalY + 6 + Object.keys(totalsByCultivar).length * 6 + 6,
-      );
+    if (typeof (doc as any).putTotalPages === "function") {
+      (doc as any).putTotalPages(totalPagesExp);
+    }
 
       const fileNumber = new Date().getTime().toString();
       const fileName = `Relatorio de Estoque - ${fileNumber}.pdf`;
@@ -187,9 +184,9 @@ export default function GenerateStockReportModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
-              {produtosUnicos.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
+              {produtosUnicos.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {PRODUCT_TYPE_LABELS[p]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -231,9 +228,9 @@ export default function GenerateStockReportModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
-              {statusUnicos.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
+              {statusUnicos.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
                 </SelectItem>
               ))}
             </SelectContent>

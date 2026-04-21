@@ -10,32 +10,27 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useIndustryHarvest } from "@/contexts/IndustryHarvestContext";
 import { useIndustryStock } from "@/contexts/IndustryStockContext";
 import { useUser } from "@/contexts/UserContext";
-import { ProductType } from "@prisma/client";
+import { IndustryStock } from "@/types";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useState } from "react";
 import { FaFilePdf, FaSpinner } from "react-icons/fa";
+import { useFilteredStock, useStockReport } from "./useStockReport";
+import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
 
 export default function GenerateStockReportModal() {
   const { stocks } = useIndustryStock();
-  const { harvests } = useIndustryHarvest();
-  const [product, setProduct] = useState<ProductType>(ProductType.SOJA);
-  const [deposit, setDeposit] = useState<string | null>(null);
   const { user } = useUser();
+  const [product, setProduct] = useState<string | null>(null);
+  const [deposit, setDeposit] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const produtosUnicos = Array.from(new Set(stocks.map((s) => s.product)));
-  const depositosUnicos = Array.from(new Set(stocks.map((s) => s.industryDeposit.name)));
+  const { produtos, depositos } = useStockReport(stocks);
 
-  const filteredStock = stocks.filter((c) => {
-    const matchProduct = !product || c.product === product;
-    const matchDeposit = !deposit || c.industryDeposit.name === deposit;
-    return matchProduct && matchDeposit;
-  });
+  const filteredStock = useFilteredStock(stocks, product, deposit);
 
   const generatePDF = () => {
     setLoading(true);
@@ -53,15 +48,43 @@ export default function GenerateStockReportModal() {
       doc.text(company, 110, 25, { align: "center" });
 
       doc.setFontSize(10);
-      doc.text(`Produto: ${product || "Todos"}`, 14, 35);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
 
+      // largura útil da página (tirando margens)
+      const usableWidth = pageWidth - margin * 2;
 
+      // divide em 3 colunas
+      const columnWidth = usableWidth / 3;
+
+      const startY = 35;
+      const lineHeight = 5;
+
+      const filters = [
+        `Produto: ${product || "Todos"}`,
+        `Depósito: ${deposit || "Todos"}`,
+      ];
+
+      filters.forEach((text, index) => {
+        const column = index % 3; // 0,1,2
+        const row = Math.floor(index / 3);
+
+        const x = margin + column * columnWidth;
+        const y = startY + row * lineHeight;
+
+        doc.text(text, x, y, {
+          maxWidth: columnWidth - 5, // evita estourar a coluna
+        });
+      });
+
+      // Tabela
+      const totalPagesExp = "{total_pages_count_string}";
 
       autoTable(doc, {
-        startY: 50,
+        startY: 40,
         head: [["Produto", "Depósito", "Estoque (kg)"]],
         body: filteredStock.map((h) => [
-          h.product,
+          PRODUCT_TYPE_LABELS[h.product],
           h.industryDeposit.name,
           formatNumber(Number(h.quantity)),
         ]),
@@ -80,43 +103,40 @@ export default function GenerateStockReportModal() {
           textColor: 255,
           fontStyle: "bold",
         },
-        didDrawPage: function (data) {
+        didDrawPage: function () {
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height;
           const pageWidth = pageSize.width;
 
-          const now = new Date();
-          const formattedDate = now.toLocaleString("pt-BR");
+          const now = new Date().toLocaleString("pt-BR");
           const userName = user?.name || "Usuário desconhecido";
 
+          const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+
           doc.setFontSize(8);
-          doc.text(
-            `Relatório gerado em ${formattedDate} por: ${userName}`,
-            10,
-            pageHeight - 10,
-          );
+          doc.text(`Gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
 
-          const centerText = "Sistema Smart Seed";
-          const centerTextWidth = doc.getTextWidth(centerText);
-          doc.text(
-            centerText,
-            pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10,
-          );
+          const footerText = "Sistema Smart Seed";
+          doc.text(footerText, pageWidth / 2, pageHeight - 10, {
+            align: "center",
+          });
 
-          const pageNumber = (doc as any).internal.getNumberOfPages();
           doc.text(
-            `${pageNumber}/${pageNumber}`,
+            `${currentPage}/${totalPagesExp}`,
             pageWidth - 20,
             pageHeight - 10,
           );
         },
       });
 
+      if (typeof (doc as any).putTotalPages === "function") {
+        (doc as any).putTotalPages(totalPagesExp);
+      }
+
       const fileNumber = new Date().getTime().toString();
       const fileName = `Relatorio de Estoque - ${fileNumber}.pdf`;
       doc.save(fileName);
-      setProduct(ProductType.SOJA);
+      setProduct(null);
       setDeposit(null);
       setLoading(false);
       setModalOpen(false);
@@ -139,7 +159,7 @@ export default function GenerateStockReportModal() {
           <Select
             value={product ?? ""}
             onValueChange={(value) =>
-              setProduct(value === "todos" ? ProductType.SOJA : value as ProductType)
+              setProduct(value === "todos" ? null : value)
             }
           >
             <SelectTrigger className="w-full">
@@ -147,9 +167,9 @@ export default function GenerateStockReportModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
-              {produtosUnicos.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
+              {produtos.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {PRODUCT_TYPE_LABELS[p]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -169,9 +189,9 @@ export default function GenerateStockReportModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
-              {depositosUnicos.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
+              {depositos.map((d) => (
+                <SelectItem key={d} value={d}>
+                  {d}
                 </SelectItem>
               ))}
             </SelectContent>

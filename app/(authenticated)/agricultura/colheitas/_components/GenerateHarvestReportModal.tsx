@@ -122,7 +122,6 @@ export default function GenerateHarvestReportModal() {
       doc.text(company + " - Produto destinado à indústria", 150, 25, { align: "center" });
 
       doc.setFontSize(10);
-
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 14;
 
