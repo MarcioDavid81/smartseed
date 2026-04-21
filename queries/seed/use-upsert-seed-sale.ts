@@ -39,6 +39,10 @@ export function useUpsertSeedSale({ cycleId, saleId, saleContractItemId }: Param
       queryClient.invalidateQueries({
         queryKey: ["seed-sale", cycleId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["seed-stock", savedSale.cultivarId],
+      });
+      
     },
   });
 }

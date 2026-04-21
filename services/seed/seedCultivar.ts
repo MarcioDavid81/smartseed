@@ -16,3 +16,9 @@ export async function getSeedCultivarAvailableForSale(): Promise<Cultivar[]> {
 
   return data;
 }
+
+export async function getSeedCultivarById(
+  cultivarId: string,
+): Promise<Cultivar> {
+  return apiFetch<Cultivar>(`/api/cultivars/${cultivarId}`);
+}
