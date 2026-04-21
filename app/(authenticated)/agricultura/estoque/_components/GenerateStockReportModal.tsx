@@ -61,7 +61,7 @@ export default function GenerateStockReportModal() {
       const lineHeight = 5;
 
       const filters = [
-        `Produto: ${product || "Todos"}`,
+        `Produto: ${PRODUCT_TYPE_LABELS[product as keyof typeof PRODUCT_TYPE_LABELS] || "Todos"}`,
         `Depósito: ${deposit || "Todos"}`,
       ];
 
