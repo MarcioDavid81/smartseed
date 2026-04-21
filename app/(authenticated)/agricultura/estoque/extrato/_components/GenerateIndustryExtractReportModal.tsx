@@ -42,8 +42,8 @@ export default function GenerateIndustryExtractReportModal({
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [dateFrom, setDateFrom] = useState<Date | undefined>();
-  const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [movementType, setMovementType] = useState<"all" | "ENTRY" | "EXIT">(
     "all",
   );

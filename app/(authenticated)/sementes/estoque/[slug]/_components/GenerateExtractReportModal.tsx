@@ -33,8 +33,8 @@ export default function GenerateExtractReportModal({
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [dateFrom, setDateFrom] = useState<Date | undefined>();
-  const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
   const filterMovements = (list: Movement[]) => {
     const from = dateFrom ? startOfDay(dateFrom) : null;
