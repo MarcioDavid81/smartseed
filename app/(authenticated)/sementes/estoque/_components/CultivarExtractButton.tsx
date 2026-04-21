@@ -1,6 +1,5 @@
 "use client";
 
-import { slugify } from "@/app/_helpers/slug";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Search } from "lucide-react";
 import Link from "next/link";
@@ -17,7 +16,7 @@ export function CultivarExtractButton({ cultivar }: Props) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link href={`/sementes/estoque/${slugify(cultivar.name, cultivar.id)}`}>
+          <Link href={`/sementes/estoque/extrato?cultivarId=${cultivar.id}`}>
             <button className="hover:opacity-80 transition">
               <Search className="text-blue" size={20} />
             </button>

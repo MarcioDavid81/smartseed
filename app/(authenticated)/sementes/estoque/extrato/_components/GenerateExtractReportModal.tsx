@@ -22,22 +22,19 @@ import { FaFilePdf, FaSpinner } from "react-icons/fa";
 
 export interface Movement {
   id: string;
-  date: string | Date;
+  date: string;
   quantity: number;
   type: string | null;
-  balance?: number | null;
 }
 
 interface Props {
   movements: Movement[];
-  depositName?: string;
-  productLabel?: string;
+  cultivarName: string;
 }
 
-export default function GenerateIndustryExtractReportModal({
+export default function GenerateSeedExtractReportModal({
   movements,
-  depositName,
-  productLabel,
+  cultivarName,
 }: Props) {
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
@@ -63,10 +60,8 @@ export default function GenerateIndustryExtractReportModal({
 
   const generatePDF = () => {
     setLoading(true);
-
     const filtered = filterMovements(movements);
-
-    const doc = new jsPDF({ orientation: "portrait" });
+    const doc = new jsPDF();
     const logo = new Image();
     logo.src = "/6.png";
 
@@ -75,6 +70,7 @@ export default function GenerateIndustryExtractReportModal({
         ? `${dateFrom ? dateFrom.toLocaleDateString("pt-BR") : "—"} até ${dateTo ? dateTo.toLocaleDateString("pt-BR") : "—"}`
         : "Todos";
 
+
     const movementTypeLabel =
       movementType === "ENTRY"
         ? "Entrada"
@@ -82,8 +78,7 @@ export default function GenerateIndustryExtractReportModal({
           ? "Saída"
           : "Todos";
 
-    const depositLabel = depositName?.trim() ? depositName : "—";
-    const productLabelText = productLabel?.trim() ? productLabel : "—";
+    const cultivarLabel = cultivarName?.trim() ? cultivarName : "—";
 
     // Adiciona logo e título
     doc.addImage(logo, "PNG", 14, 10, 30, 15);
@@ -103,14 +98,12 @@ export default function GenerateIndustryExtractReportModal({
       const usableWidth = pageWidth - margin * 2;
 
       // divide em 2 colunas
-      const columnWidth = usableWidth / 2;
+      const columnWidth = usableWidth / 3;
 
       const startY = 35;
       const lineHeight = 5;
 
       const filters = [
-        `Depósito: ${depositLabel || "Todos"}`,
-        `Produto: ${productLabelText || "Todos"}`,
         `Período: ${periodLabel || "Todos"}`,
         `Tipo: ${movementTypeLabel || "Todos"}`,
       ];
@@ -157,7 +150,7 @@ export default function GenerateIndustryExtractReportModal({
     const totalPagesExp = "{total_pages_count_string}";
 
     autoTable(doc, {
-      startY: 45,
+      startY: 40,
       head: [["Data", "Quantidade (kg)", "Tipo", "Saldo (kg)"]],
       showHead: "firstPage",
       body,
@@ -204,12 +197,11 @@ export default function GenerateIndustryExtractReportModal({
       (doc as any).putTotalPages(totalPagesExp);
     }
     const fileNumber = new Date().getTime().toString();
-    const fileName = `Extrato - ${fileNumber}.pdf`;
+    const fileName = `Extrato ${cultivarName} - ${fileNumber}.pdf`;
     doc.save(fileName);
     setLoading(false);
     setDateFrom(undefined);
     setDateTo(undefined);
-    setMovementType("all");
     setModalOpen(false);
   };
 
