@@ -197,7 +197,7 @@ export default function GenerateHarvestReportModal() {
           const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
 
           doc.setFontSize(8);
-          doc.text(`Relatório gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
+          doc.text(`Gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
 
           const footerText = "Sistema Smart Seed";
           doc.text(footerText, pageWidth / 2, pageHeight - 10, {
