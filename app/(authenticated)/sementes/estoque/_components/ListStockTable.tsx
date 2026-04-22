@@ -1,13 +1,10 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Cultivar } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
-import { useStock } from "@/contexts/StockContext";
-import { getToken } from "@/lib/auth-client";
+import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { getProductLabel } from "@/app/_helpers/getProductLabel";
 import { ProductDataTable } from "@/components/ui/product-data-table";
 import { CultivarExtractButton } from "./CultivarExtractButton";
@@ -15,36 +12,15 @@ import { CultivarStatusButton } from "./CultivarStatusButton";
 import { CultivarStatusBadge } from "./CultivarStatusBadge";
 import { AgroLoader } from "@/components/agro-loader";
 import SeedTransformationButton from "./SeedTransformationButton";
+import { useSeedCultivarStockQuery } from "@/queries/seed/use-seed-cultivar-query";
 
 export function ListStockTable() {
-  const [products, setProducts] = useState<Cultivar[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { cultivars, isLoading } = useStock();
-
-  async function fetchProducts() {
-    try {
-      const token = getToken();
-      const res = await fetch("/api/cultivars/get", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      const filteredData = data.filter(
-        (product: Cultivar) => product.stock > 0
-      );
-      setProducts(filteredData);
-    } catch (error) {
-      console.error("Erro ao buscar cultivares:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const {
+    data: cultivars = [],
+    isLoading,
+    isFetching,
+    refetch
+   } = useSeedCultivarStockQuery();
 
   const columns: ColumnDef<Cultivar>[] = [
     {
@@ -53,7 +29,9 @@ export function ListStockTable() {
         <Button
           variant="ghost"
           className="text-left px-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          onClick={() =>
+            column.toggleSorting(column.getIsSorted() === "asc")
+          }
         >
           Nome
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -63,8 +41,8 @@ export function ListStockTable() {
     {
       accessorKey: "product",
       header: "Produto",
-      cell: ({ row: { original: cultivar } }) =>
-        getProductLabel(cultivar.product),
+      cell: ({ row: { original } }) =>
+        getProductLabel(original.product),
     },
     {
       accessorKey: "stock",
@@ -84,12 +62,12 @@ export function ListStockTable() {
     {
       accessorKey: "status",
       header: () => <div className="text-center">Status</div>,
-      cell: ({ row }) => {
-        return <CultivarStatusBadge status={row.original.status} />;
-      },
+      cell: ({ row }) => (
+        <CultivarStatusBadge status={row.original.status} />
+      ),
     },
     {
-      accessorKey: "actions",
+      id: "actions",
       header: () => <div className="text-center">Ações</div>,
       cell: ({ row }) => {
         const cultivar = row.original;
@@ -109,13 +87,23 @@ export function ListStockTable() {
   return (
     <Card className="p-4 dark:bg-primary font-light space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-light">Estoque das Cultivares</h2>
+        <div className="flex items-center">
+          <h2 className="font-light">Estoque das Cultivares</h2>
+          <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
         <SeedTransformationButton />
       </div>
-      {loading ? (
+
+      {isLoading ? (
         <AgroLoader />
       ) : (
-        <ProductDataTable columns={columns} data={cultivars} sumColumnId="stock" />
+        <ProductDataTable
+          columns={columns}
+          data={cultivars}
+          sumColumnId="stock"
+        />
       )}
     </Card>
   );

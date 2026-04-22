@@ -40,7 +40,9 @@ export function useUpsertSeedConsumption({ cycleId, consumptionId }: Params) {
       queryClient.invalidateQueries({
         queryKey: ["seed-stock", savedConsumption.cultivarId],
       });
-      
+      queryClient.invalidateQueries({
+        queryKey: ["seed-cultivar-stock"],
+      });
     },
   });
 }

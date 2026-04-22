@@ -40,7 +40,9 @@ export function useUpsertSeedHarvest({ cycleId, harvestId }: Params) {
       queryClient.invalidateQueries({
         queryKey: ["seed-stock", savedHarvest.cultivarId],
       });
-      
+      queryClient.invalidateQueries({
+        queryKey: ["seed-cultivar-stock"],
+      });
     },
   });
 }

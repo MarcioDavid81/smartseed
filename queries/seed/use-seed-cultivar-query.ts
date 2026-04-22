@@ -2,6 +2,7 @@ import {
   getSeedCultivarAvailableForSale,
   getSeedCultivars,
   getSeedCultivarById,
+  getCultivarStock,
 } from "@/services/seed/seedCultivar";
 import { Cultivar } from "@/types";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +28,14 @@ export function useSeedCultivarById(cultivarId?: string) {
     queryKey: ["seed-cultivar", cultivarId],
     queryFn: () => getSeedCultivarById(cultivarId!),
     enabled: Boolean(cultivarId),
+    staleTime: 1000 * 60 * 60 * 24, // 1 dia
+  });
+}
+
+export function useSeedCultivarStockQuery() {
+  return useQuery<Cultivar[]>({
+    queryKey: ["seed-cultivar-stock"],
+    queryFn: () => getCultivarStock(),
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }
