@@ -17,14 +17,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useHarvest } from "@/contexts/HarvestContext";
-import { getToken } from "@/lib/auth-client";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { useDeleteInputProduct } from "@/queries/input/use-input";
 import { Insumo } from "@/types/insumo";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 
 interface Props {
@@ -32,12 +30,27 @@ interface Props {
 }
 
 const DeleteInsumosButton = ({ product }: Props) => {
+  const { showToast } = useSmartToast();
   const [isOpen, setIsOpen] = useState(false);
   const { mutate, isPending } = useDeleteInputProduct();
   
     const handleConfirmDelete = () => {
       mutate(product.id, {
-        onSuccess: () => setIsOpen(false),
+        onSuccess: () => {
+          showToast({
+            type: "success",
+            title: "Sucesso",
+            message: "Insumo deletado com sucesso!",
+          });
+          setIsOpen(false);
+        },
+        onError: () => {
+          showToast({
+            type: "error",
+            title: "Erro",
+            message: "Erro ao deletar insumo.",
+          });
+        },
       });
     };
 

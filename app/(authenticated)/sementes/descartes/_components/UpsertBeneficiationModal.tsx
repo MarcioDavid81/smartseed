@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
@@ -32,7 +31,6 @@ import { ProductType } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 interface UpsertBeneficiationModalProps {
   descarte?: Beneficiation;
@@ -79,7 +77,11 @@ const UpsertBeneficiationModal = ({
       const token = getToken();
       const cycle = getCycle();
             if (!cycle || !cycle.productType) {
-              toast.error("Nenhum ciclo de produção selecionado.");
+              showToast({
+                type: "error",
+                title: "Erro",
+                message: "Nenhum ciclo de produção selecionado.",
+              });
               return;
             }
 

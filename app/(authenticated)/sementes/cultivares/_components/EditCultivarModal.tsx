@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { ProductType } from "@prisma/client";
 import { PRODUCT_TYPE_OPTIONS } from "../../../_constants/products";
 import { getToken } from "@/lib/auth-client";
@@ -35,6 +35,7 @@ export function EditCultivarModal({
   cultivar,
   onUpdated,
 }: EditCultivarModalProps) {
+  const { showToast } = useSmartToast();
   const [name, setName] = useState("");
   const [product, setProduct] = useState<ProductType>(ProductType.SOJA);
   const [loading, setLoading] = useState(false);
@@ -63,11 +64,19 @@ export function EditCultivarModal({
 
       if (!res.ok) throw new Error();
 
-      toast.success("Cultivar atualizada com sucesso!");
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Cultivar atualizada com sucesso!",
+      });
       onUpdated();
       onClose();
     } catch {
-      toast.error("Erro ao atualizar cultivar.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Erro ao atualizar cultivar.",
+      });
     } finally {
       setLoading(false);
     }

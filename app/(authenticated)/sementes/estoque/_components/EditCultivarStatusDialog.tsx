@@ -9,9 +9,9 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { toast } from "sonner";
 import { getToken } from "@/lib/auth-client";
 import { FaSpinner } from "react-icons/fa";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 type Props = {
   cultivarId: string;
@@ -21,6 +21,7 @@ type Props = {
 export function EditCultivarStatusDialog({ cultivarId, currentStatus }: Props) {
   const [status, setStatus] = useState(currentStatus);
   const [loading, setLoading] = useState(false);
+  const { showToast } = useSmartToast();
 
   const handleSubmit = async () => {
     try {
@@ -36,10 +37,18 @@ export function EditCultivarStatusDialog({ cultivarId, currentStatus }: Props) {
       });
 
       if (!res.ok) throw new Error("Erro ao atualizar status");
-      toast.success("Status atualizado com sucesso!");
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Status atualizado com sucesso!",
+      });
       window.location.reload(); // ou mutate SWR, dependendo de como carrega os dados
     } catch (err) {
-      toast.error("Erro ao atualizar status");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Erro ao atualizar status",
+      });
       console.error(err);
     } finally {
       setLoading(false);

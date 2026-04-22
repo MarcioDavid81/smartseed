@@ -22,11 +22,11 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { FaSpinner } from "react-icons/fa";
 import { PRODUCT_TYPE_OPTIONS } from "../../../_constants/products";
 import { ProductType } from "@prisma/client";
 import { getToken } from "@/lib/auth-client";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 // Schema de validação
 const cultivarSchema = z.object({
@@ -46,6 +46,7 @@ const UpsertCultivarSheetContent = ({
   onCreated?: () => void;
 }) => {
   const [loading, setLoading] = useState(false);
+  const { showToast } = useSmartToast();
 
   const form = useForm<CultivarFormData>({
     resolver: zodResolver(cultivarSchema),
@@ -75,24 +76,20 @@ const UpsertCultivarSheetContent = ({
         throw new Error(errorData.error || "Erro ao cadastrar cultivar");
       }
 
-      toast.success("Cultivar cadastrada com sucesso!", {
-        style: {
-            backgroundColor: "#63B926",
-            color: "white",
-        },
-        icon: "✅",
-    });
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Cultivar cadastrada com sucesso!",
+      });
       onCreated?.();
       form.reset();
       closeSheet();
     } catch (err: any) {
-      toast.warning(err.message || "Erro ao cadastrar cultivar", {
-            style: {
-                backgroundColor: "#F0C531",
-                color: "white",
-              },
-            icon: "❌",
-        });
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: err.message || "Erro ao cadastrar cultivar",
+      });
     } finally {
       setLoading(false);
     }

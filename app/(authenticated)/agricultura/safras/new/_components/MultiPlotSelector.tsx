@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { getToken } from "@/lib/auth-client";
-import { toast } from "sonner";
 import { formatNumber } from "@/app/_helpers/currency";
 import NewPlotButton from "./NewPlotButton";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 interface Talhao {
   id: string;
@@ -32,6 +31,7 @@ interface MultiPlotSelectorProps {
 }
 
 export function MultiPlotSelector({ control, name }: MultiPlotSelectorProps) {
+  const { showToast } = useSmartToast();
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const [grouped, setGrouped] = useState<FarmGroup[]>([]);
   const [filtered, setFiltered] = useState<FarmGroup[]>([]);
@@ -44,7 +44,11 @@ export function MultiPlotSelector({ control, name }: MultiPlotSelectorProps) {
     async function fetchTalhoes() {
       const token = getToken();
       if (!token) {
-        toast.error("Usuário não autenticado.");
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: "Usuário não autenticado.",
+        });
         setLoading(false);
         return;
       }
@@ -60,7 +64,11 @@ export function MultiPlotSelector({ control, name }: MultiPlotSelectorProps) {
         setGrouped(groupedData);
         setFiltered(groupedData);
       } catch (err) {
-        toast.error("Erro ao carregar os talhões.");
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: "Erro ao carregar os talhões.",
+        });
       } finally {
         setLoading(false);
       }

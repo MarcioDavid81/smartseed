@@ -20,24 +20,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCycle } from "@/contexts/CycleContext";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { getToken } from "@/lib/auth-client";
 import { getCycle } from "@/lib/cycle";
 import { ApiError } from "@/lib/http/api-error";
 import { ConsumptionFormData, consumptionSchema } from "@/lib/schemas/seedConsumption";
 import { useCycleCultivarsWithStock } from "@/queries/registrations/use-cultivars";
 import { useCyclePlots } from "@/queries/registrations/use-cylce-plots";
-import { usePlots } from "@/queries/registrations/use-plot-query";
 import { useUpsertSeedConsumption } from "@/queries/seed/use-upsert-seed-consumption";
-import { Cultivar, Talhao } from "@/types";
+import { Cultivar } from "@/types";
 import { Consumption } from "@/types/consumption";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ProductType } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 
 interface UpsertConsumptionModalProps {
   plantio?: Consumption;

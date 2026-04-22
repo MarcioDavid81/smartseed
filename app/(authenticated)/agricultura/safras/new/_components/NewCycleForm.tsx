@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import { MultiPlotSelector } from "./MultiPlotSelector";
 import { getToken } from "@/lib/auth-client";
 import { ProductType } from "@prisma/client";
-import { toast } from "sonner";
 import { CornerDownLeft, SaveIcon } from "lucide-react";
 import { FaSpinner } from "react-icons/fa";
 import { Input } from "@/components/ui/input";

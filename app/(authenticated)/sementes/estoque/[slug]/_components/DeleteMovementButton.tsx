@@ -15,7 +15,6 @@ import { getToken } from "@/lib/auth-client";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
 import { getApiRouteFromTipo } from "@/app/_helpers/typeForRoute";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSmartToast } from "@/contexts/ToastContext";

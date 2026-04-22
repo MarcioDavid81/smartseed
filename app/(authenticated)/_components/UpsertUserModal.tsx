@@ -13,11 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, ChangeEvent } from "react";
 import { AppUser } from "@/types/user";
-import { toast } from "sonner";
 import { updateUserWithImageAndPassword } from "@/actions/user";
 import Image from "next/image";
 import HoverButton from "@/components/HoverButton";
 import { FaSpinner } from "react-icons/fa";
+import { useSmartToast } from "@/contexts/ToastContext";
 
 type Props = {
   open: boolean;
@@ -26,6 +26,7 @@ type Props = {
 };
 
 export const UpsertUserModal = ({ open, onClose, user }: Props) => {
+  const { showToast } = useSmartToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,10 +63,18 @@ export const UpsertUserModal = ({ open, onClose, user }: Props) => {
 
     try {
       await updateUserWithImageAndPassword(formData);
-      toast.success("Perfil atualizado com sucesso!");
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Perfil atualizado com sucesso!",
+      });
       onClose();
     } catch (error) {
-      toast.error("Erro ao atualizar perfil.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Erro ao atualizar perfil.",
+      });
     } finally {
       setLoading(false);
     }

@@ -18,7 +18,9 @@ import { getToken } from "@/lib/auth-client";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
+import { useSmartToast } from "@/contexts/ToastContext";
+
+
 
 interface Cultivar {
   id: string;
@@ -31,6 +33,7 @@ interface Props {
 }
 
 const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
+  const { showToast } = useSmartToast();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -38,7 +41,11 @@ const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
     console.log("🔁 handleDelete chamado");
     console.log("📦 cultivar recebida:", cultivar);
     if (!cultivar || !cultivar.id){
-      toast.error("ID do cultivar ausente. Não é possível excluir.");
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "ID do cultivar ausente. Não é possível excluir.",
+      });
       console.warn("❌ cultivar.id ausente ou inválido");
       return;
     }
@@ -46,9 +53,8 @@ const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
 
     try {
       const token = getToken();
-      const url = `/api/buys/${cultivar.id}`;
-      console.log("🌐 Enviando DELETE para:", url);
-      const res = await fetch(`/api/cultivars/${cultivar.id}`, {
+      const url = `/api/cultivars/${cultivar.id}`;
+      const res = await fetch(url, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -58,24 +64,20 @@ const DeleteCultivarButton = ({ cultivar, onDeleted }: Props) => {
 
       console.log("📥 Resposta da API:", res.status);
 
-      toast.success("Cultivar deletada com sucesso!", {
-        style: {
-            backgroundColor: "#63B926",
-            color: "white",
-        },
-        icon: "✅",
-    });
+      showToast({
+        type: "success",
+        title: "Sucesso",
+        message: "Cultivar deletada com sucesso!",
+      });
       onDeleted();
       setIsOpen(false);
     } catch (error) {
       console.error("❌ Exceção no handleDelete:", error);
-      toast.error("Erro ao deletar cultivar.", {
-            style: {
-                backgroundColor: "#f87171",
-                color: "white",
-              },
-            icon: "❌",
-        });
+      showToast({
+        type: "error",
+        title: "Erro",
+        message: "Erro ao deletar cultivar.",
+      });
     } finally {
       setLoading(false);
     }

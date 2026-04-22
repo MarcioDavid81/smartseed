@@ -18,21 +18,19 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCycle } from "@/contexts/CycleContext";
-import { useHarvest } from "@/contexts/HarvestContext";
-import { getToken } from "@/lib/auth-client";
+import { useSmartToast } from "@/contexts/ToastContext";
 import { useDeleteSeedHarvest } from "@/queries/seed/use-delete-seed-harvest";
 import { Harvest } from "@/types";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { toast } from "sonner";
-
 
 interface Props {
   colheita: Harvest;
 }
 
 const DeleteHarvestButton = ({ colheita }: Props) => {
+  const { showToast } = useSmartToast();
   const [isOpen, setIsOpen] = useState(false);
   const { selectedCycle } = useCycle();
   
@@ -42,7 +40,21 @@ const DeleteHarvestButton = ({ colheita }: Props) => {
   
   const handleConfirmDelete = () => {
     mutate(colheita.id, {
-      onSuccess: () => setIsOpen(false),
+      onSuccess: () => {
+        showToast({
+          type: "success",
+          title: "Sucesso",
+          message: "Colheita deletada com sucesso!",
+        });
+        setIsOpen(false);
+      },
+      onError: () => {
+        showToast({
+          type: "error",
+          title: "Erro",
+          message: "Erro ao deletar colheita.",
+        });
+      },
     });
   };
 
