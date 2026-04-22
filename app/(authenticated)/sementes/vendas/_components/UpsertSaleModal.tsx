@@ -31,6 +31,7 @@ import { useSeedCultivarAvailableForSaleQuery } from "@/queries/seed/use-seed-cu
 import { useUpsertSeedSale } from "@/queries/seed/use-upsert-seed-sale";
 import { Sale } from "@/types/sale";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { PaymentCondition } from "@prisma/client";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -70,6 +71,7 @@ const UpsertSaleModal = ({
   initialQuantityKg,
 }: UpsertSaleModalProps) => {
   const { showToast } = useSmartToast();
+  const router = useRouter();
   const cycle = getCycle();
 
   const suggestedQuantityKg = initialQuantityKg ?? maxQuantityKg ?? undefined;
@@ -190,6 +192,7 @@ const UpsertSaleModal = ({
           
         onClose();
         form.reset();
+        router.refresh();
       },
       onError: (error: Error) => {
         if (error instanceof ApiError) {
