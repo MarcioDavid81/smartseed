@@ -5,20 +5,25 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);
-    if (!auth.ok) return auth.response;
-    const { companyId } = auth;
+  if (!auth.ok) return auth.response;
+
+  const { companyId } = auth;
 
   const { searchParams } = new URL(req.url);
+
   const depositId = searchParams.get("depositId");
   const product = searchParams.get("product");
+  const showZero = searchParams.get("showZero") === "true";
 
   try {
     const industryStocks = await db.industryStock.findMany({
       where: {
         companyId,
-        quantity: { gt: 0 },
         ...(depositId ? { industryDepositId: depositId } : {}),
         ...(product ? { product: product as ProductType } : {}),
+        ...(showZero
+          ? {} // traz tudo
+          : { quantity: { gt: 0 } }), // default continua otimizado
       },
       include: {
         industryDeposit: {
@@ -32,7 +37,7 @@ export async function GET(req: NextRequest) {
         industryDeposit: {
           name: "asc",
         },
-      }
+      },
     });
 
     return NextResponse.json(industryStocks, { status: 200 });

@@ -1,12 +1,11 @@
-import { getIndustryStock } from "@/services/industry/industryStock";
 import { useQuery } from "@tanstack/react-query";
+import { getIndustryStock, IndustryStockFilters } from "@/services/industry/industryStock";
 
-export function useIndustryStock() {
+export function useIndustryStock(filters?: IndustryStockFilters) {
   return useQuery({
-    queryKey: ["industry-stock"],
-    queryFn: () => getIndustryStock(),
-    enabled: true,
-    refetchOnWindowFocus: true,
-    staleTime: 1000 * 60 * 60, // 1 hora
+    queryKey: ["industry-stock", filters],
+    queryFn: () => getIndustryStock(filters),
+    staleTime: 1000 * 60 * 60,
+    refetchOnWindowFocus: false, // melhor pra UX aqui
   });
 }
