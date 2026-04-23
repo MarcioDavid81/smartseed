@@ -3,6 +3,7 @@ import {
   getSeedCultivars,
   getSeedCultivarById,
   getCultivarStock,
+  SeedStockFilters,
 } from "@/services/seed/seedCultivar";
 import { Cultivar } from "@/types";
 import { useQuery } from "@tanstack/react-query";
@@ -32,10 +33,11 @@ export function useSeedCultivarById(cultivarId?: string) {
   });
 }
 
-export function useSeedCultivarStockQuery() {
+export function useSeedCultivarStockQuery(filters?: SeedStockFilters) {
   return useQuery<Cultivar[]>({
-    queryKey: ["seed-cultivar-stock"],
-    queryFn: () => getCultivarStock(),
+    queryKey: ["seed-cultivar-stock", filters],
+    queryFn: () => getCultivarStock(filters!),
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
+    refetchOnWindowFocus: false,
   });
 }

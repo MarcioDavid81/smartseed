@@ -13,14 +13,29 @@ import { CultivarStatusBadge } from "./CultivarStatusBadge";
 import { AgroLoader } from "@/components/agro-loader";
 import SeedTransformationButton from "./SeedTransformationButton";
 import { useSeedCultivarStockQuery } from "@/queries/seed/use-seed-cultivar-query";
+import { Switch } from "@/components/ui/switch";
+import { useEffect, useState } from "react";
 
 export function ListStockTable() {
+  const [showZero, setShowZero] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("showZeroSeedStock");
+    if (saved) setShowZero(saved === "true");
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("showZeroSeedStock", String(showZero));
+  }, [showZero]);
+
   const {
     data: cultivars = [],
     isLoading,
     isFetching,
     refetch
-   } = useSeedCultivarStockQuery();
+   } = useSeedCultivarStockQuery({
+    showZero,
+   });
 
   const columns: ColumnDef<Cultivar>[] = [
     {
@@ -93,7 +108,16 @@ export function ListStockTable() {
             <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
           </Button>
         </div>
-        <SeedTransformationButton />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">Exibir zerados</span>
+            <Switch
+              checked={showZero}
+              onCheckedChange={setShowZero}
+            />
+          </div>
+          <SeedTransformationButton />
+        </div>
       </div>
 
       {isLoading ? (

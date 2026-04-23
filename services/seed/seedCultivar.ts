@@ -23,10 +23,22 @@ export async function getSeedCultivarById(
   return apiFetch<Cultivar>(`/api/cultivars/${cultivarId}`);
 }
 
-export async function getCultivarStock(): Promise<Cultivar[]> {
+export interface SeedStockFilters {
+  showZero?: boolean;
+}
+
+export async function getCultivarStock(
+  filters: SeedStockFilters,
+): Promise<Cultivar[]> {
+  const params = new URLSearchParams();
+
+  if (filters?.showZero) {
+    params.set("showZero", "true");
+  }
+
+  const query = params.toString();
   const data = await apiFetch<Cultivar[]>(
-    "/api/cultivars/get"
+    `/api/cultivars/stock?${query}`
   );
-  const stock = data.filter((item) => item.stock > 0);
-  return stock;
+  return data;
 }
