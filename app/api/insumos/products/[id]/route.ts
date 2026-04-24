@@ -1,4 +1,4 @@
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -46,18 +46,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
     const { name, description, class: productClass, unit } = await req.json();
 
     const existing = await db.product.findUnique({ where: { id } });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existing || existing.companyId !== companyId) {
       return new NextResponse("Produto não encontrado ou acesso negado", { status: 403 });
     }
 
@@ -107,18 +105,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;;
 
     const { id } = params;
 
     // Buscar o produto para garantir que pertence à empresa do usuário
     const existing = await db.product.findUnique({ where: { id } });
 
-    if (!existing || existing.companyId !== payload.companyId) {
+    if (!existing || existing.companyId !== companyId) {
       return new NextResponse("Produto não encontrado ou acesso negado", { status: 403 });
     }
 
@@ -133,18 +129,16 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return new NextResponse("Token ausente", { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return new NextResponse("Token inválido", { status: 401 });
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const { id } = params;
 
     // Buscar o produto para garantir que pertence à empresa do usuário
     const produto = await db.product.findUnique({ where: { id } });
 
-    if (!produto || produto.companyId !== payload.companyId) {
+    if (!produto || produto.companyId !== companyId) {
       return new NextResponse("Produto não encontrado ou acesso negado", { status: 403 });
     }
 

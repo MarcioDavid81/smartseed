@@ -30,6 +30,7 @@ export * from "./industryStock";
 export * from "./industryStockStatement";
 export * from "./industryTransfer";
 export * from "./industryTransporter";
+export * from "./inputStock";
 export * from "./inputStockStatement";
 export * from "./insumo";
 export * from "./purchaseDetails";

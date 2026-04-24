@@ -1,40 +1,38 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth/require-auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get("authorization");
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Token ausente" }, { status: 401 });
-    }
+    const { searchParams } = new URL(req.url);
 
-    const token = authHeader.split(" ")[1];
-    const payload = await verifyToken(token);
-
-    if (!payload || !payload.companyId) {
-      return NextResponse.json(
-        { error: "Token inválido ou sem companyId" },
-        { status: 401 },
-      );
-    }
-    
-    const { companyId } = payload;
-
+    const farmId = searchParams.get("farmId");
+    const product = searchParams.get("product");
+    const showZero = searchParams.get("showZero") === "true";
 
     const stock = await db.productStock.findMany({
       where: {
         companyId,
-        stock: {
-          gt: 0,
-        },
+        ...(farmId ? { farmId } : {}),
+        ...(product ? { productId: product } : {}),
+        ...(showZero
+          ? {} // traz tudo
+          : { stock: { gt: 0 } }), // default continua otimizado
       },
       include: {
         product: true, // para trazer nome, unidade, classe, etc.
         farm: true,
+      },
+      orderBy: {
+        product: {
+          name: "asc",
+        },
       },
     });
 

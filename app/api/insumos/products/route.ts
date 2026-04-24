@@ -1,6 +1,3 @@
-import { z } from "zod";
-import { ProductClass, Unit } from "@prisma/client";
-import { canCompanyAddProduct } from "@/lib/permissions/canCompanyAddProduct";
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/prisma";
@@ -51,12 +48,6 @@ import { ForbiddenPlanError, PlanLimitReachedError } from "@/core/access-control
  *         description: Erro interno do servidor
  */
 
-const productSchema = z.object({
-  name: z.string().min(2).max(100),
-  description: z.string().max(500).optional(),
-  class: z.nativeEnum(ProductClass),
-  unit: z.nativeEnum(Unit),
-});
 
 export async function POST(req: Request) {
   try {
@@ -156,28 +147,16 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const authHeader = req.headers.get("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Token ausente" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1];
-    const payload = await verifyToken(token);
-
-    if (!payload || !payload.companyId) {
-      return NextResponse.json(
-        { error: "Token inválido ou sem companyId" },
-        { status: 401 },
-      );
-    }
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const { companyId } = auth;
 
     const products = await db.product.findMany({
       where: {
-        companyId: payload.companyId,
+        companyId,
       },
       orderBy: {
-        createdAt: "desc",
+        name: "asc",
       },
     });
 
