@@ -296,7 +296,7 @@ const UpsertIndustrySaleModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[98vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Venda
@@ -311,7 +311,7 @@ const UpsertIndustrySaleModal = ({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-1">
               {/* Data, Documento, Cliente */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
