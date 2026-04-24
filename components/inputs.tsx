@@ -95,9 +95,9 @@ function ReverseNumberInput({
     if (rawDigits === "") {
       return allowNegative && isNegative ? "-" : "";
     }
-    const formatted = formatReverse(rawDigits, decimalScale, { prefix, suffix });
+    const formatted = formatReverse(rawDigits, decimalScale, { prefix });
     return allowNegative && isNegative ? `-${formatted}` : formatted;
-  }, [allowNegative, decimalScale, isNegative, prefix, rawDigits, suffix]);
+  }, [allowNegative, decimalScale, isNegative, prefix, rawDigits]);
 
   const commit = (nextDigits: string, nextNegative = isNegative) => {
     const nextRawDigits = nextDigits.replace(/\D/g, "");
@@ -140,17 +140,30 @@ function ReverseNumberInput({
     }
   };
 
+  const inputClassName = [className, suffix ? "pr-10" : undefined]
+    .filter(Boolean)
+    .join(" ");
+
+  const suffixLabel = suffix ? suffix.replace(/^\s+/, "") : "";
+
   return (
-    <Input
-      type="text"
-      inputMode="numeric"
-      value={display}
-      onChange={handleChange}
-      onKeyDown={handleKeyDown}
-      disabled={disabled}
-      className={className}
-      placeholder={placeholder}
-    />
+    <div className="relative">
+      <Input
+        type="text"
+        inputMode="numeric"
+        value={display}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        disabled={disabled}
+        className={inputClassName}
+        placeholder={placeholder}
+      />
+      {suffixLabel ? (
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+          {suffixLabel}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
@@ -233,7 +246,7 @@ export function QuantityInput<T extends FieldValues>({
           placeholder={placeholder}
           suffix={suffix}
           disabled={readonly}
-          className="font-light"
+          className="font-light relative"
           max={max}
           allowNegative
           onChange={(next) => field.onChange(next)}

@@ -21,6 +21,7 @@ interface SmartComboboxProps {
   onChange: (value: string | null) => void;
   placeholder?: string;
   searchPlaceholder?: string;
+  disabled?: boolean;
 }
 
 export function ComboBoxOption({
@@ -29,6 +30,7 @@ export function ComboBoxOption({
   onChange,
   placeholder = "Selecione...",
   searchPlaceholder = "Pesquisar...",
+  disabled = false,
 }: SmartComboboxProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -46,6 +48,10 @@ export function ComboBoxOption({
   useEffect(() => {
     if (open) setCursor(0);
   }, [open, search]);
+
+  useEffect(() => {
+    if (disabled && open) setOpen(false);
+  }, [disabled, open]);
 
   // 🎯 Listener de teclado (setas + enter)
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -73,14 +79,22 @@ export function ComboBoxOption({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (disabled) return;
+        setOpen(nextOpen);
+      }}
+    >
       <PopoverTrigger asChild>
         <button
           type="button"
+          disabled={disabled}
           className={cn(
             "w-full justify-between rounded-md border bg-white px-3 py-2 text-left",
             "flex items-center text-sm",
-            !value && "text-muted-foreground"
+            !value && "text-muted-foreground",
+            disabled && "opacity-50 cursor-not-allowed"
           )}
         >
           {value
