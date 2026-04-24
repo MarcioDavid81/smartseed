@@ -203,7 +203,7 @@ const UpsertHarvestModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-hidden rounded-2xl">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
           <DialogTitle>Colheita</DialogTitle>
           <DialogDescription>
@@ -355,21 +355,21 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="weightBt"
                 render={({ field }) => (
-                  <QuantityInput label="Peso Bruto" field={field} suffix=" Kg" placeholder="0,00 Kg" />
+                  <QuantityInput label="Peso Bruto" field={field} suffix=" Kg" placeholder="0,00" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="weightTr"
                 render={({ field }) => (
-                  <QuantityInput label="Tara" field={field} suffix=" Kg" placeholder="0,00 Kg" />
+                  <QuantityInput label="Tara" field={field} suffix=" Kg" placeholder="0,00" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="weightSubLiq"
                 render={({ field }) => (
-                  <QuantityInput label="Sub Líquido" field={field} suffix=" Kg" placeholder="0,00 Kg" readonly />
+                  <QuantityInput label="Sub Líquido" field={field} suffix=" Kg" placeholder="0,00" readonly />
                 )}
               />
             </div>
@@ -380,21 +380,21 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="impurities_percent"
                 render={({ field }) => (
-                  <QuantityInput label="Impureza" field={field} suffix=" Gr" placeholder="0,00 Gr" />
+                  <QuantityInput label="Impureza" field={field} suffix=" Gr" placeholder="0,00" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="impurities_discount"
                 render={({ field }) => (
-                  <PercentInput label="Desconto" field={field} placeholder="0,00 %" />
+                  <PercentInput label="Desconto" field={field} placeholder="0,00" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="impurities_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Impureza" field={field} suffix=" Kg" placeholder="0,00 Kg" readonly />
+                  <QuantityInput label="Impureza" field={field} suffix=" Kg" placeholder="0,00" readonly />
                 )}
               />
             </div>
@@ -404,21 +404,21 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="humidity_percent"
                 render={({ field }) => (
-                  <QuantityInput label="Umidade" field={field} suffix=" %" placeholder="0,00 %" />
+                  <QuantityInput label="Umidade" field={field} suffix=" %" placeholder="0,00" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="humidity_discount"
                 render={({ field }) => (
-                  <PercentInput label="Desconto" field={field} placeholder="0,00 %" />
+                  <PercentInput label="Desconto" field={field} placeholder="0,00" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="humidity_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Umidade" field={field} suffix=" Kg" placeholder="0,00 Kg" readonly />
+                  <QuantityInput label="Umidade" field={field} suffix=" Kg" placeholder="0,00" readonly />
                 )}
               />
             </div>
@@ -428,21 +428,21 @@ const UpsertHarvestModal = ({
                 control={form.control}
                 name="tax_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Taxa" field={field} suffix=" Kg" placeholder="0,00 Kg" />
+                  <QuantityInput label="Taxa" field={field} suffix=" Kg" placeholder="0,00" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="adjust_kg"
                 render={({ field }) => (
-                  <QuantityInput label="Ajuste" field={field} suffix=" Kg" placeholder="0,00 Kg" />
+                  <QuantityInput label="Ajuste" field={field} suffix=" Kg" placeholder="0,00" />
                 )}
               />
               <FormField
                 control={form.control}
                 name="weightLiq"
                 render={({ field }) => (
-                  <QuantityInput label="Peso Líquido" field={field} suffix=" Kg" placeholder="0,00 Kg" readonly />
+                  <QuantityInput label="Peso Líquido" field={field} suffix=" Kg" placeholder="0,00" readonly />
                 )}
               />
             </div>

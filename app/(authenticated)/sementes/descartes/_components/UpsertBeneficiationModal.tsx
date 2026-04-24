@@ -146,7 +146,7 @@ const UpsertBeneficiationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
           <DialogTitle>Descarte</DialogTitle>
           <DialogDescription>
@@ -156,84 +156,87 @@ const UpsertBeneficiationModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="cultivarId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cultivar</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma cultivar" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {cultivars.map((cultivar) => (
-                        <SelectItem key={cultivar.id} value={cultivar.id}>
-                          <div className="flex items-center gap-2">
-                            <span>{cultivar.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {`Estoque: ${cultivar.stock} kg`}
-                            </span>
-                          </div>
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data</FormLabel>
-                    <FormControl>
-                      <DatePicker value={field.value} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="quantityKg"
-                render={({ field }) => (
-                  <QuantityInput label="Quantidade" field={field} suffix=" kg" />
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="destinationId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Depósito de Destino</FormLabel>
-                    <FormControl>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data</FormLabel>
+                      <FormControl>
+                        <DatePicker value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="cultivarId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cultivar</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione um depósito" />
+                          <SelectValue placeholder="Selecione uma cultivar" />
                         </SelectTrigger>
-                        <SelectContent>
-                          {deposits.map((deposit) => (
-                            <SelectItem key={deposit.id} value={deposit.id}>
-                              <div className="flex items-center gap-2">
-                                <span>{deposit.name}</span>
-                              </div>
-                            </SelectItem>
+                      </FormControl>
+                      <SelectContent>
+                        {cultivars.map((cultivar) => (
+                          <SelectItem key={cultivar.id} value={cultivar.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{cultivar.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {`Estoque: ${cultivar.stock} kg`}
+                              </span>
+                            </div>
+                          </SelectItem>
                           ))}
-                        </SelectContent>
+                      </SelectContent>
                       </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="quantityKg"
+                  render={({ field }) => (
+                    <QuantityInput label="Quantidade" field={field} suffix=" Kg" />
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="destinationId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Depósito de Destino</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um depósito" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {deposits.map((deposit) => (
+                              <SelectItem key={deposit.id} value={deposit.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{deposit.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}

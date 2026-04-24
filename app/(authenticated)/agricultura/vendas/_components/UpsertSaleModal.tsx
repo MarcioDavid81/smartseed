@@ -296,7 +296,7 @@ const UpsertIndustrySaleModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Venda
@@ -361,6 +361,7 @@ const UpsertIndustrySaleModal = ({
                             value={field.value}
                             onChange={field.onChange}
                             placeholder={customerPlaceholder}
+                            disabled={!!saleContractItemId}
                           />
                         </FormControl>
                         <FormMessage />
@@ -576,21 +577,21 @@ const UpsertIndustrySaleModal = ({
                   control={form.control}
                   name="weightBt"
                   render={({ field }) => (
-                    <QuantityInput label="Peso Bruto" field={field} />
+                    <QuantityInput label="Peso Bruto" suffix=" Kg" placeholder="0,00" field={field} />
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="weightTr"
                   render={({ field }) => (
-                    <QuantityInput label="Tara" field={field} />
+                    <QuantityInput label="Tara" suffix=" Kg" placeholder="0,00" field={field} />
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="weightSubLiq"
                   render={({ field }) => (
-                    <QuantityInput label="Sub Líquido" field={field} readonly />
+                    <QuantityInput label="Sub Líquido" suffix=" Kg" placeholder="0,00" field={field} readonly />
                   )}
                 />
               </div>
@@ -601,21 +602,25 @@ const UpsertIndustrySaleModal = ({
                   control={form.control}
                   name="discountsKg"
                   render={({ field }) => (
-                    <QuantityInput label="Desconto" field={field} />
+                    <QuantityInput label="Desconto" suffix=" Kg" placeholder="0,00" field={field} />
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="weightLiq"
                   render={({ field }) => (
-                    <QuantityInput label="Peso Líquido" field={field} readonly />
+                    <QuantityInput label="Peso Líquido" suffix=" Kg" placeholder="0,00" field={field} readonly />
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="unitPrice"
                   render={({ field }) => (
-                    <MoneyInput label="Preço Unitário" field={field} />
+                    <MoneyInput
+                      label="Preço Unitário"
+                      field={field}
+                      readonly={!!saleContractItemId}
+                    />
                   )}
                 />
               </div>

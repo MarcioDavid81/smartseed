@@ -147,7 +147,7 @@ const UpsertHarvestModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[650px]">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
           <DialogTitle>Colheita</DialogTitle>
           <DialogDescription>
@@ -158,6 +158,17 @@ const UpsertHarvestModal = ({
           <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="date"
+                render={({field}) => (
+                  <FormItem>
+                    <FormLabel>Data</FormLabel>
+                    <DatePicker value={field.value} onChange={field.onChange} />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="cultivarId"
@@ -187,6 +198,8 @@ const UpsertHarvestModal = ({
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="talhaoId"
@@ -216,24 +229,11 @@ const UpsertHarvestModal = ({
                   </FormItem>
                 )}
               />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="date"
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel>Data</FormLabel>
-                    <DatePicker value={field.value} onChange={field.onChange} />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="quantityKg"
                 render={({field}) => (
-                  <QuantityInput label="Quantidade" field={field} suffix=" kg" />
+                  <QuantityInput label="Quantidade" field={field} suffix=" Kg" />
                 )}
               />
             </div>

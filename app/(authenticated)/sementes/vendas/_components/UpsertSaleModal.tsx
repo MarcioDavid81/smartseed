@@ -255,7 +255,7 @@ const UpsertSaleModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Venda
@@ -272,7 +272,7 @@ const UpsertSaleModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
               {/* Data e Nota Fiscal */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -434,7 +434,7 @@ const UpsertSaleModal = ({
                   control={form.control}
                   name="quantityKg"
                   render={({ field }) => (
-                    <QuantityInput label="Quantidade (kg)" field={field} />
+                    <QuantityInput label="Quantidade" field={field} suffix=" Kg" />
                   )}
                 />
                 <FormField

@@ -146,7 +146,7 @@ const UpsertConsumptionModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
           <DialogTitle>Plantio</DialogTitle>
           <DialogDescription>
@@ -156,67 +156,7 @@ const UpsertConsumptionModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="cultivarId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cultivar</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma cultivar" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {cultivarsWithStock?.map((cultivar: Cultivar) => (
-                            <SelectItem key={cultivar.id} value={cultivar.id}>
-                              <div className="flex items-center gap-2">
-                                <span>{cultivar.name}</span>
-                                <span className="text-muted-foreground">
-                                  {`Estoque: ${cultivar.stock} kg`}
-                                </span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="talhaoId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Talhão</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um talhão" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {talhoes.map((talhao) => (
-                              <SelectItem key={talhao.id} value={talhao.id}>
-                                <div className="flex items-center gap-2">
-                                  <span>{talhao.name}</span>
-                                  <span className="text-muted-foreground">
-                                    {talhao.farm?.name} {talhao.area} ha
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -232,9 +172,70 @@ const UpsertConsumptionModal = ({
                 />
                 <FormField
                   control={form.control}
+                  name="cultivarId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cultivar</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma cultivar" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {cultivarsWithStock?.map((cultivar: Cultivar) => (
+                              <SelectItem key={cultivar.id} value={cultivar.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{cultivar.name}</span>
+                                  <span className="text-muted-foreground">
+                                    {`Estoque: ${cultivar.stock} kg`}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                      )}
+                  />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="talhaoId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Talhão</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um talhão" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {talhoes.map((talhao) => (
+                            <SelectItem key={talhao.id} value={talhao.id}>
+                              <div className="flex items-center gap-2">
+                                <span>{talhao.name}</span>
+                                <span className="text-muted-foreground">
+                                  {talhao.farm?.name} {talhao.area} ha
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="quantityKg"
                   render={({ field }) => (
-                    <QuantityInput label="Quantidade" field={field} suffix=" kg" />
+                    <QuantityInput label="Quantidade" field={field} suffix=" Kg" />
                   )}
                 />
               </div>
