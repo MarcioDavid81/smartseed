@@ -296,7 +296,7 @@ const UpsertIndustrySaleModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[98vh] overflow-scroll scrollbar-hide rounded-2xl">
+      <DialogContent className="max-w-4xl w-[calc(100%-1rem)] sm:w-full max-h-[98vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Venda
