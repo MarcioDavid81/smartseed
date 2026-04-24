@@ -10,15 +10,29 @@ import { InsumosDataTable } from "./InsumosDataTable";
 import { AgroLoader } from "@/components/agro-loader";
 import { useInputStockQuery } from "@/queries/input/use-input-stock";
 import { InputExtractButton } from "./InputExtractButton";
+import { useEffect, useState } from "react";
+import { Switch } from "@/components/ui/switch";
 
 export function InsumosStockTable() {
+  const [showZero, setShowZero] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("showInputZeroStock");
+    if (saved) setShowZero(saved === "true");
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("showInputZeroStock", String(showZero));
+  }, [showZero]);
 
   const {
     data: insumos = [],
     isLoading,
     isFetching,
     refetch,
-  } = useInputStockQuery();
+  } = useInputStockQuery({
+    showZero,
+  });
 
   const columns: ColumnDef<ProductStock>[] = [
     {
@@ -83,11 +97,20 @@ export function InsumosStockTable() {
 
   return (
     <Card className="p-4 font-light dark:bg-primary">
-      <div className="flex items-center gap-2 mb-2">
-        <h2 className="font-light">Estoque de Insumos</h2>
-        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
-        </Button>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="font-light">Estoque de Insumos</h2>
+          <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm">Exibir zerados</span>
+          <Switch
+            checked={showZero}
+            onCheckedChange={setShowZero}
+          />
+        </div>
       </div>
       {isLoading ? (
         <AgroLoader />

@@ -8,12 +8,12 @@ import {
   ReactNode,
 } from "react";
 import { getToken } from "@/lib/auth-client";
-import { ProductStock } from "@/types/productStock"
+import { InputStock } from "@/types";
 
 type InsumoStockContextType = {
-  insumos: ProductStock[];
+  stocks: InputStock[];
   isLoading: boolean;
-  fetchInsumos: () => Promise<void>;
+  fetchStocks: () => Promise<void>;
 };
 
 const InsumoStockContext = createContext<InsumoStockContextType | undefined>(
@@ -21,10 +21,10 @@ const InsumoStockContext = createContext<InsumoStockContextType | undefined>(
 );
 
 export function InsumoStockProvider({ children }: { children: ReactNode }) {
-  const [insumos, setInsumos] = useState<ProductStock[]>([]);
+  const [stocks, setStocks] = useState<InputStock[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const fetchInsumos = async () => {
+  const fetchStocks = async () => {
     try {
       setIsLoading(true);
       const token = getToken();
@@ -34,20 +34,20 @@ export function InsumoStockProvider({ children }: { children: ReactNode }) {
         },
       });
       const data = await response.json();
-      setInsumos(data);
+      setStocks(data);
     } catch (error) {
-      console.error("Error fetching insumos:", error);
+      console.error("Error fetching stocks:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInsumos();
+    fetchStocks();
   }, []);
 
   return (
-    <InsumoStockContext.Provider value={{ insumos, isLoading, fetchInsumos }}>
+    <InsumoStockContext.Provider value={{ stocks, isLoading, fetchStocks }}> 
       {children}
     </InsumoStockContext.Provider>
   );

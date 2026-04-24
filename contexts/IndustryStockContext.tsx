@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { IndustryHarvest, IndustryStock } from "@/types";
+import { IndustryStock } from "@/types";
 import { getToken } from "@/lib/auth-client";
 
 type StockContextType = {

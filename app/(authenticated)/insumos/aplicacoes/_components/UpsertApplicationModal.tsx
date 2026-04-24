@@ -72,7 +72,9 @@ const UpsertApplicationModal = ({
   }, [aplicacao, isOpen, form]);
 
   const { data: talhoes = [] } = usePlots();
-  const { data: inputStocks = [] } = useInputStockQuery();
+  const { data: inputStocks = [] } = useInputStockQuery({
+    
+  });
 
   const cycle = getCycle();
 

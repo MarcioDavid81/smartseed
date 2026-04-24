@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { useIndustryStock } from "@/contexts/IndustryStockContext";
 import { useUser } from "@/contexts/UserContext";
-import { IndustryStock } from "@/types";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useState } from "react";
