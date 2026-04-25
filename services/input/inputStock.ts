@@ -3,7 +3,7 @@ import { apiFetch } from "../api";
 
 export interface InputStockFilters {
   farmId?: string;
-  product?: string;
+  productId?: string;
   showZero?: boolean;
 }
 
@@ -20,8 +20,8 @@ export async function getInputStock(
     params.set("farmId", filters.farmId);
   }
 
-  if (filters?.product) {
-    params.set("product", filters.product);
+  if (filters?.productId) {
+    params.set("productId", filters.productId);
   }
 
   const query = params.toString();

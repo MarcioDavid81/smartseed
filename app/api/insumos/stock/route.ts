@@ -13,14 +13,14 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     const farmId = searchParams.get("farmId");
-    const product = searchParams.get("product");
+    const productId = searchParams.get("productId");
     const showZero = searchParams.get("showZero") === "true";
 
     const stock = await db.productStock.findMany({
       where: {
         companyId,
         ...(farmId ? { farmId } : {}),
-        ...(product ? { productId: product } : {}),
+        ...(productId ? { productId } : {}),
         ...(showZero
           ? {} // traz tudo
           : { stock: { gt: 0 } }), // default continua otimizado
