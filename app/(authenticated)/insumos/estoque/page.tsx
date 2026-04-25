@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import NavItems from "../../_components/NavItems";
 import { InsumosStockTable } from "./_components/InsumosStockTable";
+import { InputStockByFarmAccordion } from "./_components/InputStockAccordion";
 
 export const metadata: Metadata = {
   title: "Estoque de Insumos",
@@ -25,7 +26,7 @@ export default async function InsumosStockPage() {
               <h1 className="text-2xl font-medium mb-4">Estoque de Insumos</h1>
               <NavItems />
             </div>
-            <InsumosStockTable />
+            <InputStockByFarmAccordion />
           </main>
         </div>
       </div>

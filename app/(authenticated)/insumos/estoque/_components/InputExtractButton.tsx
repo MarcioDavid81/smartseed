@@ -21,7 +21,7 @@ export function InputExtractButton({ productId, farmId }: Props) {
           </Link>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Extrato do Produto</p>
+          <p>Extrato do Produto neste Depósito</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

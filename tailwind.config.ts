@@ -29,22 +29,22 @@ const config: Config = {
   				DEFAULT: '#475968',
   				foreground: '#475968'
   			},
-			text: {
-				DEFAULT: '#0D1B1E',
-				foreground: '#0D1B1E'
-			},
-			green: {
-				DEFAULT: '#63B926',
-				foreground: '#63B926'
-			},
-			red: {
-				DEFAULT: '#FF6467',
-				foreground: '#FF6467'
-			},
-			blue: {
-				DEFAULT: '#155dfc',
-				foreground: '#155dfc'
-			},
+  			text: {
+  				DEFAULT: '#0D1B1E',
+  				foreground: '#0D1B1E'
+  			},
+  			green: {
+  				DEFAULT: '#63B926',
+  				foreground: '#63B926'
+  			},
+  			red: {
+  				DEFAULT: '#FF6467',
+  				foreground: '#FF6467'
+  			},
+  			blue: {
+  				DEFAULT: '#155dfc',
+  				foreground: '#155dfc'
+  			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',
   				foreground: 'hsl(var(--secondary-foreground))'
@@ -76,6 +76,28 @@ const config: Config = {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
+  		},
+  		keyframes: {
+  			'accordion-down': {
+  				from: {
+  					height: '0'
+  				},
+  				to: {
+  					height: 'var(--radix-accordion-content-height)'
+  				}
+  			},
+  			'accordion-up': {
+  				from: {
+  					height: 'var(--radix-accordion-content-height)'
+  				},
+  				to: {
+  					height: '0'
+  				}
+  			}
+  		},
+  		animation: {
+  			'accordion-down': 'accordion-down 0.2s ease-out',
+  			'accordion-up': 'accordion-up 0.2s ease-out'
   		}
   	}
   },
