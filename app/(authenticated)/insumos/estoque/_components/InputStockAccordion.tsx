@@ -16,6 +16,8 @@ import { InputExtractButton } from "./InputExtractButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { PRODUCT_CLASS_LABELS } from "@/app/(authenticated)/_constants/insumos";
+import GenerateStockReportModal from "./GenerateStockReportModal";
 
 export function InputStockByFarmAccordion() {
   const [showZero, setShowZero] = useState(false);
@@ -61,7 +63,7 @@ export function InputStockByFarmAccordion() {
           />
         </div>
       </div>
-      <Accordion type="multiple" className="space-y-4 mt-4">
+      <Accordion type="multiple" className="space-y-4 mt-4 h-[74vh] overflow-auto scrollbar-hide">
         {grouped.map((farmGroup) => (
           <AccordionItem
             key={farmGroup.farm.id}
@@ -96,7 +98,7 @@ export function InputStockByFarmAccordion() {
                         <div>
                           <p className="font-medium">{product.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {product.class}
+                            {PRODUCT_CLASS_LABELS[product.class as keyof typeof PRODUCT_CLASS_LABELS]}
                           </p>
                         </div>
                       </div>
@@ -121,6 +123,7 @@ export function InputStockByFarmAccordion() {
             </AccordionContent>
           </AccordionItem>
         ))}
+      <GenerateStockReportModal />
       </Accordion>
     </Card>
   );

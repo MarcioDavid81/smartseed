@@ -86,7 +86,7 @@ export default function GenerateStockReportModal() {
         head: [["Produto", "Classe", "Depósito", "Estoque"]],
         body: filteredStock.map((h) => [
           h.product.name,
-          h.product.class,
+          PRODUCT_CLASS_LABELS[h.product.class],
           h.farm.name,
           h.stock
             .toLocaleString("pt-BR", {
