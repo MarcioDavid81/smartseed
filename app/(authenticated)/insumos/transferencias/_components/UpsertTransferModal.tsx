@@ -126,7 +126,7 @@ const UpsertTransferModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
           <DialogTitle>Transferência</DialogTitle>
           <DialogDescription>
@@ -136,95 +136,7 @@ const UpsertTransferModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="productId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Produto</FormLabel>
-                    <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma insumo" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {products.map((product) => (
-                              <SelectItem key={product.id} value={product.id}>
-                                <div className="flex items-center gap-2">
-                                  <span>{product.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {
-                                      PRODUCT_CLASS_OPTIONS.find(
-                                        (option) => option.value === product.class)?.label || product.class
-                                    }
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="originFarmId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Depósito Origem</FormLabel>
-                    <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um depósito de origem" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {farms.map((farm) => (
-                              <SelectItem key={farm.id} value={farm.id}>
-                                {farm.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="destFarmId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Depósito Destino</FormLabel>
-                    <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um depósito de destino" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {farms.map((farm) => (
-                              <SelectItem key={farm.id} value={farm.id}>
-                                {farm.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -240,9 +152,97 @@ const UpsertTransferModal = ({
                 />
                 <FormField
                   control={form.control}
+                  name="productId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Produto</FormLabel>
+                      <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione uma insumo" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {products.map((product) => (
+                                <SelectItem key={product.id} value={product.id}>
+                                  <div className="flex items-center gap-2">
+                                    <span>{product.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {
+                                        PRODUCT_CLASS_OPTIONS.find(
+                                          (option) => option.value === product.class)?.label || product.class
+                                      }
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="quantity"
                   render={({ field }) => (
                     <QuantityInput label="Quantidade" field={field} />
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="originFarmId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Depósito Origem</FormLabel>
+                      <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione um depósito de origem" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {farms.map((farm) => (
+                                <SelectItem key={farm.id} value={farm.id}>
+                                  {farm.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="destFarmId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Depósito Destino</FormLabel>
+                      <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione um depósito de destino" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {farms.map((farm) => (
+                                <SelectItem key={farm.id} value={farm.id}>
+                                  {farm.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
                 />
               </div>

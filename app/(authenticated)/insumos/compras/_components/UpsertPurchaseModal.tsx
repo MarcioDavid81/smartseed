@@ -266,9 +266,9 @@ const UpsertPurchaseModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="max-w-4xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle>
             Compra
             {purchaseOrderItemId && (
               <span className="text-xs bg-green/10 text-green px-2 py-1 rounded">

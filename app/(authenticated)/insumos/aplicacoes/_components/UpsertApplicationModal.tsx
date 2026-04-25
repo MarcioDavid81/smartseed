@@ -73,7 +73,7 @@ const UpsertApplicationModal = ({
 
   const { data: talhoes = [] } = usePlots();
   const { data: inputStocks = [] } = useInputStockQuery({
-    
+    productId: aplicacao?.productStockId,
   });
 
   const cycle = getCycle();
@@ -150,7 +150,7 @@ const UpsertApplicationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
         <DialogHeader>
           <DialogTitle>Aplicação</DialogTitle>
           <DialogDescription>
@@ -160,68 +160,8 @@ const UpsertApplicationModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="productStockId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Produto</FormLabel>
-                    <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma insumo" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {inputStocks.map((stock) => (
-                              <SelectItem key={stock.id} value={stock.id}>
-                                <div className="flex items-center gap-2">
-                                  <span>{stock.product.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {new Intl.NumberFormat("pt-BR", {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2,
-                                    }).format(stock.stock)}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="productStockId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Depósito</FormLabel>
-                    <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um depósito de origem" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {inputStocks.map((stock) => (
-                              <SelectItem key={stock.id} value={stock.id}>
-                                {stock.farm.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="date"
@@ -237,39 +177,77 @@ const UpsertApplicationModal = ({
                 />
                 <FormField
                   control={form.control}
-                  name="quantity"
+                  name="productStockId"
                   render={({ field }) => (
-                    <QuantityInput label="Quantidade" field={field} />
+                    <FormItem>
+                      <FormLabel>Produto e Origem</FormLabel>
+                      <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione produto e origem" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {inputStocks.map((stock) => (
+                                <SelectItem key={stock.id} value={stock.id}>
+                                  <div className="flex items-center gap-2">
+                                    <span>{stock.product.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {stock.farm.name}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Intl.NumberFormat("pt-BR", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                      }).format(stock.stock)}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
                 />
               </div>
-
-              <FormField
-                control={form.control}
-                name="talhaoId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Talhão da Aplicação</FormLabel>
-                    <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um depósito de destino" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {talhoes.map((talhao) => (
-                              <SelectItem key={talhao.id} value={talhao.id}>
-                                {talhao.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="quantity"
+                    render={({ field }) => (
+                      <QuantityInput label="Quantidade" field={field} />
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="talhaoId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Talhão da Aplicação</FormLabel>
+                        <FormControl>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione um talhão" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {talhoes.map((talhao) => (
+                                  <SelectItem key={talhao.id} value={talhao.id}>
+                                    {talhao.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
               <FormField
                 control={form.control}
