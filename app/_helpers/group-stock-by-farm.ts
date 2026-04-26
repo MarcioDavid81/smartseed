@@ -44,5 +44,17 @@ export function groupStockByFarm(data: ProductStock[]): GroupedStock[] {
     group.total += item.stock;
   }
 
-  return Array.from(map.values());
+  const groups = Array.from(map.values());
+
+  // ordenar produtos dentro da fazenda
+  for (const group of groups) {
+    group.products.sort((a, b) =>
+      a.name.localeCompare(b.name, "pt-BR")
+    );
+  }
+
+  // ordenar fazendas
+  return groups.sort((a, b) =>
+    a.farm.name.localeCompare(b.farm.name, "pt-BR")
+  );
 }
