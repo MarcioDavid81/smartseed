@@ -7,11 +7,12 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Package, Warehouse } from "lucide-react";
+import { BugPlay } from "lucide-react";
 import { formatNumber } from "@/app/_helpers/currency";
 import { InputExtractButton } from "./InputExtractButton";
 import { PRODUCT_CLASS_LABELS } from "@/app/(authenticated)/_constants/insumos";
 import { GroupedStock } from "@/app/_helpers/group-stock-by-farm";
+import { PiFarmThin } from "react-icons/pi";
 
 export function InputStockFarmView({ data }: { data: GroupedStock[] }) {
   if (!data.length) return <p>Nenhum estoque encontrado.</p>;
@@ -27,6 +28,7 @@ export function InputStockFarmView({ data }: { data: GroupedStock[] }) {
           <AccordionTrigger className="px-4 py-3 hover:no-underline focus:no-underline">
             <div className="flex w-full justify-between">
               <div className="flex items-center gap-3">
+                <PiFarmThin size={20} strokeWidth={0.7} />
                 <span className="font-light">
                   {farmGroup.farm.name}
                 </span>
@@ -44,7 +46,7 @@ export function InputStockFarmView({ data }: { data: GroupedStock[] }) {
                 <Card key={product.id}>
                   <CardContent className="flex justify-between items-center p-4">
                     <div className="flex gap-3">
-                      <Package size={16} />
+                      <BugPlay size={20} strokeWidth={0.7}  className="text-black" />
                       <div>
                         <p>{product.name}</p>
                         <p className="text-xs text-muted-foreground">
