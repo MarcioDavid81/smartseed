@@ -83,7 +83,7 @@ export function ListStockTable() {
           <div className="flex items-center justify-center">
             <ProductExtractButton
               product={stock.product as ProductType}
-              deposit={stock.industryDeposit}
+              depositId={stock.industryDeposit.id}
             />
           </div>
         );

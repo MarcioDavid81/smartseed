@@ -7,18 +7,15 @@ import Link from "next/link";
 
 interface Props {
   product: ProductType;
-  deposit: {
-    id: string;
-    name: string;
-  }
+  depositId: string;
 }
 
-export function ProductExtractButton({ product, deposit }: Props) {
+export function ProductExtractButton({ product, depositId }: Props) {
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link href={`/agricultura/estoque/extrato?product=${product}&depositId=${deposit.id}`}>
+          <Link href={`/agricultura/estoque/extrato?product=${product}&depositId=${depositId}`}>
             <button className="hover:opacity-80 transition">
               <Search className="text-blue" size={20} />
             </button>
