@@ -12,11 +12,11 @@ export const industryTransporterSchema = z.object({
         val?.replace(/\D/g, "").length === 11,
       "CPF ou CNPJ inválido",
     ),
+  email: z.string().email("Email inválido").optional(),
   adress: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
   phone: z.string().optional(),
-  email: z.string().email("Email inválido").optional(),
 });
 
 export type IndustryTransporterFormData = z.infer<typeof industryTransporterSchema>;

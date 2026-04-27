@@ -152,6 +152,7 @@ model Customer {
   id                 String              @id @default(uuid())
   name               String
   email              String?
+  fantasyName        String?
   adress             String?
   city               String?
   state              String?
@@ -588,13 +589,13 @@ model IndustryTransfer {
 model IndustryTransporter {
   id               String            @id @default(cuid())
   name             String
+  email            String?
   fantasyName      String?
-  cpf_cnpj         String?
   adress           String?
   city             String?
   state            String?
   phone            String?
-  email            String?
+  cpf_cnpj         String?
   companyId        String
   industryHarvests IndustryHarvest[]
   industrySales    IndustrySale[]

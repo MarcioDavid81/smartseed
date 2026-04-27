@@ -40,3 +40,18 @@ export function deleteIndustryTransporter(transporterId: string) {
     },
   );
 }
+
+
+export async function createTransporter(
+  data: IndustryTransporterFormData
+): Promise<IndustryTransporter> {
+  const transporter = await apiFetch<IndustryTransporter>(
+    `/api/industry/transporter`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+
+  return transporter;
+}

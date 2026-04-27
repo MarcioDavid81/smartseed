@@ -38,3 +38,15 @@ export function deleteCustomer(customerId: string) {
     method: "DELETE",
   });
 }
+
+
+export async function createCustomer(
+  data: CustomerFormData
+): Promise<Customer> {
+  const customer = await apiFetch<Customer>(`/api/customers`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+  return customer;
+}
