@@ -2,7 +2,7 @@ import z from "zod";
 
 export const industryTransporterSchema = z.object({
   name: z.string().min(1, "Nome do transportador é obrigatório"),
-  fantasyName: z.string().optional(),
+  fantasyName: z.string().min(1, "Nome Fantasia é obrigatório"),
   cpf_cnpj: z
     .string()
     .optional()

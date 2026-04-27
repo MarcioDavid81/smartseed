@@ -355,7 +355,7 @@ const UpsertIndustrySaleModal = ({
                         <FormControl>
                           <ComboBoxOption
                             options={customers.map((c) => ({
-                              label: c.name,
+                              label: c.fantasyName + " " + c.cpf_cnpj + " " + c.city || c.name,
                               value: c.id,
                             }))}
                             value={field.value}
@@ -530,7 +530,7 @@ const UpsertIndustrySaleModal = ({
                         <FormControl>
                           <ComboBoxOption
                             options={transporters.map((t) => ({
-                              label: t.fantasyName || t.name,
+                              label: t.fantasyName + " " + t.cpf_cnpj + " " + t.city || t.name,
                               value: t.id,
                             }))}
                             value={field.value}

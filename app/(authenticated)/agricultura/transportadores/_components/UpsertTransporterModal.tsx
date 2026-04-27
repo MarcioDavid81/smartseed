@@ -149,7 +149,7 @@ const UpsertIndustryTransporterModal = ({
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome</FormLabel>
+                      <FormLabel>Nome *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Ex: Transportes Agro" />
                       </FormControl>
@@ -161,7 +161,7 @@ const UpsertIndustryTransporterModal = ({
                   name="fantasyName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome Fantasia</FormLabel>
+                      <FormLabel>Nome Fantasia *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Ex: Agro" />
                       </FormControl>
@@ -171,7 +171,7 @@ const UpsertIndustryTransporterModal = ({
               </div>
               <div>
               <FormItem>
-                <FormLabel>Tipo de pessoa</FormLabel>
+                <FormLabel>Tipo de pessoa *</FormLabel>
                 <RadioGroup
                   value={personType}
                   onValueChange={(value) => {
