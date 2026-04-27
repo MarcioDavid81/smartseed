@@ -13,6 +13,7 @@ import { InputExtractButton } from "./InputExtractButton";
 import { PRODUCT_CLASS_LABELS } from "@/app/(authenticated)/_constants/insumos";
 import { GroupedStock } from "@/app/_helpers/group-stock-by-farm";
 import { PiFarmThin } from "react-icons/pi";
+import { StockActionsDropdown } from "./StockActionsDropdown";
 
 export function InputStockFarmView({ data }: { data: GroupedStock[] }) {
   if (!data.length) return <p>Nenhum estoque encontrado.</p>;
@@ -61,7 +62,7 @@ export function InputStockFarmView({ data }: { data: GroupedStock[] }) {
                         <p className="text-xs">{product.unit}</p>
                       </div>
 
-                      <InputExtractButton
+                      <StockActionsDropdown
                         productId={product.productId}
                         farmId={farmGroup.farm.id}
                       />

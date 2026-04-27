@@ -12,6 +12,7 @@ import { ProductExtractButton } from "./ProductExtractButton";
 import { Warehouse, Wheat } from "lucide-react";
 import { IndustryGroupedByProduct } from "@/app/_helpers/group-industry-stock-by-product";
 import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
+import { StockActionsDropdown } from "./StockActionsDropdown";
 
 export function IndustryStockProductView({ data }: { data: IndustryGroupedByProduct[] }) {
   if (!data.length) return <p>Nenhum estoque encontrado.</p>;
@@ -52,7 +53,7 @@ export function IndustryStockProductView({ data }: { data: IndustryGroupedByProd
                     <div className="flex items-center gap-6">
                       <span>{formatNumber(deposit.quantity)}</span>
 
-                      <ProductExtractButton
+                      <StockActionsDropdown
                         product={group.product}
                         depositId={deposit.depositId}
                       />

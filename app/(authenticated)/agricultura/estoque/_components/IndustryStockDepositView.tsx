@@ -12,6 +12,7 @@ import { formatNumber } from "@/app/_helpers/currency";
 import { ProductExtractButton } from "./ProductExtractButton";
 import { IndustryGroupedStock } from "@/app/_helpers/group-industry-stock-by-deposit";
 import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
+import { StockActionsDropdown } from "./StockActionsDropdown";
 
 export function IndustryStockDepositView({ data }: { data: IndustryGroupedStock[] }) {
   if (!data.length) return <p>Nenhum estoque encontrado.</p>;
@@ -56,7 +57,7 @@ export function IndustryStockDepositView({ data }: { data: IndustryGroupedStock[
                         <p>{formatNumber(quantity)}</p>
                       </div>
 
-                      <ProductExtractButton
+                      <StockActionsDropdown
                         product={product}
                         depositId={depositGroup.deposit.id}
                       />

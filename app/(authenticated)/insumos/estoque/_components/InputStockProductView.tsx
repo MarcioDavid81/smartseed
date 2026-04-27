@@ -13,6 +13,7 @@ import { PRODUCT_CLASS_LABELS } from "@/app/(authenticated)/_constants/insumos";
 import { GroupedByProduct } from "@/app/_helpers/group-stock-by-product";
 import { BugPlay } from "lucide-react";
 import { PiFarmThin } from "react-icons/pi";
+import { StockActionsDropdown } from "./StockActionsDropdown";
 
 export function InputStockProductView({ data }: { data: GroupedByProduct[] }) {
   if (!data.length) return <p>Nenhum estoque encontrado.</p>;
@@ -56,7 +57,7 @@ export function InputStockProductView({ data }: { data: GroupedByProduct[] }) {
                     <div className="flex items-center gap-6">
                       <span>{formatNumber(farm.stock)}</span>
 
-                      <InputExtractButton
+                      <StockActionsDropdown
                         productId={group.product.id}
                         farmId={farm.farmId}
                       />
