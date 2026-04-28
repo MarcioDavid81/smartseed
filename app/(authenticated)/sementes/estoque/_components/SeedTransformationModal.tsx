@@ -39,7 +39,10 @@ const SeedTransformationModal = ({
   const { showToast } = useSmartToast();
 
   const form = useForm<SeedTransformationFormData>({
-    resolver: zodResolver(seedTransformationSchema)
+    resolver: zodResolver(seedTransformationSchema),
+    defaultValues: {
+      date: new Date(),
+    },
   });
 
   useEffect(() => {
