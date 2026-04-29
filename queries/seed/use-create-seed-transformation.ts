@@ -25,6 +25,9 @@ export function useCreateSeedTransformation() {
         queryClient.invalidateQueries({
           queryKey: ["transformation"],
         });
+        queryClient.invalidateQueries({
+          queryKey: ["industry-stock"],
+        })
       },
   });
 }

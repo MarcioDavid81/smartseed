@@ -23,6 +23,9 @@ export function useDeleteSeedBeneficiation({ cycleId }: Params) {
       queryClient.invalidateQueries({
         queryKey: ["seed-beneficiation", cycleId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["industry-stock"],
+      })
     },
 
     onError: (error: Error) => {

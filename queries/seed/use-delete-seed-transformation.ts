@@ -19,6 +19,9 @@ export function useDeleteSeedTransformation() {
       queryClient.invalidateQueries({
         queryKey: ["transformation"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["industry-stock"],
+      })
     },
 
     onError: (error: Error) => {

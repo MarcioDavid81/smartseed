@@ -43,6 +43,9 @@ export function useUpsertSeedBeneficiation({ cycleId, beneficiationId }: Params)
       queryClient.invalidateQueries({
         queryKey: ["seed-cultivar-stock"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["industry-stock"],
+      })
     },
   });
 }
