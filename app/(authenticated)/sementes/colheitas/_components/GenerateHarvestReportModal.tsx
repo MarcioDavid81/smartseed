@@ -3,7 +3,7 @@ import { formatNumber } from "@/app/_helpers/currency";
 import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
     Select,
     SelectContent,
@@ -18,7 +18,7 @@ import { Harvest } from "@/types";
 import { endOfDay, startOfDay } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FaFilePdf, FaSpinner } from "react-icons/fa";
 
 export default function GenerateHarvestReportModal() {
@@ -27,32 +27,58 @@ export default function GenerateHarvestReportModal() {
       data: harvests = [],
       refetch,
     } = useSeedHarvestsByCycle(selectedCycle?.id || "");
-  const [cultivar, setCultivar] = useState<string | null>(null);
+  const [fazenda, setFazenda] = useState<string | null>(null);    
   const [talhao, setTalhao] = useState<string | null>(null);
+  const [cultivar, setCultivar] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
+  const fazendasUnicas = Array.from(
+    new Set(harvests.map((h) => h.talhao?.farm?.name || "-")),
+  );
+  const talhoesFiltrados = useMemo(() => {
+    let base = harvests;
+
+    if (fazenda) {
+      base = base.filter((h) => h.talhao?.farm?.name === fazenda);
+    }
+
+    return Array.from(
+      new Set(base.map((h) => h.talhao?.name || "-")),
+    );
+  }, [harvests, fazenda]);
+
   const cultivaresUnicos = Array.from(
     new Set(harvests.map((h) => h.cultivar?.name || "N/A")),
   );
-  const talhoesUnicos = Array.from(new Set(harvests.map((h) => h.talhao?.name || "N/A")));
+
+  useEffect(() => {
+    setTalhao(null);
+  }, [fazenda]);
 
   const filterSeedHarvests = (list: Harvest[]) => {
     const from = dateFrom ? startOfDay(dateFrom) : null;
     const to = dateTo ? endOfDay(dateTo) : null;
     
     return list.filter((h) => {
-      const matchCultivar = !cultivar || h.cultivar?.name === cultivar;
+      const matchFazenda = !fazenda || h.talhao?.farm?.name === fazenda;
       const matchTalhao = !talhao || h.talhao?.name === talhao;
+      const matchCultivar = !cultivar || h.cultivar?.name === cultivar;
+
       const date = new Date(h.date as unknown as string);
       const matchDate = (!from || date >= from) && (!to || date <= to);
-      return matchDate && matchCultivar && matchTalhao;
+
+      return( 
+        matchFazenda &&
+        matchTalhao &&
+        matchCultivar &&
+        matchDate
+      );
     });
   };
-
 
   const generatePDF = async () => {
     setLoading(true);
@@ -72,40 +98,6 @@ export default function GenerateHarvestReportModal() {
         : "Todos";
 
     logo.onload = () => {
-      // Função para adicionar rodapé consistente
-      const addFooter = () => {
-        const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height;
-        const pageWidth = pageSize.width;
-
-        const now = new Date();
-        const formattedDate = now.toLocaleString("pt-BR");
-        const userName = user?.name || "Usuário desconhecido";
-
-        doc.setFontSize(8);
-        doc.text(
-          `Relatório gerado em ${formattedDate} por: ${userName}`,
-          10,
-          pageHeight - 10,
-        );
-
-        const centerText = "Sistema Smart Seed";
-        const centerTextWidth = doc.getTextWidth(centerText);
-        doc.text(
-          centerText,
-          pageWidth / 2 - centerTextWidth / 2,
-          pageHeight - 10,
-        );
-
-        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
-        const totalPages = (doc as any).internal.getNumberOfPages();
-        doc.text(
-          `${currentPage}/${totalPages}`,
-          pageWidth - 20,
-          pageHeight - 10,
-        );
-      };
-
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Colheita - " + selectedCycle?.name || "",  150, 20, { align: "center" });
@@ -115,12 +107,42 @@ export default function GenerateHarvestReportModal() {
       doc.text(company + " - Produto destinado à semente", 150, 25, { align: "center" });
 
       doc.setFontSize(10);
-      doc.text(`Cultivar: ${cultivar || "Todos"}`, 14, 35);
-      doc.text(`Talhão: ${talhao || "Todos"}`, 14, 40);
-      doc.text(`Período: ${periodLabel}`, 14, 45);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
+
+      // largura útil da página (tirando margens)
+      const usableWidth = pageWidth - margin * 2;
+
+      // divide em 2 colunas
+      const columnWidth = usableWidth / 2;
+
+      const startY = 35;
+      const lineHeight = 5;
+
+      const filters = [
+        `Fazenda: ${fazenda || "Todos"}`,
+        `Talhão: ${talhao || "Todos"}`,
+        `Cultivar: ${cultivar || "Todos"}`,
+        `Período: ${periodLabel}`,
+      ];
+
+      filters.forEach((text, index) => {
+        const column = index % 2; // 0,1
+        const row = Math.floor(index / 2);
+
+        const x = margin + column * columnWidth;
+        const y = startY + row * lineHeight;
+
+        doc.text(text, x, y, {
+          maxWidth: columnWidth - 5, // evita estourar a coluna
+        });
+      });
+
+      // Tabela
+      const totalPagesExp = "{total_pages_count_string}";
 
       autoTable(doc, {
-        startY: 50,
+        startY: 45,
         head: [["Data", "Cultivar", "Talhão", "Fazenda", "Quantidade (kg)"]],
         body: filteredToUse.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
@@ -144,41 +166,35 @@ export default function GenerateHarvestReportModal() {
           textColor: 255,
           fontStyle: "bold",
         },
-        pageBreak: "auto",
         didDrawPage: function () {
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height;
           const pageWidth = pageSize.width;
 
-          const now = new Date();
-          const formattedDate = now.toLocaleString("pt-BR");
+          const now = new Date().toLocaleString("pt-BR");
           const userName = user?.name || "Usuário desconhecido";
 
-          doc.setFontSize(8);
-          doc.text(
-            `Relatório gerado em ${formattedDate} por: ${userName}`,
-            10,
-            pageHeight - 10,
-          );
-
-          const centerText = "Sistema Smart Seed by MD Web Developer";
-          const centerTextWidth = doc.getTextWidth(centerText);
-          doc.text(
-            centerText,
-            pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10,
-          );
-
           const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
-          const totalPages = (doc as any).internal.getNumberOfPages();
+
+          doc.setFontSize(8);
+          doc.text(`Gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
+
+          const footerText = "Sistema Smart Seed";
+          doc.text(footerText, pageWidth / 2, pageHeight - 10, {
+            align: "center",
+          });
 
           doc.text(
-            `${currentPage}/${totalPages}`,
+            `${currentPage}/${totalPagesExp}`,
             pageWidth - 20,
             pageHeight - 10,
           );
         },
       });
+
+      if (typeof (doc as any).putTotalPages === "function") {
+      (doc as any).putTotalPages(totalPagesExp);    
+      }
 
       // === SOMATÓRIO POR CULTIVAR ===
       const totalsByCultivar = filteredToUse.reduce(
@@ -208,7 +224,6 @@ export default function GenerateHarvestReportModal() {
       // Verificar se há espaço suficiente na página atual
         if (finalY + neededHeight > availableHeight) {
           doc.addPage();
-          addFooter(); // Adicionar rodapé na nova página
           finalY = 20; // Começar no topo da nova página
         }
 
@@ -222,7 +237,6 @@ export default function GenerateHarvestReportModal() {
         // Verificar se ainda há espaço na página para esta linha
           if (currentY > availableHeight) {
             doc.addPage();
-            addFooter(); // Adicionar rodapé na nova página
             finalY = 20;
             doc.setFontSize(9);
             doc.text("Total colhido por Cultivar (continuação)", 14, finalY);
@@ -240,7 +254,6 @@ export default function GenerateHarvestReportModal() {
       // Verificar se há espaço para o total geral
         if (totalGeralY > availableHeight) {
           doc.addPage();
-          addFooter(); // Adicionar rodapé na nova página
           doc.setFontSize(9);
           doc.text(
             `Total Geral: ${formatNumber(totalGeral)} kg`,
@@ -259,8 +272,9 @@ export default function GenerateHarvestReportModal() {
       const fileNumber = new Date().getTime().toString();
       const fileName = `Relatorio de Colheitas - ${fileNumber}.pdf`;
       doc.save(fileName);
-      setCultivar(null);
+      setFazenda(null);
       setTalhao(null);
+      setCultivar(null);
       setLoading(false);
       setModalOpen(false);
     };
@@ -274,9 +288,61 @@ export default function GenerateHarvestReportModal() {
           Gerar Relatório
         </HoverButton>
       </DialogTrigger>
-      <DialogContent className="space-y-4">
-        <DialogTitle>Filtrar Relatório</DialogTitle>
+      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-hidden rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Filtrar Relatório</DialogTitle>
+            <DialogDescription>
+              Selecione os filtros para gerar o relatório de colheitas
+            </DialogDescription>
+        </DialogHeader>
 
+        {/* Fazenda e Talhão */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">        
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Fazenda</label>
+            <Select
+              value={fazenda ?? ""}
+              onValueChange={(value) =>
+                setFazenda(value === "todos" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {fazendasUnicas.map((f) => (
+                  <SelectItem key={f} value={f}>
+                    {f}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Talhão</label>
+            <Select
+              value={talhao ?? ""}
+              onValueChange={(value) =>
+                setTalhao(value === "todos" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {talhoesFiltrados.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Cultivar */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Cultivar</label>
           <Select
@@ -299,28 +365,7 @@ export default function GenerateHarvestReportModal() {
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Talhão</label>
-          <Select
-            value={talhao ?? ""}
-            onValueChange={(value) =>
-              setTalhao(value === "todos" ? null : value)
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {talhoesUnicos.map((t) => (
-                <SelectItem key={t} value={t}>
-                  {t}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
+        {/* Período */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Período</label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -338,5 +383,5 @@ export default function GenerateHarvestReportModal() {
         </Button>
       </DialogContent>
     </Dialog>
-  );
+  ); 
 }

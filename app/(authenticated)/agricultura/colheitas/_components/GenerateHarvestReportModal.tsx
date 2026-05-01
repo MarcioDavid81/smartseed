@@ -76,20 +76,18 @@ export default function GenerateHarvestReportModal() {
 
     return list.filter((h) => {
       const matchFazenda = !fazenda || h.talhao?.farm?.name === fazenda;
-      const matchDeposito =
-        !deposito || h.industryDeposit?.name === deposito;
-      const matchTransportador =
-        !transportador || h.industryTransporter?.name === transportador;
       const matchTalhao = !talhao || h.talhao?.name === talhao;
+      const matchDeposito = !deposito || h.industryDeposit?.name === deposito;
+      const matchTransportador = !transportador || h.industryTransporter?.name === transportador;
 
       const date = new Date(h.date as unknown as string);
       const matchDate = (!from || date >= from) && (!to || date <= to);
 
       return (
         matchFazenda &&
+        matchTalhao &&
         matchDeposito &&
         matchTransportador &&
-        matchTalhao &&
         matchDate
       );
     });
@@ -339,14 +337,13 @@ export default function GenerateHarvestReportModal() {
         </div>
 
         {/* Período */}
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Período</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <DatePicker value={dateFrom} onChange={setDateFrom} />
-              <DatePicker value={dateTo} onChange={setDateTo} />
-            </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Período</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <DatePicker value={dateFrom} onChange={setDateFrom} />
+            <DatePicker value={dateTo} onChange={setDateTo} />
           </div>
+        </div>
 
 
         <Button
