@@ -18,6 +18,7 @@ export interface IndustrySale {
   customer: {
     id: string;
     name: string;
+    fantasyName: string;
   };
   memberId?: string | null;
   member?: {
@@ -43,6 +44,7 @@ export interface IndustrySale {
   industryTransporter?: {
     id: string;
     name: string;
+    fantasyName: string;
   };
   truckPlate?: string;
   truckDriver?: string;

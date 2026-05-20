@@ -15,6 +15,7 @@ export interface Buy {
     customer: {
         id: string
         name: string
+        fantasyName: string
     }
     memberId?: string | null
     member?: {

@@ -8,7 +8,6 @@ import { ArrowUpDown, RefreshCw } from "lucide-react";
 import UpsertBuyButton from "./UpsertBuyButton";
 import { BuyDataTable } from "./BuyDataTable";
 import DeleteBuyButton from "./DeleteBuyButton";
-import DetailBuyButton from "./DetailBuyButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { useSeedBuysByCycle } from "@/queries/seed/use-seed-buy-query";
 import { LoadingData } from "@/components/loading-data";
@@ -64,7 +63,7 @@ export function ListBuyTable() {
     {
       id: "customer",
       header: "Fornecedor",
-      accessorFn: (row) => row.customer.name,
+      accessorFn: (row) => row.customer.fantasyName,
       filterFn: "includesString",
       cell: ({ row }) => {
         const customer = row.original.customer;
@@ -78,7 +77,7 @@ export function ListBuyTable() {
             </span>
           );
         }
-        return <span>{customer.name}</span>;
+        return <span>{customer.fantasyName}</span>;
       },
     },
     {
@@ -117,21 +116,6 @@ export function ListBuyTable() {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }).format(peso)}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "unityPrice",
-      header: () => <div className="text-left">Preço (kg)</div>,
-      cell: ({ row }) => {
-        const valor = row.original.unityPrice;
-        return (
-          <div className="text-left">
-            {new Intl.NumberFormat("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            }).format(valor)}
           </div>
         );
       },

@@ -63,7 +63,7 @@ export function ListPurchaseTable() {
     {
       id: "customer",
       header: "Fornecedor",
-      accessorFn: (row) => row.customer?.name ?? "",
+      accessorFn: (row) => row.customer?.fantasyName ?? "",
       filterFn: "includesString",
       cell: ({ row }) => {
         const fornecedor = row.original.customer;
@@ -78,7 +78,7 @@ export function ListPurchaseTable() {
             </span>
           );
         }
-      return <span>{fornecedor.name}</span>;
+      return <span>{fornecedor.fantasyName}</span>;
       },
     },
     {
@@ -132,21 +132,6 @@ export function ListPurchaseTable() {
             }).format(quantity)}{' '}
             {unit.toLocaleLowerCase()}
           </span>
-        );
-      },
-    },
-    {
-      accessorKey: "unitPrice",
-      header: () => <div className="text-left">Preço Unitário</div>,
-      cell: ({ row }) => {
-        const valor = row.original.unitPrice;
-        return (
-          <div className="text-left">
-            {new Intl.NumberFormat("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            }).format(valor)}
-          </div>
         );
       },
     },

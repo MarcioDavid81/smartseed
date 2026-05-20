@@ -6,7 +6,6 @@ import {
 } from "@/core/access-control";
 import { assertCompanyPlanAccess } from "@/core/plans/assert-company-plan-access";
 import { withAccessControl } from "@/lib/api/with-access-control";
-import { verifyToken } from "@/lib/auth";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { seedSaleSchema } from "@/lib/schemas/seedSaleSchema";
@@ -302,9 +301,7 @@ export async function GET(req: NextRequest) {
         cultivar: {
           select: { id: true, name: true },
         },
-        customer: {
-          select: { id: true, name: true },
-        },
+        customer: true,
         member: {
           select: { id: true, name: true, email: true, phone: true, cpf: true },
         },

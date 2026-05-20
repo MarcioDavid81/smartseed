@@ -298,9 +298,7 @@ export async function GET(req: NextRequest) {
         cultivar: {
           select: { id: true, name: true },
         },
-        customer: {
-          select: { id: true, name: true },
-        },
+        customer: true,
         member: {
           select: { id: true, name: true, email: true, phone: true, cpf: true },
         },

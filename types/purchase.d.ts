@@ -7,6 +7,7 @@ export interface Purchase {
   customer: {
     id: string;
     name: string;
+    fantasyName: string;
   };
   memberId?: string | null
   member?: {

@@ -58,7 +58,7 @@ export function ListSaleTable() {
     {
       id: "customer",
       header: "Cliente",
-      accessorFn: (row) => row.customer.name,
+      accessorFn: (row) => row.customer.fantasyName,
       filterFn: "includesString",
       cell: ({ row }) => {
         const customer = row.original.customer;
@@ -72,7 +72,7 @@ export function ListSaleTable() {
             </span>
           );
         }
-        return <span>{customer.name}</span>;
+        return <span>{customer.fantasyName}</span>;
       },
     },
     {
@@ -113,7 +113,7 @@ export function ListSaleTable() {
           );
         }
 
-        return <span>{transporter.name}</span>;
+        return <span>{transporter.fantasyName}</span>;
       },
     },
     {

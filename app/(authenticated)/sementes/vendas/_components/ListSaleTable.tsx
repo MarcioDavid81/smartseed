@@ -63,7 +63,7 @@ export function ListSaleTable() {
     {
       id: "customer",
       header: "Cliente",
-      accessorFn: (row) => row.customer.name,
+      accessorFn: (row) => row.customer.fantasyName,
       filterFn: "includesString",
       cell: ({ row }) => {
         const customer = row.original.customer;
@@ -77,7 +77,7 @@ export function ListSaleTable() {
             </span>
           );
         }
-        return <span>{customer.name}</span>;
+        return <span>{customer.fantasyName}</span>;
       },
     },
     {
@@ -122,7 +122,7 @@ export function ListSaleTable() {
     },
     {
       accessorKey: "saleValue",
-      header: () => <div className="text-left">Valor da Venda</div>,
+      header: () => <div className="text-left">Preço Total</div>,
       cell: ({ row }) => {
         const valor = row.original.saleValue;
         return (

@@ -252,9 +252,7 @@ export async function GET(req: NextRequest) {
     const industrySales = await db.industrySale.findMany({
       where: { companyId },
       include: {
-        customer: {
-          select: { id: true, name: true },
-        },
+        customer: true,
         member: {
           select: { id: true, name: true, email: true, phone: true, cpf: true },
         },
@@ -271,9 +269,7 @@ export async function GET(req: NextRequest) {
             city: true,
           },
         },
-        industryTransporter: {
-          select: { id: true, name: true },
-        },
+        industryTransporter: true,
         accountReceivable: {
           select: { id: true, status: true, dueDate: true },
         },
