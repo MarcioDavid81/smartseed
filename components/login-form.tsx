@@ -76,7 +76,7 @@ export function LoginForm({
       <Card className="overflow-hidden">
         <CardContent className="grid p-0 md:grid-cols-2">
           <form onSubmit={handleSubmit} className="p-6 md:p-8">
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Bem vindo de volta!</h1>
                 <p className="text-balance text-muted-foreground">
@@ -126,13 +126,23 @@ export function LoginForm({
               >
                 {loading ? <FaSpinner className="animate-spin" /> : "Login"}
               </Button>
-              <div className="flex flex-col text-center">
-                <p>Ainda não tem uma conta?</p>
-                <Button asChild variant="link" className="hover:text-green">
-                  <Link href="/on-boarding" className="hover:no-underline">
-                    Cadastre-se gratuitamente clicando aqui.
-                  </Link>
-                </Button>
+              <div className="flex flex-col items-center justify-center mt-4">
+                <div className="flex flex-col text-center">
+                  <p className="text-sm text-muted-foreground">Ainda não tem uma conta?</p>
+                  <Button asChild variant="link" className="hover:text-green">
+                    <Link href="/on-boarding" className="hover:no-underline text-xs">
+                      Cadastre-se gratuitamente clicando aqui.
+                    </Link>
+                  </Button>
+                </div>
+                <div className="flex flex-col text-center">
+                  <p className="text-sm text-muted-foreground">Esqueceu sua senha?</p>
+                  <Button asChild variant="link" className="hover:text-green">
+                    <Link href="/forgot-password" className="hover:no-underline text-xs">
+                      Recuperar senha aqui.
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </form>

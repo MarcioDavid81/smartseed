@@ -18,6 +18,7 @@ import { OnboardingFormData, onboardingSchema } from "@/lib/schemas/onBoardingSc
 import { useSmartToast } from "@/contexts/ToastContext";
 import { FaSpinner } from "react-icons/fa";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
 export function OnBoardingForm() {
   const router = useRouter();
@@ -167,6 +168,18 @@ export function OnBoardingForm() {
               disabled={isLoading}
             >
               {isLoading ? <FaSpinner className="animate-spin" /> : "Criar conta"}
+            </Button>
+            <Button
+              asChild
+              variant="link"
+              className="w-full hover:text-green"
+            >
+              <Link
+                href="/login"
+                className="hover:no-underline"
+              >
+                Voltar para o login
+              </Link>
             </Button>
           </form>
         </Form>
