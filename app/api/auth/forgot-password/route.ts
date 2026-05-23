@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server"
+export const dynamic = "force-dynamic";
+import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/prisma"
 import { generatePasswordResetToken } from "@/lib/tokens/generate-password-reset-token"
 import { sendUserResetPasswordEmail } from "@/lib/send-user-reset-password"
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await req.json()
     const email = body.email?.trim().toLowerCase()
     if (!email) {
       return NextResponse.json(

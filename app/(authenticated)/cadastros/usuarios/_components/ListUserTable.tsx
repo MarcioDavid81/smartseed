@@ -10,7 +10,8 @@ import DeleteUserButton from "./DeleteUserButton";
 import EditUserButton from "./EditUserButton";
 import { AgroLoader } from "@/components/agro-loader";
 import { useUsers } from "@/queries/registrations/use-user-query";
-import { LoadingData } from "@/components/loading-data";
+import { ROLE_LABELS } from "@/app/(authenticated)/_constants/role";
+
 
 export function UsersGetTable() {
   
@@ -42,10 +43,10 @@ export function UsersGetTable() {
       cell: ({ row: { original } }) => original.email,
     },
     {
-      accessorKey: "company",
-      header: "Empresa",
-      accessorFn: (row) => row.company?.name ?? "",
-      cell: ({ row: { original } }) => <div className="text-left">{original.company?.name ? (original.company.name) : <LoadingData />}</div>,
+      accessorKey: "role",
+      header: "Função",
+      accessorFn: (row) => row.role ?? "",
+      cell: ({ row: { original } }) => <div className="text-left">{ROLE_LABELS[original.role]}</div>,
     },
     {
       accessorKey: "actions",
