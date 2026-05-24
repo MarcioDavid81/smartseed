@@ -62,24 +62,8 @@ export function ListApplicationTable() {
       },
     },
     {
-      accessorKey: "quantity",
-      header: () => <div className="text-left">Quantidade</div>,
-      cell: ({ row }) => {
-        const peso = row.original.quantity;
-        return (
-          <div className="text-left">
-            {new Intl.NumberFormat("pt-BR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(peso)}
-            <span>{` ${row.original.productStock.product.unit.toLocaleLowerCase()}`}</span>
-          </div>
-        );
-      },
-    },
-    {
       id: "talhao",
-      header: "Destino",
+      header: "Talhão",
       accessorFn: (row) => row.talhao.name ?? "",
       filterFn: "includesString",
       cell: ({ row }) => {
@@ -96,6 +80,22 @@ export function ListApplicationTable() {
           );
         }
       return <span>{talhao.name}</span>;
+      },
+    },
+    {
+      accessorKey: "quantity",
+      header: () => <div className="text-left">Quantidade</div>,
+      cell: ({ row }) => {
+        const peso = row.original.quantity;
+        return (
+          <div className="text-left">
+            {new Intl.NumberFormat("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(peso)}
+            <span>{` ${row.original.productStock.product.unit.toLocaleLowerCase()}`}</span>
+          </div>
+        );
       },
     },
     {
@@ -143,7 +143,7 @@ export function ListApplicationTable() {
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <ApplicationDataTable columns={columns} data={aplicacoes} />
+        <ApplicationDataTable columns={columns} data={aplicacoes} sumColumnId="quantity" />
       )}
     </Card>
   );

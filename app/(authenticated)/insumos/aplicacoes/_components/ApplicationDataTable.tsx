@@ -6,6 +6,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -26,12 +27,14 @@ import { useState } from "react";
 import CreateApplicationButton from "./CreateApplicationButton";
 import GenerateApplicationReportModal from "./GenerateApplicationReportModal";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
+import { FunnelX } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageSize?: number;
   searchFields?: string[];
+  sumColumnId?: string;
 }
 
 export function ApplicationDataTable<TData, TValue>({
@@ -39,6 +42,7 @@ export function ApplicationDataTable<TData, TValue>({
   data,
   pageSize = 8,
   searchFields = [],
+  sumColumnId,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([])
@@ -69,6 +73,15 @@ export function ApplicationDataTable<TData, TValue>({
     }
   });
 
+  const filteredRows = table.getFilteredRowModel().rows;
+  const total = sumColumnId
+    ? filteredRows.reduce((acc, row) => {
+        const raw = row.getValue(sumColumnId as any);
+        const num = typeof raw === "number" ? raw : Number(raw);
+        return acc + (isNaN(num) ? 0 : num);
+      }, 0)
+    : 0;
+
   return (
     <div className="space-y-4 dark:bg-primary rounded-md">
       <div className="flex items-center justify-between py-4">
@@ -89,6 +102,17 @@ export function ApplicationDataTable<TData, TValue>({
             }
             className="max-w-sm bg-gray-50 text-primary"
           />
+          {table.getState().columnFilters.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => table.resetColumnFilters()}
+              className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
+            >
+              <FunnelX size={14} />
+              Limpar filtros
+            </Button>
+          )}
         </div>
         <CreateApplicationButton  />
       </div>
@@ -135,6 +159,23 @@ export function ApplicationDataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={columns.length - 3} className="text-start text-muted-foreground">
+                <h3>Total</h3>
+              </TableCell>
+              <TableCell colSpan={3} className="text-start text-muted-foreground">                
+                {sumColumnId ? (
+                  <div>
+                    {new Intl.NumberFormat("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }).format(total)}
+                  </div>
+                ) : null}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </div>
 

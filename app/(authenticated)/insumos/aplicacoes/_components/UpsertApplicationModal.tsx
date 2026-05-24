@@ -76,7 +76,7 @@ const UpsertApplicationModal = ({
   }, [aplicacao, isOpen, form]);
 
   const { data: inputStocks = [] } = useInputStockQuery({
-    productId: aplicacao?.productStockId,
+    productId: aplicacao?.productStock.productId,
   });
 
   const cycle = getCycle();
