@@ -1,5 +1,6 @@
 "use client";
 
+import { ComboBoxOption } from "@/components/combo-option";
 import { QuantityInput } from "@/components/inputs";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -26,9 +27,11 @@ import { ApiError } from "@/lib/http/api-error";
 import { InputApplicationFormData, inputApplicationSchema } from "@/lib/schemas/inputSchema";
 import { useUpsertInputApplication } from "@/queries/input/use-input-application";
 import { useInputStockQuery } from "@/queries/input/use-input-stock";
+import { useCyclePlots } from "@/queries/registrations/use-cylce-plots";
 import { usePlots } from "@/queries/registrations/use-plot-query";
 import { Application } from "@/types/application";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
@@ -44,6 +47,7 @@ const UpsertApplicationModal = ({
   isOpen,
   onClose,
 }: UpsertApplicationModalProps) => {
+    const talhoes = useCyclePlots();
     const { showToast } = useSmartToast();
 
   const form = useForm<InputApplicationFormData>({
@@ -71,7 +75,6 @@ const UpsertApplicationModal = ({
     }
   }, [aplicacao, isOpen, form]);
 
-  const { data: talhoes = [] } = usePlots();
   const { data: inputStocks = [] } = useInputStockQuery({
     productId: aplicacao?.productStockId,
   });
@@ -218,35 +221,41 @@ const UpsertApplicationModal = ({
                     control={form.control}
                     name="quantity"
                     render={({ field }) => (
-                      <QuantityInput label="Quantidade" field={field} />
+                      <QuantityInput label="Quantidade" field={field} placeholder="0,00" />
                     )}
                   />
-                  <FormField
+                   <FormField
                     control={form.control}
                     name="talhaoId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Talhão da Aplicação</FormLabel>
-                        <FormControl>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione um talhão" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {talhoes.map((talhao) => (
-                                  <SelectItem key={talhao.id} value={talhao.id}>
-                                    {talhao.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <FormLabel>Talhão</FormLabel>
+                          <FormControl>
+                            {talhoes.length > 0 ? (
+                              <ComboBoxOption
+                                options={talhoes.map((t) => ({
+                                  label: t.name + ` (${t.farm.name})`,
+                                  value: t.id,
+                                }))}
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder="Selecione um talhão"
+                              />
+                              ) : (
+                                <div className="text-xs flex items-center justify-start space-x-4">
+                                  <p>Nenhum talhão vinculado ao ciclo.</p>  
+                                  <Link href="/agricultura/safras">
+                                    <span className="text-green text-xs">
+                                      Cadastre um talhão ou vincule um talhão existente ao ciclo.
+                                    </span>
+                                  </Link>
+                                </div>
+                              )}
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                 </div>
 
               <FormField
