@@ -127,6 +127,8 @@ export function ListInputStockStatementTable({
         <InputStockStatementDataTable
           columns={columns}
           data={inputStockStatement}
+          depositName={farms.find(farm => farm.id === farmId)?.name}
+          productLabel={productName}
         />
       )}
     </Card>

@@ -25,12 +25,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
+import GenerateInputExtractReportModal, { Movement } from "./GenerateInputExtractReportModal";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageSize?: number;
   searchFields?: string[];
+  depositName?: string;
+  productLabel?: string;
 }
 
 export function InputStockStatementDataTable<TData, TValue>({
@@ -38,6 +41,8 @@ export function InputStockStatementDataTable<TData, TValue>({
   data,
   pageSize = 10,
   searchFields = [],
+  depositName,
+  productLabel,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -121,55 +126,60 @@ export function InputStockStatementDataTable<TData, TValue>({
       </div>
 
       {/* Paginação */}
-        <div className="flex items-center gap-1 justify-end">
-          {/* Anterior */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="rounded-full hover:bg-green/50"
-          >
-            ‹
-          </Button>
-
-          {getPaginationItems(
-            table.getState().pagination.pageIndex,
-            table.getPageCount()
-          ).map((item, index) =>
-            item === "..." ? (
-              <span
-                key={`ellipsis-${index}`}
-                className="px-2 text-muted-foreground"
-              >
-                …
-              </span>
-            ) : (
-              <Button
-                key={item}
-                size="sm"
-                variant={
-                  item === table.getState().pagination.pageIndex
-                    ? "default"
-                    : "ghost"
-                }
-                className="h-8 w-8 hover:bg-green/50 rounded-full font-light"
-                onClick={() => table.setPageIndex(item)}
-              >
-                {item + 1}
-              </Button>
-            )
-          )}
-
-          {/* Próximo */}
-          <Button
-            variant="ghost"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="rounded-full hover:bg-green/50"
-          >
-            ›
-          </Button>
+        <div className="flex items-center justify-between space-x-2 dark:text-primary">
+          <GenerateInputExtractReportModal
+            movements={data as Movement[]}
+            depositName={depositName}
+            productLabel={productLabel}
+          />
+          <div className="flex items-center gap-1 justify-end">
+            {/* Anterior */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="rounded-full hover:bg-green/50"
+            >
+              ‹
+            </Button>
+            {getPaginationItems(
+              table.getState().pagination.pageIndex,
+              table.getPageCount()
+            ).map((item, index) =>
+              item === "..." ? (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="px-2 text-muted-foreground"
+                >
+                  …
+                </span>
+              ) : (
+                <Button
+                  key={item}
+                  size="sm"
+                  variant={
+                    item === table.getState().pagination.pageIndex
+                      ? "default"
+                      : "ghost"
+                  }
+                  className="h-8 w-8 hover:bg-green/50 rounded-full font-light"
+                  onClick={() => table.setPageIndex(item)}
+                >
+                  {item + 1}
+                </Button>
+              )
+            )}
+            {/* Próximo */}
+            <Button
+              variant="ghost"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="rounded-full hover:bg-green/50"
+            >
+              ›
+            </Button>
+          </div>
         </div>
     </div>
   );
