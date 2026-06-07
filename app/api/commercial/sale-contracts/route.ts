@@ -8,9 +8,9 @@ import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { saleContractSchema } from "@/lib/schemas/saleContractSchema";
 import { Prisma } from "@prisma/client";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
@@ -84,11 +84,14 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
+
+    const { searchParams } = new URL(req.url);
+    const showZero = searchParams.get("showZero") === "true";
 
     const saleContracts = await db.saleContract.findMany({
       where: {
@@ -101,8 +104,8 @@ export async function GET(req: Request) {
         items: {
           include: {
             cultivar: true,
-          }
-        }
+          },
+        },
       },
       orderBy: [
         {
@@ -111,10 +114,16 @@ export async function GET(req: Request) {
         {
           document: "desc",
         },
-      ]
+      ],
     });
 
-    return NextResponse.json(saleContracts);
+    const filteredContracts = showZero
+      ? saleContracts
+      : saleContracts.filter((contract) =>
+          contract.items.some((item) => item.quantity > item.fulfilledQuantity),
+        );
+
+    return NextResponse.json(filteredContracts);
   } catch (error) {
     console.error("Erro ao buscar contratos de venda:", error);
     return NextResponse.json(

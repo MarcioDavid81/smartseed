@@ -2,9 +2,23 @@ import { SaleContract, SaleContractDetails } from "@/types";
 import { apiFetch } from "../api";
 import { SaleContractFormData } from "@/lib/schemas/saleContractSchema";
 
-export async function getSaleContracts(): Promise<SaleContractDetails[]> {
+export interface SaleContractFilters {
+  showZero?: boolean;
+}
+
+export async function getSaleContracts(
+  filters?: SaleContractFilters
+): Promise<SaleContractDetails[]> {
+  const params = new URLSearchParams();
+
+  if (filters?.showZero) {
+    params.set("showZero", "true");
+  }
+
+  const query = params.toString();
+
   const data = await apiFetch<SaleContractDetails[]>(
-    `/api/commercial/sale-contracts`
+    `/api/commercial/sale-contracts${query ? `?${query}` : ""}`
   );
 
   return data;
