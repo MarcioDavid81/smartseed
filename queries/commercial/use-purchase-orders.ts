@@ -1,13 +1,13 @@
 import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSmartToast } from "@/contexts/ToastContext";
-import { deletePurchaseOrder, getPurchaseOrderById, getPurchaseOrders, upsertPurchaseOrder } from "@/services/commercial/purchaseOrders";
+import { deletePurchaseOrder, getPurchaseOrderById, getPurchaseOrders, PurchaseOrderFilters, upsertPurchaseOrder } from "@/services/commercial/purchaseOrders";
 import { PurchaseOrderFormData } from "@/lib/schemas/purchaseOrderSchema";
 
-export function usePurchaseOrders() {
+export function usePurchaseOrders(filters?: PurchaseOrderFilters) {
   return useQuery<PurchaseOrderDetails[]>({
-    queryKey: ["purchase-orders"],
-    queryFn: () => getPurchaseOrders(),
+    queryKey: ["purchase-orders", filters],
+    queryFn: () => getPurchaseOrders(filters),
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
 }

@@ -86,11 +86,14 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
+
+    const { searchParams } = new URL(req.url);
+    const showZero = searchParams.get("showZero") === "true";
 
     const purchaseOrders = await db.purchaseOrder.findMany({
       where: {
@@ -116,8 +119,14 @@ export async function GET(req: Request) {
         },
       ]
     });
-    
-    return NextResponse.json(purchaseOrders);
+
+    const filteredOrders = showZero
+      ? purchaseOrders
+      : purchaseOrders.filter((order) =>
+          order.items.some((item) => item.quantity > item.fulfilledQuantity),
+        );
+
+    return NextResponse.json(filteredOrders);
   } catch (error) {
     console.error("Erro ao buscar ordens de compra:", error);
     return NextResponse.json(

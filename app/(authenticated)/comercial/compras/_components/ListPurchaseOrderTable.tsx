@@ -12,15 +12,28 @@ import { PurchaseOrderDataTable } from "./PurchaseOrderDataTable";
 import EditPurchaseOrderButton from "./EditPurchaseOrderButton";
 import DeletePurchaseOrderButton from "./DeletePurchaseOrderButton";
 import { DetailPurchaseOrderButton } from "./DetailPurchaseOrderButton";
+import { useEffect, useState } from "react";
+import { Switch } from "@/components/ui/switch";
 
 export function ListPurchaseOrderTable() {
+  const [showZero, setShowZero] = useState(false);
+  useEffect(() => {
+    const saved = localStorage.getItem("showZeroPurchaseReminder");
+    if (saved) setShowZero(saved === "true");
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("showZeroPurchaseReminder", String(showZero));
+  }, [showZero]);
 
   const {
       data: orderPurchase = [],
       isLoading,
       isFetching,
       refetch,
-    } = usePurchaseOrders();
+    } = usePurchaseOrders({ 
+      showZero
+    });
 
   const columns: ColumnDef<PurchaseOrderDetails>[] = [
     {
@@ -164,11 +177,29 @@ export function ListPurchaseOrderTable() {
 
   return (
     <Card className="p-4 dark:bg-primary font-light">
-      <div className="flex items-center gap-2 mb-2">
-        <h2 className="font-light">Lista de Pedidos de Compra</h2>
-        <Button variant={"ghost"} onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
-        </Button>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="font-light">Pedidos de Compra</h2>
+
+          <Button
+            variant="ghost"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw
+              size={16}
+              className={`${isFetching ? "animate-spin" : ""}`}
+            />
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm">Exibir finalizados</span>
+          <Switch
+            checked={showZero}
+            onCheckedChange={setShowZero}
+          />
+        </div>
       </div>
       {isLoading ? (
         <AgroLoader />
