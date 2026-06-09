@@ -168,10 +168,10 @@ export function SaleContractDataTable<TData, TValue>({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={columns.length - 2} className="text-start text-muted-foreground">
+              <TableCell colSpan={columns.length - 4} className="text-start text-muted-foreground">
                 <h3>Total</h3>
               </TableCell>
-              <TableCell colSpan={2} className="text-start text-muted-foreground">                
+              <TableCell colSpan={4} className="text-start text-muted-foreground">                
                 {sumColumnId ? (
                   <div>
                     {new Intl.NumberFormat("pt-BR", {
