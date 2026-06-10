@@ -7,7 +7,7 @@ import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { saleContractSchema } from "@/lib/schemas/saleContractSchema";
-import { Prisma } from "@prisma/client";
+import { ComercialStatus, Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -96,6 +96,14 @@ export async function GET(req: NextRequest) {
     const saleContracts = await db.saleContract.findMany({
       where: {
         companyId,
+        ...(showZero
+          ? {}
+          : {
+            status: {
+              in: [ComercialStatus.OPEN, ComercialStatus.PARTIAL_FULFILLED],
+            }
+          }
+        )
       },
       include: {
         customer: true,
@@ -123,7 +131,7 @@ export async function GET(req: NextRequest) {
           contract.items.some((item) => item.quantity > item.fulfilledQuantity),
         );
 
-    return NextResponse.json(filteredContracts);
+    return NextResponse.json(saleContracts);
   } catch (error) {
     console.error("Erro ao buscar contratos de venda:", error);
     return NextResponse.json(

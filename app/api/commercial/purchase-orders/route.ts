@@ -7,6 +7,7 @@ import { withAccessControl } from "@/lib/api/with-access-control";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
 import { purchaseOrderSchema } from "@/lib/schemas/purchaseOrderSchema";
+import { ComercialStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -98,6 +99,14 @@ export async function GET(req: NextRequest) {
     const purchaseOrders = await db.purchaseOrder.findMany({
       where: {
         companyId,
+        ...(showZero
+          ? {}
+          : {
+            status: {
+              in: [ComercialStatus.OPEN, ComercialStatus.PARTIAL_FULFILLED],
+            }
+          }
+        )
       },
       include: {
         customer: true,
@@ -126,7 +135,7 @@ export async function GET(req: NextRequest) {
           order.items.some((item) => item.quantity > item.fulfilledQuantity),
         );
 
-    return NextResponse.json(filteredOrders);
+    return NextResponse.json(purchaseOrders);
   } catch (error) {
     console.error("Erro ao buscar ordens de compra:", error);
     return NextResponse.json(
