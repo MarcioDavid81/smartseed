@@ -11,6 +11,7 @@ import { PRODUCT_TYPE_LABELS } from "@/app/(authenticated)/_constants/products";
 import { useSeedCultivarById } from "@/queries/seed/use-seed-cultivar-query";
 import { useSeedStockStatement } from "@/queries/seed/use-seed-stock-statement";
 import { SeedStockStatementDataTable } from "./SeedStockStatementDataTable";
+import SeedStockAdjustmentButton from "../../[slug]/_components/SeedStockAdjustmentButton";
 
 type Props = {
   cultivarId: string;
@@ -24,7 +25,6 @@ export function ListSeedStockStatementTable({
     data: seedStockStatement = [],
     isLoading,
     isError,
-    error,
   } = useSeedStockStatement(cultivarId);
 
   const { data: cultivar } = useSeedCultivarById(cultivarId);
@@ -116,6 +116,7 @@ export function ListSeedStockStatementTable({
           </p>
 
         </div>
+        <SeedStockAdjustmentButton />
       </div>
       {isLoading ? (
         <AgroLoader />

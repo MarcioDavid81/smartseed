@@ -30,6 +30,9 @@ export function useCreateSeedAdjust({ cycleId }: Params) {
         queryClient.invalidateQueries({
           queryKey: ["seed-adjust", cycleId],
         });
+        queryClient.invalidateQueries({
+          queryKey: ["seed-stock", cycleId],
+        });
       },
   });
 }
