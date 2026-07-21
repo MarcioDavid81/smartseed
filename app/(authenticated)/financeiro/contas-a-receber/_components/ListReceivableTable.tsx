@@ -12,16 +12,29 @@ import { AgroLoader } from "@/components/agro-loader";
 import { useAccountReceivables } from "@/queries/financial/use-account-receivable-query";
 import { LoadingData } from "@/components/loading-data";
 import { formatCurrency } from "@/app/_helpers/currency";
+import { useEffect, useState } from "react";
+import { Switch } from "@/components/ui/switch";
 
 export function ListReceivableTable() {
-  
+  const [showReceivablePaid, setShowReceivablePaid] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("showReceivablePaid");
+    if (saved) setShowReceivablePaid(saved === "true");
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("showReceivablePaid", String(showReceivablePaid));
+  }, [showReceivablePaid]);
+
   const {
     data: receivables = [],
     isLoading,
     isFetching,
     refetch,
-  } = useAccountReceivables();
-
+  } = useAccountReceivables({
+    showReceivablePaid,
+  });
 
   const columns: ColumnDef<AccountReceivable>[] = [
     {
@@ -29,7 +42,7 @@ export function ListReceivableTable() {
       header: ({ column }) => (
         <Button
           variant="ghost"
-          className="text-left px-0"
+          className="px-0 text-left"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Data de Vencimento
@@ -45,7 +58,11 @@ export function ListReceivableTable() {
       header: () => <div className="text-left">Cliente</div>,
       accessorFn: (row) => row.customer?.name ?? "",
       filterFn: "includesString",
-      cell: ({ row: { original } }) => <div className="text-left">{original.customer ? (original.customer.name) : <LoadingData />}</div>,
+      cell: ({ row: { original } }) => (
+        <div className="text-left">
+          {original.customer ? original.customer.name : <LoadingData />}
+        </div>
+      ),
     },
     {
       id: "description",
@@ -59,11 +76,7 @@ export function ListReceivableTable() {
       header: () => <div className="text-left">Valor (R$)</div>,
       cell: ({ row }) => {
         const amount = row.original.amount;
-        return (
-          <div className="text-left">
-            {formatCurrency(amount)}
-          </div>
-        );
+        return <div className="text-left">{formatCurrency(amount)}</div>;
       },
     },
     {
@@ -73,7 +86,7 @@ export function ListReceivableTable() {
       filterFn: "includesString",
       cell: ({ row }) => {
         const status = row.original.status;
-        
+
         const getStatusStyle = (status: string) => {
           switch (status) {
             case "PENDING":
@@ -115,7 +128,9 @@ export function ListReceivableTable() {
       accessorKey: "paymentDate",
       header: () => <div className="text-left">Data de Pagamento</div>,
       cell: ({ row: { original } }) => {
-        return original.receivedDate ? new Date(original.receivedDate).toLocaleDateString("pt-BR") : "-";
+        return original.receivedDate
+          ? new Date(original.receivedDate).toLocaleDateString("pt-BR")
+          : "-";
       },
     },
     {
@@ -125,7 +140,10 @@ export function ListReceivableTable() {
         const accountReceivable = row.original;
         return (
           <div className="flex justify-center gap-4">
-            <ReceivableStatusButton accountReceivableId={accountReceivable.id} status={accountReceivable.status} />
+            <ReceivableStatusButton
+              accountReceivableId={accountReceivable.id}
+              status={accountReceivable.status}
+            />
           </div>
         );
       },
@@ -133,17 +151,37 @@ export function ListReceivableTable() {
   ];
 
   return (
-    <Card className="p-4 dark:bg-primary font-light">
-      <div className="flex items-center gap-2 mb-2">
-        <h2 className="font-light">Lista de Contas à Receber</h2>
-        <Button variant="ghost" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
-        </Button>
+    <Card className="p-4 font-light dark:bg-primary">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="font-light">Lista de Contas à Receber</h2>
+          <Button
+            variant="ghost"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw
+              size={16}
+              className={`${isFetching ? "animate-spin" : ""}`}
+            />
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm">Exibir pagas</span>
+          <Switch
+            checked={showReceivablePaid}
+            onCheckedChange={setShowReceivablePaid}
+          />
+        </div>
       </div>
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <ReceivableDataTable columns={columns} data={receivables} sumColumnId="amount" />
+        <ReceivableDataTable
+          columns={columns}
+          data={receivables}
+          sumColumnId="amount"
+        />
       )}
     </Card>
   );

@@ -12,15 +12,29 @@ import { AgroLoader } from "@/components/agro-loader";
 import { useAccountPayables } from "@/queries/financial/use-account-payables-query";
 import { LoadingData } from "@/components/loading-data";
 import { formatCurrency } from "@/app/_helpers/currency";
+import { useEffect, useState } from "react";
+import { Switch } from "@/components/ui/switch";
 
 export function ListPayableTable() {
-  
+  const [showPayablePaid, setShowPayablePaid] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("showPayablePaid");
+    if (saved) setShowPayablePaid(saved === "true");
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("showPayablePaid", String(showPayablePaid));
+  }, [showPayablePaid]);
+
   const {
     data: payables = [],
     isLoading,
     isFetching,
     refetch,
-  } = useAccountPayables();
+  } = useAccountPayables({
+    showPayablePaid,
+  });
 
   const columns: ColumnDef<AccountPayable>[] = [
     {
@@ -28,7 +42,7 @@ export function ListPayableTable() {
       header: ({ column }) => (
         <Button
           variant="ghost"
-          className="text-left px-0"
+          className="px-0 text-left"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Data de Vencimento
@@ -44,7 +58,11 @@ export function ListPayableTable() {
       header: () => <div className="text-left">Cliente</div>,
       accessorFn: (row) => row.customer?.name ?? "",
       filterFn: "includesString",
-      cell: ({ row: { original } }) => <div className="text-left">{original.customer ? (original.customer.name) : <LoadingData />}</div>,
+      cell: ({ row: { original } }) => (
+        <div className="text-left">
+          {original.customer ? original.customer.name : <LoadingData />}
+        </div>
+      ),
     },
     {
       id: "description",
@@ -58,11 +76,7 @@ export function ListPayableTable() {
       header: () => <div className="text-left">Valor (R$)</div>,
       cell: ({ row }) => {
         const amount = row.original.amount;
-        return (
-          <div className="text-left">
-            {formatCurrency(amount)}
-          </div>
-        );
+        return <div className="text-left">{formatCurrency(amount)}</div>;
       },
     },
     {
@@ -72,7 +86,7 @@ export function ListPayableTable() {
       filterFn: "includesString",
       cell: ({ row }) => {
         const status = row.original.status;
-        
+
         const getStatusStyle = (status: string) => {
           switch (status) {
             case "PENDING":
@@ -114,7 +128,9 @@ export function ListPayableTable() {
       accessorKey: "paymentDate",
       header: () => <div className="text-left">Data de Pagamento</div>,
       cell: ({ row: { original } }) => {
-        return original.paymentDate ? new Date(original.paymentDate).toLocaleDateString("pt-BR") : "-";
+        return original.paymentDate
+          ? new Date(original.paymentDate).toLocaleDateString("pt-BR")
+          : "-";
       },
     },
     {
@@ -124,7 +140,10 @@ export function ListPayableTable() {
         const accountPayable = row.original;
         return (
           <div className="flex justify-center gap-2">
-            <PayableStatusButton accountPayableId={accountPayable.id} status={accountPayable.status} />
+            <PayableStatusButton
+              accountPayableId={accountPayable.id}
+              status={accountPayable.status}
+            />
           </div>
         );
       },
@@ -132,17 +151,37 @@ export function ListPayableTable() {
   ];
 
   return (
-    <Card className="p-4 dark:bg-primary font-light">
-      <div className="flex items-center gap-2 mb-2">
-        <h2 className="font-light">Lista de Contas à Pagar</h2>
-        <Button variant="ghost" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
-        </Button>
+    <Card className="p-4 font-light dark:bg-primary">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="font-light">Lista de Contas à Pagar</h2>
+          <Button
+            variant="ghost"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw
+              size={16}
+              className={`${isFetching ? "animate-spin" : ""}`}
+            />
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm">Exibir pagas</span>
+          <Switch
+            checked={showPayablePaid}
+            onCheckedChange={setShowPayablePaid}
+          />
+        </div>
       </div>
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <PayableDataTable columns={columns} data={payables} sumColumnId="amount" />
+        <PayableDataTable
+          columns={columns}
+          data={payables}
+          sumColumnId="amount"
+        />
       )}
     </Card>
   );

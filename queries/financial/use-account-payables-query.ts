@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAccountPayables } from "@/services/financial/payable";
+import { AccountPayableFilters, getAccountPayables } from "@/services/financial/payable";
 
-export function useAccountPayables() {
+export function useAccountPayables(filters?: AccountPayableFilters) {
   return useQuery({
-    queryKey: ["account-payables"],
-    queryFn: () => getAccountPayables(),
+    queryKey: ["account-payables", filters],
+    queryFn: () => getAccountPayables(filters),
     enabled: true,
     staleTime: 1000 * 60 * 60 * 24, // 1 dia
   });
