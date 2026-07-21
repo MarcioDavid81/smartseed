@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
       where: {
         companyId,
         ...(cycleId && { cycleId }),
-        ...(showPaid ? {} : { paymentDate: null }),
+        ...(showPaid ? {} : { receivedDate: null }),
       },
       orderBy: { dueDate: "desc" },
       include: {
