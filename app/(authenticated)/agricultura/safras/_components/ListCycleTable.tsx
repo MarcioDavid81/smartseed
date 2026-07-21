@@ -7,7 +7,6 @@ import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { Cycle } from "@/types/cycles";
 import { CycleDataTable } from "./CycleDataTable";
 import { format } from "date-fns";
-import DetailCycleButton from "./DetailCycleButton";
 import EditCycleButton from "./EditCycleButton";
 import DeleteCycleButton from "./DeleteCycleButton";
 import { AgroLoader } from "@/components/agro-loader";

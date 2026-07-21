@@ -34,14 +34,15 @@ export function ListHarvestTable() {
       header: ({ column }) => (
         <Button
           variant="ghost"
-          className="text-left px-0"
+          className="px-0 text-left"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Data
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row: { original } }) => new Date(original.date).toLocaleDateString("pt-BR"),
+      cell: ({ row: { original } }) =>
+        new Date(original.date).toLocaleDateString("pt-BR"),
     },
     {
       accessorKey: "document",
@@ -53,26 +54,54 @@ export function ListHarvestTable() {
       header: () => <div className="text-left">Fazenda</div>,
       accessorFn: (row) => row.talhao?.farm?.name ?? "",
       filterFn: "includesString",
-      cell: ({ row: { original } }) => <div className="text-left">{original.talhao?.farm?.name ? (original.talhao.farm.name) : <LoadingData />}</div>,
+      cell: ({ row: { original } }) => (
+        <div className="text-left">
+          {original.talhao?.farm?.name ? (
+            original.talhao.farm.name
+          ) : (
+            <LoadingData />
+          )}
+        </div>
+      ),
     },
     {
       id: "talhao",
       header: "Talhão",
       accessorFn: (row) => row.talhao?.name ?? "",
       filterFn: "includesString",
-      cell: ({ row: { original } }) => <div className="text-left">{original.talhao?.name ? (original.talhao.name) : <LoadingData />}</div>,
+      cell: ({ row: { original } }) => (
+        <div className="text-left">
+          {original.talhao?.name ? original.talhao.name : <LoadingData />}
+        </div>
+      ),
     },
     {
       accessorKey: "industryTransporter",
       header: () => <div className="text-left">Transportador</div>,
-      cell: ({ row: { original } }) => <div className="text-left">{original.industryTransporter?.name ? (original.industryTransporter.name) : <LoadingData />}</div>,
+      cell: ({ row: { original } }) => (
+        <div className="text-left">
+          {original.industryTransporter?.name ? (
+            original.industryTransporter.name
+          ) : (
+            <LoadingData />
+          )}
+        </div>
+      ),
     },
     {
       id: "industryDeposit",
       header: () => <div className="text-left">Depósito</div>,
       accessorFn: (row) => row.industryDeposit?.name ?? "",
       filterFn: "includesString",
-      cell: ({ row: { original } }) => <div className="text-left">{original.industryDeposit?.name ? (original.industryDeposit.name) : <LoadingData />}</div>,
+      cell: ({ row: { original } }) => (
+        <div className="text-left">
+          {original.industryDeposit?.name ? (
+            original.industryDeposit.name
+          ) : (
+            <LoadingData />
+          )}
+        </div>
+      ),
     },
     {
       accessorKey: "weightLiq",
@@ -95,7 +124,10 @@ export function ListHarvestTable() {
       cell: ({ row }) => {
         const colheita = row.original;
         return (
-          <div className="flex items-center justify-center gap-4" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="flex items-center justify-center gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <HarvestDetailButton id={colheita.id} />
             <EditHarvestButton colheita={colheita} />
             <DeleteHarvestButton colheita={colheita} disabled={!canDelete} />
@@ -106,17 +138,24 @@ export function ListHarvestTable() {
   ];
 
   return (
-    <Card className="p-4 dark:bg-primary font-light">
-      <div className="flex items-center gap-2 mb-2">
+    <Card className="p-4 font-light dark:bg-primary">
+      <div className="mb-2 flex items-center gap-2">
         <h2 className="font-light">Lista de Colheitas</h2>
         <Button variant="ghost" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw size={16} className={`${isFetching ? "animate-spin" : ""}`} />
+          <RefreshCw
+            size={16}
+            className={`${isFetching ? "animate-spin" : ""}`}
+          />
         </Button>
       </div>
       {isLoading ? (
         <AgroLoader />
       ) : (
-        <HarvestDataTable columns={columns} data={industryHarvests} sumColumnId="weightLiq" />
+        <HarvestDataTable
+          columns={columns}
+          data={industryHarvests}
+          sumColumnId="weightLiq"
+        />
       )}
     </Card>
   );
