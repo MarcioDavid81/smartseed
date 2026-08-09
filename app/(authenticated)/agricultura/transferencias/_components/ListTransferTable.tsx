@@ -38,9 +38,10 @@ export function ListTransferTable() {
       cell: ({ row: { original } }) => new Date(original.date).toLocaleDateString("pt-BR"),
     },
     {
-      accessorKey: "product",
+      id: "product",
       header: "Produto",
       accessorFn: (row) => row.product,
+       filterFn: "includesString",
       cell: ({ row: { original } }) => getProductLabel(original.product as ProductType),
     },
     {
@@ -50,13 +51,17 @@ export function ListTransferTable() {
       cell: ({ row: { original } }) => original.document || "-",
     },
     {
-      accessorKey: "fromDeposit",
+      id: "fromDeposit",
       header: "Depósito Origem",
+      accessorFn: (row) => row.fromDeposit?.name,
+      filterFn: "includesString",
       cell: ({ row: { original } }) => original.fromDeposit?.name || "-",
     },
     {
-      accessorKey: "toDeposit",
+      id: "toDeposit",
       header: () => <div className="text-left">Depósito de Destino</div>,
+      accessorFn: (row) => row.toDeposit?.name,
+      filterFn: "includesString",
       cell: ({ row }) => {
         const toDeposit = row.original.toDeposit?.name;
         return (
