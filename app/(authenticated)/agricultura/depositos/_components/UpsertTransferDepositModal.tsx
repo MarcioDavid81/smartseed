@@ -21,15 +21,23 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useSmartToast } from "@/contexts/ToastContext";
 import { ApiError } from "@/lib/http/api-error";
-import { CreateIndustryTransferFormData, createIndustryTransferSchema } from "@/lib/schemas/industryTransferSchema";
+import {
+  CreateIndustryTransferFormData,
+  createIndustryTransferSchema,
+} from "@/lib/schemas/industryTransferSchema";
 import { useIndustryDeposits } from "@/queries/industry/use-deposits-query";
 import { useUpsertIndustryTransfer } from "@/queries/industry/use-upsert-industry-transfer";
 import { IndustryTransfer } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ProductType } from "@prisma/client";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
@@ -39,7 +47,6 @@ interface UpsertTransferDepositModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
 
 const UpsertTransferDepositModal = ({
   transferencia,
@@ -80,21 +87,34 @@ const UpsertTransferDepositModal = ({
   const { data: deposits = [] } = useIndustryDeposits();
 
   const selectedProduct = form.watch("product");
+  const selectedFromDepositId = form.watch("fromDepositId");
+
   const availableDeposits = deposits
-  .map((deposit) => {
-    const stock = deposit.industryStocks?.find(
-      (s) => s.product === selectedProduct && s.quantity > 0
-    );
+    .map((deposit) => {
+      const stock = deposit.industryStocks?.find(
+        (s) => s.product === selectedProduct && s.quantity > 0,
+      );
 
-    if (!stock) return null;
+      if (!stock) return null;
 
-    return {
-      id: deposit.id,
-      name: deposit.name,
-      quantity: stock.quantity,
-    };
-  })
-  .filter(Boolean);
+      return {
+        id: deposit.id,
+        name: deposit.name,
+        quantity: stock.quantity,
+      };
+    })
+    .filter(Boolean);
+
+  const availableToDeposits = deposits.filter(
+    (d) => d.id !== selectedFromDepositId,
+  );
+
+  useEffect(() => {
+    const currentToDepositId = form.getValues("toDepositId");
+    if (currentToDepositId && currentToDepositId === selectedFromDepositId) {
+      form.setValue("toDepositId", "", { shouldValidate: true });
+    }
+  }, [selectedFromDepositId, form]);
 
   const { mutate, isPending } = useUpsertIndustryTransfer({
     transferId: transferencia?.id,
@@ -123,7 +143,7 @@ const UpsertTransferDepositModal = ({
             });
             return;
           }
-        
+
           if (error.status === 401) {
             showToast({
               type: "info",
@@ -148,7 +168,7 @@ const UpsertTransferDepositModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl w-[calc(100%-1rem)] sm:w-full max-h-[95vh] overflow-scroll scrollbar-hide rounded-2xl">
+      <DialogContent className="scrollbar-hide max-h-[95vh] w-[calc(100%-1rem)] max-w-2xl overflow-scroll rounded-2xl sm:w-full">
         <DialogHeader>
           <DialogTitle>Transferência</DialogTitle>
           <DialogDescription>
@@ -159,19 +179,22 @@ const UpsertTransferDepositModal = ({
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4">
               <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                      control={form.control}
-                      name="date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Data</FormLabel>
-                          <FormControl>
-                            <DatePicker value={field.value} onChange={field.onChange}/>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="document"
@@ -186,34 +209,34 @@ const UpsertTransferDepositModal = ({
                   )}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">     
-                  <FormField
-                    control={form.control}
-                    name="product"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Produto</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um produto" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {PRODUCT_TYPE_OPTIONS.map((p) => (
-                                <SelectItem key={p.value} value={p.value}>
-                                  {p.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="product"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Produto</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um produto" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PRODUCT_TYPE_OPTIONS.map((p) => (
+                              <SelectItem key={p.value} value={p.value}>
+                                {p.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="fromDepositId"
@@ -227,39 +250,48 @@ const UpsertTransferDepositModal = ({
                           disabled={!selectedProduct}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder={
-                              !selectedProduct
-                                ? "Selecione um produto primeiro"
-                                : availableDeposits.length === 0
-                                ? "Sem estoque disponível"
-                                : "Selecione um depósito"
-                            } />
+                            <SelectValue
+                              placeholder={
+                                !selectedProduct
+                                  ? "Selecione um produto primeiro"
+                                  : availableDeposits.length === 0
+                                    ? "Sem estoque disponível"
+                                    : "Selecione um depósito"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
-                          {availableDeposits.map((deposit) => (
-                            <SelectItem key={deposit?.id || ""} value={deposit?.id || ""}>
-                              <div className="flex justify-between gap-2 w-full">
-                                <span>{deposit?.name || ""}</span>
-                                <span className="text-muted-foreground">
-                                  {formatNumber(deposit?.quantity || 0)} kg
-                                </span>
-                              </div>
-                            </SelectItem>
-                          ))}
+                            {availableDeposits.map((deposit) => (
+                              <SelectItem
+                                key={deposit?.id || ""}
+                                value={deposit?.id || ""}
+                              >
+                                <div className="flex w-full justify-between gap-2">
+                                  <span>{deposit?.name || ""}</span>
+                                  <span className="text-muted-foreground">
+                                    {formatNumber(deposit?.quantity || 0)} kg
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
-                />        
+                />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="quantity"
                   render={({ field }) => (
-                    <QuantityInput label="Quantidade" field={field} suffix=" Kg" />
+                    <QuantityInput
+                      label="Quantidade"
+                      field={field}
+                      suffix=" Kg"
+                    />
                   )}
                 />
                 <FormField
@@ -272,12 +304,21 @@ const UpsertTransferDepositModal = ({
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
+                          disabled={!selectedFromDepositId}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione um depósito" />
+                            <SelectValue
+                              placeholder={
+                                !selectedFromDepositId
+                                  ? "Selecione o depósito origem primeiro"
+                                  : availableToDeposits.length === 0
+                                    ? "Nenhum depósito disponível"
+                                    : "Selecione um depósito"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
-                            {deposits.map((d) => (
+                            {availableToDeposits.map((d) => (
                               <SelectItem key={d.id} value={d.id}>
                                 {d.name}
                               </SelectItem>
