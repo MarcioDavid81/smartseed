@@ -38,6 +38,12 @@ export function useUpsertIndustryTransfer({ transferId }: Params) {
       queryClient.invalidateQueries({
         queryKey: ["industry-transfer"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["industry-stock"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["industry-deposit"]
+      })
     },
   });
 }
