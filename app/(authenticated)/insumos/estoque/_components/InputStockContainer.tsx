@@ -16,7 +16,7 @@ import GenerateStockReportModal from "./GenerateStockReportModal";
 
 export function InputStockContainer() {
   const [showZero, setShowZero] = useState(false);
-  const [viewMode, setViewMode] = useState<"farm" | "product">("farm");
+  const [viewMode, setViewMode] = useState<"product" | "farm">("product");
 
   // persistência
   useEffect(() => {
@@ -70,10 +70,10 @@ export function InputStockContainer() {
 
       {/* CONTENT */}
       <div className="space-y-4 my-4 h-[68vh] overflow-auto scrollbar-hide">
-        {viewMode === "farm" ? (
-          <InputStockFarmView data={groupedByFarm} />
-        ) : (
+        {viewMode === "product" ? (
           <InputStockProductView data={groupedByProduct} />
+        ) : (
+          <InputStockFarmView data={groupedByFarm} />
         )}
       </div>
 

@@ -2,7 +2,7 @@
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-type ViewMode = "deposit" | "product";
+type ViewMode = "product" | "deposit";
 
 interface Props {
   value: ViewMode;
@@ -16,11 +16,11 @@ export function IndustryStockViewToggle({ value, onChange }: Props) {
       value={value}
       onValueChange={(val) => val && onChange(val as ViewMode)}
     >
-      <ToggleGroupItem value="deposit" className="font-light">
-        Por Deposósito
-      </ToggleGroupItem>
       <ToggleGroupItem value="product" className="font-light">
         Por Produto
+      </ToggleGroupItem>
+      <ToggleGroupItem value="deposit" className="font-light">
+        Por Deposósito
       </ToggleGroupItem>
     </ToggleGroup>
   );

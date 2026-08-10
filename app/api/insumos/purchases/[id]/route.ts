@@ -94,177 +94,224 @@ export async function PUT(
       });
     }
 
-    const result = await db.$transaction(async (tx) => {
-      const purchase = await tx.purchase.findUnique({
-        where: { id },
-        include: {
-          purchaseOrderItem: {
-            include: {
-              purchaseOrder: true,
-            },
+    // 🚫 Impede alteração de compra com conta já paga
+    if (existing.accountPayable?.status === AccountStatus.PAID) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "PURCHASE_ALREADY_PAID",
+            title: "Ação não permitida",
+            message:
+              "Não é possível alterar uma compra que já possui pagamento confirmado.",
           },
-          accountPayable: true,
         },
-      });
+        { status: 400 },
+      );
+    }
 
-      if (!purchase) throw new Error("Compra não encontrada");
-
-      // 1. Calcular o delta de quantidade
-      const delta = Number(quantity) - Number(purchase.quantity);
-
-      // 2. Se quantidade, produto ou fazenda mudaram, ajustar estoque
-      if (
-        purchase.quantity !== quantity ||
-        purchase.productId !== productId ||
-        purchase.farmId !== farmId
-      ) {
-        // Reverter estoque anterior
-        await tx.productStock.update({
-          where: {
-            productId_farmId: {
-              productId: purchase.productId,
-              farmId: purchase.farmId,
+    const result = await db.$transaction(
+      async (tx) => {
+        const purchase = await tx.purchase.findUnique({
+          where: { id },
+          include: {
+            purchaseOrderItem: {
+              include: {
+                purchaseOrder: true,
+              },
             },
-          },
-          data: {
-            stock: {
-              decrement: delta,
-            },
+            accountPayable: true,
           },
         });
 
-        // Aplicar novo impacto
-        await tx.productStock.upsert({
-          where: {
-            productId_farmId: {
+        if (!purchase) throw new Error("Compra não encontrada");
+
+        // Paralelizar queries independentes (dados para conta a pagar + validações de estoque)
+        const [prevStock, productInfo, customerInfo, memberInfo] =
+          await Promise.all([
+            purchase.quantity !== quantity ||
+            purchase.productId !== productId ||
+            purchase.farmId !== farmId
+              ? tx.productStock.findUnique({
+                  where: {
+                    productId_farmId: {
+                      productId: purchase.productId,
+                      farmId: purchase.farmId,
+                    },
+                  },
+                })
+              : Promise.resolve(null),
+            paymentCondition === PaymentCondition.APRAZO && dueDate
+              ? tx.product.findUnique({
+                  where: { id: productId },
+                  select: { name: true },
+                })
+              : Promise.resolve(null),
+            paymentCondition === PaymentCondition.APRAZO && dueDate
+              ? tx.customer.findUnique({
+                  where: { id: customerId },
+                  select: { name: true },
+                })
+              : Promise.resolve(null),
+            paymentCondition === PaymentCondition.APRAZO && dueDate && memberId
+              ? tx.member.findUnique({
+                  where: { id: memberId },
+                  select: { name: true },
+                })
+              : Promise.resolve(null),
+          ]);
+
+        // 2. Se quantidade, produto ou fazenda mudaram, ajustar estoque
+        // Estratégia: REVERTER 100% do impacto antigo e depois APLICAR 100% do novo
+        if (
+          purchase.quantity !== quantity ||
+          purchase.productId !== productId ||
+          purchase.farmId !== farmId
+        ) {
+          if (prevStock) {
+            const newStockValue =
+              Number(prevStock.stock) - Number(purchase.quantity);
+            if (newStockValue < 0) {
+              throw new Error(
+                `Estoque insuficiente para reverter a compra. Disponível: ${prevStock.stock}, necessário reverter: ${purchase.quantity}`,
+              );
+            }
+            await tx.productStock.update({
+              where: {
+                productId_farmId: {
+                  productId: purchase.productId,
+                  farmId: purchase.farmId,
+                },
+              },
+              data: {
+                stock: newStockValue,
+              },
+            });
+          }
+
+          // Aplicar novo impacto (100% da nova quantidade)
+          await tx.productStock.upsert({
+            where: {
+              productId_farmId: {
+                productId,
+                farmId,
+              },
+            },
+            update: {
+              stock: {
+                increment: Number(quantity),
+              },
+            },
+            create: {
               productId,
               farmId,
-            },
-          },
-          update: {
-            stock: {
-              increment: quantity,
-            },
-          },
-          create: {
-            productId,
-            farmId,
-            companyId,
-            stock: quantity,
-          },
-        });
-      }
-
-      // 3. Ajustar contrato se houver
-      if (
-        purchase.purchaseOrderItem &&
-        purchase.purchaseOrderItem.purchaseOrder
-      ) {
-        const item = purchase.purchaseOrderItem;
-        await tx.purchaseOrderItem.update({
-          where: { id: item.id },
-          data: {
-            fulfilledQuantity: {
-              increment: delta,
-            },
-          },
-        });
-
-        // validar saldo do pedido
-        const updatedItem = await tx.purchaseOrderItem.findUnique({
-          where: { id: item.id },
-        });
-
-        if (
-          Number(updatedItem!.fulfilledQuantity) > Number(updatedItem!.quantity)
-        ) {
-          throw new Error("Quantidade excede o saldo do pedido");
-        }
-
-        // recalcular status do pedido
-        await recalcPurchaseOrderStatus(tx, item.purchaseOrderId);
-      }
-
-      // 4. Atualizar compra
-      const updatedPurchase = await tx.purchase.update({
-        where: { id },
-        data: {
-          productId,
-          customerId,
-          memberId,
-          memberAdressId,
-          date: new Date(date),
-          invoiceNumber,
-          unitPrice,
-          totalPrice,
-          quantity,
-          farmId,
-          notes,
-          paymentCondition,
-          dueDate: dueDate ? new Date(dueDate) : null,
-        },
-      });
-
-      // 5. Atualizar conta a pagar se houver
-      if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
-        const product = await db.product.findUnique({
-          where: { id: productId },
-          select: {
-            name: true,
-          },
-        });
-        const customer = await db.customer.findUnique({
-          where: { id: customerId },
-          select: {
-            name: true,
-          },
-        });
-        const member = await db.member.findUnique({
-          where: { id: memberId },
-          select: {
-            name: true,
-          },
-        });
-
-        const description = `Compra de ${product?.name ?? "insumo"}, cfe NF ${invoiceNumber}, de ${customer?.name ?? "cliente"}, em nome de ${member?.name ?? "sócio"}`;
-
-        if (purchase.accountPayable) {
-          // Atualiza conta existente
-          await tx.accountPayable.update({
-            where: { id: purchase.accountPayable.id },
-            data: {
-              description: description,
-              amount: totalPrice,
-              dueDate: new Date(dueDate),
-              customerId,
-            },
-          });
-        } else {
-          // Cria nova conta
-          await tx.accountPayable.create({
-            data: {
-              description: description,
-              amount: totalPrice,
-              dueDate: new Date(dueDate),
               companyId,
-              customerId,
-              memberId,
-              memberAdressId,
-              purchaseId: updatedPurchase.id,
+              stock: Number(quantity),
             },
           });
         }
-      } else {
-        // Se mudou para AVISTA → apaga a conta vinculada
-        if (purchase.accountPayable) {
-          await tx.accountPayable.delete({
-            where: { id: purchase.accountPayable.id },
-          });
-        }
-      }
 
-      return updatedPurchase;
-    });
+        // 3. Ajustar contrato se houver
+        if (
+          purchase.purchaseOrderItem &&
+          purchase.purchaseOrderItem.purchaseOrder
+        ) {
+          const item = purchase.purchaseOrderItem;
+
+          const currentFulfilled = Number(item.fulfilledQuantity);
+          const revertedFulfilled =
+            currentFulfilled - Number(purchase.quantity);
+          const newFulfilled = revertedFulfilled + Number(quantity);
+
+          if (revertedFulfilled < 0) {
+            throw new Error(
+              "Quantidade atendida não pode ser negativa ao reverter",
+            );
+          }
+
+          await tx.purchaseOrderItem.update({
+            where: { id: item.id },
+            data: {
+              fulfilledQuantity: newFulfilled,
+            },
+          });
+
+          const updatedItem = await tx.purchaseOrderItem.findUnique({
+            where: { id: item.id },
+          });
+
+          if (
+            Number(updatedItem!.fulfilledQuantity) >
+            Number(updatedItem!.quantity)
+          ) {
+            throw new Error("Quantidade excede o saldo do pedido");
+          }
+
+          await recalcPurchaseOrderStatus(tx, item.purchaseOrderId);
+        }
+
+        // 4. Atualizar compra
+        const updatedPurchase = await tx.purchase.update({
+          where: { id },
+          data: {
+            productId,
+            customerId,
+            memberId,
+            memberAdressId,
+            date: new Date(date),
+            invoiceNumber,
+            unitPrice,
+            totalPrice,
+            quantity,
+            farmId,
+            notes,
+            paymentCondition,
+            dueDate: dueDate ? new Date(dueDate) : null,
+          },
+        });
+
+        // 5. Atualizar conta a pagar se houver
+        if (paymentCondition === PaymentCondition.APRAZO && dueDate) {
+          const description = `Compra de ${productInfo?.name ?? "insumo"}, cfe NF ${invoiceNumber}, de ${customerInfo?.name ?? "cliente"}, em nome de ${memberInfo?.name ?? "sócio"}`;
+
+          if (purchase.accountPayable) {
+            await tx.accountPayable.update({
+              where: { id: purchase.accountPayable.id },
+              data: {
+                description: description,
+                amount: totalPrice,
+                dueDate: new Date(dueDate),
+                customerId,
+              },
+            });
+          } else {
+            await tx.accountPayable.create({
+              data: {
+                description: description,
+                amount: totalPrice,
+                dueDate: new Date(dueDate),
+                companyId,
+                customerId,
+                memberId,
+                memberAdressId,
+                purchaseId: updatedPurchase.id,
+              },
+            });
+          }
+        } else {
+          if (purchase.accountPayable) {
+            await tx.accountPayable.delete({
+              where: { id: purchase.accountPayable.id },
+            });
+          }
+        }
+
+        return updatedPurchase;
+      },
+      {
+        maxWait: 10_000,
+        timeout: 20_000,
+      },
+    );
 
     return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
@@ -344,67 +391,88 @@ export async function DELETE(
       );
     }
 
-    const deleted = await db.$transaction(async (tx) => {
-      const purchase = await tx.purchase.findUnique({
-        where: { id },
-        include: {
-          accountPayable: true,
-          purchaseOrderItem: {
-            include: {
-              purchaseOrder: true,
+    const deleted = await db.$transaction(
+      async (tx) => {
+        const purchase = await tx.purchase.findUnique({
+          where: { id },
+          include: {
+            accountPayable: true,
+            purchaseOrderItem: {
+              include: {
+                purchaseOrder: true,
+              },
             },
           },
-        },
-      });
-
-      if (!purchase) throw new Error("Compra não encontrada");
-
-      // 1. Reverter estoque do insumo (decrementar)
-      await tx.productStock.update({
-        where: {
-          productId_farmId: {
-            productId: purchase.productId,
-            farmId: purchase.farmId,
-          },
-        },
-        data: {
-          stock: {
-            decrement: purchase.quantity,
-          },
-        },
-      });
-
-      // 2. Apagar conta vinculada
-      if (purchase.accountPayable) {
-        await db.accountPayable.delete({
-          where: { id: purchase.accountPayable.id },
         });
-      }
 
-      // 3. Se for atendimento de pedido de compra, reverter a quantidade entregue
-      if (purchase.purchaseOrderItemId && purchase.purchaseOrderItem) {
-        const item = purchase.purchaseOrderItem;
+        if (!purchase) throw new Error("Compra não encontrada");
 
-        if (Number(item.fulfilledQuantity) < Number(purchase.quantity)) {
-          throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
+        // 1. Reverter estoque do insumo (decrementar)
+        const prevStock = await tx.productStock.findUnique({
+          where: {
+            productId_farmId: {
+              productId: purchase.productId,
+              farmId: purchase.farmId,
+            },
+          },
+        });
+
+        if (prevStock) {
+          const newStockValue =
+            Number(prevStock.stock) - Number(purchase.quantity);
+          if (newStockValue < 0) {
+            throw new Error(
+              `Estoque insuficiente para excluir a compra. Disponível: ${prevStock.stock}, necessário reverter: ${purchase.quantity}`,
+            );
+          }
+          await tx.productStock.update({
+            where: {
+              productId_farmId: {
+                productId: purchase.productId,
+                farmId: purchase.farmId,
+              },
+            },
+            data: {
+              stock: newStockValue,
+            },
+          });
         }
 
-        await tx.purchaseOrderItem.update({
-          where: { id: item.id },
-          data: {
-            fulfilledQuantity: {
-              decrement: purchase.quantity,
+        // 2. Apagar conta vinculada
+        if (purchase.accountPayable) {
+          await tx.accountPayable.delete({
+            where: { id: purchase.accountPayable.id },
+          });
+        }
+
+        // 3. Se for atendimento de pedido de compra, reverter a quantidade entregue
+        if (purchase.purchaseOrderItemId && purchase.purchaseOrderItem) {
+          const item = purchase.purchaseOrderItem;
+
+          if (Number(item.fulfilledQuantity) < Number(purchase.quantity)) {
+            throw new Error("INVALID_FULFILLED_QUANTITY_REVERT");
+          }
+
+          await tx.purchaseOrderItem.update({
+            where: { id: item.id },
+            data: {
+              fulfilledQuantity: {
+                decrement: purchase.quantity,
+              },
             },
-          },
-        });
+          });
 
-        // 🔥 RECALCULAR STATUS DO PEDIDO
-        await recalcPurchaseOrderStatus(tx, item.purchaseOrderId);
-      }
+          await recalcPurchaseOrderStatus(tx, item.purchaseOrderId);
+        }
 
-      // 4. Excluir compra
-      return await tx.purchase.delete({ where: { id } });
-    });
+        // 4. Excluir compra
+        return await tx.purchase.delete({ where: { id } });
+      },
+      {
+        maxWait: 10_000,
+        timeout: 20_000,
+      },
+    );
 
     return NextResponse.json(deleted, { status: 200 });
   } catch (error: any) {

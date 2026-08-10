@@ -5,10 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { RefreshCw } from "lucide-react";
-import { useInputStockQuery } from "@/queries/input/use-input-stock";
 import { AgroLoader } from "@/components/agro-loader";
-import { groupStockByFarm } from "@/app/_helpers/group-stock-by-farm";
-import { groupStockByProduct } from "@/app/_helpers/group-stock-by-product";
 import GenerateStockReportModal from "./GenerateStockReportModal";
 import { IndustryStockViewToggle } from "./IndustryStockViewToggle";
 import { IndustryStockDepositView } from "./IndustryStockDepositView";
@@ -19,7 +16,7 @@ import { groupIndustryStockByProduct } from "@/app/_helpers/group-industry-stock
 
 export function IndustryStockContainer() {
   const [showZero, setShowZero] = useState(false);
-  const [viewMode, setViewMode] = useState<"deposit" | "product">("deposit");
+  const [viewMode, setViewMode] = useState<"product" | "deposit">("product");
 
   // persistência
   useEffect(() => {
@@ -73,10 +70,10 @@ export function IndustryStockContainer() {
 
       {/* CONTENT */}
       <div className="space-y-4 my-4 h-[68vh] overflow-auto scrollbar-hide">
-        {viewMode === "deposit" ? (
-          <IndustryStockDepositView data={groupedByDeposit} />
-        ) : (
+        {viewMode === "product" ? (
           <IndustryStockProductView data={groupedByProduct} />
+        ) : (
+          <IndustryStockDepositView data={groupedByDeposit} />
         )}
       </div>
 
