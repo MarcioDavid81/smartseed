@@ -3,58 +3,126 @@ import HoverButton from "@/components/HoverButton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { usePurchase } from "@/contexts/PurchaseContext";
+import { endOfDay, startOfDay } from "date-fns";
 import { useUser } from "@/contexts/UserContext";
+import { useInputPurchaseQuery } from "@/queries/input/use-input-purchase";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FaFilePdf, FaSpinner } from "react-icons/fa";
+import { Purchase } from "@/types";
+import { DatePicker } from "@/components/ui/date-picker";
 
 export default function GeneratePurchaseReportModal() {
-  const { purchases } = usePurchase();
+  const { data: purchases = [] } = useInputPurchaseQuery();
   const [product, setProduct] = useState<string | null>(null);
   const [customer, setCustomer] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const produtosUnicos = Array.from(
-    new Set(purchases.map((h) => h.product.name)),
-  );
+  const produtosFiltrados = useMemo(() => {
+    let base = purchases;
+
+    if (product) {
+      base = base.filter((h) => h.product.name === product);
+    }
+
+    return Array.from(new Set(base.map((h) => h.product.name)));
+  }, [purchases, product]);
+
   const customersUnicos = Array.from(
     new Set(purchases.map((h) => h.customer.name)),
   );
 
-  const filtered = purchases.filter((h) => {
-    const matchProduto = !product || h.product.name === product;
-    const matchCustomer = !customer || h.customer.name === customer;
-    return matchProduto && matchCustomer;
-  });
+  useEffect(() => {
+    setCustomer(null);
+  }, [product]);
 
-  const generatePDF = () => {
+  const filterPurchases = (list: Purchase[]) => {
+    const from = dateFrom ? startOfDay(dateFrom) : null;
+    const to = dateTo ? endOfDay(dateTo) : null;
+
+    return list.filter((h) => {
+      const matchProduto = !product || h.product.name === product;
+      const matchCustomer = !customer || h.customer.name === customer;
+
+      const date = new Date(h.date as unknown as string);
+      const matchDate = (!from || date >= from) && (!to || date <= to);
+
+      return matchProduto && matchCustomer && matchDate;
+    });
+  };
+
+  const generatePDF = async () => {
     setLoading(true);
-    const doc = new jsPDF({ orientation: "landscape" });
 
+    const filteredToUse = filterPurchases(purchases);
+
+    const doc = new jsPDF({ orientation: "landscape" });
     const logo = new window.Image();
     logo.src = "/6.png";
+
+    const periodLabel =
+      dateFrom || dateTo
+        ? `${dateFrom ? dateFrom.toLocaleDateString("pt-BR") : "—"} até ${dateTo ? dateTo.toLocaleDateString("pt-BR") : "—"}`
+        : "Todos";
 
     logo.onload = () => {
       doc.addImage(logo, "PNG", 14, 10, 30, 15);
       doc.setFontSize(16);
       doc.text("Relatório de Compras", 150, 20, { align: "center" });
+      const company = user.company.name;
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(company, 150, 25, {
+        align: "center",
+      });
 
       doc.setFontSize(10);
-      doc.text(`Produto: ${product || "Todos"}`, 14, 35);
-      doc.text(`Fornecedor: ${customer || "Todos"}`, 14, 40);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
+
+      // largura útil da página (tirando margens)
+      const usableWidth = pageWidth - margin * 2;
+
+      // divide em 3 colunas
+      const columnWidth = usableWidth / 3;
+
+      const startY = 35;
+      const lineHeight = 5;
+
+      const filters = [
+        `Produto: ${product || "Todos"}`,
+        `Fornecedor: ${customer || "Todos"}`,
+        `Período: ${periodLabel}`,
+      ];
+
+      filters.forEach((text, index) => {
+        const column = index % 3; // 0,1,2
+        const row = Math.floor(index / 3);
+
+        const x = margin + column * columnWidth;
+        const y = startY + row * lineHeight;
+
+        doc.text(text, x, y, {
+          maxWidth: columnWidth - 5, // evita estourar a coluna
+        });
+      });
+
+      // Tabela
+      const totalPagesExp = "{total_pages_count_string}";
 
       autoTable(doc, {
-        startY: 50,
+        startY: 40,
         head: [
           [
             "Data",
@@ -65,7 +133,8 @@ export default function GeneratePurchaseReportModal() {
             "Valor (R$)",
           ],
         ],
-        body: filtered.map((h) => [
+        showHead: "firstPage",
+        body: filteredToUse.map((h) => [
           new Date(h.date).toLocaleDateString("pt-BR"),
           h.product.name,
           h.customer.name,
@@ -78,49 +147,72 @@ export default function GeneratePurchaseReportModal() {
             currency: "BRL",
           }),
         ]),
+        foot: [
+          [
+            "Total",
+            "",
+            "",
+            "",
+            filteredToUse
+              .reduce((acc, curr) => acc + curr.quantity, 0)
+              .toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+              }),
+            filteredToUse
+              .reduce((acc, curr) => acc + curr.totalPrice, 0)
+              .toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              }),
+          ],
+        ],
+        showFoot: "lastPage",
         styles: {
           fontSize: 9,
         },
         headStyles: {
-          fillColor: [1, 204, 101],
+          fillColor: [99, 185, 38],
           textColor: 255,
           fontStyle: "bold",
         },
-        didDrawPage: function (data) {
+        footStyles: {
+          fillColor: [99, 185, 38],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        didDrawPage: function () {
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height;
           const pageWidth = pageSize.width;
 
-          const now = new Date();
-          const formattedDate = now.toLocaleString("pt-BR");
+          const now = new Date().toLocaleString("pt-BR");
           const userName = user?.name || "Usuário desconhecido";
 
+          const currentPage = (doc as any).internal.getCurrentPageInfo()
+            .pageNumber;
+
           doc.setFontSize(8);
-          doc.text(
-            `Relatório gerado em ${formattedDate} por: ${userName}`,
-            10,
-            pageHeight - 10,
-          );
+          doc.text(`Gerado em ${now} por: ${userName}`, 10, pageHeight - 10);
 
-          const centerText = "Sistema Smart Seed";
-          const centerTextWidth = doc.getTextWidth(centerText);
-          doc.text(
-            centerText,
-            pageWidth / 2 - centerTextWidth / 2,
-            pageHeight - 10,
-          );
+          const footerText = "Sistema Smart Seed";
+          doc.text(footerText, pageWidth / 2, pageHeight - 10, {
+            align: "center",
+          });
 
-          const pageNumber = (doc as any).internal.getNumberOfPages();
           doc.text(
-            `${pageNumber}/${pageNumber}`,
+            `${currentPage}/${totalPagesExp}`,
             pageWidth - 20,
             pageHeight - 10,
           );
         },
       });
 
+      if (typeof (doc as any).putTotalPages === "function") {
+        (doc as any).putTotalPages(totalPagesExp);
+      }
+
       // === SOMATÓRIO POR PRODUTO ===
-      const totalsByProduct = filtered.reduce(
+      const totalsByProduct = filteredToUse.reduce(
         (acc, curr) => {
           const name = curr.product.name;
           if (!acc[name]) acc[name] = 0;
@@ -130,7 +222,10 @@ export default function GeneratePurchaseReportModal() {
         {} as Record<string, number>,
       );
 
-      const totalGeral = filtered.reduce((acc, curr) => acc + curr.quantity, 0);
+      const totalGeral = filteredToUse.reduce(
+        (acc, curr) => acc + curr.quantity,
+        0,
+      );
 
       let finalY = (doc as any).lastAutoTable.finalY + 10;
 
@@ -162,6 +257,8 @@ export default function GeneratePurchaseReportModal() {
       doc.save(fileName);
       setProduct(null);
       setCustomer(null);
+      setDateFrom(undefined);
+      setDateTo(undefined);
       setLoading(false);
       setModalOpen(false);
     };
@@ -191,7 +288,7 @@ export default function GeneratePurchaseReportModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
-              {produtosUnicos.map((c) => (
+              {produtosFiltrados.map((c) => (
                 <SelectItem key={c} value={c}>
                   {c}
                 </SelectItem>
@@ -220,6 +317,15 @@ export default function GeneratePurchaseReportModal() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Período */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Período</label>
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            <DatePicker value={dateFrom} onChange={setDateFrom} />
+            <DatePicker value={dateTo} onChange={setDateTo} />
+          </div>
         </div>
 
         <Button
