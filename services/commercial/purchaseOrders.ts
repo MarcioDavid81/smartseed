@@ -18,7 +18,7 @@ export async function getPurchaseOrders(
   const query = params.toString();
 
   const data = await apiFetch<PurchaseOrderDetails[]>(
-    `/api/commercial/purchase-orders?${query ? `?${query}` : ""}`,
+    `/api/commercial/purchase-orders${query ? `?${query}` : ""}`,
   );
 
   return data;

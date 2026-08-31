@@ -88,6 +88,19 @@ export async function PUT(req: NextRequest, { params }: Params) {
           totalPrice: newQuantity.mul(existingItem.unityPrice),
         },
       });
+
+      // 🔹 Recalcula o status do contrato com base no novo volume
+      if (existingItem.fulfilledQuantity.gte(newQuantity)) {
+        await tx.saleContract.update({
+          where: { id: saleContract.id },
+          data: { status: "FULFILLED" },
+        });
+      } else if (existingItem.fulfilledQuantity.gt(0)) {
+        await tx.saleContract.update({
+          where: { id: saleContract.id },
+          data: { status: "PARTIAL_FULFILLED" },
+        });
+      }
     });
 
     return NextResponse.json(
@@ -364,7 +377,8 @@ export async function GET(
         memberAdressId: saleContract.memberAdressId ?? null,
         memberAdress: {
           id: saleContract.memberAdress?.id ?? null,
-          stateRegistration: saleContract.memberAdress?.stateRegistration ?? null,
+          stateRegistration:
+            saleContract.memberAdress?.stateRegistration ?? null,
           zip: saleContract.memberAdress?.zip ?? null,
           adress: saleContract.memberAdress?.adress ?? null,
           number: saleContract.memberAdress?.number ?? null,

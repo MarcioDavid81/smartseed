@@ -59,18 +59,19 @@ export async function PUT(req: NextRequest, { params }: Params) {
       });
 
       const existingItems = purchaseOrder.items;
-
       const existingMap = new Map(existingItems.map((item) => [item.id, item]));
-
       const incomingMap = new Map(
         items.filter((i) => i.id).map((item) => [item.id, item]),
       );
+
+      // Acumuladores pra recalcular o status no final
+      let totalQuantity = new Prisma.Decimal(0);
+      let totalFulfilled = new Prisma.Decimal(0);
 
       // 1️⃣ Atualizar itens existentes
       for (const incomingItem of items) {
         if (incomingItem.id && existingMap.has(incomingItem.id)) {
           const existingItem = existingMap.get(incomingItem.id)!;
-
           const newQuantity = new Prisma.Decimal(incomingItem.quantity);
 
           // Regra: não pode ser menor que já recebido
@@ -86,6 +87,9 @@ export async function PUT(req: NextRequest, { params }: Params) {
               totalPrice: newQuantity.mul(incomingItem.unityPrice),
             },
           });
+
+          totalQuantity = totalQuantity.add(newQuantity);
+          totalFulfilled = totalFulfilled.add(existingItem.fulfilledQuantity);
         }
       }
 
@@ -98,6 +102,11 @@ export async function PUT(req: NextRequest, { params }: Params) {
               purchaseOrderId: purchaseOrder.id,
             },
           });
+
+          totalQuantity = totalQuantity.add(
+            new Prisma.Decimal(incomingItem.quantity),
+          );
+          // item novo nasce com fulfilledQuantity = 0
         }
       }
 
@@ -115,6 +124,19 @@ export async function PUT(req: NextRequest, { params }: Params) {
           });
         }
       }
+
+      // 🔹 Recalcula o status com base no total consolidado
+      if (totalFulfilled.gte(totalQuantity) && totalQuantity.gt(0)) {
+        await tx.purchaseOrder.update({
+          where: { id: purchaseOrder.id },
+          data: { status: "FULFILLED" },
+        });
+      } else if (totalFulfilled.gt(0)) {
+        await tx.purchaseOrder.update({
+          where: { id: purchaseOrder.id },
+          data: { status: "PARTIAL_FULFILLED" },
+        });
+      }
     });
 
     return NextResponse.json(
@@ -122,10 +144,48 @@ export async function PUT(req: NextRequest, { params }: Params) {
       { status: 200 },
     );
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "Quantidade não pode ser menor que a já recebida"
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVALID_VOLUME",
+            title: "Volume inválido",
+            message: error.message,
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === "Não é possível remover item que já teve recebimento"
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "CANNOT_DELETE",
+            title: "Remoção não permitida",
+            message: error.message,
+          },
+        },
+        { status: 409 },
+      );
+    }
+
     console.error("Erro ao atualizar ordem de compra:", error);
 
     return NextResponse.json(
-      { error: "Erro interno do servidor" },
+      {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          title: "Erro interno do servidor",
+          message: "Ocorreu um erro ao processar a solicitação.",
+        },
+      },
       { status: 500 },
     );
   }
@@ -336,7 +396,8 @@ export async function GET(
         memberAdressId: purchaseOrder.memberAdressId ?? null,
         memberAdress: {
           id: purchaseOrder.memberAdress?.id ?? null,
-          stateRegistration: purchaseOrder.memberAdress?.stateRegistration ?? null,
+          stateRegistration:
+            purchaseOrder.memberAdress?.stateRegistration ?? null,
           zip: purchaseOrder.memberAdress?.zip ?? null,
           adress: purchaseOrder.memberAdress?.adress ?? null,
           number: purchaseOrder.memberAdress?.number ?? null,
