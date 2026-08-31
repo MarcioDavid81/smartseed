@@ -11,7 +11,7 @@ export default function NewSidebar() {
   const [isOpen, setIsOpen] = useState(true);
   
   return (
-    <aside className={`hidden relative z-50 md:flex h-screen ${isOpen ? "w-64" : "w-16"} flex-col bg-found text-text transition-all duration-300`}>
+    <aside className={`hidden sticky top-0 z-50 md:flex h-screen ${isOpen ? "w-64" : "w-16"} flex-col bg-found text-text transition-all duration-300`}>
       <div
         className={`absolute -right-4 top-[60px] cursor-pointer rounded-full bg-background p-1 text-primary dark:bg-primary dark:text-secondary transition-transform duration-300 z-[100] ${
           !isOpen && "rotate-180"

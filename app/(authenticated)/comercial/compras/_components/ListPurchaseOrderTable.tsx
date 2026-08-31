@@ -167,7 +167,7 @@ export function ListPurchaseOrderTable() {
         return (
           <div className="flex items-center justify-center gap-4">
             <DetailPurchaseOrderButton compra={compra} />
-            <EditPurchaseOrderButton compra={compra} />
+            <EditPurchaseOrderButton purchaseOrderId={compra.id} />
             <DeletePurchaseOrderButton compra={compra} />
           </div>
         );

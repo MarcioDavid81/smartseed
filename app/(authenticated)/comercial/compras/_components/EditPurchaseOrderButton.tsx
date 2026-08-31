@@ -1,45 +1,34 @@
 "use client";
 
 import { SquarePenIcon } from "lucide-react";
-import { useState } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
-import UpsertPurchaseOrderModal from "./UpsertPurchaseOrderModal";
+import Link from 'next/link';
 
 interface Props {
-  compra: PurchaseOrderDetails;
+  purchaseOrderId: string;
 }
 
-const EditPurchaseOrderButton = ({ compra }: Props) => {
-  const [isOpen, setIsOpen] = useState(false);
+
+const EditPurchaseOrderButton = ({ purchaseOrderId }: Props) => {
+
   return (
-    <>
-      <TooltipProvider>
+    <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
-              onClick={() => setIsOpen(true)}
-              className="hover:opacity-80 transition"
-            >
+            <Link href={`/comercial/compras/${purchaseOrderId}/edit`}>
               <SquarePenIcon size={20} className="text-green" />
-            </button>
+            </Link>
           </TooltipTrigger>
           <TooltipContent>
             <p>Editar</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <UpsertPurchaseOrderModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        compra={compra}
-      />
-    </>
   );
 };
 

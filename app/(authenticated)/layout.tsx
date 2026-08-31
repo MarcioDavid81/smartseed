@@ -108,7 +108,7 @@ export default async function RootLayout({
           <NewSidebar />
           <MobileMenu />
           <TrialUpgradeDialog />
-          {children}
+          <main className="flex-1 min-w-0">{children}</main>
         </AppProviders>                                                
       </body>
     </html>

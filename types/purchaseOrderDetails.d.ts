@@ -71,3 +71,27 @@ export type PurchaseOrderDetails = {
     totalPrice: number;
   }>;
 };
+
+export type PurchaseOrderFormItem = {
+  id: string;
+  productId: string | null;
+  cultivarId: string | null;
+  description: string | null;
+  quantity: number;
+  unit: Unit;
+  unityPrice: number;
+  totalPrice: number;
+  fulfilledQuantity: number;
+};
+
+export type PurchaseOrderFormInitialData = {
+  id: string;
+  type: PurchaseOrderType;
+  date: Date;
+  customerId: string;
+  memberId: string | null;
+  memberAdressId: string | null;
+  document: string | null;
+  notes: string | null;
+  items: PurchaseOrderFormItem[];
+};

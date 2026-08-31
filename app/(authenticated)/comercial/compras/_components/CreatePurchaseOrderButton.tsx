@@ -2,28 +2,17 @@
 
 import HoverButton from "@/components/HoverButton";
 import { PlusIcon } from "lucide-react";
-import { useState } from "react";
-import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
-import UpsertPurchaseOrderModal from "./UpsertPurchaseOrderModal";
+import Link from 'next/link';
 
-interface Props {
-  compra?: PurchaseOrderDetails;
-}
+const CreatePurchaseOrderButton = () => {
 
-const CreatePurchaseOrderButton = ({ compra }: Props) => {
-  const [isOpen, setIsOpen] = useState(false);
   return (
-    <div>
-      <HoverButton onClick={() => setIsOpen(true)}>
+    <Link href="/comercial/compras/new">
+      <HoverButton>
         <PlusIcon size={20} />
         Compra
       </HoverButton>
-      <UpsertPurchaseOrderModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        compra={compra}
-      />
-    </div>
+    </Link>
   );
 };
 
