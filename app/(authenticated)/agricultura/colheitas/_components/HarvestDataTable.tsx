@@ -23,11 +23,12 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CreateHarvestButton from "./CreateHarvestButton";
 import GenerateHarvestReportModal from "./GenerateHarvestReportModal";
 import { FunnelX } from "lucide-react";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
+import { parseAsString, useQueryStates } from "nuqs";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -40,12 +41,17 @@ interface DataTableProps<TData, TValue> {
 export function HarvestDataTable<TData, TValue>({
   columns,
   data,
-  pageSize = 8,
+  pageSize = 50,
   searchFields = [],
   sumColumnId,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [filters, setFilters] = useQueryStates({
+    farm: parseAsString.withDefault(""),
+    talhao: parseAsString.withDefault(""),
+    industryDeposit: parseAsString.withDefault(""),
+  });
+  const [sorting, setSorting] = useState<SortingState>([]);
   const table = useReactTable({
     data,
     columns,
@@ -58,8 +64,8 @@ export function HarvestDataTable<TData, TValue>({
     filterFns: {
       fuzzy: (row, _, search) => {
         const data = row.original;
-        return searchFields.some(field => data[field].includes(search));
-      }
+        return searchFields.some((field) => data[field].includes(search));
+      },
     },
     globalFilterFn: "fuzzy" as FilterFnOption<TData>,
     state: {
@@ -70,8 +76,14 @@ export function HarvestDataTable<TData, TValue>({
       pagination: {
         pageSize: pageSize,
       },
-    }
+    },
   });
+
+  useEffect(() => {
+    table.getColumn("farm")?.setFilterValue(filters.farm);
+    table.getColumn("talhao")?.setFilterValue(filters.talhao);
+    table.getColumn("industryDeposit")?.setFilterValue(filters.industryDeposit);
+  }, [filters, table]);
 
   const filteredRows = table.getFilteredRowModel().rows;
   const totalKg = sumColumnId
@@ -83,44 +95,60 @@ export function HarvestDataTable<TData, TValue>({
     : 0;
 
   return (
-    <div className="space-y-4 dark:bg-primary rounded-md">
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between py-4">
+    <div className="space-y-4 rounded-md dark:bg-primary">
+      <div className="flex flex-col items-start justify-between gap-4 py-4 md:flex-row md:items-center">
         <div className="flex items-center gap-2">
           <Input
             placeholder="Procure por fazenda"
-            value={(table.getColumn("farm")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("farm")?.setFilterValue(event.target.value)
-            }
+            value={filters.farm}
+            onChange={(event) => {
+              const value = event.target.value;
+
+              setFilters({ farm: value });
+              table.getColumn("farm")?.setFilterValue(value);
+            }}
             className="max-w-sm bg-gray-50 text-primary"
           />
           <Input
             placeholder="Procure por talhão"
-            value={(table.getColumn("talhao")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("talhao")?.setFilterValue(event.target.value)
-            }
-              className="max-w-sm bg-gray-50 text-primary"
-            />
+            value={filters.talhao}
+            onChange={(event) => {
+              const value = event.target.value;
+
+              setFilters({ talhao: value });
+              table.getColumn("talhao")?.setFilterValue(value);
+            }}
+            className="max-w-sm bg-gray-50 text-primary"
+          />
           <Input
             placeholder="Procure por depósito"
-            value={(table.getColumn("industryDeposit")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("industryDeposit")?.setFilterValue(event.target.value)
-            }
-              className="max-w-sm bg-gray-50 text-primary"
-            />
-            {table.getState().columnFilters.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => table.resetColumnFilters()}
-                className="text-muted-foreground hover:text-primary flex items-center gap-1 font-light text-sm"
-              >
-                <FunnelX size={14} />
-                Limpar filtros
-              </Button>
-            )}
+            value={filters.industryDeposit}
+            onChange={(event) => {
+              const value = event.target.value;
+
+              setFilters({ industryDeposit: value });
+              table.getColumn("industryDeposit")?.setFilterValue(value);
+            }}
+            className="max-w-sm bg-gray-50 text-primary"
+          />
+          {table.getState().columnFilters.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                table.resetColumnFilters();
+                setFilters({
+                  farm: null,
+                  talhao: null,
+                  industryDeposit: null,
+                });
+              }}
+              className="flex items-center gap-1 text-sm font-light text-muted-foreground hover:text-primary"
+            >
+              <FunnelX size={14} />
+              Limpar filtros
+            </Button>
+          )}
         </div>
         <CreateHarvestButton />
       </div>
@@ -135,7 +163,7 @@ export function HarvestDataTable<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -145,12 +173,12 @@ export function HarvestDataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -169,16 +197,23 @@ export function HarvestDataTable<TData, TValue>({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={columns.length - 2} className="text-start text-muted-foreground">
+              <TableCell
+                colSpan={columns.length - 2}
+                className="text-start text-muted-foreground"
+              >
                 <h3>Total</h3>
               </TableCell>
-              <TableCell colSpan={2} className="text-start text-muted-foreground">                
+              <TableCell
+                colSpan={2}
+                className="text-start text-muted-foreground"
+              >
                 {sumColumnId ? (
                   <div>
                     {new Intl.NumberFormat("pt-BR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
-                    }).format(totalKg)} Kg
+                    }).format(totalKg)}{" "}
+                    Kg
                   </div>
                 ) : null}
               </TableCell>
@@ -189,8 +224,8 @@ export function HarvestDataTable<TData, TValue>({
 
       {/* Paginação */}
       <div className="flex items-center justify-between space-x-2 dark:text-primary">
-        <GenerateHarvestReportModal  />
-        <div className="flex items-center gap-1 justify-end">
+        <GenerateHarvestReportModal />
+        <div className="flex items-center justify-end gap-1">
           {/* Anterior */}
           <Button
             variant="ghost"
@@ -204,7 +239,7 @@ export function HarvestDataTable<TData, TValue>({
 
           {getPaginationItems(
             table.getState().pagination.pageIndex,
-            table.getPageCount()
+            table.getPageCount(),
           ).map((item, index) =>
             item === "..." ? (
               <span
@@ -222,12 +257,12 @@ export function HarvestDataTable<TData, TValue>({
                     ? "default"
                     : "ghost"
                 }
-                className="h-8 w-8 hover:bg-green/50 rounded-full font-light"
+                className="h-8 w-8 rounded-full font-light hover:bg-green/50"
                 onClick={() => table.setPageIndex(item)}
               >
                 {item + 1}
               </Button>
-            )
+            ),
           )}
 
           {/* Próximo */}
@@ -241,7 +276,6 @@ export function HarvestDataTable<TData, TValue>({
           </Button>
         </div>
       </div>
-
     </div>
   );
 }

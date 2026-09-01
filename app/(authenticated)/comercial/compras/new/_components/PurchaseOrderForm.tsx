@@ -140,8 +140,8 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
       >
         {/* ---------- Dados gerais ---------- */}
         <Card>
-          <CardContent className="pt-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="space-y-4 pt-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <FormField
                 control={form.control}
                 name="date"
@@ -149,7 +149,10 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
                   <FormItem>
                     <FormLabel>Data</FormLabel>
                     <FormControl>
-                      <DatePicker value={field.value} onChange={field.onChange} />
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -168,7 +171,7 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
                 )}
               />
 
-                            <FormField
+              <FormField
                 control={form.control}
                 name="type"
                 render={({ field }) => (
@@ -198,7 +201,7 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <FormField
                 control={form.control}
                 name="memberId"
@@ -248,7 +251,10 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
                       </FormControl>
                       <SelectContent>
                         {addresses.map((memberAdress) => (
-                          <SelectItem key={memberAdress.id} value={memberAdress.id}>
+                          <SelectItem
+                            key={memberAdress.id}
+                            value={memberAdress.id}
+                          >
                             <div className="flex items-center justify-between gap-2">
                               <span>{memberAdress.stateRegistration}</span>
                               <span className="text-muted-foreground">
@@ -265,7 +271,7 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
                 )}
               />
 
-                            <FormField
+              <FormField
                 control={form.control}
                 name="customerId"
                 render={({ field }) => (
@@ -303,9 +309,9 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
 
         {/* ---------- Itens ---------- */}
         <Card>
-          <CardContent className="pt-6 space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Itens</h3>
+              <h3 className="text-lg font-semibold">Itens</h3>
               <Button
                 type="button"
                 variant="outline"
@@ -335,7 +341,7 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
               ))}
 
               {fields.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-8">
+                <p className="py-8 text-center text-sm text-muted-foreground">
                   Nenhum item adicionado ainda.
                 </p>
               )}
@@ -344,11 +350,15 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
         </Card>
 
         {/* ---------- Footer fixo ---------- */}
-        <div className="fixed bottom-0 left-0 right-0 bg-background p-4 flex justify-end gap-2 md:pl-[var(--sidebar-width,0px)]">
+        <div className="fixed bottom-0 left-0 right-0 flex justify-end gap-2 bg-background p-4 md:pl-[var(--sidebar-width,0px)]">
           <Button type="button" variant="ghost" onClick={() => router.back()}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isPending} className="bg-green text-white min-w-[120px]">
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="min-w-[120px] bg-green text-white"
+          >
             {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
           </Button>
         </div>

@@ -7,6 +7,7 @@ import "../globals.css";
 import { MobileMenu } from "./_components/MenuMobile";
 import NewSidebar from "./_components/new-sidebar/sidebar";
 import { TrialUpgradeDialog } from "./_components/TrialUpgradeDialog";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const robotoFont = roboto({
   src: [
@@ -55,26 +56,22 @@ export const metadata: Metadata = {
     "controle de produção e estoque de sementes",
   ],
   description: "O seu sistema de gestão de produção de sementes",
-  authors: [
-    { name: "Marcio David", url: "https://www.marciodavid.dev.br" },
-  ],
+  authors: [{ name: "Marcio David", url: "https://www.marciodavid.dev.br" }],
   verification: {
     google: "iujCtqRV2IM9SBkAlFhc6qixIgiTU5gOhbi__yUjCmI",
   },
 };
-
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   const user = await getUserFromToken();
   const company = await getCompanyFromToken();
   if (!user || !company) {
-  redirect("/login");
-}
+    redirect("/login");
+  }
 
   const safeUser = {
     id: user.id,
@@ -104,12 +101,14 @@ export default async function RootLayout({
       <body
         className={`${robotoFont.className} min-h-screen w-full antialiased md:flex`}
       >
-        <AppProviders user={safeUser} company={safeCompany}>
-          <NewSidebar />
-          <MobileMenu />
-          <TrialUpgradeDialog />
-          <main className="flex-1 min-w-0">{children}</main>
-        </AppProviders>                                                
+        <NuqsAdapter>
+          <AppProviders user={safeUser} company={safeCompany}>
+            <NewSidebar />
+            <MobileMenu />
+            <TrialUpgradeDialog />
+            <main className="min-w-0 flex-1">{children}</main>
+          </AppProviders>
+        </NuqsAdapter>
       </body>
     </html>
   );
