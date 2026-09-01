@@ -45,8 +45,10 @@ export function ListHarvestTable() {
         new Date(original.date).toLocaleDateString("pt-BR"),
     },
     {
-      accessorKey: "document",
+      id: "document",
       header: "Documento",
+      accessorFn: (row) => row.document ?? "",
+      filterFn: "includesString",
       cell: ({ row: { original } }) => original.document,
     },
     {
@@ -76,8 +78,10 @@ export function ListHarvestTable() {
       ),
     },
     {
-      accessorKey: "industryTransporter",
+      id: "transporter",
       header: () => <div className="text-left">Transportador</div>,
+      accessorFn: (row) => row.industryTransporter?.name ?? "",
+      filterFn: "includesString",
       cell: ({ row: { original } }) => (
         <div className="text-left">
           {original.industryTransporter?.name ? (

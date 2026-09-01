@@ -22,13 +22,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CreateHarvestButton from "./CreateHarvestButton";
 import GenerateHarvestReportModal from "./GenerateHarvestReportModal";
 import { FunnelX } from "lucide-react";
 import { getPaginationItems } from "@/app/_helpers/getPaginationItems";
 import { parseAsString, useQueryStates } from "nuqs";
+import { HarvestFilterModal, HarvestFilters } from "./HarvestFilterModal";
+import { IndustryHarvest } from "@/types";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -50,10 +51,55 @@ export function HarvestDataTable<TData, TValue>({
     farm: parseAsString.withDefault(""),
     talhao: parseAsString.withDefault(""),
     industryDeposit: parseAsString.withDefault(""),
+    document: parseAsString.withDefault(""),
+    transporter: parseAsString.withDefault(""),
+    dateFrom: parseAsString.withDefault(""),
+    dateTo: parseAsString.withDefault(""),
   });
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  const hasActiveFilters = useMemo(() => {
+    return (
+      filters.farm !== "" ||
+      filters.talhao !== "" ||
+      filters.industryDeposit !== "" ||
+      filters.document !== "" ||
+      filters.transporter !== "" ||
+      filters.dateFrom !== "" ||
+      filters.dateTo !== ""
+    );
+  }, [filters]);
+
+  const parseDateStr = (s: string): Date | null => {
+    if (!s) return null;
+    const parts = s.split(/[-T]/);
+    if (parts.length < 3) return null;
+    const [y, m, d] = parts;
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  };
+
+  const normalizeLocalDate = (d: Date | string): Date => {
+    const date = typeof d === "string" ? new Date(d) : d;
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  };
+
+  const filteredByDate = useMemo(() => {
+    const from = filters.dateFrom ? parseDateStr(filters.dateFrom) : null;
+    const to = filters.dateTo ? parseDateStr(filters.dateTo) : null;
+
+    if (!from && !to) return data;
+
+    return data.filter((item) => {
+      const harvest = item as unknown as IndustryHarvest;
+      const date = normalizeLocalDate(harvest.date);
+      const matchFrom = !from || date.getTime() >= from.getTime();
+      const matchTo = !to || date.getTime() <= to.getTime();
+      return matchFrom && matchTo;
+    });
+  }, [data, filters.dateFrom, filters.dateTo]);
+
   const table = useReactTable({
-    data,
+    data: filteredByDate,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -83,6 +129,8 @@ export function HarvestDataTable<TData, TValue>({
     table.getColumn("farm")?.setFilterValue(filters.farm);
     table.getColumn("talhao")?.setFilterValue(filters.talhao);
     table.getColumn("industryDeposit")?.setFilterValue(filters.industryDeposit);
+    table.getColumn("document")?.setFilterValue(filters.document);
+    table.getColumn("transporter")?.setFilterValue(filters.transporter);
   }, [filters, table]);
 
   const filteredRows = table.getFilteredRowModel().rows;
@@ -94,55 +142,70 @@ export function HarvestDataTable<TData, TValue>({
       }, 0)
     : 0;
 
+  const handleApplyFilters = (newFilters: HarvestFilters) => {
+    setFilters({
+      farm: newFilters.farm || null,
+      talhao: newFilters.talhao || null,
+      industryDeposit: newFilters.industryDeposit || null,
+      document: newFilters.document || null,
+      transporter: newFilters.transporter || null,
+      dateFrom: newFilters.dateFrom
+        ? new Date(
+            newFilters.dateFrom.getTime() -
+              newFilters.dateFrom.getTimezoneOffset() * 60000,
+          )
+            .toISOString()
+            .slice(0, 10)
+        : null,
+      dateTo: newFilters.dateTo
+        ? new Date(
+            newFilters.dateTo.getTime() -
+              newFilters.dateTo.getTimezoneOffset() * 60000,
+          )
+            .toISOString()
+            .slice(0, 10)
+        : null,
+    });
+  };
+
+  const handleClearFilters = () => {
+    table.resetColumnFilters();
+    setFilters({
+      farm: null,
+      talhao: null,
+      industryDeposit: null,
+      document: null,
+      transporter: null,
+      dateFrom: null,
+      dateTo: null,
+    });
+  };
+
+  const harvestFilters: HarvestFilters = {
+    farm: filters.farm ?? "",
+    talhao: filters.talhao ?? "",
+    industryDeposit: filters.industryDeposit ?? "",
+    document: filters.document ?? "",
+    transporter: filters.transporter ?? "",
+    dateFrom: parseDateStr(filters.dateFrom ?? ""),
+    dateTo: parseDateStr(filters.dateTo ?? ""),
+  };
+
   return (
     <div className="space-y-4 rounded-md dark:bg-primary">
       <div className="flex flex-col items-start justify-between gap-4 py-4 md:flex-row md:items-center">
         <div className="flex items-center gap-2">
-          <Input
-            placeholder="Procure por fazenda"
-            value={filters.farm}
-            onChange={(event) => {
-              const value = event.target.value;
-
-              setFilters({ farm: value });
-              table.getColumn("farm")?.setFilterValue(value);
-            }}
-            className="max-w-sm bg-gray-50 text-primary"
+          <HarvestFilterModal
+            filters={harvestFilters}
+            onApply={handleApplyFilters}
+            onClear={handleClearFilters}
+            hasActiveFilters={hasActiveFilters}
           />
-          <Input
-            placeholder="Procure por talhão"
-            value={filters.talhao}
-            onChange={(event) => {
-              const value = event.target.value;
-
-              setFilters({ talhao: value });
-              table.getColumn("talhao")?.setFilterValue(value);
-            }}
-            className="max-w-sm bg-gray-50 text-primary"
-          />
-          <Input
-            placeholder="Procure por depósito"
-            value={filters.industryDeposit}
-            onChange={(event) => {
-              const value = event.target.value;
-
-              setFilters({ industryDeposit: value });
-              table.getColumn("industryDeposit")?.setFilterValue(value);
-            }}
-            className="max-w-sm bg-gray-50 text-primary"
-          />
-          {table.getState().columnFilters.length > 0 && (
+          {hasActiveFilters && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                table.resetColumnFilters();
-                setFilters({
-                  farm: null,
-                  talhao: null,
-                  industryDeposit: null,
-                });
-              }}
+              onClick={handleClearFilters}
               className="flex items-center gap-1 text-sm font-light text-muted-foreground hover:text-primary"
             >
               <FunnelX size={14} />
