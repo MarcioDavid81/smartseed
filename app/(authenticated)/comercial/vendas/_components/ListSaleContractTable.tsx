@@ -168,7 +168,7 @@ export function ListSaleContractTable() {
         return (
           <div className="flex items-center justify-center gap-4">
             <DetailSaleContractButton venda={venda} />
-            <EditSaleContractButton venda={venda} />
+            <EditSaleContractButton saleContractId={venda.id} />
             <DeleteSaleContractButton venda={venda} />
           </div>
         );

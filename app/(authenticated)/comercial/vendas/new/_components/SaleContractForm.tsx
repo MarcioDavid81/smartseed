@@ -20,46 +20,46 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSmartToast } from "@/contexts/ToastContext";
-import {
-  purchaseOrderSchema,
-  PurchaseOrderFormData,
-} from "@/lib/schemas/purchaseOrderSchema";
-import { PurchaseOrderDetails, PurchaseOrderFormInitialData } from "@/types";
+import { SaleContractDetails } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PurchaseOrderType, Unit } from "@prisma/client";
+import { SaleContractType, Unit } from "@prisma/client";
 import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { useUpsertPurchaseOrder } from "@/queries/commercial/use-purchase-orders";
+import SaleContractItemForm from "../../_components/SaleContractItemForm";
 import { ComboBoxOption } from "@/components/combo-option";
 import { useCustomers } from "@/queries/registrations/use-customer";
+import {
+  SaleContractFormData,
+  saleContractSchema,
+} from "@/lib/schemas/saleContractSchema";
+import { useUpsertSaleContract } from "@/queries/commercial/use-sale-contracts";
 import { useMembers } from "@/queries/registrations/use-member";
-import PurchaseOrderItemForm from "../../_components/PurchaseOrderItemForm";
 
-interface PurchaseOrderFormProps {
-  compra?: PurchaseOrderDetails;
+interface SaleContractFormProps {
+  venda?: SaleContractDetails;
 }
 
-const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
+const SaleContractForm = ({ venda }: SaleContractFormProps) => {
   const { showToast } = useSmartToast();
   const router = useRouter();
 
-  const form = useForm<PurchaseOrderFormData>({
-    resolver: zodResolver(purchaseOrderSchema),
+  const form = useForm<SaleContractFormData>({
+    resolver: zodResolver(saleContractSchema),
     defaultValues: {
-      type: compra?.type || PurchaseOrderType.INPUT_PURCHASE,
-      date: compra ? new Date(compra.date) : new Date(),
-      customerId: compra?.customerId || "",
-      memberId: compra?.memberId || "",
-      memberAdressId: compra?.memberAdressId || "",
-      document: compra?.document || "",
-      notes: compra?.notes || "",
+      type: venda?.type || SaleContractType.INDUSTRY_SALE,
+      date: venda ? new Date(venda.date) : new Date(),
+      customerId: venda?.customerId || "",
+      memberId: venda?.memberId || "",
+      memberAdressId: venda?.memberAdressId || "",
+      document: venda?.document || "",
+      notes: venda?.notes || "",
       items:
-        compra?.items.map((item) => ({
+        venda?.items.map((item) => ({
           id: item.id,
-          productId: item.productId ?? undefined,
-          cultivarId: item.cultivarId ?? undefined,
+          product: item.product ?? undefined,
+          cultivarId: item.cultivar?.id ?? undefined,
           description: item.description ?? "",
           quantity: Number(item.quantity),
           unit: item.unit,
@@ -82,19 +82,19 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
   const addresses = selectedMember?.adresses ?? [];
 
   useEffect(() => {
-    if (compra) {
+    if (venda) {
       form.reset({
-        type: compra.type,
-        date: new Date(compra.date),
-        customerId: compra.customerId,
-        memberId: compra.memberId || "",
-        memberAdressId: compra.memberAdressId || "",
-        document: compra.document ?? "",
-        notes: compra.notes ?? "",
-        items: compra.items.map((item) => ({
+        type: venda.type,
+        date: new Date(venda.date),
+        customerId: venda.customerId,
+        memberId: venda.memberId || "",
+        memberAdressId: venda.memberAdressId || "",
+        document: venda.document ?? "",
+        notes: venda.notes ?? "",
+        items: venda.items.map((item) => ({
           id: item.id,
-          productId: item.productId ?? undefined,
-          cultivarId: item.cultivarId ?? undefined,
+          product: item.product ?? undefined,
+          cultivarId: item.cultivar?.id ?? undefined,
           description: item.description ?? "",
           quantity: Number(item.quantity),
           unit: item.unit,
@@ -104,23 +104,23 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [compra]);
+  }, [venda]);
 
-  const { mutate, isPending } = useUpsertPurchaseOrder({
-    purchaseOrderId: compra?.id,
+  const { mutate, isPending } = useUpsertSaleContract({
+    saleContractId: venda?.id,
   });
 
-  const onSubmit = (data: PurchaseOrderFormData) => {
+  const onSubmit = (data: SaleContractFormData) => {
     mutate(data, {
       onSuccess: () => {
         showToast({
           type: "success",
           title: "Sucesso",
-          message: compra
-            ? "Pedido de compra atualizado com sucesso!"
-            : "Pedido de compra cadastrado com sucesso!",
+          message: venda
+            ? "Venda atualizada com sucesso!"
+            : "Venda cadastrada com sucesso!",
         });
-        router.push("/comercial/compras");
+        router.push("/comercial/vendas");
       },
       onError: (error) => {
         showToast({
@@ -136,12 +136,12 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-6 pb-24" // pb-24 dá espaço pro footer fixo
+        className="flex flex-col gap-6 pb-24"
       >
         {/* ---------- Dados gerais ---------- */}
         <Card>
-          <CardContent className="pt-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="space-y-4 pt-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <FormField
                 control={form.control}
                 name="date"
@@ -149,7 +149,10 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
                   <FormItem>
                     <FormLabel>Data</FormLabel>
                     <FormControl>
-                      <DatePicker value={field.value} onChange={field.onChange} />
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -168,12 +171,12 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
                 )}
               />
 
-                            <FormField
+              <FormField
                 control={form.control}
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipo do pedido</FormLabel>
+                    <FormLabel>Tipo do contrato</FormLabel>
                     <FormControl>
                       <Select
                         value={field.value}
@@ -184,11 +187,11 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
                           <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={PurchaseOrderType.INPUT_PURCHASE}>
-                            Compra de Insumos
+                          <SelectItem value={SaleContractType.INDUSTRY_SALE}>
+                            Venda de Grão
                           </SelectItem>
-                          <SelectItem value={PurchaseOrderType.SEED_PURCHASE}>
-                            Compra de Sementes
+                          <SelectItem value={SaleContractType.SEED_SALE}>
+                            Venda de Sementes
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -198,7 +201,7 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <FormField
                 control={form.control}
                 name="memberId"
@@ -248,7 +251,10 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
                       </FormControl>
                       <SelectContent>
                         {addresses.map((memberAdress) => (
-                          <SelectItem key={memberAdress.id} value={memberAdress.id}>
+                          <SelectItem
+                            key={memberAdress.id}
+                            value={memberAdress.id}
+                          >
                             <div className="flex items-center justify-between gap-2">
                               <span>{memberAdress.stateRegistration}</span>
                               <span className="text-muted-foreground">
@@ -265,7 +271,7 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
                 )}
               />
 
-                            <FormField
+              <FormField
                 control={form.control}
                 name="customerId"
                 render={({ field }) => (
@@ -303,9 +309,9 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
 
         {/* ---------- Itens ---------- */}
         <Card>
-          <CardContent className="pt-6 space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Itens</h3>
+              <h3 className="text-lg font-semibold">Itens</h3>
               <Button
                 type="button"
                 variant="outline"
@@ -322,10 +328,9 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
               </Button>
             </div>
 
-            {/* sem ScrollArea com altura fixa: a página inteira rola */}
             <div className="space-y-4">
               {fields.map((_, index) => (
-                <PurchaseOrderItemForm
+                <SaleContractItemForm
                   key={index}
                   form={form}
                   index={index}
@@ -335,7 +340,7 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
               ))}
 
               {fields.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-8">
+                <p className="py-8 text-center text-sm text-muted-foreground">
                   Nenhum item adicionado ainda.
                 </p>
               )}
@@ -344,11 +349,15 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
         </Card>
 
         {/* ---------- Footer fixo ---------- */}
-        <div className="fixed bottom-0 left-0 right-0 bg-background p-4 flex justify-end gap-2 md:pl-[var(--sidebar-width,0px)]">
+        <div className="fixed bottom-0 left-0 right-0 flex justify-end gap-2 bg-background p-4 md:pl-[var(--sidebar-width,0px)]">
           <Button type="button" variant="ghost" onClick={() => router.back()}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isPending} className="bg-green text-white min-w-[120px]">
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="min-w-[120px] bg-green text-white"
+          >
             {isPending ? <FaSpinner className="animate-spin" /> : "Salvar"}
           </Button>
         </div>
@@ -357,4 +366,4 @@ const PurchaseOrderForm = ({ compra }: PurchaseOrderFormProps) => {
   );
 };
 
-export default PurchaseOrderForm;
+export default SaleContractForm;

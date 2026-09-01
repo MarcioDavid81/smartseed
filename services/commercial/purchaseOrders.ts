@@ -1,6 +1,7 @@
 import { PurchaseOrder, PurchaseOrderDetails } from "@/types";
 import { apiFetch } from "../api";
 import { PurchaseOrderFormData } from "@/lib/schemas/purchaseOrderSchema";
+import { db } from "@/lib/prisma";
 
 export interface PurchaseOrderFilters {
   showZero?: boolean;
@@ -63,4 +64,41 @@ export function deletePurchaseOrder(purchaseOrderId: string) {
       method: "DELETE",
     },
   );
+}
+
+export async function getPurchaseOrderByIdForEdit(
+  purchaseOrderId: string,
+  companyId: string,
+) {
+  return db.purchaseOrder.findUnique({
+    where: { id: purchaseOrderId, companyId },
+    include: {
+      customer: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      member: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          cpf: true,
+        },
+      },
+      memberAdress: true,
+      items: {
+        include: {
+          cultivar: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
 }

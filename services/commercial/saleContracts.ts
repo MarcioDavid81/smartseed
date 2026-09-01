@@ -1,13 +1,14 @@
 import { SaleContract, SaleContractDetails } from "@/types";
 import { apiFetch } from "../api";
 import { SaleContractFormData } from "@/lib/schemas/saleContractSchema";
+import { db } from "@/lib/prisma";
 
 export interface SaleContractFilters {
   showZero?: boolean;
 }
 
 export async function getSaleContracts(
-  filters?: SaleContractFilters
+  filters?: SaleContractFilters,
 ): Promise<SaleContractDetails[]> {
   const params = new URLSearchParams();
 
@@ -18,7 +19,7 @@ export async function getSaleContracts(
   const query = params.toString();
 
   const data = await apiFetch<SaleContractDetails[]>(
-    `/api/commercial/sale-contracts${query ? `?${query}` : ""}`
+    `/api/commercial/sale-contracts${query ? `?${query}` : ""}`,
   );
 
   return data;
@@ -56,8 +57,48 @@ export function upsertSaleContract({
   });
 }
 
-export function deleteSaleContract(saleContractId: string) {  
-  return apiFetch<SaleContract>(`/api/commercial/sale-contracts/${saleContractId}`, {
-    method: "DELETE",
+export function deleteSaleContract(saleContractId: string) {
+  return apiFetch<SaleContract>(
+    `/api/commercial/sale-contracts/${saleContractId}`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
+export async function getSaleContractByIdForEdit(
+  saleContractId: string,
+  companyId: string,
+) {
+  return db.saleContract.findUnique({
+    where: { id: saleContractId, companyId },
+    include: {
+      customer: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      member: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          cpf: true,
+        },
+      },
+      memberAdress: true,
+      items: {
+        include: {
+          cultivar: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
   });
 }

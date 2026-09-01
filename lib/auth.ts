@@ -130,6 +130,12 @@ export async function getAuthUserOrThrow() {
   return user;
 }
 
+export async function getTenantOrThrow() {
+  const company = await getCompanyFromToken();
+  if (!company) throw new Error("UNAUTHORIZED");
+  return { companyId: company.id };
+}
+
 export function requireAdmin(user: any) {
   if (user.role !== Role.ADMIN) {
     throw new Error("FORBIDDEN");
