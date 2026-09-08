@@ -132,9 +132,9 @@ export function SidebarMenu({ isOpen }: SidebarMenuProps) {
             exit={{ x: -5000 }}
             transition={{ duration: 0.5 }}
             className={`fixed ${
-              isOpen ? "left-[223px]" : "left-[62px]"
+              isOpen ? "left-[257px]" : "left-[65px]"
             } top-[76px] h-[calc(100%-76px)] ${
-              isOpen ? "w-[calc(100%-225px)]" : "w-[calc(100%-64px)]"
+              isOpen ? "w-[calc(100%-257px)]" : "w-[calc(100%-65px)]"
             } bg-found z-[99] rounded-r-3xl`}
           >
             {/* Header */}
