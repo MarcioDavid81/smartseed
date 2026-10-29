@@ -1,6 +1,42 @@
 import { requireAuth } from "@/lib/auth/require-auth";
 import { db } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+
+type CycleDependency = {
+  label: string;
+  count: number;
+};
+
+async function getCycleDependencies(
+  tx: Prisma.TransactionClient,
+  cycleId: string,
+): Promise<CycleDependency[]> {
+  const [
+    talhoes,
+    harvests,
+    industryHarvests,
+    beneficiations,
+    consumptions,
+    applications,
+  ] = await Promise.all([
+    tx.cycleTalhao.count({ where: { cycleId } }),
+    tx.harvest.count({ where: { cycleId } }),
+    tx.industryHarvest.count({ where: { cycleId } }),
+    tx.beneficiation.count({ where: { cycleId } }),
+    tx.consumptionExit.count({ where: { cycleId } }),
+    tx.application.count({ where: { cycleId } }),
+  ]);
+
+  return [
+    { label: "talhão(ões)", count: talhoes },
+    { label: "colheita(s)", count: harvests },
+    { label: "colheita(s) de indústria", count: industryHarvests },
+    { label: "beneficiamento(s)", count: beneficiations },
+    { label: "consumo(s) de sementes", count: consumptions },
+    { label: "aplicação(ões) de insumos", count: applications },
+  ].filter((dependency) => dependency.count > 0);
+}
 
 /**
  * @swagger
@@ -292,17 +328,17 @@ export async function GET(
  *       404:
  *         description: Safra não encontrada
  *       400:
- *         description: Safra possui talhões associados
+ *         description: Safra possui registros vinculados (talhões ou movimentações)
  */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } },
-) {  
+) {
   try {
     const auth = await requireAuth(req);
     if (!auth.ok) return auth.response;
     const { companyId } = auth;
-  
+
     const { id } = params;
     // 1. Verifica se o ciclo existe
     const existingCycle = await db.productionCycle.findUnique({
@@ -316,26 +352,34 @@ export async function DELETE(
       );
     }
 
-    const cycleHasPlot = await db.cycleTalhao.findMany({
-      where: { cycleId: id },
-    });
+    const dependencies = await db.$transaction(
+      async (tx): Promise<CycleDependency[]> => {
+        const found = await getCycleDependencies(tx, id);
 
-    if (cycleHasPlot.length > 0) {
+        if (found.length > 0) return found;
+
+        await tx.productionCycle.delete({
+          where: { id },
+        });
+
+        return [];
+      },
+    );
+
+    if (dependencies.length > 0) {
       return NextResponse.json(
-        { error: "Safra possui talhões associados" },
+        {
+          error: {
+            code: "CYCLE_HAS_DEPENDENCIES",
+            title: "Exclusão não permitida",
+            message: `Não é possível excluir a safra porque existem registros vinculados: ${dependencies
+              .map(({ count, label }) => `${count} ${label}`)
+              .join(", ")}.`,
+          },
+        },
         { status: 400 },
       );
     }
-
-    await db.$transaction(async (tx) => {
-      await tx.cycleTalhao.deleteMany({
-        where: { cycleId: id },
-      });
-
-      await tx.productionCycle.delete({
-        where: { id },
-      });
-    });
 
     return NextResponse.json({ message: "Safra excluída com sucesso" });
   } catch (error) {

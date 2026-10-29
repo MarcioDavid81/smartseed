@@ -77,7 +77,7 @@ export function CycleGetTable() {
           <div className="flex items-center justify-center gap-4">
             <CycleDetailButton id={cycle.id} />
             <EditCycleButton safraId={cycle.id} />
-            <DeleteCycleButton  />
+            <DeleteCycleButton safraId={cycle.id} />
           </div>
         );
       },
